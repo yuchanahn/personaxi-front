@@ -1,18 +1,14 @@
-import adapter from '@sveltejs/adapter-auto';
-import { vitePreprocess } from '@sveltejs/vite-plugin-svelte';
+// svelte.config.js
+import adapter from '@sveltejs/adapter-static';
 
-/** @type {import('@sveltejs/kit').Config} */
-const config = {
-	// Consult https://svelte.dev/docs/kit/integrations
-	// for more information about preprocessors
-	preprocess: vitePreprocess(),
-
+export default {
 	kit: {
-		// adapter-auto only supports some environments, see https://svelte.dev/docs/kit/adapter-auto for a list.
-		// If your environment is not supported, or you settled on a specific environment, switch out the adapter.
-		// See https://svelte.dev/docs/kit/adapters for more information about adapters.
-		adapter: adapter()
+		adapter: adapter(),
+		paths: {
+			base: '', // GitHub Pages 하위 경로일 경우 '/repo-name'
+		},
+		prerender: {
+			entries: ['*'] // 🔥 기본값. '*'는 모든 경로를 정적 빌드 대상으로 포함
+		}
 	}
 };
-
-export default config;
