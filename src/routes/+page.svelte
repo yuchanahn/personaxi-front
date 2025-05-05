@@ -5,7 +5,9 @@
 
 	onMount(async () => {
 		try {
-			const res = await fetch('/api/user/me');
+			const res = await fetch('http://localhost:8080/api/user/me', {
+				credentials: 'include'
+			});
 			if (res.ok) {
 				user = await res.json();
 			}
@@ -18,7 +20,7 @@
 {#if user}
 	<p>👋 안녕하세요, {user.name} 님!</p>
 {:else}
-	<a href="/login">
+	<a href="http://localhost:8080/auth/google/login">
 		<button>로그인</button>
 	</a>
 {/if}
