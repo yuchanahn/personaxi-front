@@ -19,16 +19,11 @@ jobs:
           cache: 'pnpm'
           cache-dependency-path: '**/pnpm-lock.yaml'
 
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v4
-        with:
-          version: 9 # 최신 pnpm 버전으로 업데이트
-          run_install: false # 자동 설치 방지, 수동으로 제어
-
-      - name: Verify pnpm installation
+      - name: Install pnpm manually
         run: |
-          pnpm --version || echo "pnpm not found!"
-          which pnpm || echo "pnpm not in PATH!"
+          npm install -g pnpm@9
+          pnpm --version
+          echo "pnpm installed at: $(which pnpm)"
 
       - name: Install dependencies
         run: pnpm install
