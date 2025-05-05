@@ -1,14 +1,15 @@
-// svelte.config.js
 import adapter from '@sveltejs/adapter-static';
 
 export default {
 	kit: {
-		adapter: adapter(),
+		adapter: adapter({
+			strict: false
+		}),
 		paths: {
-			base: '', // GitHub Pages 하위 경로일 경우 '/repo-name'
+			base: '/personaxi-front' // 너의 리포지토리 이름이랑 정확히 일치해야 함
 		},
 		prerender: {
-			entries: ['*'] // 🔥 기본값. '*'는 모든 경로를 정적 빌드 대상으로 포함
+			entries: ['*']
 		}
 	}
 };
