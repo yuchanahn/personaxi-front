@@ -22,7 +22,13 @@ jobs:
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
         with:
-          version: 9
+          version: 9 # 최신 pnpm 버전으로 업데이트
+          run_install: false # 자동 설치 방지, 수동으로 제어
+
+      - name: Verify pnpm installation
+        run: |
+          pnpm --version || echo "pnpm not found!"
+          which pnpm || echo "pnpm not in PATH!"
 
       - name: Install dependencies
         run: pnpm install
@@ -37,4 +43,4 @@ jobs:
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./build
-          force_orphan: true # gh-pages 브랜치 히스토리 최소화
+          force_orphan: true
