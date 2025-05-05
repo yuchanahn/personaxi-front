@@ -30,8 +30,6 @@ jobs:
 
       - name: Build project
         run: pnpm run build
-        env:
-          VITE_PUBLIC_BASE_PATH: /personaxi-front # 리포지토리 이름으로 변경
 
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
