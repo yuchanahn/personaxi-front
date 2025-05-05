@@ -1,13 +1,9 @@
 import { sveltekit } from '@sveltejs/kit/vite';
-import { defineConfig } from 'vite';
 
-export default defineConfig({
-	plugins: [sveltekit()],
-	server: {
-		proxy: {
-			'/auth': 'http://localhost:8080',
-			'/api': 'http://localhost:8080'
-		}
-	}
-	
-});
+/** @type {import('vite').UserConfig} */
+const config = {
+  plugins: [sveltekit()],
+  base: '/personaxi-front/' // ✅ 이거도 필요함!
+};
+
+export default config;
