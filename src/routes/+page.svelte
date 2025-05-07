@@ -3,10 +3,12 @@
 
 	let user: { name: string, email: string } | null = null;
 
+
 	onMount(async () => {
 		try {
 			const res = await fetch('https://localhost:8080/api/user/me', {
-				credentials: 'include'
+				credentials: 'include',
+				mode: 'cors'
 			});
 			if (res.ok) {
 				user = await res.json();
