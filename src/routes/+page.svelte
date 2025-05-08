@@ -1,8 +1,7 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 
-	let user: { name: string, email: string } | null = null;
-
+	let user: { Name: string, Email: string } | null = null;
 
 	onMount(async () => {
 		const url = new URL(window.location.href);
@@ -20,7 +19,7 @@
 			} else {
 				console.error('Login failed');
 			}
-		} 
+		}
 
 		try {
 			const res = await fetch('http://localhost:8080/api/user/me', {
