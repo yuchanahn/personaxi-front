@@ -1,36 +1,33 @@
 <script lang="ts">
-	import { onMount } from "svelte";
+	import { onMount } from 'svelte';
 
-	let user: { name: string; email: string } | null = null;
+	let user: { name: string, email: string } | null = null;
+
 
 	onMount(async () => {
+		const url = new URL(window.location.href);
+		const authKey = url.searchParams.get('auth_key');
+
+		if (authKey) {
+			const res = await fetch(`http://localhost:8080/api/auth/login?auth_key=${authKey}`, {
+				credentials: 'include',
+			});
+		} 
+
 		try {
-			const res = await fetch("http://localhost:8080/api/user/me", {
-				credentials: "include",
+			const res = await fetch('http://localhost:8080/api/user/me', {
+				credentials: 'include',
 			});
 			if (res.ok) {
 				user = await res.json();
 			}
 		} catch (e) {
-			console.error("Not logged in");
+			console.error('Not logged in');
 		}
 	});
 
 	const login = async () => {
-		try {
-			const response = await fetch(
-				"http://localhost:8080/auth/google/login",
-				{
-					method: "GET",
-					credentials: "include", // 쿠키 포함
-				},
-			);
-			if (response.redirected) {
-				window.location.href = response.url; // 리다이렉트 처리
-			}
-		} catch (error) {
-			console.error("Error:", error);
-		}
+    	window.location.href = 'http://localhost:8080/auth/google/login';
 	};
 </script>
 
@@ -40,6 +37,5 @@
 	<button
 		on:click={login}
 		class="bg-blue-500 text-white font-bold py-2 px-4 rounded"
-		>로그인</button
-	>
+	>로그인</button>
 {/if}
