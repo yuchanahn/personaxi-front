@@ -9,9 +9,18 @@
 		const authKey = url.searchParams.get('auth_key');
 
 		if (authKey) {
+			console.log('Auth key found:', authKey);
+			// 로그인 시도
 			const res = await fetch(`http://localhost:8080/api/auth/login?auth_key=${authKey}`, {
 				credentials: 'include',
 			});
+			if (res.ok) {
+				const data = await res.json();
+				user = data.user;
+				console.log('User logged in:', user);
+			} else {
+				console.error('Login failed');
+			}
 		} 
 
 		try {
