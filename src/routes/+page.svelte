@@ -16,6 +16,7 @@
 			});
 			if (res.ok) {
 				console.log('User logged in');
+				window.location.href = 'https://yuchanahn.github.io/personaxi-front/';
 			} else {
 				console.error('Login failed');
 			}
