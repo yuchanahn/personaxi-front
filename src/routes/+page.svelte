@@ -18,11 +18,8 @@
 	});
 
 	const login = async () => {
-  		const res = await fetch('http://localhost:8080/auth/google/login', { credentials: 'include' });
-  		const { url } = await res.json();
-  		window.location.href = url; // JS 기반 리디렉션
+    	window.location.href = 'http://localhost:8080/auth/google/login';
 	};
-
 </script>
 
 {#if user}
