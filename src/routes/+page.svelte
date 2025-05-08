@@ -15,9 +15,7 @@
 				credentials: 'include',
 			});
 			if (res.ok) {
-				const data = await res.json();
-				user = data.user;
-				console.log('User logged in:', user);
+				console.log('User logged in');
 			} else {
 				console.error('Login failed');
 			}
