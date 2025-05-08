@@ -27,6 +27,7 @@
 			});
 			if (res.ok) {
 				user = await res.json();
+				console.log('User data:', user);
 			}
 		} catch (e) {
 			console.error('Not logged in');
@@ -39,7 +40,7 @@
 </script>
 
 {#if user}
-	<p>👋 안녕하세요, {user.name} 님!</p>
+	<p>👋 안녕하세요, {user.Name} 님!</p>
 {:else}
 	<button
 		on:click={login}
