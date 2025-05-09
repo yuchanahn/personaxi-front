@@ -51,7 +51,10 @@
 				headers: {
 					'Content-Type': 'application/json'
 				},
-				body: JSON.stringify({ prompt }),
+				body: JSON.stringify({ 
+					user_id: user?.Email ?? 'anonymous',
+					prompt 
+				}),
 			});
 
 			if (res.ok) {
