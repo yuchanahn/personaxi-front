@@ -2,7 +2,7 @@
 	import { onMount } from 'svelte';
 	import { writable } from 'svelte/store';
 	import VersionInfo from '$lib/VersionInfo.svelte';
-	import '$lib/ChatStyle.svelte';
+	import ChatStyle from '$lib/ChatStyle.svelte';
 
 	let user: { Name: string, Email: string } | null = null;
 	let prompt = '';
@@ -70,6 +70,7 @@
 </script>
 
 <main>
+	<ChatStyle />
 	{#if user}
 		<div class="chat-window">
 			{#each $messages as msg, i (i)}
