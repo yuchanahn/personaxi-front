@@ -24,6 +24,18 @@
 				credentials: 'include'
 			});
 			if (res.ok) user = await res.json();
+
+			// 히스토리 불러오기
+			const histRes = await fetch('http://localhost:8080/api/chat/history', {
+				credentials: 'include'
+			});
+			if (histRes.ok) {
+				const history = await histRes.json();
+				messages.set(history.map((msg: any) => ({
+					role: msg.role || (msg.UserID === user?.Email ? 'user' : 'ai'),
+					content: msg.Message
+				})));
+			}
 		} catch {}
 	});
 
@@ -41,12 +53,10 @@
 			const res = await fetch('http://localhost:8080/api/ChatLLM', {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({ user_id: user?.Email ?? 'anonymous', prompt: sending })
+				credentials: 'include',
+				body: JSON.stringify({ prompt: sending })
 			});
 			const data = await res.json();
-			console.log('🧪 응답 타입:', typeof data);
-			console.log('🧪 전체 응답:', JSON.stringify(data));
-			console.log('🧪 response 필드:', data.response);
 			lastResponse = data.response;
 			messages.update(m => [...m, { role: 'ai', content: lastResponse }]);
 		} catch (e) {
