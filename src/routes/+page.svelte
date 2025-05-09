@@ -42,6 +42,8 @@
 
 	const sendPrompt = async () => {
 		if (!prompt.trim()) return;
+		const sending = prompt;
+		prompt = '';
 		isLoading = true;
 		response = '';
 
@@ -53,7 +55,7 @@
 				},
 				body: JSON.stringify({ 
 					user_id: user?.Email ?? 'anonymous',
-					prompt 
+					prompt: sending
 				}),
 			});
 
