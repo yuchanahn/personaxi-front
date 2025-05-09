@@ -11,32 +11,21 @@
 		const authKey = url.searchParams.get('auth_key');
 
 		if (authKey) {
-			console.log('Auth key found:', authKey);
 			const res = await fetch(`http://localhost:8080/api/auth/login?auth_key=${authKey}`, {
-				credentials: 'include',
+				credentials: 'include'
 			});
-			if (res.ok) {
-				console.log('User logged in');
-				window.location.href = 'https://yuchanahn.github.io/personaxi-front/';
-			} else {
-				console.error('Login failed');
-			}
+			if (res.ok) window.location.href = 'https://yuchanahn.github.io/personaxi-front/';
 		}
 
 		try {
 			const res = await fetch('http://localhost:8080/api/user/me', {
-				credentials: 'include',
+				credentials: 'include'
 			});
-			if (res.ok) {
-				user = await res.json();
-				console.log('User data:', user);
-			}
-		} catch (e) {
-			console.error('Not logged in');
-		}
+			if (res.ok) user = await res.json();
+		} catch {}
 	});
 
-	const login = async () => {
+	const login = () => {
 		window.location.href = 'http://localhost:8080/auth/google/login';
 	};
 
@@ -51,20 +40,11 @@
 			const res = await fetch('http://localhost:8080/api/ChatLLM', {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({
-					user_id: user?.Email ?? 'anonymous',
-					prompt: sending
-				})
+				body: JSON.stringify({ user_id: user?.Email ?? 'anonymous', prompt: sending })
 			});
-
-			if (res.ok) {
-				const data = await res.json();
-				messages.push({ role: 'ai', content: data.response });
-			} else {
-				messages.push({ role: 'ai', content: '❌ 오류 발생: 응답을 받지 못했습니다.' });
-			}
-		} catch (e) {
-			console.error(e);
+			const data = await res.json();
+			messages.push({ role: 'ai', content: data.response });
+		} catch {
 			messages.push({ role: 'ai', content: '❌ 서버 오류 발생' });
 		} finally {
 			isLoading = false;
@@ -73,51 +53,88 @@
 </script>
 
 <style>
-.chat-box {
-	height: 70vh;
-	overflow-y: auto;
+:global(body) {
+	margin: 0;
+	font-family: 'Segoe UI', sans-serif;
+	background-color: #343541;
+	color: #ffffff;
+}
+
+main {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	padding: 2rem;
+	max-width: 720px;
+	margin: 0 auto;
+}
+
+.chat-window {
+	width: 100%;
+	background: #444654;
+	border-radius: 10px;
 	padding: 1rem;
-	background-color: #f9f9f9;
-	border-radius: 8px;
-}
-.bubble {
-	padding: 0.75rem 1rem;
+	overflow-y: auto;
+	min-height: 60vh;
 	margin-bottom: 1rem;
-	max-width: 75%;
-	border-radius: 16px;
 }
+
+.message {
+	display: flex;
+	margin-bottom: 1rem;
+	padding: 0.75rem;
+	border-radius: 8px;
+	white-space: pre-wrap;
+}
+
 .user {
+	background: #2b8cff;
 	align-self: flex-end;
-	background-color: #d1e7ff;
+	justify-content: flex-end;
 }
+
 .ai {
+	background: #3e3f4b;
 	align-self: flex-start;
-	background-color: #f0f0f0;
+	justify-content: flex-start;
+}
+
+textarea {
+	width: 100%;
+	resize: none;
+	border: none;
+	border-radius: 8px;
+	padding: 1rem;
+	font-size: 1rem;
+	background: #40414f;
+	color: #fff;
+	margin-bottom: 0.5rem;
+}
+
+button {
+	background-color: #19c37d;
+	color: white;
+	border: none;
+	padding: 0.75rem 1.25rem;
+	border-radius: 8px;
+	cursor: pointer;
+	font-weight: bold;
 }
 </style>
 
-{#if user}
-	<p>👋 안녕하세요, {user.Name} 님!</p>
-	<div class="flex flex-col chat-box">
-		{#each messages as msg (msg.content)}
-			<div class="bubble {msg.role}">{msg.content}</div>
-		{/each}
-	</div>
-	<div class="mt-4">
-		<textarea
-			bind:value={prompt}
-			rows="3"
-			class="w-full p-2 border rounded mb-2"
-			placeholder="캐릭터에게 물어보세요..."
-		></textarea>
-		<button
-			on:click={sendPrompt}
-			class="bg-green-600 text-white px-4 py-2 rounded disabled:opacity-50"
-			disabled={isLoading}
-		>
-			{isLoading ? '답변 생성 중...' : '보내기'}
+<main>
+	{#if user}
+		<div class="chat-window">
+			{#each messages as msg (msg.content)}
+				<div class="message {msg.role}">{msg.content}</div>
+			{/each}
+		</div>
+
+		<textarea bind:value={prompt} rows="3" placeholder="메시지를 입력하세요..." />
+		<button on:click={sendPrompt} disabled={isLoading}>
+			{isLoading ? '생성 중...' : '보내기'}
 		</button>
-	</div>
-{:else}
-	<button on:click={login} class="bg-blue-500 text-white font-bold py-2 px-4 rounded">로그인</button>
-{/if}
+	{:else}
+		<button on:click={login}>Google 로그인</button>
+	{/if}
+</main>
