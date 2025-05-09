@@ -1,5 +1,5 @@
 <script>
-	export let version = 'v0.2.3';
+	export let version = 'v0.2.4';
 </script>
 
 <footer class="text-sm text-gray-400 mt-8">
