@@ -3,8 +3,8 @@
 
 	let user: { Name: string, Email: string } | null = null;
 	let prompt = '';
-	let response = '';
 	let isLoading = false;
+	let messages: { role: 'user' | 'ai'; content: string }[] = [];
 
 	onMount(async () => {
 		const url = new URL(window.location.href);
@@ -45,43 +45,68 @@
 		const sending = prompt;
 		prompt = '';
 		isLoading = true;
-		response = '';
+		messages.push({ role: 'user', content: sending });
 
 		try {
 			const res = await fetch('http://localhost:8080/api/ChatLLM', {
 				method: 'POST',
-				headers: {
-					'Content-Type': 'application/json'
-				},
-				body: JSON.stringify({ 
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({
 					user_id: user?.Email ?? 'anonymous',
 					prompt: sending
-				}),
+				})
 			});
 
 			if (res.ok) {
 				const data = await res.json();
-				response = data.response;
+				messages.push({ role: 'ai', content: data.response });
 			} else {
-				response = '❌ 오류 발생: 응답을 받지 못했습니다.';
+				messages.push({ role: 'ai', content: '❌ 오류 발생: 응답을 받지 못했습니다.' });
 			}
 		} catch (e) {
 			console.error(e);
-			response = '❌ 서버 오류: ' + (e instanceof Error ? e.message : '알 수 없는 오류');
+			messages.push({ role: 'ai', content: '❌ 서버 오류 발생' });
 		} finally {
 			isLoading = false;
 		}
 	};
 </script>
 
+<style>
+.chat-box {
+	height: 70vh;
+	overflow-y: auto;
+	padding: 1rem;
+	background-color: #f9f9f9;
+	border-radius: 8px;
+}
+.bubble {
+	padding: 0.75rem 1rem;
+	margin-bottom: 1rem;
+	max-width: 75%;
+	border-radius: 16px;
+}
+.user {
+	align-self: flex-end;
+	background-color: #d1e7ff;
+}
+.ai {
+	align-self: flex-start;
+	background-color: #f0f0f0;
+}
+</style>
+
 {#if user}
 	<p>👋 안녕하세요, {user.Name} 님!</p>
-
+	<div class="flex flex-col chat-box">
+		{#each messages as msg (msg.content)}
+			<div class="bubble {msg.role}">{msg.content}</div>
+		{/each}
+	</div>
 	<div class="mt-4">
-		<h2 class="text-lg font-semibold mb-2">🗨️ 캐릭터와 대화하기</h2>
 		<textarea
 			bind:value={prompt}
-			rows="4"
+			rows="3"
 			class="w-full p-2 border rounded mb-2"
 			placeholder="캐릭터에게 물어보세요..."
 		></textarea>
@@ -92,17 +117,7 @@
 		>
 			{isLoading ? '답변 생성 중...' : '보내기'}
 		</button>
-
-		{#if response}
-			<div class="mt-4 bg-gray-100 p-4 rounded whitespace-pre-wrap">
-				<strong>💬 응답:</strong>
-				<p>{response}</p>
-			</div>
-		{/if}
 	</div>
 {:else}
-	<button
-		on:click={login}
-		class="bg-blue-500 text-white font-bold py-2 px-4 rounded"
-	>로그인</button>
+	<button on:click={login} class="bg-blue-500 text-white font-bold py-2 px-4 rounded">로그인</button>
 {/if}
