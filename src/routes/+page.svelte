@@ -2,6 +2,7 @@
 	import { onMount } from 'svelte';
 	import { writable } from 'svelte/store';
 	import VersionInfo from '$lib/VersionInfo.svelte';
+	import '$lib/ChatStyle.svelte';
 
 	let user: { Name: string, Email: string } | null = null;
 	let prompt = '';
@@ -57,8 +58,6 @@
 		}
 	};
 </script>
-
-<style>/* 동일 스타일 유지 */</style>
 
 <main>
 	{#if user}
