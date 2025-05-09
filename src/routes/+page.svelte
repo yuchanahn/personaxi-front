@@ -9,14 +9,12 @@
 	onMount(async () => {
 		const url = new URL(window.location.href);
 		const authKey = url.searchParams.get('auth_key');
-
 		if (authKey) {
 			const res = await fetch(`http://localhost:8080/api/auth/login?auth_key=${authKey}`, {
 				credentials: 'include'
 			});
 			if (res.ok) window.location.href = 'https://yuchanahn.github.io/personaxi-front/';
 		}
-
 		try {
 			const res = await fetch('http://localhost:8080/api/user/me', {
 				credentials: 'include'
@@ -35,7 +33,6 @@
 		prompt = '';
 		isLoading = true;
 		messages.push({ role: 'user', content: sending });
-
 		try {
 			const res = await fetch('http://localhost:8080/api/ChatLLM', {
 				method: 'POST',
@@ -43,8 +40,10 @@
 				body: JSON.stringify({ user_id: user?.Email ?? 'anonymous', prompt: sending })
 			});
 			const data = await res.json();
+			console.log('LLM 응답:', data);
 			messages.push({ role: 'ai', content: data.response });
-		} catch {
+		} catch (e) {
+			console.error('❌ 오류:', e);
 			messages.push({ role: 'ai', content: '❌ 서버 오류 발생' });
 		} finally {
 			isLoading = false;
@@ -125,7 +124,7 @@ button {
 <main>
 	{#if user}
 		<div class="chat-window">
-			{#each messages as msg (msg.content)}
+			{#each messages as msg, i (i)}
 				<div class="message {msg.role}">{msg.content}</div>
 			{/each}
 		</div>
