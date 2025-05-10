@@ -1,0 +1,1 @@
+import{t as a,a as e}from"../chunks/BvkkkGPw.js";import"../chunks/Cf7J2IXR.js";import{e as i}from"../chunks/BUDVFNWF.js";var l=a("<button>🟦 Google로 로그인하기</button>");function g(t){function n(){window.location.href="https://localhost:8080/auth/google/login"}var o=l();i("click",o,n),e(t,o)}export{g as component};
