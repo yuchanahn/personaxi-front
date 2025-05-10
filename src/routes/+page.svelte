@@ -69,8 +69,9 @@
 	};
 </script>
 
+<ChatStyle />
+
 <main>
-	<ChatStyle />
 	{#if user}
 		<div class="chat-window">
 			{#each $messages as msg, i (i)}
