@@ -25,5 +25,8 @@
 		"onlyBuiltDependencies": [
 			"esbuild"
 		]
+	},
+	"dependencies": {
+		"@iconify/svelte": "^5.0.0"
 	}
 }
