@@ -8,12 +8,12 @@
   import Icon from "@iconify/svelte";
   import ContentHub from "../portal/ContentHub.svelte";
   import { ViewContentHub } from "$lib/stores/flags";
-    import VrmModelViewer from "../chat3D/VrmModelViewer.svelte";
+  import VrmModelViewer from "../chat3D/VrmModelViewer.svelte";
 
   export let user: any;
   export let onSend: (text: string) => void;
   let showSidebar = true;
-  let Character3D = false;
+  let Character3D = true;
 </script>
 
 <!-- 토글 버튼 고정 -->
@@ -40,11 +40,13 @@
       {#if $ViewContentHub}
         <ContentHub />
       {:else if Character3D}
+      <div class="vrm-view">
         <VrmModelViewer />
+      </div>
       {:else}
-        <div class="chat-content">
-          <ChatWindow />
-          <ChatInput {onSend} />
+      <div class="chat-content">
+        <ChatWindow />
+        <ChatInput {onSend} />
         </div>
       {/if}
     {:else}
@@ -64,17 +66,28 @@
     font-family: "Segoe UI", sans-serif;
   }
 
+  .vrm-view {
+    position: relative;
+    width: 100%;
+    height: 100vh;
+    overflow: hidden;
+  }
+
+
   .layout {
     display: flex;
     height: 100vh;
     overflow: hidden;
   }
-
+  .chat-container {
+    z-index: 10;
+  }
   .sidebar {
     width: 300px;
     background: var(--color-surface);
     transition: width 0.3s ease;
     overflow: hidden;
+    z-index: 11;
   }
   .sidebar.collapsed {
     width: 0;
@@ -96,8 +109,8 @@
     align-items: center;
     justify-content: center;
   }
-
   .chat-container {
+
     flex-grow: 1;
     background: var(--color-bg);
     display: flex;
@@ -106,6 +119,7 @@
   }
 
   .chat-content {
+    position: relative; /* 💥 이게 꼭 있어야 함 */
     display: flex;
     flex-direction: column;
     height: 100%;
