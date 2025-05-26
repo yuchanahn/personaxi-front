@@ -1,5 +1,7 @@
+import { API_BASE_URL } from "$lib/constants";
+
 export async function fetchAuctionStatus(personaId: string) {
-    const res = await fetch(`http://localhost:8080/api/auction/status?c=${personaId}`, {
+    const res = await fetch(`${API_BASE_URL}/api/auction/status?c=${personaId}`, {
         credentials: "include",
     });
 
@@ -9,7 +11,7 @@ export async function fetchAuctionStatus(personaId: string) {
 }
 
 export async function placeBid(personaId: string, amount: number) {
-    const res = await fetch(`http://localhost:8080/api/auction/bid?c=${personaId}`, {
+    const res = await fetch(`${API_BASE_URL}/api/auction/bid?c=${personaId}`, {
         method: "POST",
         headers: {
             "Content-Type": "application/json",
@@ -27,7 +29,7 @@ export async function placeBid(personaId: string, amount: number) {
 }
 
 export async function createAuction(personaId: string, startBid: number, duration: number) {
-    const res = await fetch("http://localhost:8080/api/auction/create", {
+    const res = await fetch(`${API_BASE_URL}/api/auction/create`, {
         method: "POST",
         headers: {
             "Content-Type": "application/json",

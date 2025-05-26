@@ -1,4 +1,5 @@
 <script lang="ts">
+    import { API_BASE_URL } from "$lib/constants";
     // 예: 로그인 옵션 정의
     type LoginOption = {
         name: string;
@@ -11,8 +12,7 @@
             name: "Google",
             icon: "./icons/google.svg",
             handler: () => {
-                window.location.href =
-                    "http://localhost:8080/auth/google/login";
+                window.location.href = `${API_BASE_URL}/auth/google/login`;
             },
         },
         {

@@ -1,5 +1,6 @@
 import { chatSessions, ChatSessionType, createNewSession, updateSession } from '$lib/stores/chatSessions';
 import { get } from 'svelte/store';
+import { API_BASE_URL } from '$lib/constants';
 
 export async function loadChatSessions() {
     createNewSession("2", "🔍 콘텐츠 보기", ChatSessionType.SYSTEM);
@@ -11,7 +12,7 @@ export async function loadChatSessions() {
     createNewSession("1", "새 대화 💬", ChatSessionType.SYSTEM);
     createNewSession("S4", "", ChatSessionType.SPACE);
 
-    const res = await fetch('http://localhost:8080/api/chat/sessions', {
+    const res = await fetch(`${API_BASE_URL}/api/chat/sessions`, {
         credentials: 'include'
     });
     if (res.ok) {
@@ -25,7 +26,7 @@ export async function loadChatSessions() {
 }
 
 export async function loadCharacterSessions() {
-    const res = await fetch('http://localhost:8080/api/chat/char/sessions', {
+    const res = await fetch(`${API_BASE_URL}/api/chat/char/sessions`, {
         credentials: 'include'
     });
     if (res.ok) {

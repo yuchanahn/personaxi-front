@@ -1,7 +1,8 @@
 const BASE = "/api/live";
+import { API_BASE_URL } from '$lib/constants';
 
 export async function fetchLivePersonas(): Promise<string[]> {
-    const res = await fetch(`http://localhost:8080${BASE}/list`, { credentials: "include" });
+    const res = await fetch(`${API_BASE_URL}${BASE}/list`, { credentials: "include" });
 
     if (!res.ok) {
         throw new Error("라이브 리스트 불러오기 실패");
@@ -18,7 +19,7 @@ export async function fetchLivePersonas(): Promise<string[]> {
 
 // 방송 상태 설정 (시작 or 중단)
 export async function setLiveStatus(personaId: string, isLive: boolean): Promise<void> {
-    const res = await fetch(`http://localhost:8080${BASE}/set`, {
+    const res = await fetch(`${API_BASE_URL}${BASE}/set`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",

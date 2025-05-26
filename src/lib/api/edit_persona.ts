@@ -2,6 +2,7 @@ import { goto } from "$app/navigation";
 import { onMount } from "svelte";
 import type { Persona } from "$lib/types";
 import { page } from "$app/stores";
+import { API_BASE_URL } from '$lib/constants';
 
 export async function savePersona(persona: Persona, vrmFile: File | null, portrait: File | null) {
     try {
@@ -14,7 +15,7 @@ export async function savePersona(persona: Persona, vrmFile: File | null, portra
             formData.append("portrait", portrait); // VRM 파일 (File 객체)
         }
 
-        const res = await fetch("http://localhost:8080/api/persona/edit", {
+        const res = await fetch(`${API_BASE_URL}/api/persona/edit`, {
             method: "POST",
             body: formData,
             credentials: 'include'
@@ -36,7 +37,7 @@ export async function loadPersona(id: string) {
     if (id) {
         try {
             const res = await fetch(
-                `http://localhost:8080/api/persona?id=${id}`,
+                `${API_BASE_URL}/api/persona?id=${id}`,
                 {
                     credentials: 'include'
                 }

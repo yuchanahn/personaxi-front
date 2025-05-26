@@ -3,9 +3,12 @@ import { tickSSEStream, extractCSSID } from '$lib/parser/sseParser';
 import { loadChatSessions } from './sessions';
 import { get, type Writable } from 'svelte/store';
 import { goto } from '$app/navigation';
+import { API_BASE_URL } from '$lib/constants';
+
+
 
 export async function loadChatHistory(sessionId: string) {
-    const res = await fetch(`http://localhost:8080/api/chat/history?CSSID=${sessionId}`, {
+    const res = await fetch(`${API_BASE_URL}/api/chat/history?CSSID=${sessionId}`, {
         credentials: 'include'
     });
     if (res.ok) {
@@ -61,7 +64,7 @@ export async function impl_sendPromptStream(
         type: type ?? "chat",
     };
 
-    const response = await fetch("http://localhost:8080/api/ChatLLM", {
+    const response = await fetch(`${API_BASE_URL}/api/ChatLLM`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",

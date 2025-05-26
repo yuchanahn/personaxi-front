@@ -1,5 +1,8 @@
+import { API_BASE_URL } from '$lib/constants';
+
+
 export async function loadContent() {
-    const res = await fetch('http://localhost:8080/api/contents', {
+    const res = await fetch(`${API_BASE_URL}/api/contents`, {
         credentials: 'include'
     });
     if (res.ok) {

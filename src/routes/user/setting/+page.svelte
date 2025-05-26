@@ -1,4 +1,5 @@
 <script lang="ts">
+    import { API_BASE_URL } from "$lib/constants";
     import { goto } from "$app/navigation";
     import { onMount } from "svelte";
     import type { Persona } from "$lib/types";
@@ -33,7 +34,7 @@
 
     onMount(async () => {
         try {
-            const userRes = await fetch("http://localhost:8080/api/user/me", {
+            const userRes = await fetch(`${API_BASE_URL}/api/user/me`, {
                 credentials: "include",
             });
             if (userRes.ok) {
@@ -43,7 +44,7 @@
             }
 
             const personasRes = await fetch(
-                "http://localhost:8080/api/persona/user",
+                `${API_BASE_URL}/api/persona/user`,
                 {
                     credentials: "include",
                 },
@@ -76,7 +77,7 @@
     }
 
     async function deletePersona(id: string) {
-        const res = await fetch(`http://localhost:8080/api/persona/${id}`, {
+        const res = await fetch(`${API_BASE_URL}/api/persona/${id}`, {
             method: "DELETE",
             credentials: "include",
         });
