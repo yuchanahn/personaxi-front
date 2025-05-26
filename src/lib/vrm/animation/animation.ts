@@ -1,5 +1,7 @@
 import * as THREE from 'three'
 import { VRM, VRMExpressionManager, VRMHumanBoneName } from '@pixiv/three-vrm'
+import { AnimationClip } from 'three'
+
 
 export class VrmAnimation {
   public duration: number
@@ -41,8 +43,8 @@ export class VrmAnimation {
         tracks.push(track)
       }
     }
-
-    return new THREE.AnimationClip('Clip', this.duration, tracks)
+    const clip = new THREE.AnimationClip('Clip', this.duration, tracks);
+    return clip
   }
 
   public createHumanoidTracks(vrm: VRM): THREE.KeyframeTrack[] {

@@ -1,61 +1,91 @@
-import { messages } from '$lib/stores/messages';
-import { currentSessionId } from '$lib/stores/chatSessions';
+import { messages, type Message } from '$lib/stores/messages';
 import { tickSSEStream, extractCSSID } from '$lib/parser/sseParser';
 import { loadChatSessions } from './sessions';
-import { get } from 'svelte/store';
+import { get, type Writable } from 'svelte/store';
+import { goto } from '$app/navigation';
 
-export async function loadChatHistory() {
-    const res = await fetch(`http://localhost:8080/api/chat/history?CSSID=${get(currentSessionId)}`, {
+export async function loadChatHistory(sessionId: string) {
+    const res = await fetch(`http://localhost:8080/api/chat/history?CSSID=${sessionId}`, {
         credentials: 'include'
     });
     if (res.ok) {
         const history = await res.json();
         messages.set(history.map((msg: any) => ({ role: msg.role, content: msg.content })));
     } else {
-        messages.set([{ role: 'assistant', content: '질문을 입력하세요.' }]);
+        messages.set([]);
     }
 }
 
-export async function sendPromptStream(prompt: string) {
+export async function sendPromptStream(cid: string, prompt: string, type?: string) {
     if (!prompt.trim()) return;
     messages.update((m) => [...m, { role: 'user', content: prompt }]);
 
-    const response = await fetch("http://localhost:8080/api/ChatLLM", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify({
-            prompt,
-            CSSID: (get(currentSessionId) === "1" ? "" : get(currentSessionId)) || ""
-        })
-    });
-
-    const reader = response.body?.getReader();
-    const decoder = new TextDecoder("utf-8");
-    let buffer = "";
     let aiText = "";
 
-    while (true) {
-        const { rt, done } = await tickSSEStream(reader, decoder, { buffer });
-        if (done) break;
+    if (cid === "1" || cid === null) {
+        cid = "";
+    }
 
-        let cssid = extractCSSID(rt);
-        if (cssid) {
-            currentSessionId.set(cssid);
-
-            console.log("CSSID:", cssid);
-
-            loadChatSessions();
-            continue
-        }
-
-        aiText += rt;
-
+    impl_sendPromptStream(prompt, cid, (data) => {
+        aiText += data;
         messages.update((m) => {
             const last = m.at(-1);
             return last?.role === "assistant"
                 ? [...m.slice(0, -1), { role: "assistant", content: aiText }]
                 : [...m, { role: "assistant", content: aiText }];
         });
+    }, (cssid) => {
+        if (cssid) {
+            loadChatSessions();
+            if (type == "character") {
+                goto(`/personaxi-front/2d?c=${cssid}`);
+            } else {
+                goto(`/personaxi-front/chat?c=${cssid}`);
+            }
+        }
+    }, type)
+}
+
+export async function impl_sendPromptStream(
+    prompt: string,
+    currentSessionId: string,
+    onData: (data: string) => void,
+    onCSSID?: (cssid: string) => void,
+    type?: string,
+): Promise<void> {
+    if (!prompt.trim()) return;
+
+    const body = {
+        prompt,
+        CSSID: currentSessionId,
+        type: type ?? "chat",
+    };
+
+    const response = await fetch("http://localhost:8080/api/ChatLLM", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify(body)
+    });
+
+    const reader = response.body?.getReader();
+    const decoder = new TextDecoder("utf-8");
+    let buffer = "";
+
+    while (true) {
+        const { rts, done } = await tickSSEStream(reader, decoder, { buffer });
+
+        for (const rt of rts) {
+            const cssid = extractCSSID(rt);
+            if (cssid) {
+                onCSSID?.(cssid);
+            } else {
+                onData(rt);
+                console.log("data: ", rt);
+            }
+        }
+
+        if (done) break;
     }
+
 }

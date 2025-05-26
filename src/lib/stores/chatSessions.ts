@@ -1,20 +1,30 @@
-// src/lib/stores/chatSessions.ts
-import { writable } from 'svelte/store';
+import { get, writable } from 'svelte/store';
 
-export const chatSessions = writable<{
-	id: string;
-	name: string;
-	createdAt: string;
-}[]>([]);
+export enum ChatSessionType {
+    CHAT = 'text',
+    CHARACTER = '2D',
+    CHARACTER3D = '3D',
+    SYSTEM = 'system',
+    SPACE = 'space',
+}
 
-export const currentSessionId = writable<string | null>(null);
+export type ChatSession = {
+    id: string;
+    name: string;
+    createdAt: string;
+    type: ChatSessionType;
+};
 
-export const createNewSession = (id: string, name: string) => {
-    const newSession = {
+export const chatSessions = writable<ChatSession[]>([]);
+
+export const createNewSession = (id: string, name: string, type: ChatSessionType) => {
+    const newSession: ChatSession = {
         id: id,
         name: name,
-        createdAt: new Date().toISOString() // 추가!
-    };
+        createdAt: new Date().toISOString(),
+        type: type
+    } as ChatSession;
+
     chatSessions.update((sessions) => {
         // Check if the session with the same ID already exists
         const sessionExists = sessions.some(session => session.id === newSession.id);
@@ -27,3 +37,22 @@ export const createNewSession = (id: string, name: string) => {
     }
     );
 };
+
+export const updateSession = (id: string, session: ChatSession) => {
+    chatSessions.update((sessions) => {
+        const sessionIndex = sessions.findIndex((session) => session.id === id);
+        if (sessionIndex !== -1) {
+            // Update the session at the found index
+            sessions[sessionIndex] = { ...sessions[sessionIndex], ...session };
+        }
+        return sessions;
+    });
+};
+
+export const getSessionById = (id: string) => {
+    let session: ChatSession | undefined;
+    chatSessions.subscribe((sessions) => {
+        session = sessions.find((s) => s.id === id);
+    })();
+    return session;
+}

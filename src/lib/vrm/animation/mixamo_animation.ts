@@ -2,6 +2,8 @@ import * as THREE from 'three'
 import { VRM, VRMHumanBoneName } from '@pixiv/three-vrm'
 import { FBXLoader } from 'three/addons/loaders/FBXLoader.js'
 import { mixamoVRMRigMap } from './mixamoVRMRigMap'
+import { saveClipAsJSON } from './utils/anim'
+
 
 /**
  * Load Mixamo animation, convert for three-vrm use, and return it.
@@ -91,7 +93,11 @@ function loadMixamoAnimation(url: string, vrm: VRM) {
       }
     })
 
-    return new THREE.AnimationClip('vrmAnimation', clip.duration, tracks)
+    const vrmClip = new THREE.AnimationClip('vrmAnimation', clip.duration, tracks);
+
+    saveClipAsJSON(vrmClip, `${url}`)
+
+    return vrmClip
   })
 }
 

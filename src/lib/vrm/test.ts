@@ -1,19 +1,30 @@
+import type { Persona } from '$lib/types';
+import { Model } from './core/model';
 import { Viewer } from './core/viewer'
 
-export function test(canvas: HTMLCanvasElement) {
-    const viewer = new Viewer(canvas);
+let current_model: Model | null = null
+let viewer: Viewer | null = null
 
-    viewer.loadModel('./AvatarSample_B.vrm');
-    viewer.start();
+export function test(canvas: HTMLCanvasElement, persona: Persona) {
 
-    // drag & drop
-    window.addEventListener('dragover', e => e.preventDefault());
-    window.addEventListener('drop', e => {
-        e.preventDefault();
-        const file = e.dataTransfer?.files?.[0];
-        if (!file) return;
-        const url = URL.createObjectURL(file);
-        viewer.loadModel(url);
-    });
+    if (current_model) {
+        current_model.unloadVrm();
+    }
+    if (viewer) {
+        viewer.stop();
+    }
 
+    viewer = new Viewer(canvas);
+    let m = viewer.loadModel(`https://uohepkqmwbstbmnkoqju.supabase.co/storage/v1/object/public/vrm-models/${persona.owner_id}/${persona.id}.vrm`);
+    m.then(m => {
+        current_model = m;
+        if (viewer) viewer.start();
+    })
+    return m;
+}
+
+export function unload() {
+    if (current_model) {
+        current_model.unloadVrm();
+    }
 }

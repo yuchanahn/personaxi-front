@@ -1,13 +1,10 @@
 <script lang="ts">
-  import { onMount } from 'svelte';
-  import ChatLayout from '$lib/components/layout/ChatLayout.svelte';
-  import { currentSessionId } from '$lib/stores/chatSessions';
-  import { sendPromptStream, loadChatHistory } from '$lib/api/chat';
-  import { getCurrentUser, loginWithAuthKey } from '$lib/api/auth';
-  import { loadChatSessions } from '$lib/api/sessions';
-  import { ViewContentHub } from '$lib/stores/flags';
+  import { onMount } from "svelte";
+  import { getCurrentUser, loginWithAuthKey } from "$lib/api/auth";
+  import { is_login } from "$lib/stores/user";
+  import { goto } from "$app/navigation";
 
-  let user = null as any;
+  import "$lib/styles/theme.css";
 
   onMount(async () => {
     const url = new URL(window.location.href);
@@ -16,23 +13,22 @@
       await loginWithAuthKey(authKey);
     }
 
-    user = await getCurrentUser();
-    await loadChatSessions();
-    await loadChatHistory();
-  });
+    let user = await getCurrentUser();
 
-  currentSessionId.subscribe((id) => {
-    if (id && id !== "1") {
-      loadChatHistory();
-    }
-    if (id === "2") {
-      ViewContentHub.set(true);
-    } else {
-      ViewContentHub.set(false);
+    if (user != null) {
+      is_login.set(true);
+      goto("/personaxi-front/hub");
     }
   });
 </script>
 
-<main>
-  <ChatLayout {user} onSend={sendPromptStream} />
-</main>
+<main></main>
+
+<style>
+  :global(body) {
+    margin: 0;
+    background: var(--color-bg);
+    color: var(--color-text);
+    font-family: "Segoe UI", sans-serif;
+  }
+</style>

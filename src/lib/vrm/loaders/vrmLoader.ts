@@ -7,7 +7,7 @@ export function createVRMLoader(): GLTFLoader {
   const loader = new GLTFLoader();
   loader.register((parser) => {
     const mtoonMaterialPlugin = new MToonMaterialLoaderPlugin(parser, {
-      materialType: MToonNodeMaterial
+      materialType: MToonNodeMaterial,
     })
     return new VRMLoaderPlugin(parser, { mtoonMaterialPlugin })
   })

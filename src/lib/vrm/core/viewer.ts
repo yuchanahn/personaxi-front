@@ -1,13 +1,17 @@
 import * as THREE from 'three/webgpu';
 import { Model } from './model';
+import { v4 as uuidv4 } from 'uuid';
 
 export class Viewer {
+  public model = new Model();
+
   private renderer: THREE.WebGPURenderer;
   private scene: THREE.Scene;
   private camera: THREE.PerspectiveCamera;
   private light: THREE.DirectionalLight;
-  private model = new Model();
   private clock = new THREE.Clock();
+
+  private id = uuidv4();
 
   constructor(canvas: HTMLCanvasElement) {
     this.renderer = new THREE.WebGPURenderer({ canvas, antialias: true });
@@ -15,23 +19,28 @@ export class Viewer {
     this.renderer.setPixelRatio(window.devicePixelRatio);
 
     this.scene = new THREE.Scene();
-    this.camera = new THREE.PerspectiveCamera(30, canvas.clientWidth / canvas.clientHeight, 0.1, 20);
-    this.camera.position.set(0, 1.5, 3);
+    this.camera = new THREE.PerspectiveCamera(25, canvas.clientWidth / canvas.clientHeight, 0.1, 5);
+    this.camera.position.set(0, 1.35, 1);
 
-    this.light = new THREE.DirectionalLight(0xffffff, Math.PI);
+    this.light = new THREE.DirectionalLight(0xffffff, 1);
+    const ambient = new THREE.AmbientLight(0xffffff, 2.0);
+    ambient.position.set(1, 3, 1);
+    this.scene.add(ambient);
+
     this.light.position.set(1, 2, 1);
     this.scene.add(this.light);
-
-    //this.scene.add(new THREE.GridHelper(10, 10));
-    //this.scene.add(new THREE.AxesHelper(5));
   }
 
   async loadModel(url: string) {
-    const vrm = await this.model.load(url);
-    if (vrm) { 
+    this.clock.stop();
+    const vrm = await this.model.load(url, this.camera);
+    if (vrm) {
       this.model.initAnimations(vrm);
       this.scene.add(vrm.scene);
     }
+    this.clock.start();
+
+    return this.model;
   }
 
   update = async () => {
@@ -39,10 +48,17 @@ export class Viewer {
     const delta = this.clock.getDelta();
     this.model.update(delta);
     await this.renderer.renderAsync(this.scene, this.camera);
+    //this.renderer.render(this.scene, this.camera)
   };
 
   start() {
     this.clock.start();
     this.update();
+  }
+
+  stop() {
+    this.clock.stop();
+
+    console.log("stop!!");
   }
 }

@@ -1,0 +1,40 @@
+// WebSocket 연결 및 송수신 처리 (순수 WebSocket 버전)
+
+let socket: WebSocket | null = null;
+
+export function connectBroadcastSocket(
+    onReaction: (packet: any) => void,
+    onConnect?: () => void,
+    onDisconnect?: () => void
+): WebSocket {
+    socket = new WebSocket("ws://localhost:8080/ws/broadcast");
+
+    socket.onopen = () => {
+        console.log("✅ 방송 WebSocket 연결됨");
+        onConnect?.();
+    };
+
+    socket.onclose = () => {
+        console.warn("⚠️ 방송 WebSocket 끊김");
+        onDisconnect?.();
+    };
+
+    socket.onmessage = (event) => {
+        try {
+            const packet = JSON.parse(event.data);
+            onReaction(packet);
+        } catch (e) {
+            console.warn("⚠️ 수신 메시지 JSON 파싱 실패", event.data);
+        }
+    };
+
+    return socket;
+}
+
+export function sendChatMessage(message: string) {
+    if (socket && socket.readyState === WebSocket.OPEN) {
+        socket.send(JSON.stringify({ type: "chat", msg: message }));
+    } else {
+        console.warn("❌ WebSocket 연결 안 됨, 메시지 전송 실패");
+    }
+}

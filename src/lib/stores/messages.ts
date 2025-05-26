@@ -1,8 +1,8 @@
 import { writable } from 'svelte/store';
 
-export const messages = writable<{
+export type Message = {
   role: 'user' | 'assistant' | 'system';
   content: string;
-}[]>([
-  { role: 'assistant', content: '질문을 입력하세요.' }
-]);
+};
+
+export const messages = writable<Message[]>([]);
