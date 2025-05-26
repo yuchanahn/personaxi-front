@@ -8,7 +8,6 @@ window.fetch = async (input: RequestInfo, init?: RequestInit): Promise<Response>
     const headers = {
         ...init?.headers,
         "ngrok-skip-browser-warning": "true", // ngrok 경고 스킵
-        "Content-Type": "application/json", // 기본 헤더 (필요 시 조정)
     };
 
     return originalFetch(input, { ...init, headers });
