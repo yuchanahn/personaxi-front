@@ -3,13 +3,16 @@ import { get } from 'svelte/store';
 import { API_BASE_URL } from '$lib/constants';
 
 export async function loadChatSessions() {
-    createNewSession("2", "🔍 콘텐츠 보기", ChatSessionType.SYSTEM);
+
+    chatSessions.set([]);
+
+    createNewSession("2", "🔍 탐색", ChatSessionType.SYSTEM);
     createNewSession("S1", "", ChatSessionType.SPACE);
-    createNewSession("3", "⚙️ 설정", ChatSessionType.SYSTEM);
+    createNewSession("3", "⚙️ 사용자", ChatSessionType.SYSTEM);
     createNewSession("S2", "", ChatSessionType.SPACE);
-    createNewSession("5", "🎨 페르소나 창조", ChatSessionType.SYSTEM);
+    createNewSession("5", "🎨 창조", ChatSessionType.SYSTEM);
     createNewSession("S3", "", ChatSessionType.SPACE);
-    createNewSession("1", "새 대화 💬", ChatSessionType.SYSTEM);
+    //createNewSession("1", "새 대화 💬", ChatSessionType.SYSTEM);
     createNewSession("S4", "", ChatSessionType.SPACE);
 
     const res = await fetch(`${API_BASE_URL}/api/chat/sessions`, {

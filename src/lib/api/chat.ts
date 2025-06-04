@@ -1,6 +1,6 @@
 import { messages, type Message } from '$lib/stores/messages';
 import { tickSSEStream, extractCSSID } from '$lib/parser/sseParser';
-import { loadChatSessions } from './sessions';
+import { loadCharacterSessions, loadChatSessions } from './sessions';
 import { get, type Writable } from 'svelte/store';
 import { goto } from '$app/navigation';
 import { API_BASE_URL } from '$lib/constants';
@@ -18,6 +18,37 @@ export async function loadChatHistory(sessionId: string) {
         messages.set([]);
     }
 }
+
+export async function resetChatHistory(sessionId: string) {
+    const res = await fetch(`${API_BASE_URL}/api/chat/reset?CSSID=${sessionId}`, {
+        credentials: 'include'
+    });
+    if (res.ok) {
+        const r = await res.json();
+        messages.set([]);
+        //messages.set(history.map((msg: any) => ({ role: msg.role, content: msg.content })));
+    } else {
+        messages.set([]);
+    }
+}
+
+export async function deleteChatHistory(sessionId: string) {
+    const res = await fetch(`${API_BASE_URL}/api/chat/delete?CSSID=${sessionId}`, {
+        credentials: 'include'
+    });
+    if (res.ok) {
+        const r = await res.json();
+
+        goto(`/personaxi-front/hub`);
+
+        loadChatSessions();
+        loadCharacterSessions();
+        //messages.set(history.map((msg: any) => ({ role: msg.role, content: msg.content })));
+    }
+}
+
+
+
 
 export async function sendPromptStream(cid: string, prompt: string, type?: string) {
     if (!prompt.trim()) return;
@@ -40,6 +71,7 @@ export async function sendPromptStream(cid: string, prompt: string, type?: strin
     }, (cssid) => {
         if (cssid) {
             loadChatSessions();
+            loadCharacterSessions();
             if (type == "character") {
                 goto(`/personaxi-front/2d?c=${cssid}`);
             } else {

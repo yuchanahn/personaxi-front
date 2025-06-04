@@ -5,13 +5,23 @@ import { messages } from "$lib/stores/messages";
 import type { Model } from "$lib/vrm/core/model";
 
 export function extractExpressionTags(text: string): string[] {
-    const matches = text.matchAll(/<표정:([a-zA-Z_]+)>/g);
+    const matches = text.matchAll(/<emo:([a-zA-Z_]+)>/g);
     const result: string[] = [];
     for (const match of matches) {
         if (match[1]) result.push(match[1]);
     }
     return result;
 }
+
+export function extractActionTags(text: string): string[] {
+    const matches = text.matchAll(/<act:([a-zA-Z_]+)>/g);
+    const result: string[] = [];
+    for (const match of matches) {
+        if (match[1]) result.push(match[1]);
+    }
+    return result;
+}
+
 
 export async function handleSendToCharacter(cid: string, prompt: string, model?: Model) {
     if (!prompt.trim()) return;
@@ -28,10 +38,15 @@ export async function handleSendToCharacter(cid: string, prompt: string, model?:
             messages.update(m => {
 
                 let tags = extractExpressionTags(aiText)
+                let tags2 = extractActionTags(aiText)
 
                 if (tags.length > 0) {
-                    aiText = aiText.replace(/<표정:([a-zA-Z_]+)>/g, "")
+                    aiText = aiText.replace(/<emo:([a-zA-Z_]+)>/g, "")
                     model?.Emotion(tags[0]);
+                }
+
+                if (tags2.length > 0) {
+                    aiText = aiText.replace(/<act:([a-zA-Z_]+)>/g, "")
                 }
 
                 const last = m.at(-1);

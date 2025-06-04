@@ -31,7 +31,7 @@
     ]);
 
     onMount(() => {
-        socket = connectBroadcastSocket((packet) => {
+        socket = connectBroadcastSocket(persona.id, (packet) => {
             let msg = packet as {
                 type: string;
                 msg: string;

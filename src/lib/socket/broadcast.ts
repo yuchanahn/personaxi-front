@@ -3,11 +3,12 @@
 let socket: WebSocket | null = null;
 
 export function connectBroadcastSocket(
+    personaId: string, // <-- personaId 인자를 추가해줘
     onReaction: (packet: any) => void,
     onConnect?: () => void,
     onDisconnect?: () => void
 ): WebSocket {
-    socket = new WebSocket("ws://localhost:8080/ws/broadcast");
+    socket = new WebSocket(`ws://localhost:8080/ws/broadcast?personaId=${personaId}`);
 
     socket.onopen = () => {
         console.log("✅ 방송 WebSocket 연결됨");
@@ -25,6 +26,7 @@ export function connectBroadcastSocket(
             onReaction(packet);
         } catch (e) {
             console.warn("⚠️ 수신 메시지 JSON 파싱 실패", event.data);
+            console.error(e);
         }
     };
 

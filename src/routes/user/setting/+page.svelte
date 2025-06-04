@@ -135,18 +135,24 @@
                     <button on:click={() => openAuctionModal(persona)}
                         >Start Auction</button
                     >
-                    <h3>{persona.name}</h3>
-                    <p>Type: {persona.personaType}</p>
-                    <p>{persona.intro.slice(0, 50)}...</p>
-                    <div class="actions">
-                        <button
-                            on:click={() =>
-                                goto(`/personaxi-front/edit?c=${persona.id}`)}
-                            >Edit</button
-                        >
-                        <button on:click={() => deletePersona(persona.id)}
-                            >Delete</button
-                        >
+                    <div class="xbox">
+                        <img
+                            src={`https://uohepkqmwbstbmnkoqju.supabase.co/storage/v1/object/public/portraits/${persona.owner_id[0]}/${persona.id}.portrait`}
+                            alt="portrait"
+                            class="portrait"
+                        />
+                        <div class="ybox">
+                            <h1>{persona.name}</h1>
+                            <p>Type: {persona.personaType}</p>
+                            <div class="actions">
+                                <button
+                                    on:click={() =>
+                                        goto(
+                                            `/personaxi-front/edit?c=${persona.id}`,
+                                        )}>Edit</button
+                                >
+                            </div>
+                        </div>
                     </div>
                 </div>
             {/each}

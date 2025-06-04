@@ -1,0 +1,142 @@
+[
+    {
+        "name": "admiration",
+        "description": "A feeling of deep respect or admiration for someone or something.",
+        "description-ko": "누구나 또는 무언가에 대한 깊은 존경이나 감탄의 감정"
+    },
+    {
+        "name": "amusement",
+        "description": "A feeling of light-hearted pleasure or enjoyment.",
+        "description-ko": "가볍고 유쾌한 즐거움이나 만족감"
+    },
+    {
+        "name": "anger",
+        "description": "A strong feeling of annoyance, displeasure, or hostility.",
+        "description-ko": "강한 짜증, 불쾌감, 또는 적대감의 감정"
+    },
+    {
+        "name": "annoyance",
+        "description": "A mild feeling of irritation or frustration.",
+        "description-ko": "가벼운 짜증이나 좌절감"
+    },
+    {
+        "name": "approval",
+        "description": "A positive feeling of agreement or acceptance.",
+        "description-ko": "동의나 수용의 긍정적인 감정"
+    },
+    {
+        "name": "caring",
+        "description": "A warm feeling of concern or affection for someone.",
+        "description-ko": "누구에 대한 따뜻한 관심이나 애정의 감정"
+    },
+    {
+        "name": "confusion",
+        "description": "A state of being bewildered or unclear in thought.",
+        "description-ko": "혼란스러움이나 생각이 명확하지 않은 상태"
+    },
+    {
+        "name": "curiosity",
+        "description": "A desire to know or learn something new.",
+        "description-ko": "새로운 것을 알고 싶거나 배우고자 하는 욕망"
+    },
+    {
+        "name": "desire",
+        "description": "A strong feeling of wanting to have or do something.",
+        "description-ko": "무엇인가를 가지거나 하려는 강한 열망"
+    },
+    {
+        "name": "disappointment",
+        "description": "A feeling of sadness or displeasure due to unfulfilled expectations.",
+        "description-ko": "기대가 충족되지 않아 생기는 슬픔이나 불쾌감"
+    },
+    {
+        "name": "disapproval",
+        "description": "A feeling of disapproval or rejection of something.",
+        "description-ko": "어떤 것에 대한 반대나 거부의 감정"
+    },
+    {
+        "name": "disgust",
+        "description": "A strong feeling of revulsion or aversion.",
+        "description-ko": "강한 혐오감이나 거부감"
+    },
+    {
+        "name": "embarrassment",
+        "description": "A feeling of self-consciousness or awkwardness.",
+        "description-ko": "자의식적이거나 어색한 감정"
+    },
+    {
+        "name": "excitement",
+        "description": "A feeling of enthusiasm or eager anticipation.",
+        "description-ko": "열정적이거나 기대감이 넘치는 감정"
+    },
+    {
+        "name": "fear",
+        "description": "An unpleasant emotion caused by the threat of danger or harm.",
+        "description-ko": "위험이나 해에 대한 불쾌한 감정"
+    },
+    {
+        "name": "gratitude",
+        "description": "A feeling of thankfulness or appreciation.",
+        "description-ko": "감사하거나 고마움을 느끼는 감정"
+    },
+    {
+        "name": "grief",
+        "description": "A deep sorrow, especially caused by someone's death.",
+        "description-ko": "특히 누군가의 죽음으로 인한 깊은 슬픔"
+    },
+    {
+        "name": "joy",
+        "description": "A feeling of great pleasure and happiness.",
+        "description-ko": "큰 기쁨과 행복의 감정"
+    },
+    {
+        "name": "love",
+        "description": "A deep feeling of affection or attachment.",
+        "description-ko": "깊은 애정이나 애착의 감정"
+    },
+    {
+        "name": "nervousness",
+        "description": "A feeling of anxiety or unease.",
+        "description-ko": "불안하거나 불편한 감정"
+    },
+    {
+        "name": "optimism",
+        "description": "A feeling of hopefulness and confidence about the future.",
+        "description-ko": "미래에 대한 희망과 자신감의 감정"
+    },
+    {
+        "name": "pride",
+        "description": "A feeling of satisfaction from one's own achievements.",
+        "description-ko": "자신의 업적에 대한 만족감"
+    },
+    {
+        "name": "realization",
+        "description": "A sudden understanding or awareness of something.",
+        "description-ko": "무엇인가에 대한 갑작스러운 이해 또는 인식"
+    },
+    {
+        "name": "relief",
+        "description": "A feeling of reassurance or relaxation after anxiety.",
+        "description-ko": "불안 후 안도감이나 편안함"
+    },
+    {
+        "name": "remorse",
+        "description": "A deep regret or guilt for a wrong committed.",
+        "description-ko": "저지른 잘못에 대한 깊은 후회나 죄책감"
+    },
+    {
+        "name": "sadness",
+        "description": "A feeling of sorrow or unhappiness.",
+        "description-ko": "슬픔이나 불행의 감정"
+    },
+    {
+        "name": "surprise",
+        "description": "A feeling of astonishment or shock.",
+        "description-ko": "놀라움이나 충격의 감정"
+    },
+    {
+        "name": "neutral",
+        "description": "A state of having no strong positive or negative emotion.",
+        "description-ko": "강한 긍정적이거나 부정적인 감정이 없는 상태"
+    }
+]

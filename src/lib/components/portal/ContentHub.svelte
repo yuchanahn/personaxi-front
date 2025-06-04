@@ -65,7 +65,7 @@
         >
             <div class="tile-content">
                 <img
-                    src={`https://uohepkqmwbstbmnkoqju.supabase.co/storage/v1/object/public/portraits/${content.owner_id}/${content.id}.portrait`}
+                    src={`https://uohepkqmwbstbmnkoqju.supabase.co/storage/v1/object/public/portraits/${content.owner_id[0]}/${content.id}.portrait`}
                     alt="portrait"
                     class="portrait"
                 />

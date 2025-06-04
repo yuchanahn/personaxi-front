@@ -25,7 +25,7 @@ export async function placeBid(personaId: string, amount: number) {
         throw new Error(`Failed to bid: ${text}`);
     }
 
-    return await res.json();
+    return res;
 }
 
 export async function createAuction(personaId: string, startBid: number, duration: number) {

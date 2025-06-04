@@ -5,11 +5,12 @@ const originalFetch = window.fetch;
 
 // fetch 오버라이드
 window.fetch = async (input: RequestInfo, init?: RequestInit): Promise<Response> => {
-    const headers = {
+    let headers = {
         ...init?.headers,
-        "ngrok-skip-browser-warning": "true", // ngrok 경고 스킵
     };
-
+    if (typeof input === "string" && input.includes("ngrok")) {
+        headers["ngrok-skip-browser-warning"] = "true";
+    }
     return originalFetch(input, { ...init, headers });
 };
 

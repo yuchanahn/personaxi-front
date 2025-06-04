@@ -32,7 +32,7 @@
 <main>
   <div class="chat-container">
     <div class="chat-content">
-      <ChatWindow />
+      <ChatWindow cssid={lastSessionId ?? ""} />
       <ChatInput onSend={send} />
     </div>
   </div>
