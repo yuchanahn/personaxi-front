@@ -14,10 +14,13 @@
     import BroadcastChatWindow from "$lib/components/live/BroadcastChatWindow.svelte";
     import BroadcastChatInput from "$lib/components/live/BroadcastChatInput.svelte";
     import { writable } from "svelte/store";
+    import { loadPersona } from "$lib/api/edit_persona";
+    import { page } from "$app/stores";
 
     let persona: Persona | null = null;
     let canvas: HTMLCanvasElement;
     let socket: WebSocket | null = null;
+    let lastSessionId: string | null = null;
 
     persona = {
         name: "test",
@@ -30,7 +33,17 @@
         { user: "시청자3", msg: "대답함??" },
     ]);
 
-    onMount(() => {
+    onMount(async () => {
+        const sessionId = $page.url.searchParams.get("c");
+        if (sessionId !== lastSessionId) {
+            lastSessionId = sessionId;
+            if (sessionId) {
+                persona = await loadPersona(sessionId);
+            }
+        }
+
+        if (!persona) return;
+
         socket = connectBroadcastSocket(persona.id, (packet) => {
             let msg = packet as {
                 type: string;

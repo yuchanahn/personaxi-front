@@ -34,6 +34,26 @@ export async function handleSendToCharacter(cid: string, prompt: string, model?:
         prompt,
         cid ?? "",
         (data: string) => {
+
+            //데이터가 json 형식으로 올 경우
+            if (data.startsWith("{") && data.endsWith("}")) {
+                try {
+                    const jsonData = JSON.parse(data);
+                    if (jsonData.text) {
+                        data = jsonData.text;
+                    }
+                    if (jsonData.predictions) {
+                        const p = JSON.parse("[" + jsonData.predictions[0] + "]")
+                        console.log("Emotion data received: ", p);
+                        model?.Emotion(p[0].key, p[0].value);
+                    }
+                } catch (e) {
+                    console.error("JSON 파싱 오류:", e);
+                }
+
+                return; // JSON 데이터는 처리하지 않고 넘어감
+            }
+
             aiText += data;
             messages.update(m => {
 

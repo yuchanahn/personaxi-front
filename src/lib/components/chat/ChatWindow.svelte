@@ -6,6 +6,7 @@
 
   export let isLoading: boolean = false;
   export let cssid: string;
+  export let showChat: boolean = true; // 채팅 표시 여부
 
   let isThink: boolean = false;
 
@@ -62,7 +63,7 @@
     /></svg
   >
 </button>
-<div class="chat-window">
+<div class="chat-window" style:opacity={showChat ? "0.7" : "0"}>
   {#if $messages.length === 0}
     <div class="empty-message">아직 대화가 없습니다. 질문을 입력해보세요.</div>
   {/if}
@@ -81,14 +82,13 @@
       생각 중<span>.</span><span>.</span><span>.</span>
     </div>
   {/if}
-
-  <!-- NEW: SettingsModal 컴포넌트 렌더링 -->
-  <SettingsModal
-    {cssid}
-    isOpen={isSettingsModalOpen}
-    on:close={() => (isSettingsModalOpen = false)}
-  />
 </div>
+<!-- NEW: SettingsModal 컴포넌트 렌더링 -->
+<SettingsModal
+  {cssid}
+  isOpen={isSettingsModalOpen}
+  on:close={() => (isSettingsModalOpen = false)}
+/>
 
 <style>
   .chat-window {

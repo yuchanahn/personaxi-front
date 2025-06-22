@@ -1,5 +1,6 @@
 import { sveltekit } from '@sveltejs/kit/vite';
 import { defineConfig } from 'vite';
+import tailwindcss from '@tailwindcss/vite';
 
 export default defineConfig({
   // SSR 비활성화
@@ -19,11 +20,14 @@ export default defineConfig({
   resolve: {
     dedupe: ['three'], // 👈 이거!
   },
-  plugins: [sveltekit()],
+  plugins: [
+    tailwindcss(),
+    sveltekit(),
+  ],
   esbuild: {
     target: "es2022"
   },
-  optimizeDeps:{
+  optimizeDeps: {
     esbuildOptions: {
       target: "es2022",
     },

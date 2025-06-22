@@ -13,6 +13,11 @@ export async function loadChatHistory(sessionId: string) {
     });
     if (res.ok) {
         const history = await res.json();
+        if (history === null) {
+            messages.set([]);
+            console.warn("No chat history found for session:", sessionId);
+            return;
+        }
         messages.set(history.map((msg: any) => ({ role: msg.role, content: msg.content })));
     } else {
         messages.set([]);

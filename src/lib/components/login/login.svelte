@@ -10,21 +10,21 @@
     const loginOptions: LoginOption[] = [
         {
             name: "Google",
-            icon: "./icons/google.svg",
+            icon: "/personaxi-front/icons/google.svg",
             handler: () => {
                 window.location.href = `${API_BASE_URL}/auth/google/login`;
             },
         },
         {
             name: "GitHub",
-            icon: "./icons/github.svg",
+            icon: "/personaxi-front/icons/github.svg",
             handler: () => {
-                window.location.href = "/api/auth/github";
+                alert("깃허브 로그인은 아직 준비 중입니다.");
             },
         },
         {
             name: "Email",
-            icon: "./icons/email.svg",
+            icon: "/personaxi-front/icons/email.svg",
             handler: () => {
                 alert("이메일 로그인은 아직 준비 중입니다.");
             },
@@ -55,7 +55,6 @@
         padding: 1rem;
         border: 1px solid #ccc;
         border-radius: 12px;
-        background-color: #fafafa;
     }
 
     .login-button {
@@ -66,7 +65,6 @@
         border: none;
         border-radius: 8px;
         cursor: pointer;
-        background-color: #f5f5f5;
         transition: background-color 0.2s;
     }
 

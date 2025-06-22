@@ -123,8 +123,8 @@ export class Model {
         return this.vrm;
     }
 
-    public Emotion(key: string) {
-        this.expressionController?.playEmotion([{ key: key, value: 1 }])
+    public Emotion(key: string, value: number = 1) {
+        this.expressionController?.playEmotion([{ key: key, value: value }])
     }
 
     /*
@@ -150,13 +150,12 @@ export class Model {
                 }
             })
         }
-
     }
 
 
     public async initAnimations(vrm: VRM) {
         this.mixer = new THREE.AnimationMixer(vrm.scene);
-        this.loadAnimations(vrm)
+        //this.loadAnimations(vrm)
         const idleAnim = await loadMixamoAnimation(base + '/animations/Idle_nomal.fbx', vrm);
         const action = this.mixer?.clipAction(idleAnim);
         if (!action) {

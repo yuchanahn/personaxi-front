@@ -2,6 +2,7 @@
 <script lang="ts">
     import { createEventDispatcher } from "svelte";
     import { deleteChatHistory, resetChatHistory } from "$lib/api/chat";
+    import { API_BASE_URL } from "$lib/constants";
 
     export let isOpen: boolean = false; // 부모 컴포넌트로부터 모달 가시성 상태를 받음
     export let cssid: string;
@@ -47,6 +48,21 @@
     function handleIncludeAllUtterances() {
         dispatch("close"); // 작업 완료 후 모달 닫기
     }
+
+    async function FeedbackBtn(isLike: boolean) {
+        const res = await fetch(
+            `${API_BASE_URL}/api/persona/${isLike ? "like" : "dislike"}?id=${cssid}`,
+            {
+                credentials: "include",
+            },
+        );
+        if (res.ok) {
+            const r = await res.json();
+            console.log(r);
+        } else {
+            console.log("FeedbackBtn error");
+        }
+    }
 </script>
 
 <!-- svelte-ignore a11y_no_static_element_interactions -->
@@ -65,6 +81,22 @@
 
             <!-- 설정 버튼 그룹 -->
             <div class="button-group">
+                <div
+                    style="display: flex; justify-content: space-between; align-items: center; gap: 10px;"
+                >
+                    <button
+                        class="action-button"
+                        on:click={() => FeedbackBtn(true)}
+                    >
+                        좋아요
+                    </button>
+                    <button
+                        class="action-button"
+                        on:click={() => FeedbackBtn(false)}
+                    >
+                        싫어요
+                    </button>
+                </div>
                 <button class="action-button reset" on:click={handleResetChat}>
                     채팅 초기화 하기
                 </button>

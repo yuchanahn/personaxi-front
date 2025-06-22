@@ -27,3 +27,4 @@ export async function setLiveStatus(personaId: string, isLive: boolean): Promise
     });
     if (!res.ok) throw new Error("방송 상태 변경 실패");
 }
+

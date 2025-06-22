@@ -7,6 +7,8 @@
     import { fetchLivePersonas, setLiveStatus } from "$lib/services/live";
     import { createAuction } from "$lib/api/auction";
     import AuctionModal from "$lib/components/modal/AuctionModal.svelte";
+    import { Avatar } from "bits-ui";
+    import PaymentModal from "$lib/components/modal/PaymentModal.svelte";
 
     let user: {
         id: string;
@@ -92,6 +94,12 @@
         selectedPersona = p;
         showAuctionModal = true;
     }
+
+    let paymentModalOpen = false;
+
+    function handleModalClose() {
+        paymentModalOpen = false;
+    }
 </script>
 
 <div class="container">
@@ -121,6 +129,14 @@
         <p>Plan: {user.plan}</p>
     </div>
 
+    <button on:click={() => (paymentModalOpen = true)}>Add Credits</button>
+
+    <PaymentModal
+        bind:isOpen={paymentModalOpen}
+        isCreditLow={false}
+        on:close={handleModalClose}
+    />
+
     <div class="personas">
         <h2>Your Personas</h2>
         <button on:click={() => goto("/personaxi-front/edit")}
@@ -129,18 +145,35 @@
         <div class="persona-grid">
             {#each personas as persona}
                 <div class="persona-card">
-                    <button on:click={() => toggleLive(persona.id)}
-                        >{isLive(persona.id) ? "Stop Live" : "Go Live"}</button
-                    >
-                    <button on:click={() => openAuctionModal(persona)}
-                        >Start Auction</button
-                    >
+                    {#if persona.personaType === "3D"}
+                        <button on:click={() => toggleLive(persona.id)}
+                            >{isLive(persona.id)
+                                ? "Stop Live"
+                                : "Go Live"}</button
+                        >
+                        {#if !isLive(persona.id)}
+                            <button on:click={() => openAuctionModal(persona)}
+                                >Start Auction</button
+                            >
+                        {/if}
+                    {/if}
                     <div class="xbox">
-                        <img
-                            src={`https://uohepkqmwbstbmnkoqju.supabase.co/storage/v1/object/public/portraits/${persona.owner_id[0]}/${persona.id}.portrait`}
-                            alt="portrait"
-                            class="portrait"
-                        />
+                        <Avatar.Root
+                            delayMs={200}
+                            class="data-[status=loaded]:border-foreground bg-muted text-muted-foreground h-24 w-24 rounded-full border text-[17px] font-medium uppercase data-[status=loading]:border-transparent"
+                        >
+                            <div
+                                class="flex h-full w-full items-center justify-center overflow-hidden rounded-full border-2 border-transparent"
+                            >
+                                <Avatar.Image
+                                    src={`https://uohepkqmwbstbmnkoqju.supabase.co/storage/v1/object/public/portraits/${persona.owner_id[0]}/${persona.id}.portrait`}
+                                    alt="portrait"
+                                />
+                                <Avatar.Fallback class="border-muted border"
+                                    >NULL</Avatar.Fallback
+                                >
+                            </div>
+                        </Avatar.Root>
                         <div class="ybox">
                             <h1>{persona.name}</h1>
                             <p>Type: {persona.personaType}</p>

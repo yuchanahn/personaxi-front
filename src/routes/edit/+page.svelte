@@ -59,7 +59,10 @@
 
     function addInstruction() {
         if (instruction.trim() !== "") {
-            persona.instructions = [...persona.instructions, instruction];
+            persona.instructions = [
+                ...persona.instructions,
+                "\n" + instruction,
+            ];
             instruction = "";
         }
     }
