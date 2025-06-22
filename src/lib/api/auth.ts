@@ -14,7 +14,7 @@ function getBaseUrl(): string {
     return 'http://localhost:5173/personaxi-front/';
   } else {
     // GitHub Pages 환경 (또는 기타 배포 환경)
-    return 'https://yuchanahn.github.io/personaxi-front/';
+    return 'https://personaxi.com/';
   }
 }
 
@@ -44,7 +44,7 @@ export async function logout() {
     credentials: 'include'
   });
 
-  goto("/personaxi-front/")
+  goto("/")
 
   chatSessions.set([]);
   is_login.set(false);

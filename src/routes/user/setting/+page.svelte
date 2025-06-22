@@ -139,9 +139,7 @@
 
     <div class="personas">
         <h2>Your Personas</h2>
-        <button on:click={() => goto("/personaxi-front/edit")}
-            >Create New Persona</button
-        >
+        <button on:click={() => goto("/edit")}>Create New Persona</button>
         <div class="persona-grid">
             {#each personas as persona}
                 <div class="persona-card">
@@ -180,9 +178,8 @@
                             <div class="actions">
                                 <button
                                     on:click={() =>
-                                        goto(
-                                            `/personaxi-front/edit?c=${persona.id}`,
-                                        )}>Edit</button
+                                        goto(`/edit?c=${persona.id}`)}
+                                    >Edit</button
                                 >
                             </div>
                         </div>

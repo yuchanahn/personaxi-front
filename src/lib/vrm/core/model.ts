@@ -133,7 +133,7 @@ export class Model {
     */
 
     public async loadAnimations(vrm: VRM) {
-        const res = await fetch('/personaxi-front/anims.json')
+        const res = await fetch('/anims.json')
         const data = await res.json()
 
         for (const name of data) {

@@ -81,7 +81,7 @@
     }
 </script>
 
-<img src="/personaxi-front/logo.png" alt="Logo" class="logo" />
+<img src="/logo.png" alt="Logo" class="logo" />
 
 <div class="search-section">
     <input
@@ -104,24 +104,24 @@
             on:click={() => {
                 switch (content.personaType) {
                     case "live":
-                        goto(`/personaxi-front/live`);
+                        goto(`/live`);
                         break;
                     case "3D":
                         if (isAuctioning(content.id)) {
-                            goto(`/personaxi-front/auction?c=${content.id}`);
+                            goto(`/auction?c=${content.id}`);
                             break;
                         }
                         if (!isLive(content.id)) {
-                            goto(`/personaxi-front/character?c=${content.id}`);
+                            goto(`/character?c=${content.id}`);
                         } else {
-                            goto(`/personaxi-front/live?c=${content.id}`);
+                            goto(`/live?c=${content.id}`);
                         }
                         break;
                     case "2D":
-                        goto(`/personaxi-front/2d?c=${content.id}`);
+                        goto(`/2d?c=${content.id}`);
                         break;
                     case "text":
-                        goto(`/personaxi-front/chat`);
+                        goto(`/chat`);
                         break;
                 }
             }}

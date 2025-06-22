@@ -78,7 +78,7 @@ export async function handleSendToCharacter(cid: string, prompt: string, model?:
         (cssid: string) => {
             loadChatSessions();
             loadCharacterSessions();
-            goto(`/personaxi-front/character?c=${cssid}`);
+            goto(`/character?c=${cssid}`);
         },
         "character"
     );

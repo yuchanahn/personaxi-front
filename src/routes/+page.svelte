@@ -17,7 +17,7 @@
 
     if (user != null) {
       is_login.set(true);
-      goto("/personaxi-front/hub");
+      goto("/hub");
     }
   });
 </script>

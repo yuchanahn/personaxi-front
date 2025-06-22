@@ -6,21 +6,21 @@ export function handleSelect(id: string) {
     if (session) {
         switch (session.type) {
             case ChatSessionType.CHAT:
-                goto(`/personaxi-front/chat?c=${id}`);
+                goto(`/chat?c=${id}`);
                 break;
             case ChatSessionType.CHARACTER:
-                goto(`/personaxi-front/2d?c=${id}`);
+                goto(`/2d?c=${id}`);
                 break;
             case ChatSessionType.CHARACTER3D:
-                goto(`/personaxi-front/character?c=${id}`);
+                goto(`/character?c=${id}`);
                 break;
             case ChatSessionType.SYSTEM:
                 switch (session.id) {
-                    case "2": goto(`/personaxi-front/hub`); break;
-                    case "3": goto(`/personaxi-front/user/setting`); break;
-                    case "4": goto(`/personaxi-front/user/persona`); break;
-                    case "5": goto(`/personaxi-front/edit`); break;
-                    case "1": goto(`/personaxi-front/chat`);
+                    case "2": goto(`/hub`); break;
+                    case "3": goto(`/user/setting`); break;
+                    case "4": goto(`/user/persona`); break;
+                    case "5": goto(`/edit`); break;
+                    case "1": goto(`/chat`);
                 }
                 break;
             default:

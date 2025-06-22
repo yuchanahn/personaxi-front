@@ -8,7 +8,7 @@ export default {
 			fallback: 'index.html'
 		}),
 		paths: {
-			base: '/personaxi-front'
+			base: ''
 		},
 		prerender: {
 			entries: []

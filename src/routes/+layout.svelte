@@ -68,12 +68,10 @@
     <footer>
         <p>&copy; {currentYear} PersonaXI. All rights reserved.</p>
         <nav>
-            <a href="/personaxi-front/policy">개인정보처리방침</a> |
-            <a href="/personaxi-front/terms">이용약관</a> |
-            <a href="/personaxi-front/licenses">라이선스 및 크레딧</a> |
-            <a href="/personaxi-front/privacy-chat-logs"
-                >채팅/로그 데이터 수집 동의</a
-            >
+            <a href="/policy">개인정보처리방침</a> |
+            <a href="/terms">이용약관</a> |
+            <a href="/licenses">라이선스 및 크레딧</a> |
+            <a href="/privacy-chat-logs">채팅/로그 데이터 수집 동의</a>
         </nav>
     </footer>
 </div>

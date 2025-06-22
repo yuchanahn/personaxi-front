@@ -10,21 +10,21 @@
     const loginOptions: LoginOption[] = [
         {
             name: "Google",
-            icon: "/personaxi-front/icons/google.svg",
+            icon: "/icons/google.svg",
             handler: () => {
                 window.location.href = `${API_BASE_URL}/auth/google/login`;
             },
         },
         {
             name: "GitHub",
-            icon: "/personaxi-front/icons/github.svg",
+            icon: "/icons/github.svg",
             handler: () => {
                 alert("깃허브 로그인은 아직 준비 중입니다.");
             },
         },
         {
             name: "Email",
-            icon: "/personaxi-front/icons/email.svg",
+            icon: "/icons/email.svg",
             handler: () => {
                 alert("이메일 로그인은 아직 준비 중입니다.");
             },

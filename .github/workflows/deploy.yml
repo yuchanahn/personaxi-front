@@ -34,7 +34,6 @@ jobs:
       - name: Create 404.html for SPA routing
         run: |
           cp build/index.html build/404.html
-          echo '<meta http-equiv="refresh" content="0;URL=/personaxi-front/">' >> build/404.html
 
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3

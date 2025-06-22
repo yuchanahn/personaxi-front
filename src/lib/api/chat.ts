@@ -44,7 +44,7 @@ export async function deleteChatHistory(sessionId: string) {
     if (res.ok) {
         const r = await res.json();
 
-        goto(`/personaxi-front/hub`);
+        goto(`/hub`);
 
         loadChatSessions();
         loadCharacterSessions();
@@ -78,9 +78,9 @@ export async function sendPromptStream(cid: string, prompt: string, type?: strin
             loadChatSessions();
             loadCharacterSessions();
             if (type == "character") {
-                goto(`/personaxi-front/2d?c=${cssid}`);
+                goto(`/2d?c=${cssid}`);
             } else {
-                goto(`/personaxi-front/chat?c=${cssid}`);
+                goto(`/chat?c=${cssid}`);
             }
         }
     }, type)

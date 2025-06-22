@@ -119,7 +119,7 @@
                     portraitFile,
                 );
                 if (id) {
-                    goto(`/personaxi-front/edit?c=${id}`);
+                    goto(`/edit?c=${id}`);
                 }
 
                 console.log(id);
