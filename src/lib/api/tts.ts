@@ -19,7 +19,7 @@ function initializeAudioContext() {
 
 
 export function connectTTSSocket(speek?: (audio: ArrayBuffer) => void): WebSocket {
-    socket = new WebSocket(`ws://api.personaxi.com/ws/tts`);
+    socket = new WebSocket(`wss://api.personaxi.com/ws/tts`);
 
     if (!socket) {
         console.error("❌ WebSocket 연결 실패");
