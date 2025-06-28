@@ -135,6 +135,25 @@
                 <div class="tile-text">
                     <strong>
                         {content.name}
+
+                        <!-- ♥ 좋아요 -->
+                        <span class="like">
+                            <svg
+                                width="14"
+                                height="14"
+                                viewBox="0 0 24 24"
+                                fill="#ff79c6"
+                            >
+                                <path
+                                    d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5
+               2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09
+               C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5
+               c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"
+                                />
+                            </svg>
+                            {content.feedback.like}
+                        </span>
+
                         {#if isLive(content.id)}
                             <span class="live-badge">LIVE 🔴</span>
                         {/if}
@@ -144,6 +163,16 @@
                         {/if}
                     </strong>
                     <div
+                        style="display: flex; align-items: center; gap: 0.5rem;"
+                    >
+                        {#each content.tags as tag}
+                            <span class="tag">
+                                {tag}
+                            </span>
+                        {/each}
+                    </div>
+
+                    <!-- <div
                         style="display: flex; align-items: center; gap: 0.5rem;"
                     >
                         <svg
@@ -185,8 +214,8 @@
                                 d="M15.73 5.5h1.035A7.465 7.465 0 0 1 18 9.625a7.465 7.465 0 0 1-1.235 4.125h-.148c-.806 0-1.534.446-2.031 1.08a9.04 9.04 0 0 1-2.861 2.4c-.723.384-1.35.956-1.653 1.715a4.499 4.499 0 0 0-.322 1.672v.633A.75.75 0 0 1 9 22a2.25 2.25 0 0 1-2.25-2.25c0-1.152.26-2.243.723-3.218.266-.558-.107-1.282-.725-1.282H3.622c-1.026 0-1.945-.694-2.054-1.715A12.137 12.137 0 0 1 1.5 12.25c0-2.848.992-5.464 2.649-7.521C4.537 4.247 5.136 4 5.754 4H9.77a4.5 4.5 0 0 1 1.423.23l3.114 1.04a4.5 4.5 0 0 0 1.423.23ZM21.669 14.023c.536-1.362.831-2.845.831-4.398 0-1.22-.182-2.398-.52-3.507-.26-.85-1.084-1.368-1.973-1.368H19.1c-.445 0-.72.498-.523.898.591 1.2.924 2.55.924 3.977a8.958 8.958 0 0 1-1.302 4.666c-.245.403.028.959.5.959h1.053c.832 0 1.612-.453 1.918-1.227Z"
                             />
                         </svg>
-                        <p>{content.feedback.dislike}</p>
-                    </div>
+                        <p>{content.feedback.dislike}</p> 
+                    </div> -->
                     <!-- <p>{content.tags.join(", ")}</p> -->
                 </div>
             </div>
@@ -294,5 +323,30 @@
 
     .search-section button:hover {
         background-color: #555;
+    }
+
+    /* 이름 + 하트 한 줄 정렬 */
+    .title-line {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem; /* 이름 ↔ 하트 간격 */
+    }
+
+    /* 하트 영역 */
+    .like {
+        display: flex;
+        align-items: center;
+        gap: 3px;
+        font-size: 0.85rem;
+        color: #ff79c6; /* 필요하면 색상 변경 */
+    }
+
+    .tag {
+        background-color: #333;
+        color: white;
+        padding: 0.2rem 0.5rem;
+        border-radius: 4px;
+        font-size: 0.85rem;
+        font-weight: bold;
     }
 </style>

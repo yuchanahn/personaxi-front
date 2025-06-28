@@ -84,21 +84,4 @@
         padding: 0;
         line-height: 1;
     }
-
-    /* collapsed sidebar 내부에서 텍스트 감춤 처리 */
-    .collapsed * {
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        font-size: 0;
-        z-index: 21;
-    }
-
-    .collapsed svg,
-    .collapsed .icon {
-        font-size: 20px;
-        width: 100%;
-        display: flex;
-        justify-content: center;
-    }
 </style>

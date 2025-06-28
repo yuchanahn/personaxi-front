@@ -65,7 +65,7 @@
             on:close={() => (showCheatConsole = false)}
         />
     </main>
-    <footer>
+    <!-- <footer>
         <p>&copy; {currentYear} PersonaXI. All rights reserved.</p>
         <nav>
             <a href="/policy">개인정보처리방침</a> |
@@ -73,7 +73,7 @@
             <a href="/licenses">라이선스 및 크레딧</a> |
             <a href="/privacy-chat-logs">채팅/로그 데이터 수집 동의</a>
         </nav>
-    </footer>
+    </footer> -->
 </div>
 
 <style>
@@ -93,9 +93,10 @@
         flex: 1;
     }
 
+    /*
     footer {
-        bottom: 0; /* ★ 핵심: 화면 맨 아래에 */
-        width: 100%; /* ★ 핵심: 가로 전체 폭을 차지하도록 */
+        bottom: 0; 
+        width: 100%; 
         padding: 20px;
         text-align: center;
         font-size: 0.9em;
@@ -109,4 +110,5 @@
     footer nav a:hover {
         text-decoration: underline;
     }
+    */
 </style>

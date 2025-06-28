@@ -12,7 +12,7 @@ export async function loadChatSessions() {
     createNewSession("S2", "", ChatSessionType.SPACE);
     createNewSession("5", "🎨 창조", ChatSessionType.SYSTEM);
     createNewSession("S3", "", ChatSessionType.SPACE);
-    //createNewSession("1", "새 대화 💬", ChatSessionType.SYSTEM);
+    createNewSession("100", "📜 Legal", ChatSessionType.SYSTEM);
     createNewSession("S4", "", ChatSessionType.SPACE);
 
     const res = await fetch(`${API_BASE_URL}/api/chat/sessions`, {

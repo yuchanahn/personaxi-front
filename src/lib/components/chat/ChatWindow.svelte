@@ -91,21 +91,43 @@
 />
 
 <style>
+  /* 뷰포트에 맞게 꽉 채우되 800 px 이상은 넓어지지 않음 */
   .chat-window {
-    padding: 1rem;
-    margin: 0 auto;
-    margin-bottom: 1rem;
-    flex: 1;
-    overflow-y: auto;
-    min-height: 300px;
-    min-width: 600px;
-    max-width: 800px;
-    background: transparent;
+    width: 100%; /* NEW: 가변 폭 */
+    max-width: 800px; /* 데스크톱 상한 */
+    /* min-width 제거 → 모바일에서 불필요한 여백 감소 */
+    min-height: clamp(
+      200px,
+      50vh,
+      300px
+    ); /* 200~300px 사이, 화면 높이 50% 목표 */
+    margin: 0 auto 1rem; /* 가운데 정렬 */
+    padding: 1rem 1rem 1rem 1rem;
     display: flex;
     flex-direction: column;
     gap: 0.5rem;
-    position: relative; /* 자식 요소의 absolute 위치 지정을 위해 필요 */
-    padding-top: 50px; /* 설정 버튼이 메시지를 덮치지 않도록 상단 패딩 추가 */
+    overflow-y: auto;
+    background: transparent;
+    position: relative;
+    padding-top: 50px; /* 설정 버튼 공간 */
+  }
+
+  /* 메시지 버블은 컨테이너 폭의 90 % 까지 사용 (모바일 가독성↑) */
+  .message {
+    width: fit-content;
+    max-width: 90%;
+    padding: 0.75rem 1rem;
+    border-radius: 16px;
+    line-height: 1.5;
+    word-break: break-word;
+    white-space: normal;
+  }
+
+  /* 데스크톱(≥ 768 px)에서는 기존 70 % 폭 유지 */
+  @media (min-width: 768px) {
+    .message {
+      max-width: 70%;
+    }
   }
 
   /* NEW: 설정 버튼 스타일 */
@@ -136,16 +158,6 @@
     filter: drop-shadow(
       0 0 5px rgba(255, 255, 255, 0.5)
     ); /* 은은한 그림자 효과 */
-  }
-
-  .message {
-    max-width: 70%;
-    padding: 0.75rem 1rem;
-    border-radius: 16px;
-    line-height: 1.5;
-    position: relative;
-    word-break: break-word;
-    white-space: normal;
   }
 
   .message.user {
