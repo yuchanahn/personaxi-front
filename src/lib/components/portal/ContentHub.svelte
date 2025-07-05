@@ -1,4 +1,5 @@
 <script lang="ts">
+    // 스크립트 부분은 변경 없음 (기존 코드 그대로)
     import { goto } from "$app/navigation";
     import {
         loadContent,
@@ -16,10 +17,6 @@
     let liveIds: string[] = [];
     let auctions: AuctionPersona[] = [];
 
-    // 검색 상태용 추가
-    let tagQuery = "";
-    let nameQuery = "";
-
     function delay(ms: number): Promise<void> {
         return new Promise((resolve) => setTimeout(resolve, ms));
     }
@@ -31,15 +28,15 @@
         const live = await fetchLivePersonas();
         auctions = await fetchAuctionPersonas();
 
-        // auction.endAt을 기준으로 끝나면 배열에서 제거
-        // 타이머 사용
-
         auctions.forEach(async (auction) => {
             const now = new Date();
-            await delay(new Date(auction.endAt).getTime() - now.getTime());
-            auctions = auctions.filter(
-                (a) => a.personaId !== auction.personaId,
-            );
+            const delayTime = new Date(auction.endAt).getTime() - now.getTime();
+            if (delayTime > 0) {
+                await delay(delayTime);
+                auctions = auctions.filter(
+                    (a) => a.personaId !== auction.personaId,
+                );
+            }
         });
 
         liveIds = [...live];
@@ -47,184 +44,181 @@
 
     $: isLive = (id: string) => liveIds.includes(id);
     $: isAuctioning = (id: string) => {
-        const auctioned = auctions.find((auction) => auction.personaId === id);
-        if (!auctioned) return false;
-        return !!auctioned;
+        return auctions.some((auction) => auction.personaId === id);
     };
 
-    // 태그 검색 함수
-    async function searchByTags() {
-        if (!tagQuery.trim()) {
+    let query = "";
+    let searchType: "name" | "tags" = "name";
+
+    async function executeSearch() {
+        if (!query.trim()) {
             const data = await loadContent();
             contents.set(data);
             return;
         }
 
-        const tags = tagQuery
-            .split(",")
-            .map((tag) => tag.trim())
-            .filter((tag) => tag !== "");
-        const data = await loadContentWithTags(tags);
-        contents.set(data);
-    }
-
-    // 이름 검색 함수
-    async function searchByName() {
-        if (!nameQuery.trim()) {
-            const data = await loadContent();
-            contents.set(data);
-            return;
+        let data: Persona[] = [];
+        if (searchType === "name") {
+            data = await loadContentWithName(query);
+        } else if (searchType === "tags") {
+            const tags = query
+                .split(",")
+                .map((tag) => tag.trim())
+                .filter((tag) => tag !== "");
+            if (tags.length > 0) {
+                data = await loadContentWithTags(tags);
+            } else {
+                data = await loadContent();
+            }
         }
-
-        const data = await loadContentWithName(nameQuery);
         contents.set(data);
     }
 </script>
 
-<img src="/logo.png" alt="Logo" class="logo" />
+<div class="page-wrapper">
+    <div class="header-section">
+        <img src="/logo.png" alt="Logo" class="logo" />
 
-<div class="search-section">
-    <input
-        type="text"
-        bind:value={tagQuery}
-        placeholder="태그 검색 (예: 태그1,태그2)"
-    />
-    <button on:click={searchByTags}>태그 검색</button>
-
-    <input type="text" bind:value={nameQuery} placeholder="이름 검색" />
-    <button on:click={searchByName}>이름 검색</button>
-</div>
-
-<div class="hub">
-    {#each $contents as content}
-        <!-- svelte-ignore a11y_click_events_have_key_events -->
-        <!-- svelte-ignore a11y_no_static_element_interactions -->
-        <div
-            class="tile"
-            on:click={() => {
-                switch (content.personaType) {
-                    case "live":
-                        goto(`/live`);
-                        break;
-                    case "3D":
-                        if (isAuctioning(content.id)) {
-                            goto(`/auction?c=${content.id}`);
-                            break;
-                        }
-                        if (!isLive(content.id)) {
-                            goto(`/character?c=${content.id}`);
-                        } else {
-                            goto(`/live?c=${content.id}`);
-                        }
-                        break;
-                    case "2D":
-                        goto(`/2d?c=${content.id}`);
-                        break;
-                    case "text":
-                        goto(`/chat`);
-                        break;
-                }
-            }}
-        >
-            <div class="tile-content">
-                <img
-                    src={`https://uohepkqmwbstbmnkoqju.supabase.co/storage/v1/object/public/portraits/${content.owner_id[0]}/${content.id}.portrait`}
-                    alt="portrait"
-                    class="portrait"
+        <div class="unified-search-container">
+            <div class="search-options">
+                <button
+                    class:active={searchType === "name"}
+                    on:click={() => (searchType = "name")}>이름</button
+                >
+                <button
+                    class:active={searchType === "tags"}
+                    on:click={() => (searchType = "tags")}>태그</button
+                >
+            </div>
+            <div class="search-input-wrapper">
+                <input
+                    type="text"
+                    bind:value={query}
+                    placeholder={searchType === "name"
+                        ? "캐릭터 이름으로 검색"
+                        : "태그로 검색 (쉼표로 구분)"}
+                    on:keydown={(e) => e.key === "Enter" && executeSearch()}
                 />
-                <div class="tile-text">
-                    <strong>
-                        {content.name}
-
-                        <!-- ♥ 좋아요 -->
-                        <span class="like">
-                            <svg
-                                width="14"
-                                height="14"
-                                viewBox="0 0 24 24"
-                                fill="#ff79c6"
-                            >
-                                <path
-                                    d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5
-               2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09
-               C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5
-               c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"
-                                />
-                            </svg>
-                            {content.feedback.like}
-                        </span>
-
-                        {#if isLive(content.id)}
-                            <span class="live-badge">LIVE 🔴</span>
-                        {/if}
-                        <!-- 경매 중인 캐릭터 표시 -->
-                        {#if isAuctioning(content.id)}
-                            <span class="auction-badge">경매 중</span>
-                        {/if}
-                    </strong>
-                    <div
-                        style="display: flex; align-items: center; gap: 0.5rem;"
+                <button class="search-button" on:click={executeSearch}>
+                    <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="20"
+                        height="20"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
                     >
-                        {#each content.tags as tag}
-                            <span class="tag">
-                                {tag}
-                            </span>
-                        {/each}
-                    </div>
-
-                    <!-- <div
-                        style="display: flex; align-items: center; gap: 0.5rem;"
-                    >
-                        <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            viewBox="0 0 20 20"
-                            fill="currentColor"
-                            class="size-5"
-                        >
-                            <path
-                                fill-rule="evenodd"
-                                d="M10 2c-2.236 0-4.43.18-6.57.524C1.993 2.755 1 4.014 1 5.426v5.148c0 1.413.993 2.67 2.43 2.902.848.137 1.705.248 2.57.331v3.443a.75.75 0 0 0 1.28.53l3.58-3.579a.78.78 0 0 1 .527-.224 41.202 41.202 0 0 0 5.183-.5c1.437-.232 2.43-1.49 2.43-2.903V5.426c0-1.413-.993-2.67-2.43-2.902A41.289 41.289 0 0 0 10 2Zm0 7a1 1 0 1 0 0-2 1 1 0 0 0 0 2ZM8 8a1 1 0 1 1-2 0 1 1 0 0 1 2 0Zm5 1a1 1 0 1 0 0-2 1 1 0 0 0 0 2Z"
-                                clip-rule="evenodd"
-                            />
-                        </svg>
-                        <p>{content.feedback.view}</p>
-                    </div>
-
-                    <div
-                        style="display: flex; align-items: center; gap: 0.5rem;"
-                    >
-                        <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            viewBox="0 0 24 24"
-                            fill="currentColor"
-                            class="size-6"
-                        >
-                            <path
-                                d="M7.493 18.5c-.425 0-.82-.236-.975-.632A7.48 7.48 0 0 1 6 15.125c0-1.75.599-3.358 1.602-4.634.151-.192.373-.309.6-.397.473-.183.89-.514 1.212-.924a9.042 9.042 0 0 1 2.861-2.4c.723-.384 1.35-.956 1.653-1.715a4.498 4.498 0 0 0 .322-1.672V2.75A.75.75 0 0 1 15 2a2.25 2.25 0 0 1 2.25 2.25c0 1.152-.26 2.243-.723 3.218-.266.558.107 1.282.725 1.282h3.126c1.026 0 1.945.694 2.054 1.715.045.422.068.85.068 1.285a11.95 11.95 0 0 1-2.649 7.521c-.388.482-.987.729-1.605.729H14.23c-.483 0-.964-.078-1.423-.23l-3.114-1.04a4.501 4.501 0 0 0-1.423-.23h-.777ZM2.331 10.727a11.969 11.969 0 0 0-.831 4.398 12 12 0 0 0 .52 3.507C2.28 19.482 3.105 20 3.994 20H4.9c.445 0 .72-.498.523-.898a8.963 8.963 0 0 1-.924-3.977c0-1.708.476-3.305 1.302-4.666.245-.403-.028-.959-.5-.959H4.25c-.832 0-1.612.453-1.918 1.227Z"
-                            />
-                        </svg>
-                        <p>{content.feedback.like}</p>
-                        <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            viewBox="0 0 24 24"
-                            fill="currentColor"
-                            class="size-6"
-                        >
-                            <path
-                                d="M15.73 5.5h1.035A7.465 7.465 0 0 1 18 9.625a7.465 7.465 0 0 1-1.235 4.125h-.148c-.806 0-1.534.446-2.031 1.08a9.04 9.04 0 0 1-2.861 2.4c-.723.384-1.35.956-1.653 1.715a4.499 4.499 0 0 0-.322 1.672v.633A.75.75 0 0 1 9 22a2.25 2.25 0 0 1-2.25-2.25c0-1.152.26-2.243.723-3.218.266-.558-.107-1.282-.725-1.282H3.622c-1.026 0-1.945-.694-2.054-1.715A12.137 12.137 0 0 1 1.5 12.25c0-2.848.992-5.464 2.649-7.521C4.537 4.247 5.136 4 5.754 4H9.77a4.5 4.5 0 0 1 1.423.23l3.114 1.04a4.5 4.5 0 0 0 1.423.23ZM21.669 14.023c.536-1.362.831-2.845.831-4.398 0-1.22-.182-2.398-.52-3.507-.26-.85-1.084-1.368-1.973-1.368H19.1c-.445 0-.72.498-.523.898.591 1.2.924 2.55.924 3.977a8.958 8.958 0 0 1-1.302 4.666c-.245.403.028.959.5.959h1.053c.832 0 1.612-.453 1.918-1.227Z"
-                            />
-                        </svg>
-                        <p>{content.feedback.dislike}</p> 
-                    </div> -->
-                    <!-- <p>{content.tags.join(", ")}</p> -->
-                </div>
+                        <circle cx="11" cy="11" r="8"></circle>
+                        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                    </svg>
+                </button>
             </div>
         </div>
-    {/each}
+    </div>
+
+    <div class="hub-container">
+        <div class="content">
+            {#each $contents as content (content.id)}
+                <div
+                    class="tile"
+                    on:click={() => {
+                        switch (content.personaType) {
+                            case "live":
+                                goto(`/live`);
+                                break;
+                            case "3D":
+                                if (isAuctioning(content.id)) {
+                                    goto(`/auction?c=${content.id}`);
+                                } else if (isLive(content.id)) {
+                                    goto(`/live?c=${content.id}`);
+                                } else {
+                                    goto(`/character?c=${content.id}`);
+                                }
+                                break;
+                            case "2D":
+                                goto(`/2d?c=${content.id}`);
+                                break;
+                            case "text":
+                                goto(`/chat`);
+                                break;
+                        }
+                    }}
+                >
+                    <div class="tile-content">
+                        <img
+                            src={`https://uohepkqmwbstbmnkoqju.supabase.co/storage/v1/object/public/portraits/${content.owner_id[0]}/${content.id}.portrait`}
+                            alt="portrait"
+                            class="portrait"
+                        />
+                        <div class="tile-text">
+                            <div class="title-line">
+                                <strong>{content.name}</strong>
+                                {#if isLive(content.id)}
+                                    <span class="live-badge">LIVE 🔴</span>
+                                {/if}
+                                {#if isAuctioning(content.id)}
+                                    <span class="auction-badge">경매 중</span>
+                                {/if}
+                            </div>
+
+                            <div class="info-line">
+                                <span class="like">
+                                    <svg
+                                        width="14"
+                                        height="14"
+                                        viewBox="0 0 24 24"
+                                        fill="#ff79c6"
+                                    >
+                                        <path
+                                            d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"
+                                        />
+                                    </svg>
+                                    {content.feedback.like}
+                                </span>
+                            </div>
+                            <div class="tags-line">
+                                {#if content.tags}
+                                    {#each content.tags.slice(0, 3) as tag}
+                                        <span class="tag">{tag}</span>
+                                    {/each}
+
+                                    {#if content.tags.length > 3}
+                                        <span class="tag-ellipsis">...</span>
+                                    {/if}
+                                {/if}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {/each}
+        </div>
+    </div>
 </div>
 
 <style>
-    .hub {
+    /* ▼▼▼ 2. Wrapper 와 Layout 관련 CSS 수정 ▼▼▼ */
+    .page-wrapper {
+        display: flex;
+        flex-direction: column;
+        height: 100vh;
+        background-color: #121212; /* 전체 배경색 */
+    }
+
+    .header-section {
+        flex-shrink: 0; /* 헤더는 줄어들지 않도록 설정 */
+    }
+
+    .hub-container {
+        flex: 1; /* 남은 공간을 모두 차지하도록 설정 */
+        overflow-y: auto; /* 내용이 넘칠 경우 스크롤 생성 */
+        min-height: 0; /* flex 자식요소가 부모를 넘치지 않게 하기 위한 핵심 속성 */
+    }
+    /* ▲▲▲ CSS 수정 끝 ▲▲▲ */
+
+    .hub-container > .content {
         display: grid;
         grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
         gap: 1rem;
@@ -232,19 +226,23 @@
     }
 
     .tile {
-        background: #181818;
+        background: #1e1e1e;
         color: white;
         padding: 1rem;
         border-radius: 8px;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
         cursor: pointer;
-        transition: transform 0.2s;
+        transition:
+            transform 0.2s ease-in-out,
+            box-shadow 0.2s ease-in-out;
         display: flex;
         align-items: center;
+        border: 1px solid #2a2a2a;
     }
 
     .tile:hover {
-        transform: scale(1.05);
+        transform: translateY(-5px);
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.5);
     }
 
     .live-badge {
@@ -254,16 +252,14 @@
         font-weight: bold;
         padding: 0.2rem 0.5rem;
         border-radius: 6px;
-        margin-left: 0.5rem;
     }
     .auction-badge {
-        background: rgb(238, 238, 238);
-        color: rgb(0, 0, 0);
+        background: #4a90e2;
+        color: white;
         font-size: 0.7rem;
         font-weight: bold;
         padding: 0.2rem 0.5rem;
         border-radius: 6px;
-        margin-left: 0.5rem;
     }
 
     .tile-content {
@@ -278,17 +274,65 @@
         height: 64px;
         border-radius: 50%;
         object-fit: cover;
-        border: 2px solid #444;
+        border: 2px solid #555;
     }
 
     .tile-text {
         display: flex;
         flex-direction: column;
-        justify-content: center;
+        gap: 0.5rem; /* 텍스트 내부 요소들 간의 간격 */
     }
 
-    .tile-text strong {
-        font-size: 1.1rem;
+    .title-line {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 1.2rem;
+    }
+
+    .info-line {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+
+    .tags-line {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.4rem;
+    }
+
+    .tag-ellipsis {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background-color: #333;
+        color: #e0e0e0;
+        padding: 0.2rem 0.6rem;
+        border-radius: 10px;
+        font-size: 0.75rem;
+        font-weight: 500;
+    }
+
+    .like {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        font-size: 0.9rem;
+        color: #e0e0e0;
+    }
+
+    .like svg {
+        fill: #ff79c6;
+    }
+
+    .tag {
+        background-color: #333;
+        color: #e0e0e0;
+        padding: 0.2rem 0.6rem;
+        border-radius: 10px;
+        font-size: 0.75rem;
+        font-weight: 500;
     }
 
     .logo {
@@ -297,56 +341,89 @@
         display: block;
         margin: 1rem auto;
     }
-
-    .search-section {
+    /* 개편된 검색 시스템 CSS */
+    .unified-search-container {
         display: flex;
-        justify-content: center;
-        gap: 1rem;
-        margin: 1rem;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 0 1rem 1.5rem 1rem;
     }
 
-    .search-section input {
-        padding: 0.5rem;
-        font-size: 1rem;
-        width: 200px;
+    .search-options {
+        display: flex;
+        gap: 0.5rem;
+        background-color: #2a2a2a;
+        padding: 0.25rem;
+        border-radius: 8px;
     }
 
-    .search-section button {
-        padding: 0.5rem 1rem;
-        font-size: 1rem;
-        background-color: #333;
-        color: white;
+    .search-options button {
+        padding: 0.4rem 1rem;
+        font-size: 0.9rem;
+        font-weight: 500;
+        background-color: transparent;
+        color: #aaa;
         border: none;
-        border-radius: 4px;
+        border-radius: 6px;
         cursor: pointer;
+        transition: all 0.2s ease-in-out;
     }
 
-    .search-section button:hover {
-        background-color: #555;
-    }
-
-    /* 이름 + 하트 한 줄 정렬 */
-    .title-line {
-        display: flex;
-        align-items: center;
-        gap: 0.5rem; /* 이름 ↔ 하트 간격 */
-    }
-
-    /* 하트 영역 */
-    .like {
-        display: flex;
-        align-items: center;
-        gap: 3px;
-        font-size: 0.85rem;
-        color: #ff79c6; /* 필요하면 색상 변경 */
-    }
-
-    .tag {
-        background-color: #333;
+    .search-options button.active {
+        background-color: #4a4a4a;
         color: white;
-        padding: 0.2rem 0.5rem;
-        border-radius: 4px;
-        font-size: 0.85rem;
-        font-weight: bold;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    }
+
+    .search-input-wrapper {
+        position: relative;
+        width: 100%;
+        max-width: 400px; /* 최대 너비 설정 */
+    }
+
+    .search-input-wrapper input {
+        background-color: #2a2a2a;
+        border: 1px solid #444;
+        color: white;
+        padding: 0.75rem 3rem 0.75rem 1rem; /* 오른쪽 패딩 확보 */
+        font-size: 1rem;
+        border-radius: 8px;
+        width: 100%;
+        transition:
+            border-color 0.2s,
+            box-shadow 0.2s;
+    }
+
+    .search-input-wrapper input:focus {
+        outline: none;
+        border-color: #5a5a5a;
+        box-shadow: 0 0 0 2px rgba(90, 90, 90, 0.5);
+    }
+
+    .search-input-wrapper input::placeholder {
+        color: #888;
+    }
+
+    .search-button {
+        position: absolute;
+        right: 0.5rem;
+        top: 50%;
+        transform: translateY(-50%);
+        padding: 0.5rem;
+        background: none;
+        border: none;
+        color: #bbb;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 6px;
+        transition: background-color 0.2s;
+    }
+
+    .search-button:hover {
+        color: white;
+        background-color: #333;
     }
 </style>

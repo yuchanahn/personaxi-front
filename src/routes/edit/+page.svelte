@@ -4,6 +4,9 @@
     import type { Persona } from "$lib/types";
     import { page } from "$app/stores";
     import { loadPersona, savePersona } from "$lib/api/edit_persona";
+    // import 영역에 추가
+    import LoadingAnimation from "$lib/components/utils/LoadingAnimation.svelte"; // 파일 경로에 맞게 수정
+    import { fade } from "svelte/transition"; // LoadingAnimation 컴포넌트의 transition을 위해 추가
 
     let vrmFile: File | null = null;
 
@@ -104,345 +107,551 @@
     function removeTag(index: number) {
         persona.tags = persona.tags.filter((_, i) => i !== index);
     }
+
+    // let loading = false; 를 아래와 같이 수정
+    let loading = false;
+    let showSuccess = false; // 저장 성공 상태를 표시하기 위한 변수
 </script>
 
 <div class="container">
     <div class="header">
-        <h1>Create Persona</h1>
+        <!-- svelte-ignore a11y_missing_content -->
+        <h1></h1>
         <button
             class="save-button"
             type="submit"
             on:click={async () => {
-                let id: string | null = await savePersona(
-                    persona,
-                    vrmFile,
-                    portraitFile,
-                );
-                if (id) {
-                    goto(`/edit?c=${id}`);
+                if (loading || showSuccess) return;
+
+                error = ""; // 에러 초기화
+
+                if (!persona.name.trim() || !persona.personaType) {
+                    error = "이름과 페르소나 타입은 필수 항목입니다.";
+                    return; // 저장 로직 중단
                 }
 
-                console.log(id);
-            }}>Save Persona</button
+                loading = true;
+
+                try {
+                    const id: string | null = await savePersona(
+                        persona,
+                        vrmFile,
+                        portraitFile,
+                    );
+
+                    if (id) {
+                        showSuccess = true;
+                        setTimeout(() => {
+                            showSuccess = false;
+                        }, 2000); // 2초 후 원래대로 복귀
+
+                        if (!persona.id) {
+                            goto(`/edit?c=${id}`, { replaceState: true });
+                        }
+                    }
+                } catch (e: any) {
+                    error = "저장에 실패했습니다: " + e.message;
+                } finally {
+                    loading = false;
+                }
+            }}
         >
+            {#if loading}
+                <span>저장 중...</span>
+            {:else if showSuccess}
+                <span>✓ 저장 완료</span>
+            {:else}
+                <span>페르소나 저장</span>
+            {/if}
+        </button>
     </div>
     {#if error}
         <p class="error">{error}</p>
     {/if}
-    <div class="scrollable">
-        {#if error}
-            <p class="error">{error}</p>
-        {/if}
-        <form>
-            <div class="form-group">
-                <label for="name">Name</label>
-                <input id="name" bind:value={persona.name} required />
-            </div>
-            <div class="form-group">
-                <label for="portrait">Portrait Image</label>
-                <input
-                    id="portrait"
-                    type="file"
-                    accept="image/*"
-                    on:change={handleProfileChange}
-                />
-                {#if portraitPreview}
-                    <img
-                        src={portraitPreview}
-                        alt="Profile preview"
-                        class="preview-image"
-                    />
-                {/if}
-            </div>
-            <div class="form-group">
-                <label for="personaType">Persona Type</label>
-                <select
-                    id="personaType"
-                    bind:value={persona.personaType}
-                    required
-                >
-                    <option value="" disabled selected>Select type</option>
-                    <option value="3D">3D</option>
-                    <option value="2D">2D</option>
-                </select>
-            </div>
-            {#if persona.personaType == "3D"}
-                <div class="form-group">
-                    <label for="vrm">VRM File</label>
-                    <input
-                        id="vrm"
-                        type="file"
-                        accept=".vrm"
-                        on:change={handleFileChange}
-                    />
+    <div class="scrollable-content">
+        <div class="form-grid">
+            <div class="form-column">
+                <div class="form-section-card">
+                    <h2>기본 정보</h2>
+                    <div class="form-group">
+                        <label for="name">이름</label>
+                        <input
+                            id="name"
+                            bind:value={persona.name}
+                            required
+                            placeholder="페르소나의 이름"
+                        />
+                    </div>
+                    <div class="form-group">
+                        <label for="personaType">페르소나 타입</label>
+                        <select
+                            id="personaType"
+                            bind:value={persona.personaType}
+                            required
+                        >
+                            <option value="" disabled>타입을 선택하세요</option>
+                            <option value="3D">3D</option>
+                            <option value="2D">2D</option>
+                        </select>
+                    </div>
                 </div>
-            {/if}
-            <div class="form-group">
-                <label>Instructions</label>
-                <div class="input-group">
-                    <!-- svelte-ignore element_invalid_self_closing_tag -->
-                    <textarea
-                        bind:value={instruction}
-                        placeholder="Add instruction"
-                    />
-                    <button type="button" on:click={addInstruction}>Add</button>
+
+                <div class="form-section-card">
+                    <h2>미디어 파일</h2>
+                    <div class="form-group">
+                        <label for="portrait">프로필 이미지</label>
+                        <div class="file-input-container">
+                            <label for="portrait-file" class="file-input-label">
+                                <span>파일 선택</span>
+                            </label>
+                            <input
+                                id="portrait-file"
+                                type="file"
+                                accept="image/*"
+                                on:change={handleProfileChange}
+                                class="file-input-hidden"
+                            />
+                            {#if portraitFile}
+                                <span class="file-name"
+                                    >{portraitFile.name}</span
+                                >
+                            {/if}
+                        </div>
+                        {#if portraitPreview}
+                            <img
+                                src={portraitPreview}
+                                alt="Profile preview"
+                                class="preview-image"
+                            />
+                        {/if}
+                    </div>
+
+                    {#if persona.personaType == "3D"}
+                        <div class="form-group">
+                            <label for="vrm">VRM 파일</label>
+                            <div class="file-input-container">
+                                <label for="vrm-file" class="file-input-label">
+                                    <span>파일 선택</span>
+                                </label>
+                                <input
+                                    id="vrm-file"
+                                    type="file"
+                                    accept=".vrm"
+                                    on:change={handleFileChange}
+                                    class="file-input-hidden"
+                                />
+                                {#if vrmFile}
+                                    <span class="file-name">{vrmFile.name}</span
+                                    >
+                                {/if}
+                            </div>
+                        </div>
+                    {/if}
                 </div>
-                <ul>
-                    {#each persona.instructions as inst, i}
-                        <li class="instruction-item">
-                            {inst}
-                            <button
-                                type="button"
-                                on:click={() => removeInstruction(i)}
-                                >Remove</button
-                            >
-                        </li>
-                    {/each}
-                </ul>
-            </div>
-            <div class="form-group">
-                <label>Prompt Examples</label>
-                <div class="input-group">
-                    <input
-                        bind:value={promptExample}
-                        placeholder="Add prompt example"
-                    />
-                    <button type="button" on:click={addPromptExample}
-                        >Add</button
-                    >
-                </div>
-                <ul>
-                    {#each persona.promptExamples as prompt, i}
-                        <li>
-                            {prompt}
-                            <button
-                                type="button"
-                                on:click={() => removePromptExample(i)}
-                                >Remove</button
-                            >
-                        </li>
-                    {/each}
-                </ul>
             </div>
 
-            <div class="form-group">
-                <label>Tags</label>
-                <div class="input-group">
-                    <input
-                        type="text"
-                        bind:value={tags}
-                        placeholder="태그를 쉼표(,)로 구분해서 입력 (예: 인간,감정,AI)"
-                        on:keydown={(e) => {
-                            if (e.key === "Enter") {
-                                e.preventDefault();
-                                addTag();
-                            }
-                        }}
-                    />
-                    <button type="button" on:click={addTag}>Add</button>
-                </div>
-                <ul class="tag-list">
-                    {#each persona.tags as tag, i}
-                        <li class="tag-item">
-                            <span>{tag}</span>
+            <div class="form-column">
+                <div class="form-section-card">
+                    <h2>AI 상세 설정</h2>
+                    <div class="form-group">
+                        <label for="instruction-input"
+                            >지시사항 (Instructions)</label
+                        >
+                        <p class="description">
+                            AI의 역할, 성격, 말투 등 핵심적인 정체성을
+                            정의합니다.
+                        </p>
+                        <div class="input-group">
+                            <textarea
+                                id="instruction-input"
+                                bind:value={instruction}
+                                placeholder="예: 당신은 친절한 인공지능 비서입니다."
+                                rows="3"
+                            />
                             <button
                                 type="button"
-                                on:click={() => removeTag(i)}
-                                class="remove-tag-button"
+                                class="btn btn-secondary"
+                                on:click={addInstruction}>추가</button
                             >
-                                &times;
-                            </button>
-                        </li>
-                    {/each}
-                </ul>
+                        </div>
+                        <ul class="item-list">
+                            {#each persona.instructions as inst, i}
+                                <li class="item">
+                                    <span class="item-text">{inst}</span>
+                                    <button
+                                        type="button"
+                                        class="btn-remove"
+                                        on:click={() => removeInstruction(i)}
+                                        >&times;</button
+                                    >
+                                </li>
+                            {/each}
+                        </ul>
+                    </div>
+                    <div class="form-group">
+                        <label for="prompt-example-input"
+                            >예시 대화 (Prompt Examples)</label
+                        >
+                        <p class="description">
+                            AI가 따라해야 할 구체적인 대화 예시를 제공합니다.
+                        </p>
+                        <div class="input-group">
+                            <input
+                                id="prompt-example-input"
+                                bind:value={promptExample}
+                                placeholder="예: User: 오늘 날씨 어때? / Assistant: 오늘은 맑고 화창한 날씨예요!"
+                            />
+                            <button
+                                type="button"
+                                class="btn btn-secondary"
+                                on:click={addPromptExample}>추가</button
+                            >
+                        </div>
+                        <ul class="item-list">
+                            {#each persona.promptExamples as prompt, i}
+                                <li class="item">
+                                    <span class="item-text">{prompt}</span>
+                                    <button
+                                        type="button"
+                                        class="btn-remove"
+                                        on:click={() => removePromptExample(i)}
+                                        >&times;</button
+                                    >
+                                </li>
+                            {/each}
+                        </ul>
+                    </div>
+                    <div class="form-group">
+                        <label for="tags-input">태그</label>
+                        <p class="description">
+                            쉼표(,)로 구분하여 여러 태그를 한 번에 추가할 수
+                            있습니다.
+                        </p>
+                        <div class="input-group">
+                            <input
+                                id="tags-input"
+                                type="text"
+                                bind:value={tags}
+                                placeholder="예: AI, 친구, 대화"
+                                on:keydown={(e) => {
+                                    if (e.key === "Enter") {
+                                        e.preventDefault();
+                                        addTag();
+                                    }
+                                }}
+                            />
+                            <button
+                                type="button"
+                                class="btn btn-secondary"
+                                on:click={addTag}>추가</button
+                            >
+                        </div>
+                        <ul class="tag-list">
+                            {#each persona.tags as tag, i}
+                                <li class="tag-item">
+                                    {tag}
+                                    <button
+                                        type="button"
+                                        class="btn-remove"
+                                        on:click={() => removeTag(i)}
+                                        >&times;</button
+                                    >
+                                </li>
+                            {/each}
+                        </ul>
+                    </div>
+                </div>
             </div>
-        </form>
+        </div>
     </div>
 </div>
+<LoadingAnimation isOpen={loading} />
 
 <style>
-    /* style 태그 안에 추가 */
-    .instruction-item {
-        /* 중요한 속성! */
-        white-space: pre-wrap;
-
-        /* 다른 스타일 (선택 사항) */
-        border: 1px solid #eee;
-        padding: 10px;
-        margin-bottom: 8px;
-        border-radius: 4px;
-        display: flex; /* 버튼 정렬을 위해 flexbox 사용 */
-        justify-content: space-between; /* 텍스트와 버튼을 양 끝으로 정렬 */
-        align-items: flex-start; /* 여러 줄일 때 위로 정렬 */
-        font-size: 0.95em;
-        line-height: 1.5;
-        text-align: left; /* 텍스트 정렬 */
-        word-break: break-word; /* 긴 단어가 줄바꿈되도록 */
+    :root {
+        --bg-primary: #121212;
+        --bg-secondary: #1e1e1e;
+        --bg-tertiary: #2a2a2a;
+        --text-primary: #e0e0e0;
+        --text-secondary: #a0a0a0;
+        --border-color: #333;
+        --accent-primary: #4a90e2;
+        --accent-danger: #e24a4a;
     }
 
-    .instruction-item button {
-        margin-left: 15px; /* 텍스트와 버튼 사이 간격 */
-        flex-shrink: 0; /* 버튼이 줄어들지 않도록 */
-        padding: 5px 10px;
-        background-color: #dc3545;
-        color: white;
-        border: none;
-        border-radius: 4px;
-        cursor: pointer;
-        transition: background-color 0.2s ease;
-    }
-
-    .instruction-item button:hover {
-        background-color: #c82333;
-    }
-    /* 기존 스타일 외에 추가 */
-    .tag-list {
-        list-style: none; /* 기본 리스트 스타일 제거 */
-        padding: 0;
-        margin-top: 10px;
-        display: flex;
-        flex-wrap: wrap; /* 태그가 많으면 줄바꿈되도록 */
-        gap: 8px; /* 태그 아이템 사이 간격 */
-    }
-
-    .tag-item {
-        background-color: #e0e0e0; /* 태그 배경색 */
-        color: #333;
-        padding: 6px 12px;
-        border-radius: 20px; /* 둥근 모서리 */
-        display: flex;
-        align-items: center;
-        gap: 8px; /* 태그 텍스트와 버튼 사이 간격 */
-        font-size: 0.9em;
-    }
-
-    .tag-item span {
-        /* 태그 텍스트에 대한 추가 스타일 (선택 사항) */
-        white-space: nowrap; /* 태그 텍스트는 줄바꿈되지 않도록 */
-    }
-
-    .remove-tag-button {
-        background: none; /* 버튼 배경 제거 */
-        border: none;
-        color: #666; /* X 버튼 색상 */
-        font-weight: bold;
-        font-size: 1.2em;
-        cursor: pointer;
-        padding: 0 5px; /* 패딩 조절 */
-        line-height: 1; /* 높이 조절 */
-        transition: color 0.2s ease;
-    }
-
-    .remove-tag-button:hover {
-        color: #dc3545; /* 호버 시 빨간색 */
-    }
-
-    /* 다른 스타일 (input-group, button 등)은 기존 코드에서 유지 */
-
-    input[type="text"] {
-        padding: 8px;
-        border: 1px solid #ccc;
-        border-radius: 4px;
-        width: 300px;
-    }
-
-    button {
-        padding: 8px 12px;
-        background-color: #007bff;
-        color: white;
-        border: none;
-        border-radius: 4px;
-        cursor: pointer;
-    }
+    /* === 기본 레이아웃 === */
     .container {
-        max-width: 600px;
-        margin: 0 auto;
         height: 100vh;
         display: flex;
         flex-direction: column;
-        overflow-x: hidden;
+        background-color: var(--bg-primary);
+        color: var(--text-primary);
+        max-width: 1200px; /* 최대 너비 조정 */
+        margin: 0 auto;
+        padding: 0 1.5rem;
+        box-sizing: border-box;
     }
+
     .header {
         display: flex;
         justify-content: space-between;
         align-items: center;
-        position: sticky;
-        top: 0;
-        z-index: 10;
-        padding: 0.5rem 0;
+        padding: 1.5rem 0;
         flex-shrink: 0;
+        border-bottom: 1px solid var(--border-color);
     }
-    .scrollable {
+
+    .scrollable-content {
         flex: 1;
         overflow-y: auto;
-        overflow-x: hidden;
-        padding-top: 1rem;
+        min-height: 0;
+        padding-top: 1.5rem;
     }
-    .form-group {
-        margin-bottom: 1rem;
+    /* 스크롤바 디자인 */
+    .scrollable-content::-webkit-scrollbar {
+        width: 8px;
     }
-    select {
-        width: 100%;
-        padding: 0.5rem;
-        border: 1px solid #ccc;
+    .scrollable-content::-webkit-scrollbar-track {
+        background: transparent;
+    }
+    .scrollable-content::-webkit-scrollbar-thumb {
+        background: #555;
         border-radius: 4px;
-        background: #2a2a2a;
-        color: white;
+    }
+    .scrollable-content::-webkit-scrollbar-thumb:hover {
+        background: #777;
+    }
+
+    /* === 2단 폼 레이아웃 === */
+    .form-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+        gap: 1.5rem;
+        align-items: start;
+    }
+
+    .form-column {
+        display: flex;
+        flex-direction: column;
+        gap: 1.5rem;
+    }
+
+    .form-section-card {
+        background-color: var(--bg-secondary);
+        border: 1px solid var(--border-color);
+        border-radius: 12px;
+        padding: 1.5rem;
+    }
+    .form-section-card h2 {
+        margin-top: 0;
+        margin-bottom: 1.5rem;
+        font-size: 1.25rem;
+        border-bottom: 1px solid var(--border-color);
+        padding-bottom: 0.75rem;
+    }
+
+    /* === 폼 요소 공통 스타일 === */
+    .form-group {
+        margin-bottom: 1.5rem;
+    }
+    .form-group:last-child {
+        margin-bottom: 0;
     }
     label {
         display: block;
         margin-bottom: 0.5rem;
+        font-weight: 600;
+    }
+    .description {
+        font-size: 0.85rem;
+        color: var(--text-secondary);
+        margin-top: -0.25rem;
+        margin-bottom: 0.75rem;
     }
     input,
+    select,
     textarea {
         width: 100%;
-        padding: 0.5rem;
-        border: 1px solid #ccc;
-        border-radius: 4px;
-        background: #2a2a2a;
-        color: white;
+        padding: 0.75rem;
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        background: var(--bg-tertiary);
+        color: var(--text-primary);
         box-sizing: border-box;
+        transition:
+            border-color 0.2s,
+            box-shadow 0.2s;
+    }
+    input:focus,
+    select:focus,
+    textarea:focus {
         outline: none;
+        border-color: var(--accent-primary);
+        box-shadow: 0 0 0 2px rgba(74, 144, 226, 0.3);
     }
-    textarea {
-        height: 100px;
-    }
+
     .input-group {
         display: flex;
         gap: 0.5rem;
     }
-    button {
-        padding: 0.5rem 1rem;
-        background: #181818;
-        color: white;
-        border: none;
-        border-radius: 4px;
+    .input-group > :first-child {
+        flex: 1;
+    }
+
+    /* === 커스텀 파일 업로드 === */
+    .file-input-hidden {
+        display: none;
+    }
+    .file-input-container {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+    .file-input-label {
+        display: inline-block;
+        padding: 0.6rem 1.2rem;
+        background-color: var(--bg-tertiary);
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
         cursor: pointer;
+        transition: background-color 0.2s;
     }
-    button:hover {
-        background: #333;
+    .file-input-label:hover {
+        background-color: #3c3c3c;
     }
-    .save-button {
-        padding: 0.5rem 1rem;
-        background: #181818;
-        color: white;
-        border: none;
-        border-radius: 4px;
-        cursor: pointer;
+    .file-name {
+        font-size: 0.9rem;
+        color: var(--text-secondary);
     }
-    .save-button:hover {
-        background: #333;
+    .preview-image {
+        margin-top: 1rem;
+        max-width: 150px;
+        max-height: 150px;
+        border-radius: 8px;
+        object-fit: cover;
+        border: 1px solid var(--border-color);
     }
-    .error {
-        color: red;
-    }
-    ul {
+
+    /* === 동적 아이템 리스트 === */
+    .item-list {
         list-style: none;
         padding: 0;
+        margin-top: 1rem;
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
     }
-    li {
+    .item {
         display: flex;
         justify-content: space-between;
-        padding: 0.5rem 0;
+        align-items: flex-start;
+        background: var(--bg-tertiary);
+        padding: 0.75rem;
+        border-radius: 6px;
+        font-size: 0.9rem;
+        line-height: 1.5;
+        word-break: break-word;
+    }
+    .item-text {
+        white-space: pre-wrap; /* 줄바꿈 문자 표시 */
+    }
+
+    .tag-list {
+        list-style: none;
+        padding: 0;
+        margin-top: 1rem;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+    }
+    .tag-item {
+        background-color: var(--bg-tertiary);
+        color: var(--text-primary);
+        padding: 0.3rem 0.8rem;
+        border-radius: 16px;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.9rem;
+    }
+
+    /* === 버튼 === */
+    .btn {
+        padding: 0.6rem 1.2rem;
+        font-size: 0.9rem;
+        font-weight: 600;
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+    .btn-primary {
+        background: var(--accent-primary);
+        border-color: var(--accent-primary);
+        color: white;
+    }
+    .btn-primary:hover:not(:disabled) {
+        background: #62a2e9;
+    }
+
+    .btn-secondary {
+        background: var(--bg-tertiary);
+        color: var(--text-primary);
+    }
+    .btn-secondary:hover:not(:disabled) {
+        background: #3c3c3c;
+    }
+
+    .btn-remove {
+        background: none;
+        border: none;
+        color: var(--text-secondary);
+        font-size: 1.5rem;
+        line-height: 1;
+        cursor: pointer;
+        padding: 0 0.25rem;
+    }
+    .btn-remove:hover {
+        color: var(--accent-danger);
+    }
+
+    .save-button {
+        /* .btn, .btn-primary 스타일 상속 */
+        padding: 0.6rem 1.2rem;
+        font-size: 0.9rem;
+        font-weight: 600;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: all 0.2s;
+        background: var(--accent-primary);
+        border: 1px solid var(--accent-primary);
+        color: white;
+    }
+    .save-button:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+    }
+    .save-button:hover:not(:disabled) {
+        background: #62a2e9;
+        border-color: #62a2e9;
+    }
+
+    .error {
+        color: var(--accent-danger);
+        background-color: rgba(226, 74, 74, 0.1);
+        padding: 1rem;
+        border-radius: 8px;
+        margin-bottom: 1.5rem;
+    }
+
+    /* 기존 .save-button 관련 스타일 아래에 추가 */
+    .save-button.success {
+        background: #28a745; /* 성공 시 초록색 배경 */
+        border-color: #28a745;
+    }
+
+    .save-button:disabled {
+        opacity: 0.8; /* 로딩 중일 때 버튼 약간 투명하게 */
+        cursor: wait; /* 커서 모양 변경 */
     }
 </style>

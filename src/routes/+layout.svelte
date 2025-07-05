@@ -83,14 +83,18 @@
         color: var(--color-text);
         font-family: "Segoe UI", sans-serif;
     }
+
     .layout {
-        display: flex;
-        flex-direction: column; /* 자식 요소들을 세로로 정렬 */
-        min-height: 100vh; /* 화면 전체 높이를 차지하도록 설정 */
+        display: flex; /* 기본이 row, 그래서 Sidebar가 ‘옆’ */
+        height: 100vh; /* min-height → height 로 정확히 고정 */
+        overflow: hidden; /* 바깥 스크롤 차단 */
     }
+
     main {
-        flex-grow: 1; /* 메인 콘텐츠 영역이 가능한 모든 공간을 차지하도록 설정 */
-        flex: 1;
+        flex: 1 1 0;
+        display: flex;
+        flex-direction: column;
+        min-height: 0; /* 내부 shrink 허용 (1 px 오버 방지) */
     }
 
     /*
