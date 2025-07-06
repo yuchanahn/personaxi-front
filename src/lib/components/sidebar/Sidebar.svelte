@@ -48,6 +48,17 @@
     <div style="min-width: 250px;">
         <ChatSidebar />
     </div>
+    <div class="sidebar-footer">
+        <a
+            href="https://discord.gg/pyPb9Pp6"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="discord-link"
+        >
+            <Icon icon="ic:baseline-discord" width="24" height="24" />
+            <span>커뮤니티 참여</span>
+        </a>
+    </div>
 </div>
 
 <style>
@@ -71,6 +82,10 @@
         transition: transform var(--sidebar-transition-duration) ease;
         z-index: 20;
         width: var(--sidebar-width);
+
+        /* ★★★ 아래 두 줄을 추가해주세요 ★★★ */
+        display: flex;
+        flex-direction: column;
     }
 
     .sidebar.open {
@@ -107,6 +122,31 @@
         height: 100%;
         background-color: rgba(0, 0, 0, 0.5);
         z-index: 15; /* 사이드바(20)보다는 아래, 콘텐츠보다는 위에 위치 */
+    }
+
+    .sidebar-footer {
+        margin-top: auto; /* 메뉴 목록 맨 아래에 고정 */
+        padding: 1rem;
+        border-top: 1px solid var(--border-color, #eee); /* 상단 메뉴와 구분선 */
+    }
+
+    .discord-link {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 0.75rem;
+        border-radius: 8px;
+        color: var(--text-secondary, #666);
+        text-decoration: none;
+        font-weight: 600;
+        transition:
+            background-color 0.2s,
+            color 0.2s;
+    }
+
+    .discord-link:hover {
+        background-color: rgba(114, 137, 218, 0.1); /* 디스코드 보라색 계열 */
+        color: #7289da;
     }
 
     /* ★★★ 모바일 반응형 스타일 (가장 중요) ★★★ */
