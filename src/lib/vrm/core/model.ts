@@ -119,7 +119,9 @@ export class Model {
         }
         this.expressionController = new ExpressionController(this.vrm, camera);
         //this.expressionController.playEmotion([{ key: "surprise", value: 1 }]);
-        addOutlineToVRM(this.vrm)
+        // @TODO: add outline to VRM
+
+        // addOutlineToVRM(this.vrm)
         return this.vrm;
     }
 

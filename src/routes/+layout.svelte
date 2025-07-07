@@ -8,10 +8,13 @@
     import Login from "$lib/components/login/login.svelte";
     import { getCurrentUser } from "$lib/api/auth";
     import "../app.css";
-
-    // ✨ 새로 추가된 부분
     import CheatConsole from "$lib/components/cheat/CheatConsole.svelte"; // 치트 콘솔 컴포넌트 임포트
+    import { page } from "$app/stores"; // 현재 페이지 정보 가져오기
+
     let showCheatConsole = false; // 치트 콘솔 표시 여부
+    let showSidebar = true; // 사이드바 표시 여부
+
+    $: $page.url.pathname, (showSidebar = false);
 
     onMount(async () => {
         let user = await getCurrentUser();
@@ -19,9 +22,6 @@
             is_login.set(false);
             return;
         }
-
-        // ✨ 키보드 이벤트 리스너 추가
-        window.addEventListener("keydown", handleGlobalKeydown);
     });
 
     onDestroy(() => {
@@ -52,7 +52,7 @@
 </script>
 
 <div class="layout">
-    <Sidebar />
+    <Sidebar bind:showSidebar />
     <main>
         {#if !$is_login}
             <Login />

@@ -3,7 +3,7 @@
     import Icon from "@iconify/svelte";
     import { onMount } from "svelte";
 
-    let showSidebar: boolean = true;
+    export let showSidebar: boolean = true;
     let isMobile: boolean = false;
 
     // 화면 크기를 감지하여 isMobile 상태를 업데이트합니다.

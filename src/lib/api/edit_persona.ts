@@ -6,14 +6,18 @@ import { API_BASE_URL } from '$lib/constants';
 
 export async function savePersona(persona: Persona, vrmFile: File | null, portrait: File | null) {
     try {
+
         const formData = new FormData();
-        formData.append("persona", JSON.stringify(persona)); // 메타 정보
+
+        const meta = JSON.stringify(persona);
+
         if (vrmFile) {
             formData.append("vrm", vrmFile); // VRM 파일 (File 객체)
         }
         if (portrait) {
             formData.append("portrait", portrait); // VRM 파일 (File 객체)
         }
+        formData.append("persona", meta); // 메타 정보
 
         const res = await fetch(`${API_BASE_URL}/api/persona/edit`, {
             method: "POST",
