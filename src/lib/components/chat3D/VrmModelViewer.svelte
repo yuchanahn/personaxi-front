@@ -29,10 +29,15 @@
     tick().then(loadVrm);
   }
 
+  let isLoading = false;
+
   const send = async (prompt: string) => {
     try {
-      if (model && persona)
+      if (model && persona) {
+        isLoading = true;
         await handleSendToCharacter(persona.id, prompt, model);
+        isLoading = false;
+      }
     } catch (error) {
       console.error("Error sending prompt to character:", error);
     }
@@ -53,7 +58,7 @@
   <canvas bind:this={canvas} class="vrm-canvas"></canvas>
   <div class="chat-container">
     <div class="chat-content">
-      <ChatWindow cssid={cssid ?? ""} showChat={show} />
+      <ChatWindow cssid={cssid ?? ""} showChat={show} {isLoading} />
       <ChatInput onSend={send} />
     </div>
   </div>

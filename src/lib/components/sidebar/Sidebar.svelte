@@ -50,6 +50,15 @@
     </div>
     <div class="sidebar-footer">
         <a
+            href="https://wind-chance-11f.notion.site/personaxi-com-228d058c022e80a1ae4ddf99878f5fbc?source=copy_link"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="sidebar-link"
+        >
+            <Icon icon="ph:book-open-duotone" width="24" height="24" />
+            <span>튜토리얼</span>
+        </a>
+        <a
             href="https://discord.gg/pyPb9Pp6"
             target="_blank"
             rel="noopener noreferrer"
@@ -147,6 +156,38 @@
     .discord-link:hover {
         background-color: rgba(114, 137, 218, 0.1); /* 디스코드 보라색 계열 */
         color: #7289da;
+    }
+
+    /* 이 스타일을 기존 CSS에 추가하거나 .discord-link 등을 수정해서 사용하세요 */
+    .sidebar-footer {
+        margin-top: auto; /* 푸터를 항상 사이드바 맨 아래로 밀어냄 */
+        padding: 1rem;
+        border-top: 1px solid var(--border-color, #eee);
+        display: flex;
+        flex-direction: column; /* 링크들을 세로로 쌓음 */
+        gap: 0.5rem; /* 링크 사이의 간격 */
+    }
+
+    .sidebar-link {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        padding: 0.75rem;
+        border-radius: 8px;
+        color: var(--text-secondary, #666);
+        text-decoration: none;
+        font-weight: 600;
+        transition:
+            background-color 0.2s,
+            color 0.2s;
+    }
+
+    .sidebar-link:hover {
+        background-color: var(
+            --bg-tertiary,
+            #f0f0f0
+        ); /* 당신의 디자인 시스템에 맞는 색으로 변경 */
+        color: var(--text-primary, #000);
     }
 
     /* ★★★ 모바일 반응형 스타일 (가장 중요) ★★★ */
