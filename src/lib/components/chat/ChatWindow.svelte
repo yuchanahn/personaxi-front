@@ -1,23 +1,30 @@
 <script lang="ts">
-  import { onMount } from "svelte";
+  import { onMount, tick } from "svelte"; // tick 추가
   import { marked } from "marked";
   import { messages } from "$lib/stores/messages";
   import SettingsModal from "$lib/components/modal/SettingModal.svelte";
 
   export let isLoading: boolean = false;
   export let cssid: string;
-  export let showChat: boolean = true; // 채팅 표시 여부
+  export let showChat: boolean = true;
 
-  let isThink: boolean = false;
+  let chatWindowEl: HTMLElement;
+  let isThink = false;
 
-  onMount(() => {
-    const el = document.querySelector(".chat-window");
-    const observer = new MutationObserver(() => {
-      el?.scrollTo({ top: el.scrollHeight, behavior: "smooth" });
-    });
-    if (el) observer.observe(el, { childList: true, subtree: true });
-    return () => observer.disconnect(); // 컴포넌트 언마운트 시 정리
-  });
+  // 반응성($:)을 사용해 messages가 바뀔 때마다 isThink 상태를 자동으로 계산
+  $: {
+    isThink = false; // 기본값은 false
+    if ($messages.length > 0) {
+      const lastMessage = $messages[$messages.length - 1];
+      if (
+        lastMessage.role === "assistant" &&
+        lastMessage.content.includes("<think>") &&
+        !lastMessage.content.includes("</think>")
+      ) {
+        isThink = true;
+      }
+    }
+  }
 
   function stripEmotions(text: string) {
     text = text.replace(/<emo:[^>]+>/g, "");
@@ -44,6 +51,27 @@
     return marked(text);
   }
 
+  // 자동 스크롤 로직은 onMount 대신 messages가 변경될 때마다 실행하는 것이 더 안정적입니다.
+  $: if ($messages && chatWindowEl) {
+    // tick()을 사용해 DOM 업데이트가 완료된 후 스크롤
+    tick().then(() => {
+      chatWindowEl.scrollTo({
+        top: chatWindowEl.scrollHeight,
+        behavior: "smooth",
+      });
+    });
+
+    // 마지막 메시지가 user 역할인 경우 로딩 상태를 false로 설정
+    if ($messages.length > 0) {
+      const lastMessage = $messages[$messages.length - 1];
+      if (lastMessage.role === "user") {
+        isLoading = true;
+      } else {
+        isLoading = false;
+      }
+    }
+  }
+
   let isSettingsModalOpen = false;
 </script>
 
@@ -63,7 +91,11 @@
     /></svg
   >
 </button>
-<div class="chat-window" style:opacity={showChat ? "0.7" : "0"}>
+<div
+  class="chat-window"
+  bind:this={chatWindowEl}
+  style:opacity={showChat ? "0.7" : "0"}
+>
   {#if $messages.length === 0}
     <div class="empty-message">아직 대화가 없습니다. 질문을 입력해보세요.</div>
   {/if}
@@ -73,16 +105,46 @@
     </div>
   {/each}
   {#if isLoading}
-    <div class="loading-dots">
-      답변 생성 중<span>.</span><span>.</span><span>.</span>
+    <div class="loading-dots assistant">
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        width="24"
+        height="24"
+        viewBox="0 0 24 24"
+        ><circle cx="4" cy="12" r="3" fill="currentColor"
+          ><animate
+            id="svgSpinners3DotsScale0"
+            attributeName="r"
+            begin="0;svgSpinners3DotsScale1.end-0.25s"
+            dur="0.75s"
+            values="3;.2;3"
+          /></circle
+        ><circle cx="12" cy="12" r="3" fill="currentColor"
+          ><animate
+            attributeName="r"
+            begin="svgSpinners3DotsScale0.end-0.6s"
+            dur="0.75s"
+            values="3;.2;3"
+          /></circle
+        ><circle cx="20" cy="12" r="3" fill="currentColor"
+          ><animate
+            id="svgSpinners3DotsScale1"
+            attributeName="r"
+            begin="svgSpinners3DotsScale0.end-0.45s"
+            dur="0.75s"
+            values="3;.2;3"
+          /></circle
+        ></svg
+      >
     </div>
   {/if}
   {#if isThink}
-    <div class="loading-dots">
+    <div class="loading-dots assistant">
       생각 중<span>.</span><span>.</span><span>.</span>
     </div>
   {/if}
 </div>
+
 <!-- NEW: SettingsModal 컴포넌트 렌더링 -->
 <SettingsModal
   {cssid}
@@ -129,7 +191,13 @@
       max-width: 70%;
     }
   }
-
+  /* .assistant 클래스를 loading-dots와 함께 사용할 수 있도록 수정 */
+  .loading-dots.assistant {
+    align-self: flex-start; /* assistant 메시지처럼 왼쪽에 표시 */
+    background-color: #222222; /* assistant 메시지와 유사한 배경 */
+    padding: 0.75rem 1rem;
+    border-radius: 16px;
+  }
   /* NEW: 설정 버튼 스타일 */
   .settings-button {
     position: absolute;

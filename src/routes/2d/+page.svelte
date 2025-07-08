@@ -32,8 +32,11 @@
     }
   }
 
+  let isLoading = false;
+
   const send = async (prompt: string) => {
     const sessionId = $page.url.searchParams.get("c");
+    isLoading = true;
     await sendPromptStream(sessionId ?? "", prompt, "character");
   };
 </script>
@@ -50,7 +53,7 @@
   {/if}
 
   <div class="chat-container">
-    <ChatWindow cssid={lastSessionId ?? ""} />
+    <ChatWindow cssid={lastSessionId ?? ""} {isLoading} />
     <ChatInput onSend={send} />
   </div>
 </main>
