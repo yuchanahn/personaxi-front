@@ -6,6 +6,8 @@ import { AutoBlink } from './auto_blink'
 import { custom_expressions } from './custom_expression'
 import { emotionExpressions } from './expressions'
 
+
+
 export class ExpressionController {
   private _autoLookAt: AutoLookAt
   private _autoBlink?: AutoBlink
@@ -31,6 +33,30 @@ export class ExpressionController {
       this._expressionManager = vrm.expressionManager
       this._autoBlink = new AutoBlink(vrm.expressionManager)
     }
+
+    const ignore_expressions = [
+      'Fcl_MTH_A',
+      'Fcl_MTH_I',
+      'Fcl_MTH_U',
+      'Fcl_MTH_E',
+      'Fcl_MTH_O',
+      'Fcl_MTH_Joy',
+      'Fcl_MTH_Sorrow',
+      'Fcl_MTH_Surprised',
+    ]
+
+    // 1. 전체 감정 데이터를 순회합니다.
+    emotionExpressions.forEach(emotion => {
+      // 2. 각 감정의 targets 배열을 순회합니다.
+      emotion.targets.forEach(target => {
+        // 3. targetName이 일치하는지 확인합니다.
+        if (ignore_expressions.includes(target.targetName)) {
+          // 4. 일치하면 weight를 0으로 설정합니다.
+          //console.log(`Found and modified: ${emotion.name} -> ${target.targetName}`);
+          target.weight = 0;
+        }
+      });
+    });
 
     const expressions = custom_expressions(vrm, emotionExpressions)
 
@@ -106,7 +132,7 @@ export class ExpressionController {
     )
 
     if (this._currentLipSync) {
-      const weight = this._currentLipSync.value * 0.25
+      const weight = this._currentLipSync.value * 0.5
       this._expressionManager?.setValue(this._currentLipSync.preset, weight)
     }
   }

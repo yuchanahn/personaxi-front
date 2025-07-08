@@ -7,11 +7,8 @@ export async function loadChatSessions() {
     chatSessions.set([]);
 
     createNewSession("2", "🔍 탐색", ChatSessionType.SYSTEM);
-    createNewSession("S1", "", ChatSessionType.SPACE);
     createNewSession("3", "⚙️ 사용자", ChatSessionType.SYSTEM);
-    createNewSession("S2", "", ChatSessionType.SPACE);
     createNewSession("5", "🎨 창조", ChatSessionType.SYSTEM);
-    createNewSession("S3", "", ChatSessionType.SPACE);
     createNewSession("100", "📜 Legal", ChatSessionType.SYSTEM);
     createNewSession("S4", "", ChatSessionType.SPACE);
 

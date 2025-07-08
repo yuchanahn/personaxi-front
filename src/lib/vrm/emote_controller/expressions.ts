@@ -186,7 +186,7 @@ export const emotionExpressions = [
   },
 
   {
-    name: 'admiration',
+    name: 'admiration', // 감탄, 존경
     targets: [
       { targetName: 'Fcl_BRW_Surprised', weight: 1 },
       { targetName: 'Fcl_EYE_Spread', weight: 1 },
@@ -197,7 +197,7 @@ export const emotionExpressions = [
     ]
   },
   {
-    name: 'amusement',
+    name: 'amusement', // 즐거움, 재미
     targets: [
       { targetName: 'Fcl_EYE_Fun', weight: 0.8 },
       { targetName: 'Fcl_MTH_Fun', weight: 0.9 },
@@ -205,7 +205,7 @@ export const emotionExpressions = [
     ]
   },
   {
-    name: 'anger',
+    name: 'anger', // 분노, 화
     targets: [
       { targetName: 'Fcl_BRW_Angry', weight: 1.0 },
       { targetName: 'Fcl_EYE_Angry', weight: 0.9 },
@@ -213,7 +213,7 @@ export const emotionExpressions = [
     ]
   },
   {
-    name: 'annoyance',
+    name: 'annoyance', // 짜증, 성가심
     targets: [
       { targetName: 'Fcl_BRW_Angry', weight: 0.8 },
       { targetName: 'Fcl_EYE_Close_R', weight: 0.6 },
@@ -222,7 +222,7 @@ export const emotionExpressions = [
     ]
   },
   {
-    name: 'approval',
+    name: 'approval', // 인정, 찬성
     targets: [
       { targetName: 'Fcl_EYE_Joy', weight: 0.8 },
       { targetName: 'Fcl_MTH_Fun', weight: 0.7 },
@@ -230,7 +230,7 @@ export const emotionExpressions = [
     ]
   },
   {
-    name: 'caring',
+    name: 'caring', // 염려, 보살핌
     targets: [
       { targetName: 'Fcl_EYE_Joy', weight: 0.46 },
       { targetName: 'Fcl_EYE_Sorrow', weight: 1 },
@@ -242,7 +242,7 @@ export const emotionExpressions = [
     ]
   },
   {
-    name: 'confusion',
+    name: 'confusion', // 혼란
     targets: [
       { targetName: 'Fcl_EYE_Surprised', weight: 0.7 },
       { targetName: 'Fcl_BRW_Surprised', weight: 0.6 },
@@ -250,7 +250,7 @@ export const emotionExpressions = [
     ]
   },
   {
-    name: 'curiosity',
+    name: 'curiosity', // 호기심
     targets: [
       { targetName: 'Fcl_EYE_Natural', weight: 0.9 },
       { targetName: 'Fcl_BRW_Joy', weight: 0.7 }, // weight 증가
@@ -259,69 +259,109 @@ export const emotionExpressions = [
     ]
   },
   {
-    name: 'desire',
+    name: 'desire', // 욕망
     targets: [
       { targetName: 'Fcl_EYE_Close', weight: 0.7 },
       { targetName: 'Fcl_MTH_Fun', weight: 0.8 }
     ]
   },
   {
-    name: 'disappointment',
+    name: 'disappointment', // 실망
     targets: [
-      { targetName: 'Fcl_BRW_Sorrow', weight: 0.8 },
-      { targetName: 'Fcl_EYE_Sorrow', weight: 0.6 },
-      { targetName: 'Fcl_MTH_Down', weight: 0.5 }
+      { "targetName": "Fcl_BRW_Sorrow", "weight": 0.39 },
+      { "targetName": "Fcl_EYE_Sorrow", "weight": 0.6 },
+      { "targetName": "Fcl_MTH_Close", "weight": 1 },
+      { "targetName": "Fcl_EYE_Highlight_Hide", "weight": 1 },
+      { "targetName": "Fcl_MTH_Angry", "weight": 0.42 },
+      { "targetName": "Fcl_MTH_Large", "weight": 0.01 },
+      { "targetName": "Fcl_EYE_Surprised", "weight": 1 },
+      { "targetName": "Fcl_EYE_Close", "weight": 0.13 },
+      { "targetName": "Fcl_EYE_Angry", "weight": 0.47 }
     ]
   },
   {
-    name: 'disapproval',
+    name: 'disapproval', // 불만, 비난
     targets: [
-      { targetName: 'Fcl_BRW_Angry', weight: 0.8 },
-      { targetName: 'Fcl_MTH_Angry', weight: 0.6 },
-      { targetName: 'Fcl_EYE_Angry', weight: 0.4 }
+      { "targetName": "Fcl_BRW_Angry", "weight": 0.61 },
+      { "targetName": "Fcl_EYE_Angry", "weight": 1 },
+      { "targetName": "Fcl_MTH_Angry", "weight": 0.64 },
+      { "targetName": "Fcl_MTH_Small", "weight": 0.53 },
+      { "targetName": "Fcl_EYE_Sorrow", "weight": 1 }
     ]
   },
   {
-    name: 'disgust',
+    name: 'disgust', // 혐오, 역겨움
     targets: [
-      { targetName: 'Fcl_EYE_Close', weight: 0.6 },
-      { targetName: 'Fcl_MTH_Angry', weight: 0.7 }
+      { "targetName": "Fcl_EYE_Highlight_Hide", "weight": 1 },
+      { "targetName": "Fcl_EYE_Surprised", "weight": 1 },
+      { "targetName": "Fcl_EYE_Spread", "weight": 0.48 },
+      { "targetName": "Fcl_BRW_Joy", "weight": 0.1 },
+      { "targetName": "Fcl_BRW_Sorrow", "weight": 0.69 },
+      { "targetName": "Fcl_MTH_Sorrow", "weight": 0.48 },
+      { "targetName": "Fcl_MTH_Angry", "weight": 0.47 },
+      { "targetName": "Fcl_MTH_Small", "weight": 0.02 },
+      { "targetName": "Fcl_MTH_Large", "weight": 0.45 },
+      { "targetName": "Fcl_MTH_Down", "weight": 0.18 }
     ]
   },
   {
-    name: 'embarrassment',
+    name: 'embarrassment', // 당황, 부끄러움
     targets: [
-      { targetName: 'Fcl_EYE_Close', weight: 0.5 },
-      { targetName: 'Fcl_BRW_Sorrow', weight: 0.6 },
-      { targetName: 'Fcl_MTH_Sorrow', weight: 0.5 }
+      { "targetName": "Fcl_MTH_Small", "weight": 0.76 },
+      { "targetName": "Fcl_BRW_Joy", "weight": 0.44 },
+      { "targetName": "Fcl_BRW_Sorrow", "weight": 0.16 },
+      { "targetName": "Fcl_EYE_Sorrow", "weight": 1 },
+      { "targetName": "Fcl_EYE_Fun", "weight": 1 },
+      { "targetName": "Fcl_EYE_Spread", "weight": 0.72 },
+      { "targetName": "Fcl_EYE_Highlight_Hide", "weight": 0.52 },
+      { "targetName": "Fcl_MTH_Close", "weight": 1 },
+      { "targetName": "Fcl_MTH_Angry", "weight": 0.48 },
+      { "targetName": "Fcl_MTH_Up", "weight": 0.28 }
     ]
   },
   {
-    name: 'excitement',
+    name: 'excitement', // 신남, 흥분
     targets: [
-      { targetName: 'Fcl_EYE_Joy', weight: 0.9 },
-      { targetName: 'Fcl_MTH_Joy', weight: 0.9 },
-      { targetName: 'Fcl_BRW_Joy', weight: 0.7 }
+      { "targetName": "Fcl_EYE_Fun", "weight": 1 },
+      { "targetName": "Fcl_MTH_Fun", "weight": 1 },
+      { "targetName": "Fcl_BRW_Fun", "weight": 0.68 },
+      { "targetName": "Fcl_BRW_Angry", "weight": 1 },
+      { "targetName": "Fcl_EYE_Spread", "weight": 0.38 },
+      { "targetName": "Fcl_EYE_Surprised", "weight": 0.4 },
+      { "targetName": "Fcl_MTH_Joy", "weight": 0.46 },
+      { "targetName": "Fcl_MTH_Large", "weight": 0.38 }
     ]
   },
   {
-    name: 'fear',
+    name: 'fear', // 두려움, 공포
     targets: [
-      { targetName: 'Fcl_EYE_Sorrow', weight: 0.7 },
-      { targetName: 'Fcl_EYE_Spread', weight: 0.5 },
-      { targetName: 'Fcl_MTH_Angry', weight: 0.6 }
+      { "targetName": "Fcl_BRW_Sorrow", "weight": 1 },
+      { "targetName": "Fcl_BRW_Surprised", "weight": 1 },
+      { "targetName": "Fcl_EYE_Highlight_Hide", "weight": 0.39 },
+      { "targetName": "Fcl_MTH_Close", "weight": 1 },
+      { "targetName": "Fcl_MTH_Neutral", "weight": 1 },
+      { "targetName": "Fcl_MTH_Angry", "weight": 1 },
+      { "targetName": "Fcl_EYE_Spread", "weight": 0.83 },
+      { "targetName": "Fcl_MTH_Small", "weight": 0.58 },
+      { "targetName": "Fcl_EYE_Surprised", "weight": 1 },
+      { "targetName": "Fcl_EYE_Sorrow", "weight": 0.41 }
     ]
   },
   {
-    name: 'gratitude',
+    name: 'gratitude', // 감사
     targets: [
-      { targetName: 'Fcl_EYE_Joy', weight: 0.8 },
-      { targetName: 'Fcl_MTH_Joy', weight: 0.7 },
-      { targetName: 'Fcl_BRW_Fun', weight: 0.6 }
+      { "targetName": "Fcl_MTH_Neutral", "weight": 1 },
+      { "targetName": "Fcl_MTH_Fun", "weight": 1 },
+      { "targetName": "Fcl_MTH_Close", "weight": 0.4 },
+      { "targetName": "Fcl_EYE_Sorrow", "weight": 1 },
+      { "targetName": "Fcl_EYE_Fun", "weight": 1 },
+      { "targetName": "Fcl_BRW_Sorrow", "weight": 0.15 },
+      { "targetName": "Fcl_BRW_Joy", "weight": 0.22 },
+      { "targetName": "Fcl_BRW_Angry", "weight": 0.19 }
     ]
   },
   {
-    name: 'grief',
+    name: 'grief', // 비탄, 큰 슬픔
     targets: [
       { targetName: 'Fcl_BRW_Sorrow', weight: 1 },
       { targetName: 'Fcl_EYE_Sorrow', weight: 0.54 },
@@ -333,7 +373,7 @@ export const emotionExpressions = [
     ]
   },
   {
-    name: 'joy',
+    name: 'joy', // 기쁨
     targets: [
       { targetName: 'Fcl_EYE_Joy', weight: 1 },
       { targetName: 'Fcl_MTH_Joy', weight: 1 },
@@ -341,61 +381,86 @@ export const emotionExpressions = [
     ]
   },
   {
-    name: 'love',
+    name: 'love', // 사랑
     targets: [
-      { targetName: 'Fcl_EYE_Close', weight: 0.6 },
-      { targetName: 'Fcl_BRW_Joy', weight: 0.7 },
-      { targetName: 'Fcl_MTH_Fun', weight: 0.8 }
+      { "targetName": "Fcl_EYE_Fun", "weight": 1 },
+      { "targetName": "Fcl_BRW_Sorrow", "weight": 0.17 },
+      { "targetName": "Fcl_BRW_Surprised", "weight": 0.57 },
+      { "targetName": "Fcl_MTH_Close", "weight": 0.99 },
+      { "targetName": "Fcl_MTH_Fun", "weight": 0.71 },
+      { "targetName": "Fcl_MTH_Down", "weight": 0.24 },
+      { "targetName": "Fcl_EYE_Joy", "weight": 0.25 }
     ]
   },
   {
-    name: 'nervousness',
+    name: 'nervousness', // 긴장, 초조
     targets: [
-      { targetName: 'Fcl_EYE_Sorrow', weight: 0.7 },
-      { targetName: 'Fcl_MTH_Close', weight: 0.8 },
-      { targetName: 'Fcl_BRW_Sorrow', weight: 0.6 }
+      { "targetName": "Fcl_MTH_Close", "weight": 1 },
+      { "targetName": "Fcl_MTH_Small", "weight": 0.53 },
+      { "targetName": "Fcl_EYE_Spread", "weight": 0.24 },
+      { "targetName": "Fcl_EYE_Sorrow", "weight": 0.86 },
+      { "targetName": "Fcl_EYE_Surprised", "weight": 1 },
+      { "targetName": "Fcl_EYE_Close", "weight": 0.17 },
+      { "targetName": "Fcl_BRW_Angry", "weight": 0.26 }
     ]
   },
   {
-    name: 'optimism',
+    name: 'optimism', // 낙관, 낙천
     targets: [
-      { targetName: 'Fcl_EYE_Fun', weight: 0.8 },
-      { targetName: 'Fcl_MTH_Fun', weight: 0.9 },
-      { targetName: 'Fcl_BRW_Fun', weight: 0.7 }
+      { "targetName": "Fcl_EYE_Close", "weight": 1 },
+      { "targetName": "Fcl_BRW_Fun", "weight": 1 },
+      { "targetName": "Fcl_MTH_Large", "weight": 0.56 },
+      { "targetName": "Fcl_MTH_Fun", "weight": 1 }
     ]
   },
   {
-    name: 'pride',
+    name: 'pride', // 자부심, 자랑
+    targets:
+      [
+        { "targetName": "Fcl_EYE_Close", "weight": 0.16 },
+        { "targetName": "Fcl_MTH_Fun", "weight": 1 },
+        { "targetName": "Fcl_BRW_Angry", "weight": 1 },
+        { "targetName": "Fcl_MTH_Joy", "weight": 0.18 },
+        { "targetName": "Fcl_MTH_Large", "weight": 0.17 }
+      ]
+  },
+  {
+    name: 'realization', // 깨달음
     targets: [
-      { targetName: 'Fcl_BRW_Joy', weight: 0.9 },
-      { targetName: 'Fcl_MTH_Joy', weight: 0.8 }
+      { "targetName": "Fcl_MTH_Small", "weight": 1 },
+      { "targetName": "Fcl_EYE_Surprised", "weight": 1 },
+      { "targetName": "Fcl_MTH_Joy", "weight": 0.22 },
+      { "targetName": "Fcl_MTH_Surprised", "weight": 0.11 },
+      { "targetName": "Fcl_BRW_Joy", "weight": 0.66 }
     ]
   },
   {
-    name: 'realization',
+    name: 'relief', // 안도
     targets: [
-      { targetName: 'Fcl_EYE_Close_R', weight: 0.5 },
-      //{ targetName: "Fcl_EYE_Close_R", weight: 0.5 },
-      { targetName: 'Fcl_MTH_Neutral', weight: 0.8 }
+      { "targetName": "Fcl_MTH_Fun", "weight": 1 },
+      { "targetName": "Fcl_BRW_Fun", "weight": 0.74 },
+      { "targetName": "Fcl_BRW_Joy", "weight": 0.77 },
+      { "targetName": "Fcl_BRW_Surprised", "weight": 0.05 },
+      { "targetName": "Fcl_EYE_Joy", "weight": 0.12 },
+      { "targetName": "Fcl_MTH_Close", "weight": 0.57 },
+      { "targetName": "Fcl_MTH_Neutral", "weight": 0.43 },
+      { "targetName": "Fcl_MTH_Small", "weight": 0.15 }
     ]
   },
   {
-    name: 'relief',
+    name: 'remorse', // 후회, 양심의 가책
     targets: [
-      { targetName: 'Fcl_EYE_Close', weight: 0.8 },
-      { targetName: 'Fcl_MTH_Fun', weight: 0.6 }
+      { "targetName": "Fcl_BRW_Sorrow", "weight": 0.51 },
+      { "targetName": "Fcl_BRW_Surprised", "weight": 0.51 },
+      { "targetName": "Fcl_EYE_Sorrow", "weight": 1 },
+      { "targetName": "Fcl_EYE_Surprised", "weight": 1 },
+      { "targetName": "Fcl_EYE_Highlight_Hide", "weight": 0.59 },
+      { "targetName": "Fcl_MTH_Down", "weight": 0.55 },
+      { "targetName": "Fcl_MTH_Angry", "weight": 0.45 }
     ]
   },
   {
-    name: 'remorse',
-    targets: [
-      { targetName: 'Fcl_BRW_Sorrow', weight: 0.9 },
-      { targetName: 'Fcl_EYE_Close', weight: 0.7 },
-      { targetName: 'Fcl_MTH_Sorrow', weight: 0.6 }
-    ]
-  },
-  {
-    name: 'sadness',
+    name: 'sadness', // 슬픔
     targets: [
       { targetName: 'Fcl_MTH_Sorrow', weight: 0.41 },
       { targetName: 'Fcl_MTH_Angry', weight: 0.51 },
@@ -409,7 +474,7 @@ export const emotionExpressions = [
     ]
   },
   {
-    name: 'surprise',
+    name: 'surprise', // 놀람
     targets: [
       { targetName: 'Fcl_EYE_Surprised', weight: 1 },
       { targetName: 'Fcl_MTH_Surprised', weight: 1 },
@@ -417,7 +482,7 @@ export const emotionExpressions = [
     ]
   },
   {
-    name: 'neutral',
+    name: 'neutral', // 중립
     targets: [{ targetName: 'Fcl_ALL_Neutral', weight: 1 }]
   }
 ]

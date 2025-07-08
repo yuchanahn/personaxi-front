@@ -1,43 +1,24 @@
 <script lang="ts">
-  import { onMount } from "svelte";
   import { autoResize } from "$lib/hooks/autoResize";
   import Icon from "@iconify/svelte";
 
   export let onSend: (text: string) => void;
   let prompt = "";
-  let textarea: HTMLTextAreaElement;
-  let button: HTMLButtonElement;
-
-  const updateButtonPosition = () => {
-    if (textarea && button) {
-      const textareaHeight = textarea.offsetHeight || 50;
-      const buttonSize = 36;
-
-      // 수직 중앙 정렬
-      button.style.bottom = `${textareaHeight / 2 - buttonSize / 2}px`;
-      console.log(
-        "Updated Position - Height:",
-        textareaHeight,
-        "Bottom:",
-        button.style.bottom,
-      );
-    }
-  };
 
   function handleSubmit(e: KeyboardEvent) {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
+      if (prompt.trim() === "") return; // 빈 메시지 전송 방지
       onSend(prompt);
       prompt = "";
 
-      // 다음 프레임
-      requestAnimationFrame(() => {
-        autoResize(
-          document.querySelector(".chat-input") as HTMLTextAreaElement,
-        );
-        updateButtonPosition(); // 버튼 위치 업데이트
-      });
+      // 전송 후 textarea의 크기를 다시 1줄로 줄이는 로직
+      // autoResize 액션이 이벤트를 받아서 처리하도록 수정이 필요할 수 있습니다.
+      // 간단하게는 수동으로 스타일을 조절할 수 있습니다.
+      const textarea = e.currentTarget as HTMLTextAreaElement;
+      textarea.style.height = "auto";
 
+      // 스크롤 뷰 이동
       setTimeout(() => {
         document
           .querySelector(".chat-input")
@@ -45,31 +26,22 @@
       }, 100);
     }
   }
-
-  onMount(() => {
-    requestAnimationFrame(updateButtonPosition);
-    textarea?.addEventListener("input", updateButtonPosition);
-    return () => {
-      textarea?.removeEventListener("input", updateButtonPosition);
-    };
-  });
 </script>
 
 <div class="chat-input-wrapper">
   <div class="input-container">
     <textarea
-      bind:this={textarea}
       bind:value={prompt}
       placeholder="무엇이든 물어보세요"
-      class="chat-input"
+      class="chat-input focus-override"
       rows="1"
       use:autoResize={180}
       on:keydown={handleSubmit}
     ></textarea>
     <button
-      bind:this={button}
       class="chat-send-button"
       on:click={() => {
+        if (prompt.trim() === "") return;
         onSend(prompt);
         prompt = "";
       }}
@@ -85,8 +57,8 @@
   /* 채팅 입력 전체 래퍼 */
   .chat-input-wrapper {
     display: flex;
-    align-items: flex-end;
-    padding: 0.75rem 1rem;
+    align-items: flex-start; /* 자식요소(.input-container)를 위쪽으로 정렬 */
+    padding-bottom: 0.75rem;
     width: 100%;
     max-width: 800px;
     margin: 0 auto;
@@ -98,9 +70,9 @@
   .input-container {
     position: relative;
     width: 100%;
-    margin: 0 auto; /* NEW: 좌우 중앙 정렬 */
+    margin: 0 auto;
     display: flex;
-    align-items: center;
+    align-items: flex-start; /* textarea와 button을 위쪽으로 정렬 (핵심 수정) */
   }
 
   /* 텍스트 입력창 */
@@ -118,7 +90,7 @@
     border-radius: 20px;
     outline: none;
     padding: 0.7rem;
-    padding-right: 3.5rem; /* NEW: 버튼만큼 우측 여백 확보 */
+    padding-right: 3.5rem; /* 버튼만큼 우측 여백 확보 */
     flex-grow: 1;
     box-sizing: border-box;
   }
@@ -126,8 +98,8 @@
   /* 전송 버튼 */
   .chat-send-button {
     position: absolute;
-    right: 0;
-    transform: translateX(-8px);
+    bottom: 7px; /* 하단으로부터의 위치 고정 */
+    right: 8px; /* 오른쪽 끝에서의 거리 */
     width: 36px;
     height: 36px;
     border-radius: 50%;
@@ -139,6 +111,7 @@
     align-items: center;
     justify-content: center;
     z-index: 10;
+    transition: background-color 0.2s ease;
   }
   .chat-send-button:hover {
     background: #707070;
@@ -148,7 +121,7 @@
   @media (max-width: 600px) {
     .input-container {
       width: 95%;
-      margin: 0 auto; /* NEW */
+      margin: 0 auto;
     }
   }
 </style>

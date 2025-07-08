@@ -38,8 +38,8 @@
       isThink = false;
     }
 
-    text = text.replace(/<think[^>]*>[\s\S]*?<\/think>/g, "");
-    text = stripEmotions(text);
+    //text = text.replace(/<think[^>]*>[\s\S]*?<\/think>/g, "");
+    //text = stripEmotions(text);
 
     return marked(text);
   }

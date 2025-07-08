@@ -19,33 +19,72 @@
         };
         mediaQuery.addEventListener("change", updateMobileStatus);
 
+        // 'fullscreenchange' 이벤트를 감지하여 isFullscreen 상태를 동기화
+        const updateFullscreenStatus = () => {
+            isFullscreen = document.fullscreenElement != null;
+        };
+        document.addEventListener("fullscreenchange", updateFullscreenStatus);
+
         // 컴포넌트가 사라질 때 이벤트 리스너 제거
         return () => {
             mediaQuery.removeEventListener("change", updateMobileStatus);
+            document.removeEventListener(
+                "fullscreenchange",
+                updateFullscreenStatus,
+            );
         };
     });
+
+    let isFullscreen = false; // 현재 전체화면 상태를 저장하는 변수
+
+    // 전체화면 상태를 토글하는 함수
+    function toggleFullscreen() {
+        if (!document.fullscreenElement) {
+            // 전체화면이 아니면, 전체화면으로 전환
+            document.documentElement.requestFullscreen();
+        } else {
+            // 전체화면 상태이면, 전체화면 해제
+            if (document.exitFullscreen) {
+                document.exitFullscreen();
+            }
+        }
+    }
 </script>
 
-<button
-    on:click={() => (showSidebar = !showSidebar)}
-    title={showSidebar ? "사이드바 숨기기" : "사이드바 보기"}
-    aria-label={showSidebar ? "사이드바 숨기기" : "사이드바 보기"}
-    class="sidebar-toggle-button"
-    class:open={showSidebar}
->
-    <Icon
-        icon={showSidebar ? "ci:bar-left" : "ci:bar-right"}
-        width="24"
-        height="24"
-    />
-</button>
+<div class="controls-wrapper" class:sidebar-open={showSidebar}>
+    <button
+        on:click={() => (showSidebar = !showSidebar)}
+        title={showSidebar ? "사이드바 숨기기" : "사이드바 보기"}
+        class="control-button"
+    >
+        <Icon
+            icon={showSidebar ? "ci:bar-left" : "ci:bar-right"}
+            width="24"
+            height="24"
+        />
+    </button>
+
+    <button
+        on:click={toggleFullscreen}
+        title={isFullscreen ? "전체화면 종료" : "전체화면 시작"}
+        class="control-button"
+    >
+        <Icon
+            icon={isFullscreen
+                ? "material-symbols:fullscreen-exit"
+                : "material-symbols:fullscreen"}
+            width="24"
+            height="24"
+        />
+    </button>
+</div>
 
 {#if isMobile && showSidebar}
     <div class="sidebar-overlay" on:click={() => (showSidebar = false)} />
 {/if}
 
 <div class="sidebar" class:open={showSidebar}>
-    <div style="min-width: 250px;">
+    <div class="sidebar-content">
         <ChatSidebar />
     </div>
     <div class="sidebar-footer">
@@ -100,7 +139,41 @@
     .sidebar.open {
         transform: translateX(0); /* 열렸을 때 제자리로 이동 */
     }
+    .sidebar-container {
+        display: flex;
+        flex-direction: column;
+        height: 100vh;
+    }
 
+    .sidebar-footer {
+        /* 푸터도 마찬가지로 높이를 지정합니다. */
+        height: 120px; /* 예시 높이 */
+        flex-shrink: 0;
+    }
+
+    /* ★★★ 여기가 핵심 수정 부분입니다 ★★★ */
+    .sidebar-content {
+        /* flex: 1; 을 아래의 height 계산으로 교체합니다. */
+        height: calc(
+            100vh - 60px - 120px
+        ); /* 전체 화면 높이 - (헤더 높이 + 푸터 높이) */
+        overflow-y: auto;
+
+        /* 스크롤바 스타일링 */
+        scrollbar-width: thin;
+        scrollbar-color: var(--color-accent) transparent;
+    }
+
+    .sidebar-content::-webkit-scrollbar {
+        width: 8px;
+    }
+    .sidebar-content::-webkit-scrollbar-thumb {
+        background-color: var(--color-accent);
+        border-radius: 4px;
+    }
+    .sidebar-content::-webkit-scrollbar-track {
+        background-color: transparent;
+    }
     /* 토글 버튼 스타일 */
     .sidebar-toggle-button {
         position: fixed;
@@ -190,6 +263,42 @@
         color: var(--text-primary, #000);
     }
 
+    .controls-wrapper {
+        position: fixed;
+        top: 0.75rem;
+        left: 10px;
+        z-index: 30;
+        display: flex; /* 버튼들을 가로로 나란히 배치 */
+        gap: 8px; /* 버튼 사이의 간격 */
+        background-color: rgba(30, 30, 30, 0.5); /* 배경을 살짝 어둡게 */
+        padding: 6px;
+        border-radius: 8px;
+        transition: left var(--sidebar-transition-duration) ease;
+    }
+
+    /* 사이드바가 열렸을 때 래퍼의 위치 이동 */
+    .controls-wrapper.sidebar-open {
+        left: calc(var(--sidebar-width) + 10px);
+    }
+
+    /* 공용 버튼 스타일 */
+    .control-button {
+        background: transparent;
+        border: none;
+        cursor: pointer;
+        color: var(--color-text, #000);
+        padding: 4px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 6px;
+        transition: background-color 0.2s ease;
+    }
+
+    .control-button:hover {
+        background-color: rgba(255, 255, 255, 0.2);
+    }
+
     /* ★★★ 모바일 반응형 스타일 (가장 중요) ★★★ */
     @media (max-width: 768px) {
         /* 모바일에서는 사이드바가 화면 전체를 덮도록 너비 변경 */
@@ -202,6 +311,10 @@
         /* 모바일에서는 버튼이 사이드바 안쪽에 위치하도록 left 값 고정 */
         .sidebar-toggle-button.open {
             left: calc(100% - 40px);
+        }
+        /* 모바일에서는 버튼 그룹이 사이드바 너비만큼 이동 */
+        .controls-wrapper.sidebar-open {
+            left: calc(100% - 88px); /* (버튼 2개 너비 + 간격) 만큼을 뺀 값 */
         }
     }
 </style>

@@ -1,11 +1,19 @@
 <script lang="ts">
-  import { test as viewVrmInCanvas } from "$lib/vrm/test";
+  import {
+    get_model_head_position,
+    getViewer,
+    test,
+    unload,
+    test as viewVrmInCanvas,
+  } from "$lib/vrm/test";
   import ChatWindow from "../chat/ChatWindow.svelte";
   import ChatInput from "../chat/ChatInput.svelte";
   import { handleSendToCharacter } from "$lib/services/chat";
   import type { Model } from "$lib/vrm/core/model";
   import type { Persona } from "$lib/types";
-  import { tick } from "svelte";
+  import { onDestroy, tick } from "svelte";
+  import type { Viewer } from "$lib/vrm/core/viewer";
+  import * as THREE from "three";
 
   export let persona: Persona | null;
   export let cssid: string | null = null;
@@ -13,16 +21,62 @@
   let model: Model | null;
 
   let canvas: HTMLCanvasElement;
+  let bubbleElement: HTMLDivElement;
+
+  let cameraDistanceOffset = -1.0; // Z축 거리 오프셋
+  let cameraHeightOffset = -0.1; // Y축 높이 오프셋
+  let viewer: Viewer | null = null;
+
+  onDestroy(() => {
+    unload();
+  });
 
   function loadVrm() {
     try {
       if (persona)
         viewVrmInCanvas(canvas, persona)
-          .then((m) => (model = m))
-          .finally();
+          .then((m) => {
+            model = m;
+            viewer = getViewer();
+
+            updateCameraPosition();
+          })
+          .catch((error) => {
+            console.error("Error loading VRM:", error);
+          });
     } catch (error) {
       console.error("Error loading VRM:", error);
     }
+  }
+
+  function updateCameraPosition() {
+    if (!viewer || !viewer.model?.vrm) return;
+
+    const vrm = viewer.model.vrm;
+    const box = new THREE.Box3().setFromObject(vrm.scene);
+    const size = new THREE.Vector3();
+    box.getSize(size);
+    const center = new THREE.Vector3();
+    box.getCenter(center);
+
+    // 기본 높이와 거리를 계산
+    const baseHeight = center.y + (size.y / 2) * 0.9;
+    const baseDistance = size.y * 1.5;
+
+    // 슬라이더의 오프셋 값을 더해 최종 위치 결정
+    viewer.camera.position.set(
+      center.x,
+      baseHeight + cameraHeightOffset,
+      baseDistance + cameraDistanceOffset,
+    );
+    viewer.camera.lookAt(
+      new THREE.Vector3(center.x, baseHeight + cameraHeightOffset, center.z),
+    );
+    viewer.camera.updateProjectionMatrix();
+  }
+
+  $: if (cameraDistanceOffset || cameraHeightOffset) {
+    updateCameraPosition();
   }
 
   $: if (persona?.id) {
@@ -32,14 +86,25 @@
   let isLoading = false;
 
   const send = async (prompt: string) => {
+    if (!model || !persona || isLoading) return; // 로딩 중 중복 실행 방지
+
+    const headPosition = get_model_head_position();
+    console.log("Head Position:", headPosition);
+
+    if (headPosition) {
+      const { x, y } = headPosition;
+      bubbleElement.style.transform = `translate(-50%, -100%) translate(${x}px, ${y - 440}px)`;
+    } else {
+      console.warn("VRM: Head position not available.");
+    }
+
     try {
-      if (model && persona) {
-        isLoading = true;
-        await handleSendToCharacter(persona.id, prompt, model);
-        isLoading = false;
-      }
+      isLoading = true; // Svelte에게 "나 이제 로딩 상태야!" 라고 알리기만 합니다.
+      await handleSendToCharacter(persona.id, prompt, model);
     } catch (error) {
       console.error("Error sending prompt to character:", error);
+    } finally {
+      isLoading = false; // "로딩 끝났어!" 라고 알립니다.
     }
   };
 
@@ -56,6 +121,74 @@
 
 <div id="character-view">
   <canvas bind:this={canvas} class="vrm-canvas"></canvas>
+  <div
+    id="speech-bubble"
+    class="bubble"
+    style:visibility={isLoading ? "visible" : "hidden"}
+    bind:this={bubbleElement}
+  >
+    {#if isLoading}
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        width="48"
+        height="48"
+        viewBox="0 0 24 24"
+        ><circle cx="4" cy="12" r="3" fill="currentColor"
+          ><animate
+            id="svgSpinners3DotsFade0"
+            fill="freeze"
+            attributeName="opacity"
+            begin="0;svgSpinners3DotsFade1.end-0.25s"
+            dur="0.75s"
+            values="1;0.2"
+          /></circle
+        ><circle cx="12" cy="12" r="3" fill="currentColor" opacity="0.4"
+          ><animate
+            fill="freeze"
+            attributeName="opacity"
+            begin="svgSpinners3DotsFade0.begin+0.15s"
+            dur="0.75s"
+            values="1;0.2"
+          /></circle
+        ><circle cx="20" cy="12" r="3" fill="currentColor" opacity="0.3"
+          ><animate
+            id="svgSpinners3DotsFade1"
+            fill="freeze"
+            attributeName="opacity"
+            begin="svgSpinners3DotsFade0.begin+0.3s"
+            dur="0.75s"
+            values="1;0.2"
+          /></circle
+        ></svg
+      >
+    {/if}
+  </div>
+  <!-- <div class="camera-controls">
+    <div class="slider-group">
+      <label for="distance">카메라 거리</label>
+      <input
+        id="distance"
+        type="range"
+        min="-2"
+        max="2"
+        step="0.1"
+        bind:value={cameraDistanceOffset}
+      />
+      <span>{cameraDistanceOffset.toFixed(0.5)}</span>
+    </div>
+    <div class="slider-group">
+      <label for="height">카메라 높이</label>
+      <input
+        id="height"
+        type="range"
+        min="-1"
+        max="1"
+        step="0.05"
+        bind:value={cameraHeightOffset}
+      />
+      <span>{cameraHeightOffset.toFixed(0.4)}</span>
+    </div>
+  </div> -->
   <div class="chat-container">
     <div class="chat-content">
       <ChatWindow cssid={cssid ?? ""} showChat={show} {isLoading} />
@@ -70,6 +203,11 @@
     width: 100vw;
     height: 100vh;
     overflow: hidden;
+  }
+  /* style.css */
+  .bubble {
+    position: absolute; /* 캔버스 위에 띄우기 위해 */
+    visibility: hidden; /* 평소엔 숨김 */
   }
   .vrm-canvas {
     position: absolute;
@@ -101,15 +239,50 @@
   .chat-content :global(.chat-window) {
     flex: 1;
     overflow-y: auto;
-    padding-bottom: 5rem;
   }
   .chat-content :global(.chat-input-wrapper) {
     position: sticky;
     bottom: 0;
     background: var(--color-accent);
-    padding: 1rem;
     z-index: 10;
 
     background-color: rgba(255, 255, 255, 0); /* 배경색을 반투명하게 설정 */
+  }
+
+  .camera-controls {
+    position: absolute;
+    bottom: 20px;
+    left: 20px;
+    z-index: 100;
+    background-color: rgba(0, 0, 0, 0.6);
+    padding: 15px;
+    border-radius: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    color: white;
+    font-size: 0.9em;
+    min-width: 250px;
+
+    visibility: hidden;
+  }
+
+  .slider-group {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .slider-group label {
+    width: 80px; /* 라벨 너비 고정 */
+  }
+
+  .slider-group input[type="range"] {
+    flex: 1; /* 슬라이더가 남은 공간을 모두 차지하도록 */
+  }
+
+  .slider-group span {
+    width: 40px; /* 숫자 표시 공간 확보 */
+    text-align: right;
   }
 </style>
