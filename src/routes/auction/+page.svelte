@@ -19,6 +19,7 @@
     // 상단 script 안에 추가
     import { placeBid } from "$lib/api/auction";
     import BidModal from "$lib/components/modal/BidModal.svelte";
+    import { t } from "svelte-i18n";
 
     let showBidModal = false;
     let bidError = "";
@@ -61,7 +62,7 @@
             } else if (packet.type === "chat") {
                 broadcastMessages.update((prev) => [
                     ...prev,
-                    { user: "입찰자", msg: packet.msg as string },
+                    { user: $t("auctionPage.bidder"), msg: packet.msg as string },
                 ]);
             }
         });
@@ -87,7 +88,7 @@
     // 시간을 "1일 1시 1분 1초" 형식으로 포맷하는 함수
     function formatTimeDifference(ms: number): string {
         if (ms <= 0) {
-            return "경매 종료!";
+            return $t("auctionPage.auctionEnded");
         }
 
         const seconds = Math.floor(ms / 1000);
@@ -100,15 +101,15 @@
         const h = hours % 24;
 
         let parts: string[] = [];
-        if (days > 0) parts.push(`${days}일`);
-        if (h > 0) parts.push(`${h}시`);
-        if (m > 0) parts.push(`${m}분`);
+        if (days > 0) parts.push(`${days}${$t("auctionPage.dayUnit")}`);
+        if (h > 0) parts.push(`${h}${$t("auctionPage.hourUnit")}`);
+        if (m > 0) parts.push(`${m}${$t("auctionPage.minuteUnit")}`);
         // 남은 시간이 1분 미만이거나, '일', '시', '분'이 모두 0일 경우 '초'를 표시
-        if (s > 0 || parts.length === 0) parts.push(`${s}초`);
+        if (s > 0 || parts.length === 0) parts.push(`${s}${$t("auctionPage.secondUnit")}`);
 
         // 모든 단위가 0일 경우 (예: ms가 0과 1000 사이) "0초"로 표시될 것
         if (parts.length === 0 && ms > 0) {
-            return "0초"; // 아주 짧은 시간이 남았을 때
+            return `0${$t("auctionPage.secondUnit")}`; // 아주 짧은 시간이 남았을 때
         }
 
         return parts.join(" ");
@@ -117,7 +118,7 @@
     // 카운트다운을 업데이트하는 함수
     function updateCountdown() {
         if (!auctionStatus || !auctionStatus.endAt) {
-            remainingTimeFormatted = "시간 정보 없음";
+            remainingTimeFormatted = $t("auctionPage.noTimeInfo");
             if (countdownInterval) {
                 clearInterval(countdownInterval);
             }
@@ -162,26 +163,26 @@
             {#if persona}
                 <h2 class="persona-name">{persona.name}</h2>
                 <p class="user-credits">
-                    내 크레딧: <strong>{255}</strong>
+                    {$t("auctionPage.myCredits")}: <strong>{255}</strong>
                 </p>
             {/if}
 
             {#if auctionStatus}
                 <div class="status-box">
                     <p>
-                        <strong>최고 입찰가:</strong>
+                        <strong>{$t("auctionPage.highestBid")}:</strong>
                         <span class="highlight-bid"
                             >{auctionStatus.highestBid}</span
-                        > 크레딧
+                        > {$t("auctionPage.creditsUnit")}
                     </p>
                     <p>
-                        <strong>남은 시간:</strong>
+                        <strong>{$t("auctionPage.remainingTime")}:</strong>
                         <span class="highlight-time"
                             >{remainingTimeFormatted}</span
                         >
                     </p>
                     <p>
-                        <strong>현재 선두:</strong>
+                        <strong>{$t("auctionPage.currentLeader")}:</strong>
                         <span class="highlight-winner"
                             >{auctionStatus.winner}</span
                         >
@@ -190,7 +191,7 @@
             {/if}
 
             <button class="bid-button" on:click={() => (showBidModal = true)}>
-                입찰하기
+                {$t("auctionPage.placeBidButton")}
             </button>
             {#if bidError}
                 <p class="error-message">{bidError}</p>

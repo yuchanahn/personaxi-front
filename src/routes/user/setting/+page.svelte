@@ -5,7 +5,7 @@
     import type { Persona } from "$lib/types";
     import { logout } from "$lib/api/auth";
     import { fetchLivePersonas, setLiveStatus } from "$lib/services/live";
-    import { createAuction } from "$lib/api/auction";
+    import { locale, t } from "svelte-i18n";
     import AuctionModal from "$lib/components/modal/AuctionModal.svelte";
     import { Avatar } from "bits-ui";
     import PaymentModal from "$lib/components/modal/PaymentModal.svelte";
@@ -101,13 +101,8 @@
         paymentModalOpen = false;
     }
 
-    // 이 함수를 추가하세요
     function confirmDelete(id: string, name: string) {
-        if (
-            confirm(
-                `정말로 '${name}' 페르소나를 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.`,
-            )
-        ) {
+        if (confirm($t('settingPage.deleteConfirm', { values: { name } }))) {
             deletePersona(id);
         }
     }
@@ -115,7 +110,18 @@
 
 <div class="page-container">
     <div class="header">
-        <h1>마이페이지</h1>
+        <h1>{$t('settingPage.title')}</h1>
+    </div>
+
+    <div class="language-selector">
+        <select
+            bind:value={$locale}
+            on:change={(e) => locale.set(e.currentTarget.value)}
+            aria-label="언어 선택"
+        >
+            <option value="ko">한국어</option>
+            <option value="en">English</option>
+        </select>
     </div>
 
     {#if error}
@@ -135,27 +141,27 @@
                 <h2>{user.name}</h2>
                 <p class="email">{user.email}</p>
             </div>
-            <button class="btn" on:click={logout}>로그아웃</button>
+            <button class="btn" on:click={logout}>{$t('settingPage.logout')}</button>
         </div>
         <div class="profile-details">
             <div>
-                <span class="label">보유 크레딧</span>
+                <span class="label">{$t('settingPage.credits')}</span>
                 <span class="value">{user.credits} C</span>
             </div>
             <div>
-                <span class="label">플랜</span>
+                <span class="label">{$t('settingPage.plan')}</span>
                 <span class="value">{user.plan}</span>
             </div>
             <button
                 class="btn btn-primary"
-                on:click={() => (paymentModalOpen = true)}>크레딧 충전</button
+                on:click={() => (paymentModalOpen = true)}>{$t('settingPage.charge')}</button
             >
         </div>
     </div>
     <div class="section-header">
-        <h2>내 페르소나 목록</h2>
+        <h2>{$t('settingPage.myPersonas')}</h2>
         <button class="btn btn-primary" on:click={() => goto("/edit")}>
-            + 새 페르소나 생성
+            {$t('settingPage.newPersona')}
         </button>
     </div>
     <div class="personas-section">
@@ -192,15 +198,15 @@
                                     on:click={() => toggleLive(persona.id)}
                                 >
                                     {isLive(persona.id)
-                                        ? "방송 종료"
-                                        : "방송 시작"}
+                                        ? $t('settingPage.broadcastEnd')
+                                        : $t('settingPage.broadcastStart')}
                                 </button>
                                 <button
                                     class="btn"
                                     on:click={() => openAuctionModal(persona)}
                                     disabled={isLive(persona.id)}
                                 >
-                                    경매 시작
+                                    {$t('settingPage.auctionStart')}
                                 </button>
                             </div>
                         {/if}
@@ -208,13 +214,13 @@
                             <button
                                 class="btn"
                                 on:click={() => goto(`/edit?c=${persona.id}`)}
-                                >수정</button
+                                >{$t('settingPage.edit')}</button
                             >
                             <button
                                 class="btn btn-danger"
                                 on:click={() =>
                                     confirmDelete(persona.id, persona.name)}
-                                >삭제</button
+                                >{$t('settingPage.delete')}</button
                             >
                         </div>
                     </div>
@@ -416,6 +422,20 @@
             var(--bg-tertiary) 50%,
             transparent 50%
         );
+    }
+
+    select {
+        background-color: #2e2e2e; /* select 박스 자체의 배경색 */
+        color: white; /* 선택된 값의 글자색 */
+        border: 1px solid #555;
+        border-radius: 8px;
+        padding: 8px;
+    }
+
+    /* option 태그의 스타일. 이 부분이 많은 브라우저에서 무시됩니다. */
+    select option {
+        background: #333333;
+        color: white;
     }
 
     .avatar-root {

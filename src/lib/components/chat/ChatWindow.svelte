@@ -3,6 +3,7 @@
   import { marked } from "marked";
   import { messages } from "$lib/stores/messages";
   import SettingsModal from "$lib/components/modal/SettingModal.svelte";
+  import { t } from "svelte-i18n"; // svelte-i18n import 추가
 
   export let isLoading: boolean = false;
   export let cssid: string;
@@ -97,7 +98,7 @@
   style:opacity={showChat ? "0.7" : "0"}
 >
   {#if $messages.length === 0}
-    <div class="empty-message">아직 대화가 없습니다. 질문을 입력해보세요.</div>
+    <div class="empty-message">{$t('chatWindow.noConversation')}</div>
   {/if}
   {#each $messages as msg, i (i)}
     <div class="message {msg.role}">
@@ -140,7 +141,7 @@
   {/if}
   {#if isThink}
     <div class="loading-dots assistant">
-      생각 중<span>.</span><span>.</span><span>.</span>
+      {$t('chatWindow.thinking')}<span>.</span><span>.</span><span>.</span>
     </div>
   {/if}
 </div>

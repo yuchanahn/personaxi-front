@@ -1,5 +1,6 @@
 <script lang="ts">
     import Icon from "@iconify/svelte";
+    import { t } from "svelte-i18n";
 
     /**
      * 링크 정의
@@ -11,22 +12,22 @@
     const links = [
         {
             href: "/policy",
-            label: "개인정보처리방침",
+            label: $t("legal.privacyPolicy"),
             icon: "ph:shield-check-light",
         },
         {
             href: "/terms",
-            label: "이용약관",
+            label: $t("legal.termsOfService"),
             icon: "ph:file-text-light",
         },
         {
             href: "/licenses",
-            label: "라이선스 · 크레딧",
+            label: $t("legal.licensesAndCredits"),
             icon: "ph:scroll-light",
         },
         {
             href: "/privacy-chat-logs",
-            label: "채팅/로그 수집 동의",
+            label: $t("legal.chatLogConsent"),
             icon: "ph:chat-light",
         },
     ];
@@ -41,7 +42,7 @@
 <main class="mx-auto w-full max-w-screen-md px-6 py-10">
     <h1 class="mb-8 flex items-center gap-2 text-3xl font-bold">
         <Icon icon="ph:scales-light" width="32" />
-        Legal Center
+        {$t("legal.title")}
     </h1>
 
     <div class="grid gap-6 sm:grid-cols-2">

@@ -1,12 +1,16 @@
+<script>
+    import { t } from "svelte-i18n";
+</script>
+
 <div class="tutorial-container">
-    <h1>튜토리얼</h1>
-    <p>서비스 이용 방법을 확인해보세요.</p>
+    <h1>{$t("tutorial.title")}</h1>
+    <p>{$t("tutorial.description")}</p>
 
     <div class="notion-iframe-wrapper">
         <iframe
             src="https://wind-chance-11f.notion.site/personaxi-com-228d058c022e80a1ae4ddf99878f5fbc?source=copy_link"
             class="notion-iframe"
-            title="튜토리얼 문서"
+            title={$t("tutorial.iframeTitle")}
             frameborder="0"
         ></iframe>
     </div>

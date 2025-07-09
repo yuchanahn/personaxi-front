@@ -1,4 +1,5 @@
 <script lang="ts">
+    import { t } from "svelte-i18n";
     export let onSend: (msg: string) => void;
     let text = "";
 
@@ -14,9 +15,9 @@
     <input
         bind:value={text}
         on:keydown={(e) => e.key === "Enter" && submit()}
-        placeholder="채팅을 입력하세요..."
+        placeholder={$t("broadcastChatInput.placeholder")}
     />
-    <button on:click={submit}>보내기</button>
+    <button on:click={submit}>{$t("broadcastChatInput.sendButton")}</button>
 </div>
 
 <style>

@@ -1,5 +1,6 @@
 <script lang="ts">
     import { createEventDispatcher } from "svelte";
+    import { t } from "svelte-i18n"; // svelte-i18n에서 t 함수 임포트
 
     // props로 모달 상태와 크레딧 부족 여부를 받음
     export let isOpen: boolean = false;
@@ -17,21 +18,36 @@
 
     // 랜덤 결제 아이템 목록 (더 추가할 수 있음!)
     let paymentItems: PaymentItem[] = [
-        { id: "pack_100", name: "기본 크레딧 팩", credits: 100, price: 5000 },
-        { id: "pack_300", name: "실속 크레딧 팩", credits: 300, price: 12000 },
+        {
+            id: "pack_100",
+            name: $t("paymentModal.pack100Name"),
+            credits: 100,
+            price: 5000,
+        },
+        {
+            id: "pack_300",
+            name: $t("paymentModal.pack300Name"),
+            credits: 300,
+            price: 12000,
+        },
         {
             id: "pack_500",
-            name: "프리미엄 크레딧 팩",
+            name: $t("paymentModal.pack500Name"),
             credits: 500,
             price: 18000,
         },
         {
             id: "pack_1000",
-            name: "무제한 크레딧 팩 (한정)",
+            name: $t("paymentModal.pack1000Name"),
             credits: 1000,
             price: 30000,
         },
-        { id: "pack_50", name: "맛보기 크레딧", credits: 50, price: 2800 },
+        {
+            id: "pack_50",
+            name: $t("paymentModal.pack50Name"),
+            credits: 50,
+            price: 2800,
+        },
     ];
 
     let randomItems: PaymentItem[] = [];
@@ -57,10 +73,16 @@
     function handlePurchase(item: PaymentItem) {
         // 실제 결제 로직은 여기서 처리 (아마 서버 API 호출?)
         console.log(
-            `결제 요청: ${item.name} (${item.price}원) - ${item.credits} 크레딧 추가`,
+            $t("paymentModal.purchaseLog", {
+                values: {
+                    name: item.name,
+                    price: item.price,
+                    credits: item.credits,
+                },
+            }),
         );
         alert(
-            `"${item.name}" 결제 기능을 개발 중입니다! (실제 결제는 이루어지지 않습니다.)`,
+            $t("paymentModal.purchaseAlert", { values: { name: item.name } }),
         ); // 실제 결제 로직 추가
         // 결제 성공 후, 크레딧 업데이트 및 모달 닫기
         // dispatch('purchaseSuccess', { credits: item.credits }); // 필요한 경우 이벤트 발송
@@ -82,34 +104,41 @@
 
             {#if isCreditLow}
                 <div class="credit-low-alert">
-                    <h2>⚠️ 크레딧이 부족합니다!</h2>
+                    <h2>{$t("paymentModal.creditLowTitle")}</h2>
                     <p>
-                        더 많은 캐릭터 챗을 이용하시려면 크레딧을 충전해주세요.
+                        {$t("paymentModal.creditLowMessage1")}
                     </p>
                     <p>
-                        아래에서 원하는 크레딧 팩을 선택하여 충전할 수 있습니다.
+                        {$t("paymentModal.creditLowMessage2")}
                     </p>
                 </div>
             {:else}
-                <h2>크레딧 충전하기</h2>
-                <p>원하는 크레딧 팩을 선택하여 더 많은 기능을 이용해보세요.</p>
+                <h2>{$t("paymentModal.chargeCreditsTitle")}</h2>
+                <p>{$t("paymentModal.chargeCreditsMessage")}</p>
             {/if}
 
             <div class="payment-items-grid">
                 {#each randomItems as item (item.id)}
                     <div class="item-card">
                         <h3>{item.name}</h3>
-                        <p class="credits">{item.credits} 크레딧</p>
-                        <p class="price">{item.price.toLocaleString()}원</p>
+                        <p class="credits">
+                            {item.credits}
+                            {$t("paymentModal.creditsUnit")}
+                        </p>
+                        <p class="price">
+                            {item.price.toLocaleString()}{$t(
+                                "paymentModal.currencyUnit",
+                            )}
+                        </p>
                         <button on:click={() => handlePurchase(item)}
-                            >구매하기</button
+                            >{$t("paymentModal.purchaseButton")}</button
                         >
                     </div>
                 {/each}
             </div>
 
             <div class="modal-footer">
-                <p>결제 관련 문의는 고객센터로 연락주세요.</p>
+                <p>{$t("paymentModal.contactSupport")}</p>
             </div>
         </div>
     </div>

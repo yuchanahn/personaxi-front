@@ -3,6 +3,7 @@
     import { createEventDispatcher } from "svelte";
     import { deleteChatHistory, resetChatHistory } from "$lib/api/chat";
     import { API_BASE_URL } from "$lib/constants";
+    import { t } from "svelte-i18n";
 
     export let isOpen: boolean = false; // 부모 컴포넌트로부터 모달 가시성 상태를 받음
     export let cssid: string;
@@ -77,7 +78,7 @@
                 >&times;</button
             >
 
-            <h2>세션 설정</h2>
+            <h2>{$t("settingModal.title")}</h2>
 
             <!-- 설정 버튼 그룹 -->
             <div class="button-group">
@@ -88,35 +89,34 @@
                         class="action-button"
                         on:click={() => FeedbackBtn(true)}
                     >
-                        좋아요
+                        {$t("settingModal.like")}
                     </button>
                     <button
                         class="action-button"
                         on:click={() => FeedbackBtn(false)}
                     >
-                        싫어요
+                        {$t("settingModal.dislike")}
                     </button>
                 </div>
                 <button class="action-button reset" on:click={handleResetChat}>
-                    채팅 초기화 하기
+                    {$t("settingModal.resetChat")}
                 </button>
                 <button
                     class="action-button delete"
                     on:click={handleDeleteChat}
                 >
-                    삭제하기
+                    {$t("settingModal.deleteChat")}
                 </button>
                 <button
                     class="action-button include-all"
                     on:click={handleIncludeAllUtterances}
                 >
-                    발화 전부 포함하기
+                    {$t("settingModal.includeAllUtterances")}
                 </button>
             </div>
 
             <p class="guidance-text">
-                * 각 기능은 현재 캐릭터 세션에 영향을 미칩니다. 신중하게
-                선택해주세요.
+                {$t("settingModal.guidanceText")}
             </p>
         </div>
     </div>

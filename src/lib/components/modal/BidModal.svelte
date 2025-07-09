@@ -3,6 +3,7 @@
     import { placeBid } from "$lib/api/auction"; // 경매 API 함수
     import { quintOut } from "svelte/easing"; // 애니메이션 이징 함수
     import { fly } from "svelte/transition"; // Svelte 애니메이션
+    import { t } from "svelte-i18n";
 
     export let personaId: string;
     export let currentHighestBid: number = 0; // 현재 최고 입찰가 (외부에서 받음)
@@ -21,11 +22,11 @@
 
     async function submit() {
         if (amount <= currentHighestBid) {
-            error = `입찰가는 현재 최고 입찰가(${currentHighestBid} 크레딧)보다 높아야 합니다.`;
+            error = $t('bidModal.bidTooLow', { values: { currentHighestBid } });
             return;
         }
         if (amount % minBidIncrement !== 0) {
-            error = `입찰가는 ${minBidIncrement} 크레딧 단위로 입력해주세요.`;
+            error = $t('bidModal.bidIncrementError', { values: { minBidIncrement } });
             return;
         }
 
@@ -36,7 +37,7 @@
             await placeBid(personaId, amount);
             dispatch("close"); // 성공하면 모달 닫기
         } catch (e: any) {
-            error = e.message || "입찰 중 오류가 발생했습니다.";
+            error = e.message || $t('bidModal.bidError');
             // dispatch("error", e.message); // 외부로 에러 전달 필요시 활성화
         } finally {
             isLoading = false; // 로딩 종료
@@ -63,22 +64,22 @@
         class="modal-content"
         transition:fly={{ y: -50, duration: 300, easing: quintOut }}
     >
-        <h2>경매 입찰하기</h2>
+        <h2>{$t('bidModal.title')}</h2>
 
         <div class="bid-info">
-            <p><strong>현재 최고 입찰가:</strong> {currentHighestBid} 크레딧</p>
-            <p><strong>최소 입찰 단위:</strong> {minBidIncrement} 크레딧</p>
+            <p><strong>{$t('bidModal.currentHighestBid')}:</strong> {currentHighestBid} {$t('bidModal.credits')}</p>
+            <p><strong>{$t('bidModal.minBidIncrement')}:</strong> {minBidIncrement} {$t('bidModal.credits')}</p>
         </div>
 
         <div class="input-group">
-            <label for="bid-amount">입찰 크레딧:</label>
+            <label for="bid-amount">{$t('bidModal.bidCredits')}:</label>
             <input
                 id="bid-amount"
                 type="number"
                 bind:value={amount}
                 min={currentHighestBid + minBidIncrement}
                 step={minBidIncrement}
-                placeholder={`${currentHighestBid + minBidIncrement} 이상`}
+                placeholder={`${currentHighestBid + minBidIncrement} ${$t('bidModal.minBidPlaceholder')}`}
                 disabled={isLoading}
             />
         </div>
@@ -94,15 +95,15 @@
                 class="submit-button"
             >
                 {#if isLoading}
-                    입찰 중...
+                    {$t('bidModal.biddingInProgress')}
                 {:else}
-                    입찰하기
+                    {$t('bidModal.placeBid')}
                 {/if}
             </button>
             <button
                 on:click={closeModal}
                 disabled={isLoading}
-                class="cancel-button">취소</button
+                class="cancel-button">{$t('bidModal.cancel')}</button
             >
         </div>
     </div>

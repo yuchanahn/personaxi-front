@@ -2,6 +2,7 @@
     import { createAuction } from "$lib/api/auction";
     import type { Persona } from "$lib/types";
     import { createEventDispatcher } from "svelte";
+    import { t } from "svelte-i18n";
 
     export let persona: Persona;
     const dispatch = createEventDispatcher();
@@ -15,7 +16,7 @@
             await createAuction(persona.id, startBid, duration);
             dispatch("close");
         } catch (err: any) {
-            error = err.message || "경매 생성 실패";
+            error = err.message || $t("auctionModal.createFailed");
         }
     }
 </script>

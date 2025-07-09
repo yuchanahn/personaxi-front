@@ -4,9 +4,8 @@
     import type { Persona } from "$lib/types";
     import { page } from "$app/stores";
     import { loadPersona, savePersona } from "$lib/api/edit_persona";
-    // import 영역에 추가
-    import LoadingAnimation from "$lib/components/utils/LoadingAnimation.svelte"; // 파일 경로에 맞게 수정
-    import { fade } from "svelte/transition"; // LoadingAnimation 컴포넌트의 transition을 위해 추가
+    import LoadingAnimation from "$lib/components/utils/LoadingAnimation.svelte";
+    import { t } from "svelte-i18n";
 
     let vrmFile: File | null = null;
 
@@ -108,26 +107,24 @@
         persona.tags = persona.tags.filter((_, i) => i !== index);
     }
 
-    // let loading = false; 를 아래와 같이 수정
     let loading = false;
-    let showSuccess = false; // 저장 성공 상태를 표시하기 위한 변수
+    let showSuccess = false;
 </script>
 
 <div class="container">
     <div class="header">
-        <!-- svelte-ignore a11y_missing_content -->
-        <h1></h1>
+        <h1>{$t("editPage.title")}</h1>
         <button
             class="save-button"
             type="submit"
             on:click={async () => {
                 if (loading || showSuccess) return;
 
-                error = ""; // 에러 초기화
+                error = "";
 
                 if (!persona.name.trim() || !persona.personaType) {
-                    error = "이름과 페르소나 타입은 필수 항목입니다.";
-                    return; // 저장 로직 중단
+                    error = $t("editPage.errorRequired");
+                    return;
                 }
 
                 loading = true;
@@ -143,25 +140,27 @@
                         showSuccess = true;
                         setTimeout(() => {
                             showSuccess = false;
-                        }, 2000); // 2초 후 원래대로 복귀
+                        }, 2000);
 
                         if (!persona.id) {
                             goto(`/edit?c=${id}`, { replaceState: true });
                         }
                     }
                 } catch (e: any) {
-                    error = "저장에 실패했습니다: " + e.message;
+                    error = $t("editPage.errorSaveFailed", {
+                        values: { message: e.message },
+                    });
                 } finally {
                     loading = false;
                 }
             }}
         >
             {#if loading}
-                <span>저장 중...</span>
+                <span>{$t("editPage.saveButtonLoading")}</span>
             {:else if showSuccess}
-                <span>✓ 저장 완료</span>
+                <span>{$t("editPage.saveButtonSuccess")}</span>
             {:else}
-                <span>페르소나 저장</span>
+                <span>{$t("editPage.saveButton")}</span>
             {/if}
         </button>
     </div>
@@ -172,24 +171,28 @@
         <div class="form-grid">
             <div class="form-column">
                 <div class="form-section-card">
-                    <h2>기본 정보</h2>
+                    <h2>{$t("editPage.basicInfo")}</h2>
                     <div class="form-group">
-                        <label for="name">이름</label>
+                        <label for="name">{$t("editPage.nameLabel")}</label>
                         <input
                             id="name"
                             bind:value={persona.name}
                             required
-                            placeholder="페르소나의 이름"
+                            placeholder={$t("editPage.namePlaceholder")}
                         />
                     </div>
                     <div class="form-group">
-                        <label for="personaType">페르소나 타입</label>
+                        <label for="personaType"
+                            >{$t("editPage.typeLabel")}</label
+                        >
                         <select
                             id="personaType"
                             bind:value={persona.personaType}
                             required
                         >
-                            <option value="" disabled>타입을 선택하세요</option>
+                            <option value="" disabled
+                                >{$t("editPage.typeSelectDefault")}</option
+                            >
                             <option value="3D">3D</option>
                             <option value="2D">2D</option>
                         </select>
@@ -197,12 +200,14 @@
                 </div>
 
                 <div class="form-section-card">
-                    <h2>미디어 파일</h2>
+                    <h2>{$t("editPage.mediaFiles")}</h2>
                     <div class="form-group">
-                        <label for="portrait">프로필 이미지</label>
+                        <label for="portrait"
+                            >{$t("editPage.profileImageLabel")}</label
+                        >
                         <div class="file-input-container">
                             <label for="portrait-file" class="file-input-label">
-                                <span>파일 선택</span>
+                                <span>{$t("editPage.fileSelect")}</span>
                             </label>
                             <input
                                 id="portrait-file"
@@ -228,10 +233,12 @@
 
                     {#if persona.personaType == "3D"}
                         <div class="form-group">
-                            <label for="vrm">VRM 파일</label>
+                            <label for="vrm"
+                                >{$t("editPage.vrmFileLabel")}</label
+                            >
                             <div class="file-input-container">
                                 <label for="vrm-file" class="file-input-label">
-                                    <span>파일 선택</span>
+                                    <span>{$t("editPage.fileSelect")}</span>
                                 </label>
                                 <input
                                     id="vrm-file"
@@ -252,26 +259,28 @@
 
             <div class="form-column">
                 <div class="form-section-card">
-                    <h2>AI 상세 설정</h2>
+                    <h2>{$t("editPage.aiSettings")}</h2>
                     <div class="form-group">
                         <label for="instruction-input"
-                            >지시사항 (Instructions)</label
+                            >{$t("editPage.instructionsLabel")}</label
                         >
                         <p class="description">
-                            AI의 역할, 성격, 말투 등 핵심적인 정체성을
-                            정의합니다.
+                            {$t("editPage.instructionsDescription")}
                         </p>
                         <div class="input-group">
                             <textarea
                                 id="instruction-input"
                                 bind:value={instruction}
-                                placeholder="예: 당신은 친절한 인공지능 비서입니다."
+                                placeholder={$t(
+                                    "editPage.instructionsPlaceholder",
+                                )}
                                 rows="3"
                             />
                             <button
                                 type="button"
                                 class="btn btn-secondary"
-                                on:click={addInstruction}>추가</button
+                                on:click={addInstruction}
+                                >{$t("editPage.addButton")}</button
                             >
                         </div>
                         <ul class="item-list">
@@ -290,21 +299,24 @@
                     </div>
                     <div class="form-group">
                         <label for="prompt-example-input"
-                            >예시 대화 (Prompt Examples)</label
+                            >{$t("editPage.promptExamplesLabel")}</label
                         >
                         <p class="description">
-                            AI가 따라해야 할 구체적인 대화 예시를 제공합니다.
+                            {$t("editPage.promptExamplesDescription")}
                         </p>
                         <div class="input-group">
                             <input
                                 id="prompt-example-input"
                                 bind:value={promptExample}
-                                placeholder="예: User: 오늘 날씨 어때? / Assistant: 오늘은 맑고 화창한 날씨예요!"
+                                placeholder={$t(
+                                    "editPage.promptExamplesPlaceholder",
+                                )}
                             />
                             <button
                                 type="button"
                                 class="btn btn-secondary"
-                                on:click={addPromptExample}>추가</button
+                                on:click={addPromptExample}
+                                >{$t("editPage.addButton")}</button
                             >
                         </div>
                         <ul class="item-list">
@@ -322,17 +334,18 @@
                         </ul>
                     </div>
                     <div class="form-group">
-                        <label for="tags-input">태그</label>
+                        <label for="tags-input"
+                            >{$t("editPage.tagsLabel")}</label
+                        >
                         <p class="description">
-                            쉼표(,)로 구분하여 여러 태그를 한 번에 추가할 수
-                            있습니다.
+                            {$t("editPage.tagsDescription")}
                         </p>
                         <div class="input-group">
                             <input
                                 id="tags-input"
                                 type="text"
                                 bind:value={tags}
-                                placeholder="예: AI, 친구, 대화"
+                                placeholder={$t("editPage.tagsPlaceholder")}
                                 on:keydown={(e) => {
                                     if (e.key === "Enter") {
                                         e.preventDefault();
@@ -343,7 +356,8 @@
                             <button
                                 type="button"
                                 class="btn btn-secondary"
-                                on:click={addTag}>추가</button
+                                on:click={addTag}
+                                >{$t("editPage.addButton")}</button
                             >
                         </div>
                         <ul class="tag-list">

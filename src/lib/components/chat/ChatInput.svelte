@@ -1,6 +1,7 @@
 <script lang="ts">
   import { autoResize } from "$lib/hooks/autoResize";
   import Icon from "@iconify/svelte";
+  import { t } from "svelte-i18n";
 
   export let onSend: (text: string) => void;
   let prompt = "";
@@ -32,7 +33,7 @@
   <div class="input-container">
     <textarea
       bind:value={prompt}
-      placeholder="무엇이든 물어보세요"
+      placeholder={$t("chatInput.placeholder")}
       class="chat-input focus-override"
       rows="1"
       use:autoResize={180}
@@ -45,8 +46,8 @@
         onSend(prompt);
         prompt = "";
       }}
-      title="보내기"
-      aria-label="보내기"
+      title={$t("chatInput.sendButton")}
+      aria-label={$t("chatInput.sendButton")}
     >
       <Icon icon="ci:arrow-up-lg" width="24" height="24" />
     </button>

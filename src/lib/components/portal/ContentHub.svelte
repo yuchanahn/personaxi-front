@@ -12,6 +12,7 @@
     import { fetchLivePersonas } from "$lib/services/live";
     import { fetchAuctionPersonas } from "$lib/services/auction";
     import type { AuctionPersona } from "$lib/services/auction";
+    import { t } from "svelte-i18n";
 
     let contents = writable<Persona[]>([]);
     let liveIds: string[] = [];
@@ -83,11 +84,11 @@
             <div class="search-options">
                 <button
                     class:active={searchType === "name"}
-                    on:click={() => (searchType = "name")}>이름</button
+                    on:click={() => (searchType = "name")}>{$t("contentHub.searchByName")}</button
                 >
                 <button
                     class:active={searchType === "tags"}
-                    on:click={() => (searchType = "tags")}>태그</button
+                    on:click={() => (searchType = "tags")}>{$t("contentHub.searchByTags")}</button
                 >
             </div>
             <div class="search-input-wrapper">
@@ -95,8 +96,8 @@
                     type="text"
                     bind:value={query}
                     placeholder={searchType === "name"
-                        ? "캐릭터 이름으로 검색"
-                        : "태그로 검색 (쉼표로 구분)"}
+                        ? $t("contentHub.searchNamePlaceholder")
+                        : $t("contentHub.searchTagsPlaceholder")}
                     on:keydown={(e) => e.key === "Enter" && executeSearch()}
                 />
                 <button class="search-button" on:click={executeSearch}>
@@ -160,7 +161,7 @@
                                     <span class="live-badge">LIVE 🔴</span>
                                 {/if}
                                 {#if isAuctioning(content.id)}
-                                    <span class="auction-badge">경매 중</span>
+                                    <span class="auction-badge">{$t("contentHub.auctionInProgress")}</span>
                                 {/if}
                             </div>
 

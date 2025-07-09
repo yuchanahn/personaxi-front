@@ -1,0 +1,175 @@
+{
+  "editPage": {
+    "title": "페르소나 생성 및 편집",
+    "saveButton": "페르소나 저장",
+    "saveButtonLoading": "저장 중...",
+    "saveButtonSuccess": "✓ 저장됨",
+    "basicInfo": "기본 정보",
+    "nameLabel": "이름",
+    "namePlaceholder": "페르소나의 이름",
+    "typeLabel": "페르소나 타입",
+    "typeSelectDefault": "타입 선택",
+    "mediaFiles": "미디어 파일",
+    "profileImageLabel": "프로필 이미지",
+    "vrmFileLabel": "VRM 파일",
+    "fileSelect": "파일 선택",
+    "aiSettings": "AI 상세 설정",
+    "instructionsLabel": "지시사항",
+    "instructionsDescription": "AI의 역할, 성격, 어조 등 핵심 정체성을 정의합니다.",
+    "instructionsPlaceholder": "예: 당신은 친절한 AI 비서입니다.",
+    "promptExamplesLabel": "프롬프트 예시",
+    "promptExamplesDescription": "AI가 따를 구체적인 대화 예시를 제공합니다.",
+    "promptExamplesPlaceholder": "예: 사용자: 날씨 어때? / AI: 맑고 화창한 날씨입니다!",
+    "tagsLabel": "태그",
+    "tagsDescription": "쉼표(,)로 구분하여 여러 태그를 한 번에 추가할 수 있습니다.",
+    "tagsPlaceholder": "예: AI, 친구, 대화",
+    "addButton": "추가",
+    "errorRequired": "이름과 페르소나 타입은 필수 입력 항목입니다.",
+    "errorSaveFailed": "저장 실패: {message}"
+  },
+  "settingPage": {
+    "title": "내 페이지",
+    "logout": "로그아웃",
+    "credits": "내 크레딧",
+    "plan": "플랜",
+    "charge": "크레딧 충전",
+    "myPersonas": "내 페르소나",
+    "newPersona": "+ 새 페르소나",
+    "broadcastStart": "방송 시작",
+    "broadcastEnd": "방송 종료",
+    "auctionStart": "경매 시작",
+    "edit": "편집",
+    "delete": "삭제",
+    "deleteConfirm": "페르소나 '{name}'을(를) 정말 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다."
+  },
+  "chatWindow": {
+    "noConversation": "아직 대화가 없습니다. 질문을 입력해보세요.",
+    "thinking": "생각 중"
+  },
+  "sidebar": {
+    "hide": "사이드바 숨기기",
+    "show": "사이드바 보기",
+    "exitFullscreen": "전체화면 종료",
+    "enterFullscreen": "전체화면 시작",
+    "tutorial": "튜토리얼",
+    "community": "커뮤니티 참여"
+  },
+  "chatInput": {
+    "placeholder": "무엇이든 물어보세요",
+    "sendButton": "보내기"
+  },
+  "broadcastChatInput": {
+    "placeholder": "채팅을 입력하세요...",
+    "sendButton": "보내기"
+  },
+  "login": {
+    "githubSoon": "깃허브 로그인은 아직 준비 중입니다.",
+    "emailSoon": "이메일 로그인은 아직 준비 중입니다.",
+    "loginWith": "{provider}로 로그인"
+  },
+  "auctionModal": {
+    "createFailed": "경매 생성 실패"
+  },
+  "bidModal": {
+    "bidTooLow": "입찰가는 현재 최고 입찰가({currentHighestBid} 크레딧)보다 높아야 합니다.",
+    "bidIncrementError": "입찰가는 {minBidIncrement} 크레딧 단위로 입력해주세요.",
+    "bidError": "입찰 중 오류가 발생했습니다.",
+    "title": "경매 입찰하기",
+    "currentHighestBid": "현재 최고 입찰가",
+    "creditsUnit": "크레딧",
+    "minBidIncrement": "최소 입찰 단위",
+    "bidCredits": "입찰 크레딧",
+    "minBidPlaceholder": "이상",
+    "biddingInProgress": "입찰 중...",
+    "placeBid": "입찰하기",
+    "cancel": "취소"
+  },
+  "paymentModal": {
+    "pack100Name": "기본 크레딧 팩",
+    "pack300Name": "실속 크레딧 팩",
+    "pack500Name": "프리미엄 크레딧 팩",
+    "pack1000Name": "무제한 크레딧 팩 (한정)",
+    "pack50Name": "맛보기 크레딧",
+    "purchaseLog": "결제 요청: {name} ({price}원) - {credits} 크레딧 추가",
+    "purchaseAlert": "\"{name}\" 결제 기능을 개발 중입니다! (실제 결제는 이루어지지 않습니다.)",
+    "creditLowTitle": "⚠️ 크레딧이 부족합니다!",
+    "creditLowMessage1": "더 많은 캐릭터 챗을 이용하시려면 크레딧을 충전해주세요.",
+    "creditLowMessage2": "아래에서 원하는 크레딧 팩을 선택하여 충전할 수 있습니다.",
+    "chargeCreditsTitle": "크레딧 충전하기",
+    "chargeCreditsMessage": "원하는 크레딧 팩을 선택하여 더 많은 기능을 이용해보세요.",
+    "creditsUnit": "크레딧",
+    "currencyUnit": "원",
+    "purchaseButton": "구매하기",
+    "contactSupport": "결제 관련 문의는 고객센터로 연락주세요."
+  },
+  "settingModal": {
+    "title": "세션 설정",
+    "like": "좋아요",
+    "dislike": "싫어요",
+    "resetChat": "채팅 초기화 하기",
+    "deleteChat": "삭제하기",
+    "includeAllUtterances": "발화 전부 포함하기",
+    "guidanceText": "* 각 기능은 현재 캐릭터 세션에 영향을 미칩니다. 신중하게 선택해주세요."
+  },
+  "contentHub": {
+    "searchByName": "이름",
+    "searchByTags": "태그",
+    "searchNamePlaceholder": "캐릭터 이름으로 검색",
+    "searchTagsPlaceholder": "태그로 검색 (쉼표로 구분)",
+    "auctionInProgress": "경매 중"
+  },
+  "auctionPage": {
+    "bidder": "입찰자",
+    "auctionEnded": "경매 종료!",
+    "dayUnit": "일",
+    "hourUnit": "시",
+    "minuteUnit": "분",
+    "secondUnit": "초",
+    "noTimeInfo": "시간 정보 없음",
+    "myCredits": "내 크레딧",
+    "highestBid": "최고 입찰가",
+    "creditsUnit": "크레딧",
+    "remainingTime": "남은 시간",
+    "currentLeader": "현재 선두",
+    "placeBidButton": "입찰하기"
+  },
+  "legal": {
+    "privacyPolicy": "개인정보처리방침",
+    "termsOfService": "이용약관",
+    "licensesAndCredits": "라이선스 · 크레딧",
+    "chatLogConsent": "채팅/로그 수집 동의",
+    "title": "Legal Center"
+  },
+  "licenses": {
+    "loadError": "라이선스 정보를 불러오는 데 실패했습니다.",
+    "pageTitle": "라이선스 및 크레딧 - [사이트/서비스 이름]"
+  },
+  "policy": {
+    "loadError": "개인정보처리방침을 불러오는 데 실패했습니다.",
+    "pageTitle": "개인정보처리방침 - [사이트/서비스 이름]"
+  },
+  "privacyChatLogs": {
+    "loadError": "채팅 및 로그 수집 동의 정보를 불러오는 데 실패했습니다.",
+    "pageTitle": "채팅 및 로그 수집 동의 - [사이트/서비스 이름]"
+  },
+  "terms": {
+    "loadError": "이용약관을 불러오는 데 실패했습니다.",
+    "pageTitle": "이용약관 - [사이트/서비스 이름]"
+  },
+  "tutorial": {
+    "title": "튜토리얼",
+    "description": "서비스 이용 방법을 확인해보세요.",
+    "iframeTitle": "튜토리얼 문서"
+  },
+  "livePage": {
+    "viewer1": "시청자1",
+    "viewer1Message": "이 캐릭터 뭐야 ㅋㅋ",
+    "viewer2": "시청자2",
+    "viewer2Message": "존예다 ㄹㅇ",
+    "viewer3": "시청자3",
+    "viewer3Message": "대답함??",
+    "me": "나",
+    "websocketDisconnected": "🔌 WebSocket 연결 해제",
+    "broadcastContent": "방송 콘텐츠"
+  }
+}

@@ -1,5 +1,6 @@
 <script lang="ts">
     import { API_BASE_URL } from "$lib/constants";
+    import { t } from "svelte-i18n";
     // 예: 로그인 옵션 정의
     type LoginOption = {
         name: string;
@@ -19,14 +20,14 @@
             name: "GitHub",
             icon: "/icons/github.svg",
             handler: () => {
-                alert("깃허브 로그인은 아직 준비 중입니다.");
+                alert($t("login.githubSoon"));
             },
         },
         {
             name: "Email",
             icon: "/icons/email.svg",
             handler: () => {
-                alert("이메일 로그인은 아직 준비 중입니다.");
+                alert($t("login.emailSoon"));
             },
         },
     ];
@@ -40,7 +41,7 @@
                 src={option.icon}
                 alt={option.name + " icon"}
             />
-            <span>{option.name}로 로그인</span>
+            <span>{$t("login.loginWith", { values: { provider: option.name } })}</span>
         </button>
     {/each}
 </div>

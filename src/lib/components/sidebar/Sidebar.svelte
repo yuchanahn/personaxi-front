@@ -2,6 +2,7 @@
     import ChatSidebar from "$lib/components/chat/ChatSidebar.svelte";
     import Icon from "@iconify/svelte";
     import { onMount } from "svelte";
+    import { t } from "svelte-i18n";
 
     export let showSidebar: boolean = true;
     let isMobile: boolean = false;
@@ -54,7 +55,7 @@
 <div class="controls-wrapper" class:sidebar-open={showSidebar}>
     <button
         on:click={() => (showSidebar = !showSidebar)}
-        title={showSidebar ? "사이드바 숨기기" : "사이드바 보기"}
+        title={showSidebar ? $t("sidebar.hide") : $t("sidebar.show")}
         class="control-button"
     >
         <Icon
@@ -66,7 +67,7 @@
 
     <button
         on:click={toggleFullscreen}
-        title={isFullscreen ? "전체화면 종료" : "전체화면 시작"}
+        title={isFullscreen ? $t("sidebar.exitFullscreen") : $t("sidebar.enterFullscreen")}
         class="control-button"
     >
         <Icon
@@ -95,7 +96,7 @@
             class="sidebar-link"
         >
             <Icon icon="ph:book-open-duotone" width="24" height="24" />
-            <span>튜토리얼</span>
+            <span>{$t("sidebar.tutorial")}</span>
         </a>
         <a
             href="https://discord.gg/pyPb9Pp6"
@@ -104,7 +105,7 @@
             class="discord-link"
         >
             <Icon icon="ic:baseline-discord" width="24" height="24" />
-            <span>커뮤니티 참여</span>
+            <span>{$t("sidebar.community")}</span>
         </a>
     </div>
 </div>

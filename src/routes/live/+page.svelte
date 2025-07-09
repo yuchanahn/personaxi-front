@@ -16,6 +16,7 @@
     import { writable } from "svelte/store";
     import { loadPersona } from "$lib/api/edit_persona";
     import { page } from "$app/stores";
+    import { t } from "svelte-i18n";
 
     let persona: Persona | null = null;
     let canvas: HTMLCanvasElement;
@@ -28,9 +29,9 @@
 
     export const broadcastMessages = writable<BroadcastMessage[]>([]);
     broadcastMessages.set([
-        { user: "시청자1", msg: "이 캐릭터 뭐야 ㅋㅋ" },
-        { user: "시청자2", msg: "존예다 ㄹㅇ" },
-        { user: "시청자3", msg: "대답함??" },
+        { user: $t("livePage.viewer1"), msg: $t("livePage.viewer1Message") },
+        { user: $t("livePage.viewer2"), msg: $t("livePage.viewer2Message") },
+        { user: $t("livePage.viewer3"), msg: $t("livePage.viewer3Message") },
     ]);
 
     onMount(async () => {
@@ -52,7 +53,7 @@
 
             broadcastMessages.update((prev) => [
                 ...prev,
-                { user: "나", msg: msg.msg },
+                { user: $t("livePage.me"), msg: msg.msg },
             ]);
             //handleBroadcastReaction(packet);
         });
@@ -69,7 +70,7 @@
 
     onDestroy(() => {
         if (socket) {
-            console.log("🔌 WebSocket 연결 해제");
+            console.log($t("livePage.websocketDisconnected"));
             socket.close();
         }
     });
@@ -84,7 +85,7 @@
 
     <div class="sidebar">
         <div class="persona-header">
-            <h2>방송 콘텐츠</h2>
+            <h2>{$t("livePage.broadcastContent")}</h2>
         </div>
         <BroadcastChatWindow messages={broadcastMessages} />
         <BroadcastChatInput onSend={handleSend} />

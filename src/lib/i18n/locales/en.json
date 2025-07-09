@@ -1,0 +1,175 @@
+{
+  "editPage": {
+    "title": "Create & Edit Persona",
+    "saveButton": "Save Persona",
+    "saveButtonLoading": "Saving...",
+    "saveButtonSuccess": "✓ Saved",
+    "basicInfo": "Basic Information",
+    "nameLabel": "Name",
+    "namePlaceholder": "Persona's name",
+    "typeLabel": "Persona Type",
+    "typeSelectDefault": "Select a type",
+    "mediaFiles": "Media Files",
+    "profileImageLabel": "Profile Image",
+    "vrmFileLabel": "VRM File",
+    "fileSelect": "Choose File",
+    "aiSettings": "AI Details",
+    "instructionsLabel": "Instructions",
+    "instructionsDescription": "Define the core identity of the AI, such as its role, personality, and tone.",
+    "instructionsPlaceholder": "e.g., You are a friendly AI assistant.",
+    "promptExamplesLabel": "Prompt Examples",
+    "promptExamplesDescription": "Provide specific conversation examples for the AI to follow.",
+    "promptExamplesPlaceholder": "e.g., User: How's the weather? / Assistant: It's a bright and sunny day!",
+    "tagsLabel": "Tags",
+    "tagsDescription": "You can add multiple tags at once, separated by commas (,).",
+    "tagsPlaceholder": "e.g., AI, friend, conversation",
+    "addButton": "Add",
+    "errorRequired": "Name and Persona Type are required fields.",
+    "errorSaveFailed": "Failed to save: {message}"
+  },
+  "settingPage": {
+    "title": "My Page",
+    "logout": "Logout",
+    "credits": "My Credits",
+    "plan": "Plan",
+    "charge": "Charge Credits",
+    "myPersonas": "My Personas",
+    "newPersona": "+ New Persona",
+    "broadcastStart": "Start Broadcast",
+    "broadcastEnd": "End Broadcast",
+    "auctionStart": "Start Auction",
+    "edit": "Edit",
+    "delete": "Delete",
+    "deleteConfirm": "Are you sure you want to delete the persona '{name}'? This action cannot be undone."
+  },
+  "chatWindow": {
+    "noConversation": "No conversation yet. Type a question to start.",
+    "thinking": "Thinking"
+  },
+  "sidebar": {
+    "hide": "Hide Sidebar",
+    "show": "Show Sidebar",
+    "exitFullscreen": "Exit Fullscreen",
+    "enterFullscreen": "Enter Fullscreen",
+    "tutorial": "Tutorial",
+    "community": "Join Community"
+  },
+  "chatInput": {
+    "placeholder": "Ask anything...",
+    "sendButton": "Send"
+  },
+  "broadcastChatInput": {
+    "placeholder": "Type your chat...",
+    "sendButton": "Send"
+  },
+  "login": {
+    "githubSoon": "GitHub login is coming soon.",
+    "emailSoon": "Email login is coming soon.",
+    "loginWith": "Login with {provider}"
+  },
+  "auctionModal": {
+    "createFailed": "Failed to create auction"
+  },
+  "bidModal": {
+    "bidTooLow": "Bid must be higher than current highest bid ({currentHighestBid} credits).",
+    "bidIncrementError": "Bid must be in increments of {minBidIncrement} credits.",
+    "bidError": "An error occurred during bidding.",
+    "title": "Place Bid",
+    "currentHighestBid": "Current Highest Bid",
+    "creditsUnit": "Credits",
+    "minBidIncrement": "Minimum Bid Increment",
+    "bidCredits": "Bid Credits",
+    "minBidPlaceholder": "or more",
+    "biddingInProgress": "Bidding...",
+    "placeBid": "Place Bid",
+    "cancel": "Cancel"
+  },
+  "paymentModal": {
+    "pack100Name": "Basic Credit Pack",
+    "pack300Name": "Value Credit Pack",
+    "pack500Name": "Premium Credit Pack",
+    "pack1000Name": "Unlimited Credit Pack (Limited)",
+    "pack50Name": "Trial Credit Pack",
+    "purchaseLog": "Purchase request: {name} ({price} KRW) - {credits} credits added",
+    "purchaseAlert": "\"{name}\" payment feature is under development! (No actual payment will be made.)",
+    "creditLowTitle": "⚠️ Low Credits!",
+    "creditLowMessage1": "Please recharge your credits to use more character chat.",
+    "creditLowMessage2": "You can select and recharge your desired credit pack below.",
+    "chargeCreditsTitle": "Recharge Credits",
+    "chargeCreditsMessage": "Select your desired credit pack to enjoy more features.",
+    "creditsUnit": "Credits",
+    "currencyUnit": "KRW",
+    "purchaseButton": "Purchase",
+    "contactSupport": "Please contact customer support for payment inquiries."
+  },
+  "settingModal": {
+    "title": "Session Settings",
+    "like": "Like",
+    "dislike": "Dislike",
+    "resetChat": "Reset Chat",
+    "deleteChat": "Delete Chat",
+    "includeAllUtterances": "Include All Utterances",
+    "guidanceText": "* Each function affects the current character session. Please choose carefully."
+  },
+  "contentHub": {
+    "searchByName": "Name",
+    "searchByTags": "Tags",
+    "searchNamePlaceholder": "Search by character name",
+    "searchTagsPlaceholder": "Search by tags (comma separated)",
+    "auctionInProgress": "Auctioning"
+  },
+  "auctionPage": {
+    "bidder": "Bidder",
+    "auctionEnded": "Auction Ended!",
+    "dayUnit": "day",
+    "hourUnit": "hr",
+    "minuteUnit": "min",
+    "secondUnit": "sec",
+    "noTimeInfo": "No time info",
+    "myCredits": "My Credits",
+    "highestBid": "Highest Bid",
+    "creditsUnit": "Credits",
+    "remainingTime": "Remaining Time",
+    "currentLeader": "Current Leader",
+    "placeBidButton": "Place Bid"
+  },
+  "legal": {
+    "privacyPolicy": "Privacy Policy",
+    "termsOfService": "Terms of Service",
+    "licensesAndCredits": "Licenses & Credits",
+    "chatLogConsent": "Chat/Log Data Collection Consent",
+    "title": "Legal Center"
+  },
+  "licenses": {
+    "loadError": "Failed to load license information.",
+    "pageTitle": "Licenses & Credits - [Site/Service Name]"
+  },
+  "policy": {
+    "loadError": "Failed to load privacy policy.",
+    "pageTitle": "Privacy Policy - [Site/Service Name]"
+  },
+  "privacyChatLogs": {
+    "loadError": "Failed to load chat and log data collection consent information.",
+    "pageTitle": "Chat & Log Data Collection Consent - [Site/Service Name]"
+  },
+  "terms": {
+    "loadError": "Failed to load terms of service.",
+    "pageTitle": "Terms of Service - [Site/Service Name]"
+  },
+  "tutorial": {
+    "title": "Tutorial",
+    "description": "Check out how to use the service.",
+    "iframeTitle": "Tutorial Document"
+  },
+  "livePage": {
+    "viewer1": "Viewer1",
+    "viewer1Message": "What is this character ㅋㅋ",
+    "viewer2": "Viewer2",
+    "viewer2Message": "So beautiful lol",
+    "viewer3": "Viewer3",
+    "viewer3Message": "Does it answer??",
+    "me": "Me",
+    "websocketDisconnected": "🔌 WebSocket disconnected",
+    "broadcastContent": "Broadcast Content"
+  }
+}
