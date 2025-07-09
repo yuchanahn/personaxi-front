@@ -171,5 +171,13 @@
     "me": "나",
     "websocketDisconnected": "🔌 WebSocket 연결 해제",
     "broadcastContent": "방송 콘텐츠"
+  },
+  "chatSession": {
+    "system": {
+      "search": "🔍 탐색",
+      "user": "⚙️ 사용자",
+      "create": "🎨 창조",
+      "legal": "📜 법률"
+    }
   }
 }

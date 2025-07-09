@@ -171,5 +171,13 @@
     "me": "Me",
     "websocketDisconnected": "🔌 WebSocket disconnected",
     "broadcastContent": "Broadcast Content"
+  },
+  "chatSession": {
+    "system": {
+      "search": "🔍 Search",
+      "user": "⚙️ User",
+      "create": "🎨 Create",
+      "legal": "📜 Legal"
+    }
   }
 }

@@ -25,4 +25,5 @@ export interface Persona {
     promptExamples: string[];
     tags: string[];
     feedback: PersonaFeedback;
+    voice_id: string;
 }

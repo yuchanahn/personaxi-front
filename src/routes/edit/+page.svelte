@@ -1,7 +1,7 @@
 <script lang="ts">
     import { goto } from "$app/navigation";
     import { onMount } from "svelte";
-    import type { Persona } from "$lib/types";
+    import type { Persona, PersonaFeedback } from "$lib/types";
     import { page } from "$app/stores";
     import { loadPersona, savePersona } from "$lib/api/edit_persona";
     import LoadingAnimation from "$lib/components/utils/LoadingAnimation.svelte";
@@ -17,12 +17,31 @@
         instructions: [],
         promptExamples: [],
         tags: [],
+
+        feedback: {
+            like: 0,
+            dislike: 0,
+            view: 0,
+        },
+        voice_id: "",
     };
     let instruction = "";
     let promptExample = "";
     let tags = "";
     let error = "";
     let last_id: string | null = null;
+
+    let allVoices: any[] = []; // ElevenLabs에서 받아온 전체 목소리 목록
+    let selectedVoiceId = ""; // 사용자가 선택한 voice_id
+
+    // 선택된 voice_id에 해당하는 전체 voice 객체를 찾아내는 반응형 변수
+    $: selectedVoice = allVoices.find((v) => v.voice_id === selectedVoiceId);
+    // 선택된 voice_id가 변경될 때마다 onSelect 콜백 호출
+    $: if (selectedVoiceId) {
+        persona.voice_id = selectedVoiceId;
+    } else {
+        persona.voice_id = "";
+    }
 
     $: {
         const id = $page.url.searchParams.get("c");
@@ -31,6 +50,12 @@
             if (id)
                 loadPersona(id).then((p) => {
                     persona = p;
+
+                    if (p.voice_id !== "") {
+                        selectedVoiceId = p.voice_id;
+                    } else {
+                        selectedVoiceId = "";
+                    }
                 });
         }
     }
@@ -57,6 +82,16 @@
         const urlParams = new URLSearchParams(window.location.search);
         const id = urlParams.get("c");
         if (id) persona = await loadPersona(id);
+
+        try {
+            const response = await fetch("/voices.json"); // static/voices.json
+            if (response.ok) {
+                const data = await response.json();
+                allVoices = data.voices;
+            }
+        } catch (e) {
+            console.error("Failed to load voices.json", e);
+        }
     });
 
     function addInstruction() {
@@ -253,6 +288,48 @@
                                 {/if}
                             </div>
                         </div>
+
+                        <div class="form-group">
+                            <label for="voice-select"
+                                >{$t("editPage.voiceLabel")}</label
+                            >
+                            <p class="description">
+                                {$t("editPage.voiceDescription")}
+                            </p>
+                            {#if allVoices.length > 0}
+                                <div class="voice-selector">
+                                    <select
+                                        id="voice-select"
+                                        bind:value={selectedVoiceId}
+                                    >
+                                        <option value="" disabled
+                                            >{$t(
+                                                "editPage.voiceSelectDefault",
+                                            )}</option
+                                        >
+                                        {#each allVoices as voice (voice.voice_id)}
+                                            <option value={voice.voice_id}
+                                                >{voice.name}</option
+                                            >
+                                        {/each}
+                                    </select>
+
+                                    {#if selectedVoice}
+                                        {#key selectedVoice.voice_id}
+                                            <audio
+                                                controls
+                                                src={selectedVoice.preview_url}
+                                            >
+                                                Your browser does not support
+                                                the audio element.
+                                            </audio>
+                                        {/key}
+                                    {/if}
+                                </div>
+                            {:else}
+                                <p>{$t("editPage.voiceLoading")}</p>
+                            {/if}
+                        </div>
                     {/if}
                 </div>
             </div>
@@ -268,6 +345,7 @@
                             {$t("editPage.instructionsDescription")}
                         </p>
                         <div class="input-group">
+                            <!-- svelte-ignore element_invalid_self_closing_tag -->
                             <textarea
                                 id="instruction-input"
                                 bind:value={instruction}
@@ -667,5 +745,35 @@
     .save-button:disabled {
         opacity: 0.8; /* 로딩 중일 때 버튼 약간 투명하게 */
         cursor: wait; /* 커서 모양 변경 */
+    }
+
+    /* style 블록 맨 아래에 추가 */
+
+    .voice-selector {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+
+    .voice-selector select {
+        flex: 1;
+    }
+
+    .voice-selector audio {
+        height: 42px; /* select 태그 높이와 비슷하게 맞춤 */
+    }
+
+    /* 오디오 플레이어 컨트롤을 어두운 테마에 맞게 조정 */
+    .voice-selector audio::-webkit-media-controls-panel {
+        background-color: var(--bg-tertiary);
+        color: var(--text-primary);
+    }
+    .voice-selector audio::-webkit-media-controls-play-button,
+    .voice-selector audio::-webkit-media-controls-timeline,
+    .voice-selector audio::-webkit-media-controls-current-time-display,
+    .voice-selector audio::-webkit-media-controls-time-remaining-display,
+    .voice-selector audio::-webkit-media-controls-volume-slider,
+    .voice-selector audio::-webkit-media-controls-mute-button {
+        filter: invert(1) grayscale(1) brightness(1.5);
     }
 </style>

@@ -2,6 +2,7 @@ import { goto } from "$app/navigation";
 import { chatSessions } from "$lib/stores/chatSessions";
 import { is_login } from "$lib/stores/user";
 import { API_BASE_URL } from "$lib/constants";
+import { t as $t, locale as $locale, locale } from "svelte-i18n";
 
 
 // 기본 URL을 동적으로 결정하는 함수
@@ -28,15 +29,29 @@ export async function loginWithAuthKey(authKey: string): Promise<void> {
 }
 
 export async function getCurrentUser(): Promise<{ Name: string; Email: string } | null> {
+
+  console.log("getCurrentUser called");
+
   const res = await fetch(`${API_BASE_URL}/api/user/me`, {
     credentials: 'include'
   });
 
   if (res.ok == false) {
+    console.log("getCurrentUser response not ok: " + res.status);
     return null
   }
 
-  return res.ok ? await res.json() : null;
+  console.log("getCurrentUser response ok");
+
+  const user = await res.json();
+
+  if (user.data) {
+    locale.set(user.data.language);
+  } else {
+    console.log("No user data found");
+  }
+
+  return res.ok ? user : null;
 }
 
 export async function logout() {

@@ -18,6 +18,13 @@
         plan: string;
         profile: string;
         email: string;
+        data: {
+            nickname: string;
+            language: string;
+            lastLoginAt: string;
+            createdAt: string;
+            lastLoginIP: string;
+        };
     } = {
         id: "",
         name: "",
@@ -26,6 +33,13 @@
         plan: "",
         profile: "",
         email: "",
+        data: {
+            nickname: "",
+            language: "",
+            lastLoginAt: "",
+            createdAt: "",
+            lastLoginIP: "",
+        },
     };
     let personas: Persona[] = [];
     let error = "";
@@ -41,6 +55,18 @@
             });
             if (userRes.ok) {
                 user = await userRes.json();
+
+                if (!user.data) {
+                    user.data = {
+                        nickname: user.name,
+                        language: "en",
+                        lastLoginAt: "",
+                        createdAt: "",
+                        lastLoginIP: "",
+                    };
+                } else {
+                    $locale = user.data.language;
+                }
             } else {
                 error = "Failed to load user : " + userRes.status;
             }
@@ -102,27 +128,63 @@
     }
 
     function confirmDelete(id: string, name: string) {
-        if (confirm($t('settingPage.deleteConfirm', { values: { name } }))) {
+        if (confirm($t("settingPage.deleteConfirm", { values: { name } }))) {
             deletePersona(id);
+        }
+    }
+
+    /*
+    type UserSettingRequest struct {
+	    Nickname string `json:"nickname"`
+	    Language string `json:"language"`
+    }
+    */
+
+    interface UserSettingRequest {
+        nickname: string;
+        language: string;
+    }
+
+    async function updateUserSettings(value: string) {
+        const settingRq: UserSettingRequest = {
+            nickname: user.data.nickname || user.name,
+            language: value || "en",
+        };
+        const res = await fetch(`${API_BASE_URL}/api/user/edit`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify(settingRq),
+            credentials: "include",
+        });
+        if (res.ok) {
+            //user = await res.json();
+        } else {
+            error = "Failed to update user settings";
         }
     }
 </script>
 
 <div class="page-container">
     <div class="header">
-        <h1>{$t('settingPage.title')}</h1>
+        <h1>{$t("settingPage.title")}</h1>
     </div>
-
-    <div class="language-selector">
-        <select
-            bind:value={$locale}
-            on:change={(e) => locale.set(e.currentTarget.value)}
-            aria-label="언어 선택"
-        >
-            <option value="ko">한국어</option>
-            <option value="en">English</option>
-        </select>
-    </div>
+    {#if $locale}
+        <div class="language-selector">
+            <select
+                bind:value={$locale}
+                on:change={async (e) => {
+                    locale.set(e.currentTarget.value);
+                    await updateUserSettings(e.currentTarget.value);
+                }}
+                aria-label="언어 선택"
+            >
+                <option value="ko">한국어</option>
+                <option value="en">English</option>
+            </select>
+        </div>
+    {/if}
 
     {#if error}
         <p class="error">{error}</p>
@@ -141,27 +203,30 @@
                 <h2>{user.name}</h2>
                 <p class="email">{user.email}</p>
             </div>
-            <button class="btn" on:click={logout}>{$t('settingPage.logout')}</button>
+            <button class="btn" on:click={logout}
+                >{$t("settingPage.logout")}</button
+            >
         </div>
         <div class="profile-details">
             <div>
-                <span class="label">{$t('settingPage.credits')}</span>
+                <span class="label">{$t("settingPage.credits")}</span>
                 <span class="value">{user.credits} C</span>
             </div>
             <div>
-                <span class="label">{$t('settingPage.plan')}</span>
+                <span class="label">{$t("settingPage.plan")}</span>
                 <span class="value">{user.plan}</span>
             </div>
             <button
                 class="btn btn-primary"
-                on:click={() => (paymentModalOpen = true)}>{$t('settingPage.charge')}</button
+                on:click={() => (paymentModalOpen = true)}
+                >{$t("settingPage.charge")}</button
             >
         </div>
     </div>
     <div class="section-header">
-        <h2>{$t('settingPage.myPersonas')}</h2>
+        <h2>{$t("settingPage.myPersonas")}</h2>
         <button class="btn btn-primary" on:click={() => goto("/edit")}>
-            {$t('settingPage.newPersona')}
+            {$t("settingPage.newPersona")}
         </button>
     </div>
     <div class="personas-section">
@@ -198,15 +263,15 @@
                                     on:click={() => toggleLive(persona.id)}
                                 >
                                     {isLive(persona.id)
-                                        ? $t('settingPage.broadcastEnd')
-                                        : $t('settingPage.broadcastStart')}
+                                        ? $t("settingPage.broadcastEnd")
+                                        : $t("settingPage.broadcastStart")}
                                 </button>
                                 <button
                                     class="btn"
                                     on:click={() => openAuctionModal(persona)}
                                     disabled={isLive(persona.id)}
                                 >
-                                    {$t('settingPage.auctionStart')}
+                                    {$t("settingPage.auctionStart")}
                                 </button>
                             </div>
                         {/if}
@@ -214,13 +279,13 @@
                             <button
                                 class="btn"
                                 on:click={() => goto(`/edit?c=${persona.id}`)}
-                                >{$t('settingPage.edit')}</button
+                                >{$t("settingPage.edit")}</button
                             >
                             <button
                                 class="btn btn-danger"
                                 on:click={() =>
                                     confirmDelete(persona.id, persona.name)}
-                                >{$t('settingPage.delete')}</button
+                                >{$t("settingPage.delete")}</button
                             >
                         </div>
                     </div>
