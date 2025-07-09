@@ -4,8 +4,10 @@
   import { loadChatHistory, sendPromptStream } from "$lib/api/chat";
   import ChatWindow from "$lib/components/chat/ChatWindow.svelte";
   import ChatInput from "$lib/components/chat/ChatInput.svelte";
+  import SettingsButton from "$lib/components/common/SettingsButton.svelte";
   import { loadPersona } from "$lib/api/edit_persona";
   import type { Persona } from "$lib/types";
+  import SettingsModal from "$lib/components/modal/SettingModal.svelte";
 
   let lastSessionId: string | null = null;
   let persona: Persona | null = null;
@@ -39,8 +41,17 @@
     isLoading = true;
     await sendPromptStream(sessionId ?? "", prompt, "character");
   };
+
+  let isSettingsModalOpen = false;
 </script>
 
+{#if isSettingsModalOpen}
+  <SettingsModal
+    cssid={lastSessionId ?? ""}
+    isOpen={isSettingsModalOpen}
+    on:close={() => (isSettingsModalOpen = false)}
+  />
+{/if}
 <main class="chat-layout">
   {#if persona !== null}
     <div class="persona-container">
@@ -51,6 +62,10 @@
       />
     </div>
   {/if}
+
+  <div class="settings-button-2d">
+    <SettingsButton onClick={() => (isSettingsModalOpen = true)} />
+  </div>
 
   <div class="chat-container">
     <ChatWindow cssid={lastSessionId ?? ""} {isLoading} />
@@ -118,5 +133,19 @@
       /* 오른쪽 영역이 남은 공간 모두 차지 */
       flex: 1;
     }
+  }
+  .settings-button-2d {
+    position: absolute;
+    top: 100px;
+    right: 20px;
+    z-index: 10;
+    display: flex;
+    flex-direction: column; /* NEW: 세로 정렬 */
+    gap: 10px; /* 버튼 사이 간격 */
+    background-color: rgba(0, 0, 0, 0.5); /* 반투명 배경 */
+    padding: 8px 12px;
+    border-radius: 8px;
+    backdrop-filter: blur(5px); /* 블러 효과 */
+    border: 1px solid rgba(255, 255, 255, 0.2); /* 테두리 */
   }
 </style>
