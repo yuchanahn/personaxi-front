@@ -100,8 +100,8 @@
 <style>
   .control-box {
     position: absolute;
-    top: 100px;
-    right: 20px;
+    top: 10px;
+    right: 10px;
     z-index: 10;
     display: flex;
     flex-direction: column; /* NEW: 세로 정렬 */
