@@ -9,6 +9,8 @@
     import AuctionModal from "$lib/components/modal/AuctionModal.svelte";
     import { Avatar } from "bits-ui";
     import PaymentModal from "$lib/components/modal/PaymentModal.svelte";
+    import NeedMoreNeuronsModal from "$lib/components/modal/NeedMoreNeuronsModal.svelte";
+    import NeuronIcon from "$lib/components/icons/NeuronIcon.svelte";
 
     let user: {
         id: string;
@@ -210,7 +212,10 @@
         <div class="profile-details">
             <div>
                 <span class="label">{$t("settingPage.credits")}</span>
-                <span class="value">{user.credits} C</span>
+                <div style="display: flex; align-items: center;">
+                    <span class="value">{user.credits}</span>
+                    <NeuronIcon size={24} color={"#a0a0a0"} />
+                </div>
             </div>
             <div>
                 <span class="label">{$t("settingPage.plan")}</span>
@@ -300,9 +305,13 @@
             on:close={() => (showAuctionModal = false)}
         />
     {/if}
-    <PaymentModal
+    <!-- <PaymentModal
         bind:isOpen={paymentModalOpen}
         isCreditLow={false}
+        on:close={handleModalClose}
+    /> -->
+    <NeedMoreNeuronsModal
+        bind:isOpen={paymentModalOpen}
         on:close={handleModalClose}
     />
 </div>

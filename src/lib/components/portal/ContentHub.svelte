@@ -84,11 +84,13 @@
             <div class="search-options">
                 <button
                     class:active={searchType === "name"}
-                    on:click={() => (searchType = "name")}>{$t("contentHub.searchByName")}</button
+                    on:click={() => (searchType = "name")}
+                    >{$t("contentHub.searchByName")}</button
                 >
                 <button
                     class:active={searchType === "tags"}
-                    on:click={() => (searchType = "tags")}>{$t("contentHub.searchByTags")}</button
+                    on:click={() => (searchType = "tags")}
+                    >{$t("contentHub.searchByTags")}</button
                 >
             </div>
             <div class="search-input-wrapper">
@@ -161,7 +163,11 @@
                                     <span class="live-badge">LIVE 🔴</span>
                                 {/if}
                                 {#if isAuctioning(content.id)}
-                                    <span class="auction-badge">{$t("contentHub.auctionInProgress")}</span>
+                                    <span class="auction-badge"
+                                        >{$t(
+                                            "contentHub.auctionInProgress",
+                                        )}</span
+                                    >
                                 {/if}
                             </div>
 
@@ -337,22 +343,25 @@
     }
 
     .logo {
-        width: 120px;
+        width: 50px;
         height: auto;
         display: block;
-        margin: 1rem auto;
+        margin: auto;
+        margin-bottom: 1rem;
     }
     /* 개편된 검색 시스템 CSS */
     .unified-search-container {
         display: flex;
-        flex-direction: column;
+        flex-direction: row;
         align-items: center;
+        justify-content: center;
         gap: 0.75rem;
         padding: 0 1rem 1.5rem 1rem;
     }
 
     .search-options {
         display: flex;
+        flex-shrink: 0;
         gap: 0.5rem;
         background-color: #2a2a2a;
         padding: 0.25rem;
@@ -360,8 +369,8 @@
     }
 
     .search-options button {
-        padding: 0.4rem 1rem;
-        font-size: 0.9rem;
+        padding: 0.4rem 0.8rem;
+        font-size: 0.8rem;
         font-weight: 500;
         background-color: transparent;
         color: #aaa;
@@ -369,6 +378,7 @@
         border-radius: 6px;
         cursor: pointer;
         transition: all 0.2s ease-in-out;
+        white-space: nowrap;
     }
 
     .search-options button.active {
@@ -380,7 +390,7 @@
     .search-input-wrapper {
         position: relative;
         width: 100%;
-        max-width: 400px; /* 최대 너비 설정 */
+        max-width: 400px;
     }
 
     .search-input-wrapper input {
