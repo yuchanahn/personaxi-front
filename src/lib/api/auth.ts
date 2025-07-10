@@ -12,7 +12,7 @@ function getBaseUrl(): string {
 
   if (host === 'localhost' || host === '127.0.0.1') {
     // 로컬 개발 환경
-    return 'http://localhost:5173/personaxi-front/';
+    return 'http://localhost:5173/';
   } else {
     // GitHub Pages 환경 (또는 기타 배포 환경)
     return 'https://personaxi.com/';
@@ -37,7 +37,7 @@ export async function getCurrentUser(): Promise<{ Name: string; Email: string } 
   });
 
   if (res.ok == false) {
-    console.log("getCurrentUser response not ok: " + res.status);
+    console.log("getCurrentUser response not ok!");
     return null
   }
 

@@ -2,7 +2,7 @@
   import { onMount } from "svelte";
   import { getCurrentUser, loginWithAuthKey } from "$lib/api/auth";
   import { is_login } from "$lib/stores/user";
-  import { goto } from "$app/navigation";
+  import { goto, onNavigate } from "$app/navigation";
 
   import "$lib/styles/theme.css";
 
@@ -10,12 +10,14 @@
     const url = new URL(window.location.href);
     const authKey = url.searchParams.get("auth_key");
     if (authKey) {
+      console.log("## login with auth -- key2");
       await loginWithAuthKey(authKey);
     }
 
     let user = await getCurrentUser();
 
     if (user != null) {
+      console.log("login success");
       is_login.set(true);
       goto("/hub");
     }

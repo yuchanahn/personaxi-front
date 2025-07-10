@@ -1,8 +1,8 @@
 import { init, register, getLocaleFromNavigator, locales, locale } from 'svelte-i18n';
-import { initFetchOverride } from "$lib/fetchOverride";
+//import { initFetchOverride } from "$lib/fetchOverride";
 import { get } from 'svelte/store';
 
-initFetchOverride();
+//initFetchOverride();
 
 register('en', () => import('$lib/i18n/locales/en.json'));
 register('ko', () => import('$lib/i18n/locales/ko.json'));
@@ -18,9 +18,6 @@ async function getMyIpInfo() {
         }
 
         const data = await response.json();
-
-        console.log('나의 IP 주소:', data.ip);
-        console.log('접속 국가 코드:', data.country); // 예: 'KR'
 
         return data;
 
@@ -41,39 +38,43 @@ const map_browserLocaleToCountry = {
 }
 
 export async function load() {
-    const loc = await getMyIpInfo();
-    let _locale = 'en'; // 기본값
-    if (loc === null) {
-        console.warn("Failed to get IP info, using default locale 'en'");
-        _locale = 'en';
-    } else {
-        _locale = map_localeToCountry[loc.country as keyof typeof map_localeToCountry] || 'en';
+    try {
+        const loc = await getMyIpInfo();
+        let _locale = 'en'; // 기본값
+        if (loc === null) {
+            console.warn("Failed to get IP info, using default locale 'en'");
+            _locale = 'en';
+        } else {
+            _locale = map_localeToCountry[loc.country as keyof typeof map_localeToCountry] || 'en';
+        }
+
+        let browserLocale = getLocaleFromNavigator() || 'en-US'; // 기본값
+        if (browserLocale in map_browserLocaleToCountry) {
+            browserLocale = map_browserLocaleToCountry[browserLocale as keyof typeof map_browserLocaleToCountry] || _locale;
+        }
+
+        let locale__ = get(locale);
+
+        if (locale__ !== null) {
+            console.log("Available locales:", locale__);
+        }
+
+        locale.subscribe((value) => {
+            console.log("Current locales:", value);
+        });
+
+        await init({
+            fallbackLocale: _locale,
+            initialLocale: browserLocale,
+        });
+
+        console.log("Svelte i18n initialized!!");
+    }
+    catch (e) {
+        console.error("레이아웃 로드 중 심각한 에러 발생:", e);
     }
 
-    let browserLocale = getLocaleFromNavigator() || 'en-US'; // 기본값
-    if (browserLocale in map_browserLocaleToCountry) {
-        browserLocale = map_browserLocaleToCountry[browserLocale as keyof typeof map_browserLocaleToCountry] || _locale;
-    }
-
-    let locale__ = get(locale);
-
-    if (locale__ !== null) {
-        console.log("Available locales:", locale__);
-    } else {
-        console.warn("No locales available, using default 'en'");
-
-    }
-
-    locale.subscribe((value) => {
-        console.log("Current locales:", value);
-    });
-
-    await init({
-        fallbackLocale: _locale,
-        initialLocale: browserLocale,
-    });
-
-    console.log("Svelte i18n initialized!!");
+    return {}
 }
 
 export const ssr = false
