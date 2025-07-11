@@ -1,2 +1,3 @@
 ignored_dirs:
   - node_modules
+language: typescript

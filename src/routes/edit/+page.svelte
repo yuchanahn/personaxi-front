@@ -6,6 +6,9 @@
     import { loadPersona, savePersona } from "$lib/api/edit_persona";
     import LoadingAnimation from "$lib/components/utils/LoadingAnimation.svelte";
     import { t } from "svelte-i18n";
+    import FirstCreationRewardModal from "$lib/components/modal/FirstCreationRewardModal.svelte";
+    import { st_user } from "$lib/stores/user";
+    import { get } from "svelte/store";
 
     let vrmFile: File | null = null;
 
@@ -144,6 +147,10 @@
 
     let loading = false;
     let showSuccess = false;
+
+    let showRewardModal = false;
+    let hasReceivedFirstCreationReward =
+        get(st_user)?.data.hasReceivedFirstCreationReward ?? false;
 </script>
 
 <div class="container">
@@ -179,6 +186,10 @@
 
                         if (!persona.id) {
                             goto(`/edit?c=${id}`, { replaceState: true });
+                            if (hasReceivedFirstCreationReward) {
+                                showRewardModal = true;
+                                hasReceivedFirstCreationReward = false;
+                            }
                         }
                     }
                 } catch (e: any) {
@@ -458,6 +469,7 @@
     </div>
 </div>
 <LoadingAnimation isOpen={loading} />
+<FirstCreationRewardModal bind:isOpen={showRewardModal} />
 
 <style>
     :root {

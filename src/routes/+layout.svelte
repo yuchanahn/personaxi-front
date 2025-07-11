@@ -3,31 +3,38 @@
     import "$lib/styles/theme.css"; // 이미 적용된 글로벌 CSS
     import Sidebar from "$lib/components/sidebar/Sidebar.svelte"; // 사이드바 컴포넌트
     import { loadCharacterSessions, loadChatSessions } from "$lib/api/sessions";
-    import { is_login } from "$lib/stores/user";
+    import { is_login, st_user } from "$lib/stores/user";
     import { onMount } from "svelte";
     import Login from "$lib/components/login/login.svelte";
-    import { getCurrentUser } from "$lib/api/auth";
+    import { confirmConsent, getCurrentUser } from "$lib/api/auth";
     import "../app.css";
     import CheatConsole from "$lib/components/cheat/CheatConsole.svelte"; // 치트 콘솔 컴포넌트 임포트
     import { page } from "$app/stores"; // 현재 페이지 정보 가져오기
+    import NeedMoreNeuronsModal from "$lib/components/modal/NeedMoreNeuronsModal.svelte";
+    import { needMoreNeuronsModal } from "$lib/stores/modal";
+    import type { User } from "$lib/types";
+    import ConsentModal from "$lib/components/modal/ConsentModal.svelte";
+    import WelcomeModal from "$lib/components/modal/WelcomeModal.svelte";
 
     let showCheatConsole = false; // 치트 콘솔 표시 여부
     let showSidebar = true; // 사이드바 표시 여부
+    let consentModal = false;
+    let welcomeModal = false;
 
     $: $page.url.pathname, (showSidebar = false);
 
     onMount(async () => {
-        console.log("login 시도");
-
         try {
-            let user = await getCurrentUser();
+            let user = (await getCurrentUser()) as User | null;
             if (user == null) {
-                console.log("login 실패 1");
                 is_login.set(false);
                 return;
             }
+            st_user.set(user);
+            if (user.state == "new") {
+                consentModal = true;
+            }
         } catch (error) {
-            console.log("login 실패 2");
             is_login.set(false);
         }
     });
@@ -54,6 +61,22 @@
             on:close={() => (showCheatConsole = false)}
         />
     </main>
+
+    <!-- 전역 모달 관리 -->
+    <NeedMoreNeuronsModal
+        bind:isOpen={$needMoreNeuronsModal}
+        isNeedNeurons={true}
+    />
+    <ConsentModal
+        isOpen={consentModal}
+        on:confirm={async () => {
+            const user_ = await confirmConsent();
+            st_user.set(user_);
+            consentModal = false;
+            welcomeModal = true;
+        }}
+    />
+    <WelcomeModal neuronAmount={200} isOpen={welcomeModal} />
 </div>
 
 <style>

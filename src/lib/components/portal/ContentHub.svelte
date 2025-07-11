@@ -78,7 +78,7 @@
 
 <div class="page-wrapper">
     <div class="header-section">
-        <img src="/logo.png" alt="Logo" class="logo" />
+        <!-- <img src="/logo.png" alt="Logo" class="logo" /> -->
 
         <div class="unified-search-container">
             <div class="search-options">

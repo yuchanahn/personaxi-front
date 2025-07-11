@@ -174,10 +174,16 @@
   },
   "chatSession": {
     "system": {
-      "search": "🔍 Search",
-      "user": "⚙️ User",
-      "create": "🎨 Create",
-      "legal": "📜 Legal"
+      "search": "Search",
+      "user": "User",
+      "create": "Create",
+      "legal": "Legal"
     }
+  },
+  "welcomeModal": {
+    "title": "Welcome to PersonaXI!",
+    "message": "Thank you for joining PersonaXI. We're excited to have you!",
+    "neuronReward": "As a welcome gift, you've received {amount} Neurons!",
+    "confirmButton": "Start Exploring"
   }
 }

@@ -1,10 +1,15 @@
 <script lang="ts">
+    import { goto } from "$app/navigation";
     import { createEventDispatcher, onDestroy, onMount } from "svelte";
     import { t } from "svelte-i18n";
     import Icon from "@iconify/svelte";
+    import NeuronIcon from "../icons/NeuronIcon.svelte";
+    import { get } from "svelte/store";
+    import { st_user } from "$lib/stores/user";
 
     // 부모 컴포넌트로부터 모달 가시성 상태를 양방향으로 바인딩합니다.
     export let isOpen: boolean = false;
+    export let isNeedNeurons: boolean = false;
 
     const dispatch = createEventDispatcher();
 
@@ -38,33 +43,61 @@
         alert(`${amount} 뉴런 충전을 선택했습니다. (결제 로직 연동 필요)`);
         closeModal();
     }
+
+    let current_neurons_count = get(st_user)?.credits || 0;
 </script>
 
 {#if isOpen}
+    <!-- svelte-ignore a11y_click_events_have_key_events -->
+    <!-- svelte-ignore a11y_no_static_element_interactions -->
     <div class="modal-backdrop" on:click|self={closeModal}>
         <div class="modal-content">
             <button class="close-button" on:click={closeModal}>&times;</button>
+            {#if isNeedNeurons}
+                <h2>뉴런이 부족해요!</h2>
 
-            <h2>뉴런이 부족해요!</h2>
+                <div class="promo-box">
+                    <Icon icon="ph:gift-bold" width="24" />
+                    <span>페르소나 최초 생성 시 200 뉴런 지급!</span>
+                </div>
 
-            <div class="promo-box">
-                <Icon icon="ph:gift-bold" width="24" />
-                <span>페르소나 최초 생성 시 100 뉴런 무료 지급!</span>
+                <button
+                    class="go-to-edit-button"
+                    on:click={() => {
+                        closeModal();
+                        goto("/edit");
+                    }}
+                >
+                    <Icon icon="ph:plus-circle-bold" width="20" />
+                    <span>무료 뉴런 받기</span>
+                </button>
+
+                <p class="description">
+                    더 많은 대화를 나누려면 뉴런을 충전해주세요.
+                </p>
+            {:else}
+                <h2>뉴런 충전!</h2>
+                <p class="description">
+                    더 많은 대화를 나누려면 뉴런을 충전해주세요.
+                </p>
+            {/if}
+
+            <div style="display: flex; justify-content: align-items: center;">
+                <p>
+                    현재 수량: {current_neurons_count}
+                </p>
             </div>
-
-            <p class="description">
-                더 많은 대화를 나누려면 뉴런을 충전해주세요.
-            </p>
-
             <div class="recharge-options">
                 {#each rechargeOptions as option}
                     <button
                         class="recharge-button"
                         on:click={() => handleRecharge(option.neurons)}
                     >
-                        <span class="neurons-amount"
-                            >{option.neurons.toLocaleString()} 뉴런</span
-                        >
+                        <NeuronIcon />
+                        <span class="neurons-amount">
+                            X {option.neurons.toLocaleString()}
+                        </span>
+
                         <span class="price-tag">{option.price}</span>
                     </button>
                 {/each}
@@ -140,6 +173,28 @@
         gap: 10px;
         font-weight: 600;
     }
+
+    .go-to-edit-button {
+        background-color: #4a90e2;
+        color: white;
+        border: none;
+        padding: 12px 20px;
+        border-radius: 8px;
+        font-size: 1.1em;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        width: 100%;
+        margin-bottom: 1.5rem;
+        transition: background-color 0.2s ease;
+    }
+
+    .go-to-edit-button:hover {
+        background-color: #357abd;
+    }
+
     .recharge-options {
         display: flex;
         flex-direction: column;

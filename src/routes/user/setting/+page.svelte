@@ -8,26 +8,12 @@
     import { locale, t } from "svelte-i18n";
     import AuctionModal from "$lib/components/modal/AuctionModal.svelte";
     import { Avatar } from "bits-ui";
-    import PaymentModal from "$lib/components/modal/PaymentModal.svelte";
     import NeedMoreNeuronsModal from "$lib/components/modal/NeedMoreNeuronsModal.svelte";
     import NeuronIcon from "$lib/components/icons/NeuronIcon.svelte";
+    import { get } from "svelte/store";
+    import type { User } from "$lib/types";
 
-    let user: {
-        id: string;
-        name: string;
-        credits: number;
-        gender: string;
-        plan: string;
-        profile: string;
-        email: string;
-        data: {
-            nickname: string;
-            language: string;
-            lastLoginAt: string;
-            createdAt: string;
-            lastLoginIP: string;
-        };
-    } = {
+    let user = {
         id: "",
         name: "",
         credits: 0,
@@ -35,14 +21,17 @@
         plan: "",
         profile: "",
         email: "",
+        state: "",
         data: {
             nickname: "",
             language: "",
             lastLoginAt: "",
             createdAt: "",
+            hasReceivedFirstCreationReward: false,
             lastLoginIP: "",
         },
-    };
+    } as User;
+
     let personas: Persona[] = [];
     let error = "";
     let liveIds: string[] = [];
@@ -61,9 +50,10 @@
                 if (!user.data) {
                     user.data = {
                         nickname: user.name,
-                        language: "en",
+                        language: get(locale) || "",
                         lastLoginAt: "",
                         createdAt: "",
+                        hasReceivedFirstCreationReward: false,
                         lastLoginIP: "",
                     };
                 } else {
@@ -147,10 +137,10 @@
         language: string;
     }
 
-    async function updateUserSettings(value: string) {
+    async function updateUserSettings(nickname: string, lang: string) {
         const settingRq: UserSettingRequest = {
             nickname: user.data.nickname || user.name,
-            language: value || "en",
+            language: lang || "en",
         };
         const res = await fetch(`${API_BASE_URL}/api/user/edit`, {
             method: "POST",
@@ -178,7 +168,7 @@
                 bind:value={$locale}
                 on:change={async (e) => {
                     locale.set(e.currentTarget.value);
-                    await updateUserSettings(e.currentTarget.value);
+                    await updateUserSettings("", e.currentTarget.value);
                 }}
                 aria-label="언어 선택"
             >
@@ -213,8 +203,8 @@
             <div>
                 <span class="label">{$t("settingPage.credits")}</span>
                 <div style="display: flex; align-items: center;">
-                    <span class="value">{user.credits}</span>
                     <NeuronIcon size={24} color={"#a0a0a0"} />
+                    <span class="value">{user.credits}</span>
                 </div>
             </div>
             <div>
@@ -313,6 +303,7 @@
     <NeedMoreNeuronsModal
         bind:isOpen={paymentModalOpen}
         on:close={handleModalClose}
+        isNeedNeurons={false}
     />
 </div>
 

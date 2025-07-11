@@ -4,7 +4,7 @@ import { loadCharacterSessions, loadChatSessions } from './sessions';
 import { get, type Writable } from 'svelte/store';
 import { goto } from '$app/navigation';
 import { API_BASE_URL } from '$lib/constants';
-
+import { showNeedMoreNeuronsModal } from '$lib/stores/modal';
 
 
 export async function loadChatHistory(sessionId: string) {
@@ -107,6 +107,12 @@ export async function impl_sendPromptStream(
         credentials: "include",
         body: JSON.stringify(body)
     });
+
+    if (response.status === 402) {
+        showNeedMoreNeuronsModal()
+
+        console.log("showNeedMoreNeuronsModal()")
+    }
 
     const reader = response.body?.getReader();
     const decoder = new TextDecoder("utf-8");

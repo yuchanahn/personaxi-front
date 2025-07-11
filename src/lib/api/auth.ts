@@ -28,20 +28,14 @@ export async function loginWithAuthKey(authKey: string): Promise<void> {
   }
 }
 
-export async function getCurrentUser(): Promise<{ Name: string; Email: string } | null> {
-
-  console.log("getCurrentUser called");
-
+export async function getCurrentUser(): Promise<any | null> {
   const res = await fetch(`${API_BASE_URL}/api/user/me`, {
     credentials: 'include'
   });
 
   if (res.ok == false) {
-    console.log("getCurrentUser response not ok!");
     return null
   }
-
-  console.log("getCurrentUser response ok");
 
   const user = await res.json();
 
@@ -50,6 +44,20 @@ export async function getCurrentUser(): Promise<{ Name: string; Email: string } 
   } else {
     console.log("No user data found");
   }
+
+  return res.ok ? user : null;
+}
+
+export async function confirmConsent(): Promise<any | null> {
+  const res = await fetch(`${API_BASE_URL}/api/user/consent`, {
+    credentials: 'include'
+  });
+
+  if (res.ok == false) {
+    return null
+  }
+
+  const user = await res.json();
 
   return res.ok ? user : null;
 }
