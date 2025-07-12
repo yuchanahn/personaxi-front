@@ -57,7 +57,9 @@
                         lastLoginIP: "",
                     };
                 } else {
-                    $locale = user.data.language;
+                    if (user.data.language != "") {
+                        $locale = user.data.language;
+                    }
                 }
             } else {
                 error = "Failed to load user : " + userRes.status;
@@ -125,13 +127,6 @@
         }
     }
 
-    /*
-    type UserSettingRequest struct {
-	    Nickname string `json:"nickname"`
-	    Language string `json:"language"`
-    }
-    */
-
     interface UserSettingRequest {
         nickname: string;
         language: string;
@@ -151,7 +146,7 @@
             credentials: "include",
         });
         if (res.ok) {
-            //user = await res.json();
+            user = await res.json();
         } else {
             error = "Failed to update user settings";
         }

@@ -1,12 +1,14 @@
 <script>
-    import { t } from "svelte-i18n";
+    import { locale, t } from "svelte-i18n";
     import { marked } from "marked";
+    import { get } from "svelte/store";
 
     let policyContent = "";
+    let loc = get(locale) || "en";
 
-    import("$lib/i18n/locales/ko/policy.md?raw")
-        .then((module) => {
-            policyContent = marked(module.default);
+    import(`$lib/i18n/locales/${loc}/policy.md?raw`)
+        .then(async (module) => {
+            policyContent = await marked(module.default);
         })
         .catch((error) => {
             console.error("Error loading policy.md:", error);

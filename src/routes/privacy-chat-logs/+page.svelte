@@ -1,12 +1,15 @@
 <script>
-    import { t } from "svelte-i18n";
+    import { locale, t } from "svelte-i18n";
     import { marked } from "marked";
+    import { get } from "svelte/store";
 
     let chatLogPolicyContent = "";
 
-    import("$lib/i18n/locales/ko/privacy-chat-logs.md?raw")
-        .then((module) => {
-            chatLogPolicyContent = marked(module.default);
+    let loc = get(locale) || "en";
+
+    import(`$lib/i18n/locales/${loc}/privacy-chat-logs.md?raw`)
+        .then(async (module) => {
+            chatLogPolicyContent = await marked(module.default);
         })
         .catch((error) => {
             console.error("Error loading privacy-chat-logs.md:", error);

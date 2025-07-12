@@ -1,5 +1,5 @@
 <script lang="ts">
-    // 스크립트 부분은 변경 없음 (기존 코드 그대로)
+    // 스크립트 부분은 요청하신 대로 변경 없이 그대로 두었어요!
     import { goto } from "$app/navigation";
     import {
         loadContent,
@@ -77,9 +77,8 @@
 </script>
 
 <div class="page-wrapper">
+    <!-- 헤더와 검색창은 기존과 동일해요 -->
     <div class="header-section">
-        <!-- <img src="/logo.png" alt="Logo" class="logo" /> -->
-
         <div class="unified-search-container">
             <div class="search-options">
                 <button
@@ -125,6 +124,7 @@
     <div class="hub-container">
         <div class="content">
             {#each $contents as content (content.id)}
+                <!-- ★★★ 1. 타일 구조를 이미지와 정보가 위아래로 배치되도록 변경했어요 ★★★ -->
                 <div
                     class="tile"
                     on:click={() => {
@@ -150,53 +150,51 @@
                         }
                     }}
                 >
-                    <div class="tile-content">
-                        <img
-                            src={`https://uohepkqmwbstbmnkoqju.supabase.co/storage/v1/object/public/portraits/${content.owner_id[0]}/${content.id}.portrait`}
-                            alt="portrait"
-                            class="portrait"
-                        />
-                        <div class="tile-text">
-                            <div class="title-line">
-                                <strong>{content.name}</strong>
-                                {#if isLive(content.id)}
-                                    <span class="live-badge">LIVE 🔴</span>
-                                {/if}
-                                {#if isAuctioning(content.id)}
-                                    <span class="auction-badge"
-                                        >{$t(
-                                            "contentHub.auctionInProgress",
-                                        )}</span
-                                    >
-                                {/if}
-                            </div>
+                    <!-- 네모나고 커진 이미지! -->
+                    <img
+                        src={`https://uohepkqmwbstbmnkoqju.supabase.co/storage/v1/object/public/portraits/${content.owner_id[0]}/${content.id}.portrait`}
+                        alt={content.name}
+                        class="portrait-image"
+                    />
+                    <!-- 정보는 이미지 아래에 모아뒀어요 -->
+                    <div class="tile-info">
+                        <div class="title-line">
+                            <strong>{content.name}</strong>
+                            {#if isLive(content.id)}
+                                <span class="live-badge">LIVE 🔴</span>
+                            {/if}
+                            {#if isAuctioning(content.id)}
+                                <span class="auction-badge"
+                                    >{$t("contentHub.auctionInProgress")}</span
+                                >
+                            {/if}
+                        </div>
 
-                            <div class="info-line">
-                                <span class="like">
-                                    <svg
-                                        width="14"
-                                        height="14"
-                                        viewBox="0 0 24 24"
-                                        fill="#ff79c6"
-                                    >
-                                        <path
-                                            d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"
-                                        />
-                                    </svg>
-                                    {content.feedback.like}
-                                </span>
-                            </div>
-                            <div class="tags-line">
-                                {#if content.tags}
-                                    {#each content.tags.slice(0, 3) as tag}
-                                        <span class="tag">{tag}</span>
-                                    {/each}
+                        <div class="info-line">
+                            <span class="like">
+                                <svg
+                                    width="14"
+                                    height="14"
+                                    viewBox="0 0 24 24"
+                                    fill="#ff79c6"
+                                >
+                                    <path
+                                        d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"
+                                    />
+                                </svg>
+                                {content.feedback.like}
+                            </span>
+                        </div>
+                        <div class="tags-line">
+                            {#if content.tags}
+                                {#each content.tags.slice(0, 3) as tag}
+                                    <span class="tag">{tag}</span>
+                                {/each}
 
-                                    {#if content.tags.length > 3}
-                                        <span class="tag-ellipsis">...</span>
-                                    {/if}
+                                {#if content.tags.length > 3}
+                                    <span class="tag-ellipsis">...</span>
                                 {/if}
-                            </div>
+                            {/if}
                         </div>
                     </div>
                 </div>
@@ -206,45 +204,44 @@
 </div>
 
 <style>
-    /* ▼▼▼ 2. Wrapper 와 Layout 관련 CSS 수정 ▼▼▼ */
+    /* 페이지 레이아웃 관련 CSS (기존과 동일) */
     .page-wrapper {
         display: flex;
         flex-direction: column;
         height: 100vh;
-        background-color: #121212; /* 전체 배경색 */
+        background-color: #121212;
     }
-
     .header-section {
-        flex-shrink: 0; /* 헤더는 줄어들지 않도록 설정 */
+        flex-shrink: 0;
     }
-
     .hub-container {
-        flex: 1; /* 남은 공간을 모두 차지하도록 설정 */
-        overflow-y: auto; /* 내용이 넘칠 경우 스크롤 생성 */
-        min-height: 0; /* flex 자식요소가 부모를 넘치지 않게 하기 위한 핵심 속성 */
+        flex: 1;
+        overflow-y: auto;
+        min-height: 0;
     }
-    /* ▲▲▲ CSS 수정 끝 ▲▲▲ */
-
     .hub-container > .content {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-        gap: 1rem;
-        padding: 1rem;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        gap: 1.5rem; /* 타일 간격을 조금 더 넓혔어요 */
+        padding: 1.5rem;
     }
 
+    /* ★★★ 2. 타일과 이미지 스타일을 새롭게 바꿨어요 ★★★ */
     .tile {
         background: #1e1e1e;
         color: white;
-        padding: 1rem;
-        border-radius: 8px;
+        border-radius: 12px; /* 모서리를 좀 더 둥글게 */
         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
         cursor: pointer;
         transition:
             transform 0.2s ease-in-out,
             box-shadow 0.2s ease-in-out;
-        display: flex;
-        align-items: center;
         border: 1px solid #2a2a2a;
+        overflow: hidden; /* 이미지가 모서리를 넘어가지 않게! */
+
+        /* flex 레이아웃을 세로 방향으로 변경 */
+        display: flex;
+        flex-direction: column;
     }
 
     .tile:hover {
@@ -252,42 +249,35 @@
         box-shadow: 0 8px 20px rgba(0, 0, 0, 0.5);
     }
 
-    .live-badge {
-        background: red;
-        color: white;
+    /* 새로 디자인된 네모난 이미지 스타일 */
+    .portrait-image {
+        width: 100%;
+        height: auto;
+        aspect-ratio: 1 / 1; /* 이미지를 1:1 정사각형 비율로 */
+        object-fit: cover; /* 비율이 달라도 이미지가 꽉 차게 */
+    }
+
+    /* 정보가 담기는 영역 스타일 */
+    .tile-info {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+        padding: 1rem;
+    }
+
+    .live-badge,
+    .auction-badge {
         font-size: 0.7rem;
         font-weight: bold;
         padding: 0.2rem 0.5rem;
         border-radius: 6px;
+        color: white;
+    }
+    .live-badge {
+        background: red;
     }
     .auction-badge {
         background: #4a90e2;
-        color: white;
-        font-size: 0.7rem;
-        font-weight: bold;
-        padding: 0.2rem 0.5rem;
-        border-radius: 6px;
-    }
-
-    .tile-content {
-        display: flex;
-        align-items: center;
-        gap: 1rem;
-        width: 100%;
-    }
-
-    .portrait {
-        width: 64px;
-        height: 64px;
-        border-radius: 50%;
-        object-fit: cover;
-        border: 2px solid #555;
-    }
-
-    .tile-text {
-        display: flex;
-        flex-direction: column;
-        gap: 0.5rem; /* 텍스트 내부 요소들 간의 간격 */
     }
 
     .title-line {
@@ -303,24 +293,6 @@
         gap: 0.75rem;
     }
 
-    .tags-line {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 0.4rem;
-    }
-
-    .tag-ellipsis {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        background-color: #333;
-        color: #e0e0e0;
-        padding: 0.2rem 0.6rem;
-        border-radius: 10px;
-        font-size: 0.75rem;
-        font-weight: 500;
-    }
-
     .like {
         display: flex;
         align-items: center;
@@ -329,11 +301,14 @@
         color: #e0e0e0;
     }
 
-    .like svg {
-        fill: #ff79c6;
+    .tags-line {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.4rem;
     }
 
-    .tag {
+    .tag,
+    .tag-ellipsis {
         background-color: #333;
         color: #e0e0e0;
         padding: 0.2rem 0.6rem;
@@ -342,23 +317,16 @@
         font-weight: 500;
     }
 
-    .logo {
-        width: 50px;
-        height: auto;
-        display: block;
-        margin: auto;
-        margin-bottom: 1rem;
-    }
-    /* 개편된 검색 시스템 CSS */
+    /* 검색창 관련 CSS (기존과 동일) */
     .unified-search-container {
         display: flex;
         flex-direction: row;
         align-items: center;
         justify-content: center;
         gap: 0.75rem;
-        padding: 0 1rem 1.5rem 1rem;
+        /* 위쪽 패딩 값을 1.5rem으로 추가해서 아래로 내렸어요! */
+        padding: 3.5rem 1rem 1.5rem 1rem;
     }
-
     .search-options {
         display: flex;
         flex-shrink: 0;
@@ -367,7 +335,6 @@
         padding: 0.25rem;
         border-radius: 8px;
     }
-
     .search-options button {
         padding: 0.4rem 0.8rem;
         font-size: 0.8rem;
@@ -380,24 +347,21 @@
         transition: all 0.2s ease-in-out;
         white-space: nowrap;
     }
-
     .search-options button.active {
         background-color: #4a4a4a;
         color: white;
         box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
     }
-
     .search-input-wrapper {
         position: relative;
         width: 100%;
         max-width: 400px;
     }
-
     .search-input-wrapper input {
         background-color: #2a2a2a;
         border: 1px solid #444;
         color: white;
-        padding: 0.75rem 3rem 0.75rem 1rem; /* 오른쪽 패딩 확보 */
+        padding: 0.75rem 3rem 0.75rem 1rem;
         font-size: 1rem;
         border-radius: 8px;
         width: 100%;
@@ -405,17 +369,14 @@
             border-color 0.2s,
             box-shadow 0.2s;
     }
-
     .search-input-wrapper input:focus {
         outline: none;
         border-color: #5a5a5a;
         box-shadow: 0 0 0 2px rgba(90, 90, 90, 0.5);
     }
-
     .search-input-wrapper input::placeholder {
         color: #888;
     }
-
     .search-button {
         position: absolute;
         right: 0.5rem;
@@ -432,9 +393,25 @@
         border-radius: 6px;
         transition: background-color 0.2s;
     }
-
     .search-button:hover {
         color: white;
         background-color: #333;
+    }
+
+    @media (max-width: 768px) {
+        .hub-container > .content {
+            grid-template-columns: repeat(3, 1fr);
+
+            gap: 0.5rem;
+            padding: 0.5rem;
+        }
+
+        .tile-info {
+            padding: 0.5rem;
+        }
+
+        .title-line {
+            font-size: 0.9rem;
+        }
     }
 </style>

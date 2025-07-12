@@ -1,12 +1,15 @@
 <script>
-    import { t } from "svelte-i18n";
+    import { locale, t } from "svelte-i18n";
     import { marked } from "marked";
+    import { get } from "svelte/store";
 
     let termsContent = "";
 
-    import("$lib/i18n/locales/ko/terms.md?raw")
-        .then((module) => {
-            termsContent = marked(module.default);
+    let loc = get(locale) || "en";
+
+    import(`$lib/i18n/locales/${loc}/terms.md?raw`)
+        .then(async (module) => {
+            termsContent = await marked(module.default);
         })
         .catch((error) => {
             console.error("Error loading terms.md:", error);

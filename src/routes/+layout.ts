@@ -68,7 +68,9 @@ export async function load() {
             initialLocale: browserLocale,
         });
 
-        console.log("Svelte i18n initialized!!");
+        console.log("fallbackLocale : ", _locale);
+        console.log("initialLocale : ", browserLocale);
+
     }
     catch (e) {
         console.error("레이아웃 로드 중 심각한 에러 발생:", e);

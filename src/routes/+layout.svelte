@@ -1,4 +1,4 @@
-<!-- src/routes/+layout.svelte -->
+
 <script lang="ts">
     import "$lib/styles/theme.css"; // 이미 적용된 글로벌 CSS
     import Sidebar from "$lib/components/sidebar/Sidebar.svelte"; // 사이드바 컴포넌트
@@ -15,7 +15,25 @@
     import type { User } from "$lib/types";
     import ConsentModal from "$lib/components/modal/ConsentModal.svelte";
     import WelcomeModal from "$lib/components/modal/WelcomeModal.svelte";
+    import { theme } from "$lib/stores/themeStore";
+    import { browser } from "$app/environment";
 
+    // theme 스토어 값이 바뀌거나, OS의 다크 모드 설정이 바뀔 때마다 실행되는 반응형 로직
+    $: {
+        if (browser) {
+            const doc = document.documentElement;
+            // OS 설정을 확인하기 위한 변수
+            const prefersDark = window.matchMedia(
+                "(prefers-color-scheme: dark)",
+            ).matches;
+
+            if ($theme === "dark" || ($theme === "system" && prefersDark)) {
+                doc.classList.add("dark");
+            } else {
+                doc.classList.remove("dark");
+            }
+        }
+    }
     let showCheatConsole = false; // 치트 콘솔 표시 여부
     let showSidebar = true; // 사이드바 표시 여부
     let consentModal = false;
@@ -62,7 +80,7 @@
         />
     </main>
 
-    <!-- 전역 모달 관리 -->
+    
     <NeedMoreNeuronsModal
         bind:isOpen={$needMoreNeuronsModal}
         isNeedNeurons={true}

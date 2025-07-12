@@ -45,6 +45,7 @@
     }
 
     let current_neurons_count = get(st_user)?.credits || 0;
+    let isFrist = get(st_user)?.data.hasReceivedFirstCreationReward;
 </script>
 
 {#if isOpen}
@@ -54,11 +55,20 @@
         <div class="modal-content">
             <button class="close-button" on:click={closeModal}>&times;</button>
             {#if isNeedNeurons}
-                <h2>뉴런이 부족해요!</h2>
-
+                <h2>{$t('needNeuronsModal.title')}</h2>
+                <p class="description">
+                    {$t('needNeuronsModal.description')}
+                </p>
+            {:else}
+                <h2>{$t('needNeuronsModal.rechargeTitle')}</h2>
+                <p class="description">
+                    {$t('needNeuronsModal.rechargeDescription')}
+                </p>
+            {/if}
+            {#if !isFrist}
                 <div class="promo-box">
                     <Icon icon="ph:gift-bold" width="24" />
-                    <span>페르소나 최초 생성 시 200 뉴런 지급!</span>
+                    <span>{$t('needNeuronsModal.firstCreationReward')}</span>
                 </div>
 
                 <button
@@ -69,22 +79,13 @@
                     }}
                 >
                     <Icon icon="ph:plus-circle-bold" width="20" />
-                    <span>무료 뉴런 받기</span>
+                    <span>{$t('needNeuronsModal.getFreeNeurons')}</span>
                 </button>
-
-                <p class="description">
-                    더 많은 대화를 나누려면 뉴런을 충전해주세요.
-                </p>
-            {:else}
-                <h2>뉴런 충전!</h2>
-                <p class="description">
-                    더 많은 대화를 나누려면 뉴런을 충전해주세요.
-                </p>
             {/if}
 
-            <div style="display: flex; justify-content: align-items: center;">
+            <div style="display: flex; justify-content: center; align-items: center;">
                 <p>
-                    현재 수량: {current_neurons_count}
+                    {$t('needNeuronsModal.currentNeurons', { values: { count: current_neurons_count } })}
                 </p>
             </div>
             <div class="recharge-options">
