@@ -147,6 +147,7 @@
 
     let loading = false;
     let showSuccess = false;
+    let uploadProgress = 0;
 
     let showRewardModal = false;
     let hasReceivedFirstCreationReward =
@@ -171,11 +172,17 @@
 
                 loading = true;
 
+                uploadProgress = 0; // 저장 시작 시 진행률 초기화
+
                 try {
+                    // savePersona에 진행률을 업데이트하는 함수를 넘겨주자!
                     const id: string | null = await savePersona(
                         persona,
                         vrmFile,
                         portraitFile,
+                        (percent) => {
+                            uploadProgress = percent; // 콜백으로 진행률 업데이트
+                        },
                     );
 
                     if (id) {
