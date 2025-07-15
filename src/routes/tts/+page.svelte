@@ -1,6 +1,7 @@
 <script>
     import ConsentModal from "$lib/components/modal/ConsentModal.svelte";
     import WelcomeModal from "$lib/components/modal/WelcomeModal.svelte";
+    import TTSStatusModal from "$lib/components/modal/TTSStatusModal.svelte";
     import { st_user } from "$lib/stores/user";
     import { locale } from "svelte-i18n";
 
@@ -29,6 +30,7 @@
 
 <ConsentModal isOpen={consentModal} />
 <WelcomeModal isOpen={welcomeModal} neuronAmount={200} />
+<TTSStatusModal />
 
 <style>
     .user-info {

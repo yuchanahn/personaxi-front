@@ -1,11 +1,5 @@
 <script lang="ts">
-  import {
-    get_model_head_position,
-    getViewer,
-    test,
-    unload,
-    test as viewVrmInCanvas,
-  } from "$lib/vrm/test";
+  import { getViewer, unload, test as viewVrmInCanvas } from "$lib/vrm/test";
   import ChatWindow from "../chat/ChatWindow.svelte";
   import ChatInput from "../chat/ChatInput.svelte";
   import { handleSendToCharacter } from "$lib/services/chat";
@@ -13,6 +7,8 @@
   import type { Persona } from "$lib/types";
   import { onDestroy, tick } from "svelte";
   import type { Viewer } from "$lib/vrm/core/viewer";
+  import Icon from "@iconify/svelte";
+
   import * as THREE from "three";
 
   export let persona: Persona | null;
@@ -23,9 +19,9 @@
   let canvas: HTMLCanvasElement;
   let bubbleElement: HTMLDivElement;
 
-  let cameraDistanceOffset = -1.0; // Z축 거리 오프셋
-  let cameraHeightOffset = -0.1; // Y축 높이 오프셋
   let viewer: Viewer | null = null;
+
+  let isModelLoading = true;
 
   onDestroy(() => {
     unload();
@@ -38,16 +34,59 @@
           .then((m) => {
             model = m;
             viewer = getViewer();
-
+            isModelLoading = false;
             updateCameraPosition();
+            console.log(
+              "############ \n\n\n\n model lodded! \n\n\n\n ##############",
+            );
           })
           .catch((error) => {
             console.error("Error loading VRM:", error);
+          })
+          .finally(() => {
+            console.log("finally - model loaded!");
           });
     } catch (error) {
       console.error("Error loading VRM:", error);
+      isModelLoading = false;
     }
   }
+
+  $: if (persona?.id) {
+    tick().then(loadVrm);
+  }
+
+  let isLoading = false;
+
+  const send = async (prompt: string) => {
+    if (!model || !persona) return;
+
+    try {
+      isLoading = true;
+      cameraDistanceOffset -= 0.5;
+      updateCameraPosition();
+      await handleSendToCharacter(persona.id, prompt, model);
+    } catch (error) {
+      console.error("Error sending prompt to character:", error);
+    } finally {
+      cameraDistanceOffset += 0.5;
+      updateCameraPosition();
+      isLoading = false;
+    }
+  };
+
+  export function speek(audio: ArrayBuffer) {
+    if (model) {
+      model.speak(audio).catch((error) => {
+        console.error("Error speaking:", error);
+      });
+    } else {
+      console.warn("Model not loaded yet, cannot speak.");
+    }
+  }
+
+  let cameraDistanceOffset = -1.0; // Z축 거리 오프셋
+  let cameraHeightOffset = -0.1; // Y축 높이 오프셋
 
   function updateCameraPosition() {
     if (!viewer || !viewer.model?.vrm) return;
@@ -74,53 +113,16 @@
     );
     viewer.camera.updateProjectionMatrix();
   }
-
-  $: if (cameraDistanceOffset || cameraHeightOffset) {
-    updateCameraPosition();
-  }
-
-  $: if (persona?.id) {
-    tick().then(loadVrm);
-  }
-
-  let isLoading = false;
-
-  const send = async (prompt: string) => {
-    if (!model || !persona) return;
-
-    const headPosition = get_model_head_position();
-    console.log("Head Position:", headPosition);
-
-    if (headPosition) {
-      const { x, y } = headPosition;
-      bubbleElement.style.transform = `translate(-50%, -100%) translate(${x}px, ${y - 440}px)`;
-    } else {
-      console.warn("VRM: Head position not available.");
-    }
-
-    try {
-      isLoading = true; // Svelte에게 "나 이제 로딩 상태야!" 라고 알리기만 합니다.
-      await handleSendToCharacter(persona.id, prompt, model);
-    } catch (error) {
-      console.error("Error sending prompt to character:", error);
-    } finally {
-      isLoading = false; // "로딩 끝났어!" 라고 알립니다.
-    }
-  };
-
-  export function speek(audio: ArrayBuffer) {
-    if (model) {
-      model.speak(audio).catch((error) => {
-        console.error("Error speaking:", error);
-      });
-    } else {
-      console.warn("Model not loaded yet, cannot speak.");
-    }
-  }
 </script>
 
 <div id="character-view">
   <canvas bind:this={canvas} class="vrm-canvas"></canvas>
+  {#if isModelLoading}
+    <div class="model-loader">
+      <Icon icon="line-md:loading-twotone-loop" width="64" height="64" />
+    </div>
+  {/if}
+
   <div
     id="speech-bubble"
     class="bubble"
@@ -202,11 +204,7 @@
     height: 100vh;
     overflow: hidden;
   }
-  /* style.css */
-  .bubble {
-    position: absolute; /* 캔버스 위에 띄우기 위해 */
-    visibility: hidden; /* 평소엔 숨김 */
-  }
+
   .vrm-canvas {
     position: absolute;
     top: 0;
@@ -282,5 +280,25 @@
   .slider-group span {
     width: 40px; /* 숫자 표시 공간 확보 */
     text-align: right;
+  }
+
+  .bubble {
+    position: absolute; /* 부모 요소(#character-view)를 기준으로 위치를 잡음 */
+    left: 50%; /* 왼쪽에서 50% 지점으로 이동 */
+    top: 20vh; /* 화면 상단에서 35% 높이(viewport height)에 위치 */
+    transform: translateX(
+      -50%
+    ); /* 자기 너비의 절반만큼 왼쪽으로 이동해 완벽한 중앙 정렬 */
+
+    /* visibility는 Svelte의 style:visibility 로 제어되므로 그대로 둠 */
+  }
+
+  .model-loader {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 5;
+    color: white;
   }
 </style>

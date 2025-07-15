@@ -4,6 +4,11 @@ export interface PersonaFeedback {
     view: number;
 }
 
+export interface ImageMetadata {
+    url: string;
+    description: string;
+}
+
 export interface Persona {
     id: string;
     owner_id: string[];
@@ -14,6 +19,10 @@ export interface Persona {
     tags: string[];
     feedback: PersonaFeedback;
     voice_id: string;
+    vrm_url: string; // Add this
+    portrait_url: string; // Add this
+    image_metadatas: ImageMetadata[];
+    visibility: string; // e.g., "public", "private"
 }
 
 export interface User {

@@ -1,4 +1,5 @@
 import { API_BASE_URL } from '$lib/constants';
+import { ttsState } from '$lib/stores/ttsStore';
 
 let socket: WebSocket | null = null;
 let audioContext: AudioContext | null = null; // ★ AudioContext 인스턴스 생성
@@ -23,16 +24,20 @@ export function connectTTSSocket(speek?: (audio: ArrayBuffer) => void): WebSocke
 
     if (!socket) {
         console.error("❌ WebSocket 연결 실패");
+        ttsState.set('disconnected');
     }
 
     console.log("🔗 tts WebSocket 연결 시도...");
+    ttsState.set('connecting');
 
     socket.onopen = () => {
         console.log("✅ tts WebSocket 연결됨");
+        ttsState.set('connected');
     };
 
     socket.onclose = () => {
         console.warn("⚠️ tts WebSocket 끊김");
+        ttsState.set('disconnected');
     };
 
     socket.onmessage = async (event) => {

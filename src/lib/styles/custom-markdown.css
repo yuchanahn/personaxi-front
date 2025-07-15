@@ -1,0 +1,128 @@
+/*
+ * 나만의 캐릭터챗 마크다운 스타일 v1.0
+ */
+
+/* 전체적인 글꼴, 색상 등 기본 스타일을 정의합니다. */
+.markdown-body {
+    font-family: "Pretendard", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+        "Helvetica Neue", Arial, sans-serif;
+    color: #999999;
+    line-height: 1.7;
+    word-break: break-word;
+
+    font-size: 0.9em;
+}
+
+/* --- 제목 (h1, h2, h3...) --- */
+.markdown-body h1,
+.markdown-body h2,
+.markdown-body h3 {
+    font-weight: 600;
+    margin-top: 24px;
+    margin-bottom: 16px;
+    padding-bottom: 0.3em;
+    border-bottom: 1px solid #333;
+    /* 제목 아래에 얇은 선 추가 */
+}
+
+.markdown-body h1 {
+    font-size: 1.8em;
+}
+
+.markdown-body h2 {
+    font-size: 1.5em;
+}
+
+.markdown-body h3 {
+    font-size: 1.2em;
+}
+
+/* --- 문단 --- */
+.markdown-body p {
+    margin-bottom: 1rem;
+    /* 문단 사이 간격 */
+}
+
+/* --- 목록 (ul, ol) --- */
+.markdown-body ul,
+.markdown-body ol {
+    padding-left: 2em;
+    /* 목록 들여쓰기 */
+    margin-bottom: 1rem;
+}
+
+.markdown-body li>p {
+    margin-bottom: 0.4rem;
+    /* 목록 안의 문단 간격은 조금 좁게 */
+}
+
+/* --- 인용문 (blockquote) --- */
+.markdown-body blockquote {
+    margin: 0 0 1rem 0;
+    padding: 0.5em 1em;
+    color: #a0a0a0;
+    /* 인용문 글자 색 */
+    border-left: 0.25em solid #4a90e2;
+    /* 왼쪽에 파란색 세로선 (포인트!) */
+    background-color: rgba(74, 144, 226, 0.05);
+    /* 아주 옅은 배경색 */
+}
+
+/* --- 인라인 코드 & 코드 블록 --- */
+/* `code` 한 단어짜리 짧은 코드 */
+.markdown-body code {
+    font-family: "D2Coding", "Fira Code", consolas, monospace;
+    background-color: rgba(100, 100, 100, 0.2);
+    padding: 0.2em 0.4em;
+    border-radius: 4px;
+    font-size: 0.9em;
+}
+
+/* ```code``` 여러 줄로 된 코드 블록 */
+.markdown-body pre {
+    background-color: #1e1e1e;
+    /* 코드 블록 배경색 */
+    padding: 1rem;
+    border-radius: 8px;
+    overflow-x: auto;
+    /* 코드가 길면 가로 스크롤 생성 */
+    margin-bottom: 1rem;
+}
+
+.markdown-body pre code {
+    /* pre 안의 code는 배경, 패딩 등을 없애서 깔끔하게 */
+    padding: 0;
+    background-color: transparent;
+    font-size: 1em;
+}
+
+/* --- 링크 --- */
+.markdown-body a {
+    color: #62a2e9;
+    text-decoration: none;
+    transition: text-decoration 0.2s;
+}
+
+.markdown-body a:hover {
+    text-decoration: underline;
+}
+
+/* --- 수평선 --- */
+.markdown-body hr {
+    height: 1px;
+    background-color: #333;
+    border: 0;
+    margin: 24px 0;
+}
+
+.markdown-body .narration {
+    color: #fbff19;
+    font-size: 1.05em;
+    margin-right: 0.5em;
+}
+
+.markdown-body .dialogue {
+    color: #ffffff;
+    font-weight: 500;
+    font-size: 1.1em;
+}

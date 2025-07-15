@@ -7,6 +7,7 @@
   import type { Persona } from "$lib/types";
   import { loadPersona } from "$lib/api/edit_persona";
   import { connectTTSSocket, disconnectTTSSocket } from "$lib/api/tts";
+  import TtsStatusModal from "$lib/components/modal/TTSStatusModal.svelte";
 
   let lastSessionId: string | null = null;
   let persona: Persona | null = null;
@@ -50,6 +51,21 @@
 
 <main>
   {#if persona}
+    <TtsStatusModal
+      impl_connectTTS={() => {
+        connectTTSSocket((audio: ArrayBuffer) => {
+          if (Viewer && Viewer.speek) {
+            Viewer.speek(audio);
+          } else {
+            console.warn("Viewer not ready for TTS audio.");
+          }
+        });
+      }}
+      impl_disconnectTTS={() => {
+        disconnectTTSSocket();
+      }}
+    />
+
     <VrmModelViewer
       bind:this={Viewer}
       {persona}
@@ -58,7 +74,7 @@
     />
   {/if}
 
-        <ChatControls3D cssid={lastSessionId ?? ""} bind:showChat={showChat} />
+  <ChatControls3D cssid={lastSessionId ?? ""} bind:showChat />
 </main>
 
 <style>
@@ -68,5 +84,4 @@
     height: 100vh;
     overflow: hidden;
   }
-
-  </style>
+</style>

@@ -1,4 +1,5 @@
 <script lang="ts">
+  import "$lib/styles/custom-markdown.css";
   import { onMount, tick } from "svelte"; // tick 추가
   import { marked } from "marked";
   import { messages } from "$lib/stores/messages";
@@ -41,6 +42,16 @@
       text = "";
     }
 
+    // --- 추가된 기능들 ---
+    text = text.replace(/---/g, "\n\n---\n\n");
+    text = text.replace(/^(.+?\|)/gm, "**$1**");
+    text = text.replace(/\(([^)]+)\)/g, "*($1)*");
+    text = text.replace(
+      /^(.*?)\s*(".*?")$/gm,
+      '<span class="narration">$1</span><span class="dialogue">$2</span>',
+    );
+    text = text.replace(/^\[([^\]]+)\]$/gm, '<p class="narrator">[$1]</p>');
+
     if (think_start && think_end) {
       isThink = false;
     }
@@ -73,18 +84,23 @@
   }
 </script>
 
-
 <div
   class="chat-window"
   bind:this={chatWindowEl}
   style:opacity={showChat ? "0.7" : "0"}
 >
   {#if $messages.length === 0}
-    <div class="empty-message">{$t('chatWindow.noConversation')}</div>
+    <div class="empty-message">{$t("chatWindow.noConversation")}</div>
   {/if}
   {#each $messages as msg, i (i)}
     <div class="message {msg.role}">
-      {@html print(msg.content)}
+      {#if msg.role === "assistant"}
+        <div class="markdown-body">
+          {@html print(msg.content)}
+        </div>
+      {:else}
+        {@html print(msg.content)}
+      {/if}
     </div>
   {/each}
   {#if isLoading}
@@ -123,12 +139,10 @@
   {/if}
   {#if isThink}
     <div class="loading-dots assistant">
-      {$t('chatWindow.thinking')}<span>.</span><span>.</span><span>.</span>
+      {$t("chatWindow.thinking")}<span>.</span><span>.</span><span>.</span>
     </div>
   {/if}
 </div>
-
-
 
 <style>
   /* 뷰포트에 맞게 꽉 채우되 800 px 이상은 넓어지지 않음 */
@@ -167,6 +181,11 @@
   @media (min-width: 768px) {
     .message {
       max-width: 70%;
+    }
+
+    .message.assistant {
+      align-self: flex-start;
+      max-width: 100%;
     }
   }
   /* .assistant 클래스를 loading-dots와 함께 사용할 수 있도록 수정 */

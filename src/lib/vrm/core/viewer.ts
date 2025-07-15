@@ -66,6 +66,8 @@ export class Viewer {
     return null; // 화면 밖에 있을 경우 null 반환
   }
 
+
+
   async loadModel(url: string) {
     if (this.model.vrm) {
       this.scene.remove(this.model.vrm.scene);

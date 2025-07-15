@@ -1,11 +1,16 @@
 <script lang="ts">
     import { goto } from "$app/navigation";
     import { onMount } from "svelte";
-    import type { Persona, PersonaFeedback } from "$lib/types";
+    import type { ImageMetadata, Persona, PersonaFeedback } from "$lib/types";
     import { page } from "$app/stores";
-    import { loadPersona, savePersona } from "$lib/api/edit_persona";
+    import {
+        getUploadUrl,
+        loadPersona,
+        savePersona,
+        uploadFileWithProgress,
+    } from "$lib/api/edit_persona";
     import LoadingAnimation from "$lib/components/utils/LoadingAnimation.svelte";
-    import { t } from "svelte-i18n";
+    import { number, t } from "svelte-i18n";
     import FirstCreationRewardModal from "$lib/components/modal/FirstCreationRewardModal.svelte";
     import { st_user } from "$lib/stores/user";
     import { get } from "svelte/store";
@@ -27,6 +32,10 @@
             view: 0,
         },
         voice_id: "",
+        vrm_url: "", // Add this
+        portrait_url: "", // Add this
+        image_metadatas: [], // Add this
+        visibility: "private", // Add this, default to private
     };
     let instruction = "";
     let promptExample = "";
@@ -37,29 +46,30 @@
     let allVoices: any[] = []; // ElevenLabs에서 받아온 전체 목소리 목록
     let selectedVoiceId = ""; // 사용자가 선택한 voice_id
 
-    // 선택된 voice_id에 해당하는 전체 voice 객체를 찾아내는 반응형 변수
     $: selectedVoice = allVoices.find((v) => v.voice_id === selectedVoiceId);
-    // 선택된 voice_id가 변경될 때마다 onSelect 콜백 호출
     $: if (selectedVoiceId) {
         persona.voice_id = selectedVoiceId;
     } else {
         persona.voice_id = "";
     }
 
+    function load_persona(id: string) {
+        loadPersona(id).then((p) => {
+            persona = p;
+            if (p.voice_id !== "") {
+                selectedVoiceId = p.voice_id;
+            } else {
+                selectedVoiceId = "";
+            }
+            portraitPreview = p.portrait_url;
+        });
+    }
+
     $: {
         const id = $page.url.searchParams.get("c");
         if (id !== last_id) {
             last_id = id;
-            if (id)
-                loadPersona(id).then((p) => {
-                    persona = p;
-
-                    if (p.voice_id !== "") {
-                        selectedVoiceId = p.voice_id;
-                    } else {
-                        selectedVoiceId = "";
-                    }
-                });
+            if (id) load_persona(id);
         }
     }
 
@@ -67,6 +77,8 @@
         const input = event.target as HTMLInputElement;
         if (input.files && input.files.length > 0) {
             vrmFile = input.files[0];
+
+            uploadVrmFile();
         }
     }
 
@@ -78,13 +90,16 @@
         if (input.files && input.files.length > 0) {
             portraitFile = input.files[0];
             portraitPreview = URL.createObjectURL(portraitFile);
+            uploadPortraitFile();
         }
     }
 
     onMount(async () => {
         const urlParams = new URLSearchParams(window.location.search);
         const id = urlParams.get("c");
-        if (id) persona = await loadPersona(id);
+        if (id) {
+            load_persona(id);
+        }
 
         try {
             const response = await fetch("/voices.json"); // static/voices.json
@@ -152,6 +167,180 @@
     let showRewardModal = false;
     let hasReceivedFirstCreationReward =
         get(st_user)?.data.hasReceivedFirstCreationReward ?? false;
+
+    function removeAssetByIndex(indexToRemove: number) {
+        persona.image_metadatas = persona.image_metadatas.filter(
+            (_, index) => index !== indexToRemove,
+        );
+    }
+
+    async function handleAssetFileChange(event: Event, assetId: number) {
+        const input = event.target as HTMLInputElement;
+        if (input.files && input.files.length > 0) {
+            const file = input.files[0];
+            await uploadAssetFile(assetId, file);
+        }
+    }
+
+    let assets_progress: Map<number, number> = new Map();
+    let vrm_progress: number = 0;
+    let portrait_progress: number = 0;
+
+    async function handleMultipleAssetFiles(event: Event) {
+        const input = event.target as HTMLInputElement;
+        if (input.files) {
+            Array.from(input.files).forEach(async (file) => {
+                const asset: ImageMetadata = {
+                    url: "",
+                    description: file.name,
+                };
+                persona.image_metadatas.push(asset);
+                await uploadAssetFile(persona.image_metadatas.length - 1, file);
+            });
+        }
+    }
+
+    const supabaseURL =
+        "https://uohepkqmwbstbmnkoqju.supabase.co/storage/v1/object/public/personaxi-assets/";
+
+    async function uploadAssetFile(assetId: number, file: File) {
+        const MAX_RETRIES = 3;
+
+        for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
+            try {
+                const response = await getUploadUrl("asset");
+                if (!response.ok) {
+                    throw new Error(
+                        `Server error on getting URL: ${response.status}`,
+                    );
+                }
+                const { signedURL, fileName } = await response.json();
+
+                if (attempt === 1) {
+                    persona.image_metadatas[assetId].url =
+                        URL.createObjectURL(file);
+                    persona.image_metadatas = [...persona.image_metadatas];
+                }
+
+                await uploadFileWithProgress(signedURL, file, (percent) => {
+                    assets_progress.set(assetId, percent);
+                    assets_progress = assets_progress;
+                });
+
+                assets_progress.delete(assetId);
+                assets_progress = assets_progress;
+                persona.image_metadatas[assetId].url =
+                    `${supabaseURL}${fileName}`;
+
+                console.log(
+                    `✅ ${file.name} uploaded successfully on attempt ${attempt}`,
+                );
+
+                return;
+            } catch (e: any) {
+                console.warn(
+                    `Attempt ${attempt} for ${file.name} failed: ${e.message}`,
+                );
+
+                if (attempt === MAX_RETRIES) {
+                    error = `File upload failed for ${file.name} after ${MAX_RETRIES} attempts.`;
+                    console.error("Giving up on upload for", file.name);
+                } else {
+                    await new Promise((res) => setTimeout(res, 500));
+                }
+            }
+        }
+    }
+
+    async function uploadVrmFile() {
+        const MAX_RETRIES = 3;
+
+        for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
+            try {
+                const response = await getUploadUrl("vrm");
+                if (!response.ok) {
+                    throw new Error(
+                        `Server error on getting URL: ${response.status}`,
+                    );
+                }
+                const { signedURL, fileName } = await response.json();
+
+                vrm_progress = 0.01;
+
+                await uploadFileWithProgress(signedURL, vrmFile!, (percent) => {
+                    vrm_progress = Math.round(percent);
+                });
+                persona.vrm_url = `${supabaseURL}${fileName}`;
+                vrm_progress = 0;
+
+                console.log(
+                    `✅ ${vrmFile!.name} uploaded successfully on attempt ${attempt}`,
+                );
+
+                return;
+            } catch (e: any) {
+                console.warn(
+                    `Attempt ${attempt} for ${vrmFile!.name} failed: ${e.message}`,
+                );
+
+                if (attempt === MAX_RETRIES) {
+                    error = `File upload failed for ${vrmFile!.name} after ${MAX_RETRIES} attempts.`;
+                    console.error("Giving up on upload for", vrmFile!.name);
+                } else {
+                    await new Promise((res) => setTimeout(res, 500));
+                }
+            }
+        }
+    }
+
+    async function uploadPortraitFile() {
+        const MAX_RETRIES = 3;
+
+        for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
+            try {
+                const response = await getUploadUrl("portrait");
+                if (!response.ok) {
+                    throw new Error(
+                        `Server error on getting URL: ${response.status}`,
+                    );
+                }
+                const { signedURL, fileName } = await response.json();
+
+                portrait_progress = 0.01;
+
+                await uploadFileWithProgress(
+                    signedURL,
+                    portraitFile!,
+                    (percent) => {
+                        portrait_progress = Math.round(percent);
+                    },
+                );
+                persona.portrait_url = `${supabaseURL}${fileName}`;
+                portraitPreview = `${supabaseURL}${fileName}`;
+                portrait_progress = 0;
+
+                console.log(
+                    `✅ ${portraitFile!.name} uploaded successfully on attempt ${attempt}`,
+                );
+
+                return;
+            } catch (e: any) {
+                console.warn(
+                    `Attempt ${attempt} for ${portraitFile!.name} failed: ${e.message}`,
+                );
+
+                if (attempt === MAX_RETRIES) {
+                    error = `File upload failed for ${portraitFile!.name} after ${MAX_RETRIES} attempts.`;
+                    console.error(
+                        "Giving up on upload for",
+                        portraitFile!.name,
+                    );
+                } else {
+                    await new Promise((res) => setTimeout(res, 500));
+                }
+            }
+        }
+    }
 </script>
 
 <div class="container">
@@ -171,22 +360,14 @@
                 }
 
                 loading = true;
-
                 uploadProgress = 0; // 저장 시작 시 진행률 초기화
 
                 try {
-                    // savePersona에 진행률을 업데이트하는 함수를 넘겨주자!
-                    const id: string | null = await savePersona(
-                        persona,
-                        vrmFile,
-                        portraitFile,
-                        (percent) => {
-                            uploadProgress = percent; // 콜백으로 진행률 업데이트
-                        },
-                    );
+                    const id: string | null = await savePersona(persona);
 
                     if (id) {
                         showSuccess = true;
+
                         setTimeout(() => {
                             showSuccess = false;
                         }, 2000);
@@ -197,7 +378,11 @@
                                 showRewardModal = true;
                                 hasReceivedFirstCreationReward = false;
                             }
+                        } else {
+                            load_persona(id);
                         }
+                    } else {
+                        console.log("ID 보낸거 맞냐?? 쓰바? ㅋㅋ ");
                     }
                 } catch (e: any) {
                     error = $t("editPage.errorSaveFailed", {
@@ -209,7 +394,11 @@
             }}
         >
             {#if loading}
-                <span>{$t("editPage.saveButtonLoading")}</span>
+                <span
+                    >{$t("editPage.saveButtonLoading")} ({Math.round(
+                        uploadProgress,
+                    )}%)</span
+                >
             {:else if showSuccess}
                 <span>{$t("editPage.saveButtonSuccess")}</span>
             {:else}
@@ -250,6 +439,18 @@
                             <option value="2D">2D</option>
                         </select>
                     </div>
+
+                    <div class="form-group">
+                        <label for="visibility">공개 여부</label>
+                        <select
+                            id="visibility"
+                            bind:value={persona.visibility}
+                            required
+                        >
+                            <option value="public">공개</option>
+                            <option value="private">비공개</option>
+                        </select>
+                    </div>
                 </div>
 
                 <div class="form-section-card">
@@ -282,6 +483,99 @@
                                 class="preview-image"
                             />
                         {/if}
+
+                        {#if persona.personaType == "2D"}
+                            <div class="form-group asset-section">
+                                <h3 class="asset-title">
+                                    에셋 (상황별 이미지)
+                                </h3>
+                                <p class="description">
+                                    채팅 중 특정 상황에 맞는 이미지를 표시할 수
+                                    있습니다.
+                                </p>
+
+                                <div class="asset-card-list">
+                                    {#each persona.image_metadatas as asset, index}
+                                        <div class="asset-card">
+                                            <div class="asset-image-uploader">
+                                                {#if asset.url !== ""}
+                                                    <img
+                                                        src={asset.url}
+                                                        alt="에셋 미리보기"
+                                                        class="asset-preview-image"
+                                                    />
+                                                {/if}
+                                                {#if assets_progress.has(index)}
+                                                    <div
+                                                        class="progress-bar-overlay"
+                                                    >
+                                                        <div
+                                                            class="progress-bar"
+                                                            style="width: {assets_progress.get(
+                                                                index,
+                                                            )}%"
+                                                        ></div>
+                                                    </div>
+                                                {/if}
+                                                <label
+                                                    for="asset-file-{index}"
+                                                    class="file-input-label small"
+                                                >
+                                                    <span>이미지 선택</span>
+                                                </label>
+                                                <input
+                                                    id="asset-file-{index}"
+                                                    type="file"
+                                                    accept="image/*"
+                                                    class="file-input-hidden"
+                                                    on:change={(e) =>
+                                                        handleAssetFileChange(
+                                                            e,
+                                                            index,
+                                                        )}
+                                                />
+                                            </div>
+                                            <div class="asset-details">
+                                                <textarea
+                                                    class="asset-description-input"
+                                                    placeholder="이미지 상황 설명 (예: 웃는 얼굴, 슬픈 표정)"
+                                                    rows="3"
+                                                    bind:value={
+                                                        asset.description
+                                                    }
+                                                ></textarea>
+                                                <button
+                                                    class="btn-remove asset-remove"
+                                                    on:click={() =>
+                                                        removeAssetByIndex(
+                                                            index,
+                                                        )}
+                                                >
+                                                    &times;
+                                                </button>
+                                            </div>
+                                        </div>
+                                    {/each}
+                                </div>
+
+                                <div class="asset-actions">
+                                    <label
+                                        for="multiple-asset-upload"
+                                        class="btn btn-secondary"
+                                    >
+                                        + 에셋 추가
+                                    </label>
+                                    <input
+                                        id="multiple-asset-upload"
+                                        type="file"
+                                        multiple
+                                        accept="image/*"
+                                        class="file-input-hidden"
+                                        on:change={handleMultipleAssetFiles}
+                                    />
+                                </div>
+                            </div>
+                        {/if}
                     </div>
 
                     {#if persona.personaType == "3D"}
@@ -303,6 +597,9 @@
                                 {#if vrmFile}
                                     <span class="file-name">{vrmFile.name}</span
                                     >
+                                {/if}
+                                {#if vrm_progress > 0}
+                                    {vrm_progress}%
                                 {/if}
                             </div>
                         </div>
@@ -794,5 +1091,150 @@
     .voice-selector audio::-webkit-media-controls-volume-slider,
     .voice-selector audio::-webkit-media-controls-mute-button {
         filter: invert(1) grayscale(1) brightness(1.5);
+    }
+
+    .asset-section {
+        border-top: 1px solid var(--border-color);
+        margin-top: 1.5rem;
+        padding-top: 1.5rem;
+    }
+
+    .asset-title {
+        font-size: 1.1rem;
+        margin: 0 0 0.5rem 0;
+    }
+
+    .asset-card-list {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+        margin-bottom: 1rem;
+    }
+
+    .asset-card {
+        display: flex;
+        gap: 1rem;
+        background-color: var(--bg-tertiary);
+        padding: 1rem;
+        border-radius: 8px;
+        border: 1px solid var(--border-color);
+    }
+
+    .asset-image-uploader {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        width: 120px;
+        height: 120px;
+        flex-shrink: 0;
+        background-color: var(--bg-primary);
+        border-radius: 6px;
+        position: relative;
+    }
+
+    .asset-preview-image {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        border-radius: 6px;
+    }
+
+    .file-input-label.small {
+        padding: 0.4rem 0.8rem;
+        font-size: 0.8rem;
+        position: absolute;
+        bottom: 8px;
+        /* 미리보기가 있을 때만 보이도록, 혹은 항상 보이도록 조절 가능 */
+    }
+
+    .asset-details {
+        flex-grow: 1;
+        display: flex;
+        flex-direction: column;
+        position: relative;
+    }
+
+    .asset-description-input {
+        flex-grow: 1; /* 남은 공간을 모두 차지 */
+        resize: vertical; /* 세로 크기만 조절 가능 */
+    }
+
+    .asset-remove {
+        position: absolute;
+        top: -8px;
+        right: -8px;
+        width: 28px;
+        height: 28px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+        background-color: var(--bg-tertiary);
+    }
+
+    .asset-actions {
+        display: flex;
+        gap: 0.5rem;
+    }
+
+    .progress-bar-container {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        height: 5px;
+        background-color: rgba(0, 0, 0, 0.5);
+        border-bottom-left-radius: 6px;
+        border-bottom-right-radius: 6px;
+        overflow: hidden;
+    }
+    .asset-image-uploader {
+        /* position: relative; 가 이미 있으니 그대로 활용 */
+        overflow: hidden; /* 자식 요소가 튀어나가지 않게 */
+    }
+
+    .progress-bar-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.6); /* 반투명 검은 배경 */
+        display: flex;
+        align-items: flex-start; /* 프로그레스 바를 상단에 위치시킴 */
+    }
+
+    .progress-bar {
+        width: 0%; /* 기본 넓이는 0 */
+        height: 5px; /* 프로그레스 바 두께 */
+        background-color: var(--accent-primary); /* 테마의 accent 색상 사용 */
+        transition: width 0.2s ease-in-out; /* 넓이가 변할 때 부드럽게 애니메이션 */
+    }
+
+    .upload-success,
+    .upload-error {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        font-size: 2rem;
+        font-weight: bold;
+        color: white;
+        background-color: rgba(0, 0, 0, 0.7);
+        border-radius: 50%;
+        width: 40px;
+        height: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .upload-success {
+        background-color: rgba(40, 167, 69, 0.7); /* Green */
+    }
+
+    .upload-error {
+        background-color: rgba(220, 53, 69, 0.7); /* Red */
     }
 </style>

@@ -1,6 +1,21 @@
 import type { Persona } from "$lib/types";
 import { API_BASE_URL } from '$lib/constants';
-import { v4 as uuidv4 } from 'uuid';
+
+
+export async function getUploadUrl(tpye: "vrm" | "portrait" | "asset") {
+    const response = await fetch(
+        `${API_BASE_URL}/api/upload-url?type=${tpye}`,
+        {
+            credentials: "include",
+        },
+    );
+
+    if (!response.ok) {
+        throw new Error(`Failed to get signed URL for ${tpye}`);
+    }
+    return response;
+}
+
 
 /**
  * XMLHttpRequest를 사용해 파일과 진행률을 함께 업로드하는 헬퍼 함수
@@ -9,7 +24,7 @@ import { v4 as uuidv4 } from 'uuid';
  * @param onProgress - 진행률 콜백 함수 (0~100 사이의 숫자)
  * @returns {Promise<void>}
  */
-function uploadFileWithProgress(
+export function uploadFileWithProgress(
     signedURL: string,
     file: File,
     onProgress: (percent: number) => void
@@ -47,52 +62,10 @@ function uploadFileWithProgress(
 }
 
 
-// savePersona 함수 시그니처에 onProgress 콜백 추가
 export async function savePersona(
-    persona: Persona,
-    vrmFile: File | null,
-    portraitFile: File | null,
-    onProgress: (progress: number) => void // Svelte에서 받은 콜백 함수
+    persona: Persona
 ): Promise<string | null> {
-    const filesToUpload: { bucket: string; file: File; fileName: string }[] = [];
-    if (portraitFile) {
-        filesToUpload.push({ bucket: 'portraits', file: portraitFile, fileName: `${persona.id}.portrait` });
-    }
-    if (vrmFile) {
-        filesToUpload.push({ bucket: 'vrm-models', file: vrmFile, fileName: `${persona.id}.vrm` });
-    }
-
     try {
-        if (filesToUpload.length > 0) {
-            const signedURLRequests = filesToUpload.map(f =>
-                fetch(`${API_BASE_URL}/api/upload-url?bucket=${f.bucket}&fileName=${f.fileName}`,
-                    {
-                        credentials: 'include'
-                    }).then(res => {
-                        if (!res.ok) throw new Error(`URL 생성 실패: ${f.fileName}`);
-                        return res.json();
-                    })
-            );
-            const signedURLResponses = await Promise.all(signedURLRequests);
-
-            // 여러 파일의 전체 진행률 계산
-            const progressPerFile = new Array(filesToUpload.length).fill(0);
-
-            const uploadPromises = filesToUpload.map((fileInfo, index) => {
-                const signedURL = signedURLResponses[index].signedURL;
-                return uploadFileWithProgress(signedURL, fileInfo.file, (percent) => {
-                    progressPerFile[index] = percent;
-                    // 모든 파일의 평균 진행률을 계산
-                    const totalProgress = progressPerFile.reduce((sum, p) => sum + p, 0) / filesToUpload.length;
-                    onProgress(totalProgress); // Svelte 컴포넌트로 전체 진행률 전달
-                });
-            });
-
-            await Promise.all(uploadPromises);
-        }
-
-        // 파일 업로드 완료 후, 메타데이터 저장
-        onProgress(100); // 파일 업로드 완료되었으니 100%로 설정
         const response = await fetch(`${API_BASE_URL}/api/persona/edit`, {
             credentials: 'include',
             method: 'POST',
@@ -106,7 +79,8 @@ export async function savePersona(
         }
 
         const result = await response.json();
-        return result.id;
+
+        return result.ID;
 
     } catch (error) {
         console.error("페르소나 저장 중 오류 발생:", error);
@@ -114,36 +88,7 @@ export async function savePersona(
     }
 }
 
-export async function savePersona2(persona: Persona, vrmFile: File | null, portrait: File | null) {
-    try {
 
-        const formData = new FormData();
-
-        const meta = JSON.stringify(persona);
-
-        if (vrmFile) {
-            formData.append("vrm", vrmFile); // VRM 파일 (File 객체)
-        }
-        if (portrait) {
-            formData.append("portrait", portrait); // VRM 파일 (File 객체)
-        }
-        formData.append("persona", meta); // 메타 정보
-
-        const res = await fetch(`${API_BASE_URL}/api/persona/edit`, {
-            method: "POST",
-            body: formData,
-            credentials: 'include'
-        });
-
-        if (res.ok) {
-            let id: string = (await res.json() as any).id;
-            return id;
-        }
-    } catch (error) {
-        console.error(error);
-    }
-    return null;
-}
 
 
 export async function loadPersona(id: string) {
