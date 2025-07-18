@@ -4,10 +4,13 @@
   import { marked } from "marked";
   import { messages } from "$lib/stores/messages";
   import { t } from "svelte-i18n"; // svelte-i18n import 추가
+  import { ASSET_URL, PORTRAIT_URL } from "$lib/constants";
+  import type { Persona } from "$lib/types";
 
   export let isLoading: boolean = false;
   export let cssid: string;
   export let showChat: boolean = true;
+  export let persona: Persona | null = null;
 
   let chatWindowEl: HTMLElement;
   let isThink = false;
@@ -27,15 +30,43 @@
   }
 
   function print(text: string) {
-    const think_start = text.includes("<think>");
-    const think_end = text.includes("</think>");
+    // --- 1. 메시지 끝에 붙은 JSON 블록을 찾아서 추출하는 로직 ---
+    const jsonRegex = /```json\s*([\s\S]*?)\s*```$/;
+    const match = text.match(jsonRegex);
 
-    if (think_start && !think_end) {
-      isThink = true;
-      text = "";
+    if (match && match[1]) {
+      try {
+        const instruction = JSON.parse(match[1]);
+        if (instruction.pos && instruction.ins) {
+          // JSON 블록을 제외한 순수 텍스트만 남김
+          const mainText = text.replace(jsonRegex, "").trim();
+
+          if (persona === null) throw "persona === null";
+
+          // 이미지 URL 생성 (여기의 CDN 주소는 실제 주소로 변경해야 해!)
+          const imageUrl = `${ASSET_URL}${persona.owner_id[0]}/${persona.id}-${instruction.ins}.asset`;
+          const imageTag = `<img src="${imageUrl}" alt="장면 삽화" class="inserted-image">`;
+
+          console.log(imageUrl);
+
+          // 순수 텍스트에서 'pos' 부분을 이미지 태그로 교체
+          text = mainText.replace(
+            instruction.pos,
+            instruction.pos + "\n" + imageTag,
+          );
+        }
+      } catch (e) {
+        // JSON 파싱 실패 시, 그냥 원본 텍스트를 그대로 렌더링
+      }
     }
 
-    // --- 추가된 기능들 ---
+    // <think> 태그 처리
+    if (text.includes("<think>") && !text.includes("</think>")) {
+      return "";
+    }
+    text = text.replace(/<think>[\s\S]*?<\/think>/g, "");
+
+    // 기타 마크다운 전처리
     text = text.replace(/---/g, "\n\n---\n\n");
     text = text.replace(/^(.+?\|)/gm, "**$1**");
     text = text.replace(/\(([^)]+)\)/g, "*($1)*");
@@ -45,15 +76,7 @@
     );
     text = text.replace(/^\[([^\]]+)\]$/gm, '<p class="narrator">[$1]</p>');
 
-    if (think_start && think_end) {
-      isThink = false;
-    }
-
-    text = text.trimEnd();
-
-    console.log(text);
-
-    return marked(text, { breaks: true, gfm: true });
+    return marked(text.trimEnd(), { breaks: true, gfm: true });
   }
 
   // 자동 스크롤 로직은 onMount 대신 messages가 변경될 때마다 실행하는 것이 더 안정적입니다.
@@ -207,6 +230,13 @@
     align-self: center;
     color: var(--color-secondary-text);
     font-style: italic;
+  }
+
+  :global(.markdown-body .inserted-image) {
+    max-width: 100%;
+    border-radius: 8px;
+    margin-top: 0.75rem;
+    display: block;
   }
 
   @keyframes blink {

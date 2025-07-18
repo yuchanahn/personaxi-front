@@ -69,7 +69,7 @@
   </div>
 
   <div class="chat-container">
-    <ChatWindow cssid={lastSessionId ?? ""} {isLoading} />
+    <ChatWindow cssid={lastSessionId ?? ""} {isLoading} {persona} />
     <ChatInput onSend={send} />
   </div>
 </main>
