@@ -13,6 +13,7 @@
     import { fetchAuctionPersonas } from "$lib/services/auction";
     import type { AuctionPersona } from "$lib/services/auction";
     import { t } from "svelte-i18n";
+    import { PORTRAIT_URL } from "$lib/constants";
 
     let contents = writable<Persona[]>([]);
     let liveIds: string[] = [];
@@ -124,7 +125,6 @@
     <div class="hub-container">
         <div class="content">
             {#each $contents as content (content.id)}
-                <!-- ★★★ 1. 타일 구조를 이미지와 정보가 위아래로 배치되도록 변경했어요 ★★★ -->
                 <div
                     class="tile"
                     on:click={() => {
@@ -151,11 +151,18 @@
                     }}
                 >
                     <!-- 네모나고 커진 이미지! -->
-                    <img
-                        src={`https://uohepkqmwbstbmnkoqju.supabase.co/storage/v1/object/public/portraits/${content.owner_id[0]}/${content.id}.portrait`}
-                        alt={content.name}
-                        class="portrait-image"
-                    />
+                    <div class="image-container">
+                        <img
+                            src={`${PORTRAIT_URL}${content.owner_id[0]}/${content.id}.portrait`}
+                            alt={content.name}
+                            class="portrait-image"
+                        />
+                        {#if content.creator_name}
+                            <span class="creator-tag"
+                                >@{content.creator_name}</span
+                            >
+                        {/if}
+                    </div>
                     <!-- 정보는 이미지 아래에 모아뒀어요 -->
                     <div class="tile-info">
                         <div class="title-line">
@@ -249,12 +256,39 @@
         box-shadow: 0 8px 20px rgba(0, 0, 0, 0.5);
     }
 
+    .image-container {
+        position: relative; /* 자식 요소를 오버레이하기 위한 기준점! */
+        width: 100%;
+    }
     /* 새로 디자인된 네모난 이미지 스타일 */
     .portrait-image {
         width: 100%;
         height: auto;
         aspect-ratio: 1 / 1; /* 이미지를 1:1 정사각형 비율로 */
         object-fit: cover; /* 비율이 달라도 이미지가 꽉 차게 */
+
+        display: block;
+    }
+
+    .creator-tag {
+        /* 기존 스타일 */
+        display: inline-block;
+        padding: 0.2rem 0.5rem;
+        font-size: 0.7rem;
+        font-weight: 500;
+        border-radius: 6px;
+
+        position: absolute; /* 부모(.image-container) 기준으로 위치 지정 */
+        bottom: 0.5rem; /* 아래쪽에서 0.5rem 떨어짐 */
+        right: 0.5rem; /* 오른쪽에서 0.5rem 떨어짐 */
+        background-color: rgba(
+            0,
+            0,
+            0,
+            0.6
+        ); /* 이미지 위에 잘 보이도록 반투명 배경 */
+        color: #f0f0f0;
+        border: 1px solid rgba(255, 255, 255, 0.1);
     }
 
     /* 정보가 담기는 영역 스타일 */
@@ -305,6 +339,25 @@
         display: flex;
         flex-wrap: wrap;
         gap: 0.4rem;
+    }
+
+    /* 제작자 정보 라인 스타일 */
+    .creator-line {
+        display: flex;
+        justify-content: flex-end; /* 컨테이너 오른쪽 정렬 */
+        margin-top: 0.75rem; /* 태그 라인과 간격 띄우기 */
+    }
+
+    /* @제작자이름 태그(작은 네모 박스) 스타일 */
+    .creator-tag {
+        display: inline-block;
+        padding: 0.2rem 0.5rem;
+        font-size: 0.7rem;
+        font-weight: 500;
+        background-color: #3a3a3a; /* 다른 태그와 살짝 다른 배경색 */
+        color: #b0b0b0;
+        border-radius: 6px;
+        border: 1px solid #4a4a4a;
     }
 
     .tag,

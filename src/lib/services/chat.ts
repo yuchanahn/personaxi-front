@@ -80,6 +80,6 @@ export async function handleSendToCharacter(cid: string, prompt: string, model?:
             loadCharacterSessions();
             goto(`/character?c=${cssid}`);
         },
-        "character"
+        "3d"
     );
 }

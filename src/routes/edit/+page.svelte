@@ -194,6 +194,10 @@
                     url: "",
                     description: file.name,
                 };
+                if (persona.image_metadatas == null) {
+                    persona.image_metadatas = [];
+                }
+
                 persona.image_metadatas.push(asset);
                 await uploadAssetFile(persona.image_metadatas.length - 1, file);
             });
@@ -381,8 +385,6 @@
                         } else {
                             load_persona(id);
                         }
-                    } else {
-                        console.log("ID 보낸거 맞냐?? 쓰바? ㅋㅋ ");
                     }
                 } catch (e: any) {
                     error = $t("editPage.errorSaveFailed", {

@@ -12,7 +12,6 @@
   let chatWindowEl: HTMLElement;
   let isThink = false;
 
-  // 반응성($:)을 사용해 messages가 바뀔 때마다 isThink 상태를 자동으로 계산
   $: {
     isThink = false; // 기본값은 false
     if ($messages.length > 0) {
@@ -25,12 +24,6 @@
         isThink = true;
       }
     }
-  }
-
-  function stripEmotions(text: string) {
-    text = text.replace(/<emo:[^>]+>/g, "");
-    text = text.replace(/<act:[^>]+>/g, "");
-    return text.replace(/<표정:[^>]+>/g, "");
   }
 
   function print(text: string) {
@@ -56,10 +49,11 @@
       isThink = false;
     }
 
-    //text = text.replace(/<think[^>]*>[\s\S]*?<\/think>/g, "");
-    //text = stripEmotions(text);
+    text = text.trimEnd();
 
-    return marked(text);
+    console.log(text);
+
+    return marked(text, { breaks: true, gfm: true });
   }
 
   // 자동 스크롤 로직은 onMount 대신 messages가 변경될 때마다 실행하는 것이 더 안정적입니다.

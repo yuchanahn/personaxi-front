@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { API_BASE_URL } from "$lib/constants";
+    import { API_BASE_URL, PORTRAIT_URL } from "$lib/constants";
     import { goto } from "$app/navigation";
     import { onMount } from "svelte";
     import type { Persona } from "$lib/types";
@@ -12,6 +12,7 @@
     import NeuronIcon from "$lib/components/icons/NeuronIcon.svelte";
     import { get } from "svelte/store";
     import type { User } from "$lib/types";
+    import Icon from "@iconify/svelte";
 
     let user = {
         id: "",
@@ -38,6 +39,9 @@
 
     let showAuctionModal = false;
     let selectedPersona: Persona | null = null;
+
+    let isEditingProfile = false;
+    let originalUser: User | null = null; // 취소 시 복원을 위한 원본 데이터
 
     onMount(async () => {
         try {
@@ -128,50 +132,80 @@
     }
 
     interface UserSettingRequest {
+        name: string;
         nickname: string;
         language: string;
     }
 
-    async function updateUserSettings(nickname: string, lang: string) {
-        const settingRq: UserSettingRequest = {
-            nickname: user.data.nickname || user.name,
-            language: lang || "en",
-        };
-        const res = await fetch(`${API_BASE_URL}/api/user/edit`, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-            },
-            body: JSON.stringify(settingRq),
-            credentials: "include",
-        });
-        if (res.ok) {
-            user = await res.json();
-        } else {
-            error = "Failed to update user settings";
+    function startEditing() {
+        originalUser = JSON.parse(JSON.stringify(user));
+        isEditingProfile = true;
+    }
+
+    function cancelEditing() {
+        if (originalUser) {
+            user = originalUser;
         }
+        isEditingProfile = false;
+    }
+
+    async function saveProfileChanges() {
+        const settingRq: UserSettingRequest = {
+            name: user.name,
+            nickname: user.data.nickname || "",
+            language: get(locale) || "en",
+        };
+
+        try {
+            const res = await fetch(`${API_BASE_URL}/api/user/edit`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(settingRq),
+                credentials: "include",
+            });
+
+            if (res.ok) {
+                //user = await res.json();
+                isEditingProfile = false; // 성공 시 수정 모드 종료
+                error = ""; // 에러 메시지 초기화
+            } else {
+                const errorText = await res.text();
+                error = `Failed to update user settings: ${errorText}`;
+            }
+        } catch (err) {
+            error = "Error updating settings: " + err;
+        }
+    }
+
+    async function handleLanguageChange(lang: string) {
+        locale.set(lang);
+        saveProfileChanges();
     }
 </script>
 
 <div class="page-container">
-    <div class="header">
-        <h1>{$t("settingPage.title")}</h1>
-    </div>
-    {#if $locale}
-        <div class="language-selector">
-            <select
-                bind:value={$locale}
-                on:change={async (e) => {
-                    locale.set(e.currentTarget.value);
-                    await updateUserSettings("", e.currentTarget.value);
-                }}
-                aria-label="언어 선택"
-            >
-                <option value="ko">한국어</option>
-                <option value="en">English</option>
-            </select>
+    <div
+        style="display: flex; align-items: center; justify-content: space-between;"
+    >
+        <div class="header">
+            <h1>{$t("settingPage.title")}</h1>
         </div>
-    {/if}
+        {#if $locale}
+            <div class="language-selector">
+                <select
+                    bind:value={$locale}
+                    on:change={async (e) => {
+                        locale.set(e.currentTarget.value);
+                        await handleLanguageChange(e.currentTarget.value);
+                    }}
+                    aria-label="언어 선택"
+                >
+                    <option value="ko">한국어</option>
+                    <option value="en">English</option>
+                </select>
+            </div>
+        {/if}
+    </div>
 
     {#if error}
         <p class="error">{error}</p>
@@ -186,26 +220,76 @@
                     {user.name.charAt(0)}
                 </div>
             {/if}
+
             <div class="profile-info">
-                <h2>{user.name}</h2>
-                <p class="email">{user.email}</p>
+                {#if !isEditingProfile}
+                    <div class="name-display-wrapper">
+                        <h2>
+                            {#if user.data.nickname}
+                                {user.data.nickname}<span class="creator-name"
+                                    >@{user.name}</span
+                                >
+                            {:else}
+                                <span class="creator-name">@{user.name}</span>
+                            {/if}
+                        </h2>
+                        <button
+                            class="btn-icon-edit"
+                            on:click={startEditing}
+                            aria-label="Edit Profile"
+                        >
+                            <Icon icon="ri:edit-line" />
+                        </button>
+                    </div>
+                {:else}
+                    <input
+                        type="text"
+                        class="editing"
+                        bind:value={user.data.nickname}
+                        placeholder="Nickname"
+                    />
+                    <input type="text" class="editing" bind:value={user.name} />
+                {/if}
             </div>
-            <button class="btn" on:click={logout}
-                >{$t("settingPage.logout")}</button
-            >
+
+            {#if !isEditingProfile}
+                <div class="profile-header-actions">
+                    <button class="btn-logout" on:click={logout}>
+                        <Icon icon="tabler:logout" width="16" height="16" />
+                    </button>
+                </div>
+            {:else}
+                <div class="profile-header-actions">
+                    <button class="btn" on:click={cancelEditing}>
+                        {$t("settingPage.cancel")}
+                    </button>
+                    <button
+                        class="btn btn-primary"
+                        on:click={saveProfileChanges}
+                    >
+                        {$t("settingPage.save")}
+                    </button>
+                </div>
+            {/if}
         </div>
+
         <div class="profile-details">
             <div>
                 <span class="label">{$t("settingPage.credits")}</span>
+
                 <div style="display: flex; align-items: center;">
                     <NeuronIcon size={24} color={"#a0a0a0"} />
+
                     <span class="value">{user.credits}</span>
                 </div>
             </div>
+
             <div>
                 <span class="label">{$t("settingPage.plan")}</span>
+
                 <span class="value">{user.plan}</span>
             </div>
+
             <button
                 class="btn btn-primary"
                 on:click={() => (paymentModalOpen = true)}
@@ -213,6 +297,7 @@
             >
         </div>
     </div>
+
     <div class="section-header">
         <h2>{$t("settingPage.myPersonas")}</h2>
         <button class="btn btn-primary" on:click={() => goto("/edit")}>
@@ -226,7 +311,7 @@
                     <div class="card-header">
                         <Avatar.Root class="avatar-root">
                             <Avatar.Image
-                                src={`https://uohepkqmwbstbmnkoqju.supabase.co/storage/v1/object/public/portraits/${persona.owner_id[0]}/${persona.id}.portrait`}
+                                src={`${PORTRAIT_URL}${persona.owner_id[0]}/${persona.id}.portrait`}
                                 alt={persona.name}
                                 class="avatar-image"
                             />
@@ -251,17 +336,19 @@
                                     class="btn btn-toggle"
                                     class:active={isLive(persona.id)}
                                     on:click={() => toggleLive(persona.id)}
-                                >
-                                    {isLive(persona.id)
+                                    aria-label={isLive(persona.id)
                                         ? $t("settingPage.broadcastEnd")
                                         : $t("settingPage.broadcastStart")}
+                                >
+                                    <Icon icon="mdi:broadcast" />
                                 </button>
                                 <button
                                     class="btn"
                                     on:click={() => openAuctionModal(persona)}
                                     disabled={isLive(persona.id)}
+                                    aria-label={$t("settingPage.auctionStart")}
                                 >
-                                    {$t("settingPage.auctionStart")}
+                                    <Icon icon="ri:auction-fill" />
                                 </button>
                             </div>
                         {/if}
@@ -269,14 +356,18 @@
                             <button
                                 class="btn"
                                 on:click={() => goto(`/edit?c=${persona.id}`)}
-                                >{$t("settingPage.edit")}</button
+                                aria-label={$t("settingPage.edit")}
                             >
+                                <Icon icon="ri:edit-line" />
+                            </button>
                             <button
                                 class="btn btn-danger"
                                 on:click={() =>
                                     confirmDelete(persona.id, persona.name)}
-                                >{$t("settingPage.delete")}</button
+                                aria-label={$t("settingPage.delete")}
                             >
+                                <Icon icon="ri:delete-bin-line" />
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -290,11 +381,6 @@
             on:close={() => (showAuctionModal = false)}
         />
     {/if}
-    <!-- <PaymentModal
-        bind:isOpen={paymentModalOpen}
-        isCreditLow={false}
-        on:close={handleModalClose}
-    /> -->
     <NeedMoreNeuronsModal
         bind:isOpen={paymentModalOpen}
         on:close={handleModalClose}
@@ -314,40 +400,34 @@
         --accent-danger: #e24a4a;
         --live-color: #e91e63;
     }
-
     .page-container {
         display: flex;
         flex-direction: column;
         max-width: 960px;
         margin: 0 auto;
-        padding: 0 1.5rem; /* 수직 패딩은 각 섹션에서 관리하도록 변경 */
-        height: 100vh; /* ★★★ 뷰포트 전체 높이를 차지하도록 설정 */
-        box-sizing: border-box; /* ★★★ 패딩이 높이에 포함되도록 설정 */
+        padding: 0 1.5rem;
+        height: 100vh;
+        box-sizing: border-box;
     }
     .header {
-        flex-shrink: 0; /* 이 영역은 줄어들지 않음 */
-        padding-top: 2rem; /* 위쪽 여백 추가 */
+        flex-shrink: 0;
+        padding-top: 2rem;
         padding-bottom: 1rem;
     }
 
-    /* 기존 .section-header를 아래 코드로 교체 */
     .section-header {
         display: flex;
         justify-content: space-between;
         align-items: center;
         gap: 1rem;
-        position: sticky; /* ★★★ 스크롤 시 상단에 고정 */
+        position: sticky;
         top: 0;
-        background: var(
-            --bg-primary
-        ); /* 스크롤 시 아래 내용이 비치지 않도록 배경색 지정 */
         padding: 1rem;
         z-index: 10;
         border-bottom: 1px solid var(--border-color);
         margin-bottom: 1rem;
     }
 
-    /* 스크롤바 디자인 (새로 추가) */
     .personas-section::-webkit-scrollbar {
         width: 8px;
     }
@@ -368,6 +448,7 @@
         display: flex;
         justify-content: space-between;
         align-items: center;
+        padding: 1rem;
         gap: 1rem;
     }
 
@@ -392,16 +473,16 @@
     }
 
     .profile-section {
-        flex-shrink: 0; /* 이 영역은 줄어들지 않음 */
-        margin-bottom: 1rem; /* 아래쪽 여백 추가 */
+        flex-shrink: 0;
+        margin-bottom: 1rem;
     }
 
     .personas-section {
         display: flex;
         flex-direction: column;
-        flex: 1; /* ★★★ 남은 모든 공간을 차지하도록 설정 (가장 중요) */
-        min-height: 0; /* ★★★ flex 자식 요소의 넘침(overflow) 방지 */
-        overflow-y: auto; /* ★★★ 내용이 넘칠 경우 이 영역만 스크롤 생성 */
+        flex: 1;
+        min-height: 0;
+        overflow-y: auto;
         padding: 0.5rem;
         margin: 0 -0.5rem;
     }
@@ -452,11 +533,12 @@
 
     .persona-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-        gap: 1.5rem;
+        grid-template-columns: repeat(auto-fit, minmax(145px, 1fr));
+        gap: 1rem;
     }
 
     .persona-card {
+        position: relative;
         background: var(--bg-secondary);
         border-radius: 12px;
         border: 1px solid var(--border-color);
@@ -473,15 +555,14 @@
     }
 
     .card-header {
-        position: relative;
+        aspect-ratio: 1 / 1;
+        width: 100%;
         display: flex;
         justify-content: center;
-        padding-top: 2rem;
-        background: linear-gradient(
-            180deg,
-            var(--bg-tertiary) 50%,
-            transparent 50%
-        );
+        align-items: center;
+        padding: 0;
+        background: transparent;
+        position: relative;
     }
 
     select {
@@ -496,27 +577,6 @@
     select option {
         background: #333333;
         color: white;
-    }
-
-    .avatar-root {
-        width: 120px;
-        height: 120px;
-        border-radius: 50%;
-        border: 4px solid var(--bg-primary);
-        background-color: var(--bg-tertiary);
-        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
-    }
-    .avatar-image,
-    .avatar-fallback {
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 3rem;
-        font-weight: bold;
     }
 
     .live-indicator {
@@ -557,7 +617,6 @@
         flex-grow: 1;
     }
 
-    /* 공용 버튼 스타일 */
     .btn {
         padding: 0.6rem 1.2rem;
         font-size: 0.9rem;
@@ -610,5 +669,92 @@
         background-color: rgba(226, 74, 74, 0.1);
         padding: 1rem;
         border-radius: 8px;
+    }
+
+    .creator-name {
+        color: #888; /* 예시: 연한 회색으로 변경 */
+        font-size: 0.75em; /* 부모 요소보다 약간 작게 */
+        font-weight: bold; /* 굵게 (bold) */
+        font-style: italic; /* 이탤릭체 (italic) */
+    }
+    .btn-logout {
+        background-color: transparent;
+        color: var(--text-secondary);
+        border-color: var(--border-color);
+    }
+
+    .btn-logout:hover {
+        background-color: rgba(226, 74, 74, 0.1); /* 붉은색 배경 (10% 투명도) */
+        color: var(--accent-danger);
+        border-color: var(--accent-danger);
+    }
+
+    /* 이름과 수정 아이콘을 나란히 배치하기 위한 래퍼 */
+    .name-display-wrapper {
+        display: flex;
+        align-items: center; /* 세로 중앙 정렬 */
+        gap: 0.5rem; /* 이름과 아이콘 사이 간격 */
+    }
+
+    /* 아이콘 버튼 스타일 */
+    .btn-icon-edit {
+        background: none;
+        border: none;
+        padding: 0;
+        cursor: pointer;
+        color: var(--text-secondary); /* 평상시엔 옅은 색 */
+        transition: color 0.2s;
+        display: inline-flex;
+        align-items: center;
+    }
+
+    .btn-icon-edit:hover {
+        color: var(--text-primary); /* 마우스 올리면 밝은 색 */
+    }
+
+    /* ================================== */
+    /* 모바일 반응형 스타일         */
+    /* ================================== */
+    @media (max-width: 768px) {
+        /* 페이지 전체의 기본 글자 크기를 약간 줄일 수 있습니다.
+       html { font-size: 14px; } 
+       (단, rem 단위를 전역적으로 사용했을 때 효과적입니다.)
+    */
+
+        /* 헤더 제목 크기 조절 */
+        h1 {
+            font-size: 1.75rem;
+        }
+        h2 {
+            font-size: 1.25rem;
+        }
+        h3 {
+            font-size: 1.1rem;
+        }
+
+        /* 프로필 섹션 글자 크기 조절 */
+        .profile-info .email {
+            font-size: 0.8rem;
+        }
+        .profile-details .label {
+            font-size: 0.75rem;
+        }
+        .profile-details .value {
+            font-size: 1rem;
+        }
+
+        /* 버튼 글자 크기 조절 */
+        .btn {
+            font-size: 0.8rem;
+            padding: 0.5rem 1rem;
+        }
+
+        /* 페르소나 카드 내부 글자 크기 조절 */
+        .card-body .persona-type {
+            font-size: 0.85rem;
+        }
+        .creator-name {
+            font-size: 0.7em;
+        }
     }
 </style>

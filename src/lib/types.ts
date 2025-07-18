@@ -23,6 +23,9 @@ export interface Persona {
     portrait_url: string; // Add this
     image_metadatas: ImageMetadata[];
     visibility: string; // e.g., "public", "private"
+    createdAt: string;
+    updatedAt: string;
+    creator_name: string;
 }
 
 export interface User {

@@ -1,3 +1,4 @@
+import { VRM_URL } from '$lib/constants';
 import type { Persona } from '$lib/types';
 import { Model } from './core/model';
 import { Viewer } from './core/viewer'
@@ -21,7 +22,7 @@ export function test(canvas: HTMLCanvasElement, persona: Persona) {
 
     viewer = new Viewer(canvas);
 
-    let m = viewer.loadModel(`https://uohepkqmwbstbmnkoqju.supabase.co/storage/v1/object/public/vrm-models/${persona.owner_id[0]}/${persona.id}.vrm`);
+    let m = viewer.loadModel(`${VRM_URL}${persona.owner_id[0]}/${persona.id}.vrm`);
     m.then(m => {
         current_model = m;
         if (viewer) viewer.start();

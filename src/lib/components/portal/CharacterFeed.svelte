@@ -14,6 +14,7 @@
     import type { AuctionPersona } from "$lib/services/auction";
     import { t } from "svelte-i18n";
     import Icon from "@iconify/svelte";
+    import { PORTRAIT_URL } from "$lib/constants";
 
     let contents = writable<Persona[]>([]);
     let liveIds: string[] = [];
@@ -64,7 +65,7 @@
     {#each $contents as content (content.id)}
         <section
             class="reel"
-            style="background-image: url(https://uohepkqmwbstbmnkoqju.supabase.co/storage/v1/object/public/portraits/{content
+            style="background-image: url({PORTRAIT_URL}{content
                 .owner_id[0]}/{content.id}.portrait);"
         >
             <div class="overlay">

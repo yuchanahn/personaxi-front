@@ -8,6 +8,7 @@
   import { loadPersona } from "$lib/api/edit_persona";
   import type { Persona } from "$lib/types";
   import SettingsModal from "$lib/components/modal/SettingModal.svelte";
+  import { PORTRAIT_URL } from "$lib/constants";
 
   let lastSessionId: string | null = null;
   let persona: Persona | null = null;
@@ -39,7 +40,7 @@
   const send = async (prompt: string) => {
     const sessionId = $page.url.searchParams.get("c");
     isLoading = true;
-    await sendPromptStream(sessionId ?? "", prompt, "character");
+    await sendPromptStream(sessionId ?? "", prompt, "2d");
   };
 
   let isSettingsModalOpen = false;
@@ -56,7 +57,7 @@
   {#if persona !== null}
     <div class="persona-container">
       <img
-        src={`https://uohepkqmwbstbmnkoqju.supabase.co/storage/v1/object/public/portraits/${persona.owner_id[0]}/${persona.id}.portrait`}
+        src={`${PORTRAIT_URL}${persona.owner_id[0]}/${persona.id}.portrait`}
         alt="portrait"
         class="portrait"
       />

@@ -40,7 +40,10 @@
     "auctionStart": "Start Auction",
     "edit": "Edit",
     "delete": "Delete",
-    "deleteConfirm": "Are you sure you want to delete the persona '{name}'? This action cannot be undone."
+    "deleteConfirm": "Are you sure you want to delete the persona '{name}'? This action cannot be undone.",
+    "editProfile": "edit",
+    "save": "save",
+    "cancel": "cancel"
   },
   "chatWindow": {
     "noConversation": "No conversation yet. Type a question to start.",

@@ -40,7 +40,10 @@
     "auctionStart": "경매 시작",
     "edit": "편집",
     "delete": "삭제",
-    "deleteConfirm": "페르소나 '{name}'을(를) 정말 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다."
+    "deleteConfirm": "페르소나 '{name}'을(를) 정말 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.",
+    "editProfile": "수정",
+    "save": "저장",
+    "cancel": "취소"
   },
   "chatWindow": {
     "noConversation": "아직 대화가 없습니다. 질문을 입력해보세요.",

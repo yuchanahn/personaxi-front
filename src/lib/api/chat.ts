@@ -77,7 +77,7 @@ export async function sendPromptStream(cid: string, prompt: string, type?: strin
         if (cssid) {
             loadChatSessions();
             loadCharacterSessions();
-            if (type == "character") {
+            if (type == "character" || type == "2d" || type == "3d") {
                 goto(`/2d?c=${cssid}`);
             } else {
                 goto(`/chat?c=${cssid}`);
@@ -100,8 +100,9 @@ export async function impl_sendPromptStream(
         CSSID: currentSessionId,
         type: type ?? "chat",
     };
-
-    const response = await fetch(`${API_BASE_URL}/api/ChatLLM`, {
+    //HandleLLMChat
+    const response = await fetch(`${API_BASE_URL}/api/chat/${type ?? "2d"}`, {
+        //const response = await fetch(`${API_BASE_URL}/api/ChatLLM`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
