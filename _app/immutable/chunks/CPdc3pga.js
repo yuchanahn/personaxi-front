@@ -1,0 +1,106 @@
+const e={title:"페르소나 생성 및 편집",saveButton:"페르소나 저장",saveButtonLoading:"저장 중...",saveButtonSuccess:"✓ 저장됨",basicInfo:"기본 정보",nameLabel:"이름",namePlaceholder:"페르소나의 이름",typeLabel:"페르소나 타입",typeSelectDefault:"타입 선택",mediaFiles:"미디어 파일",profileImageLabel:"프로필 이미지",vrmFileLabel:"VRM 파일",fileSelect:"파일 선택",aiSettings:"AI 상세 설정",instructionsLabel:"지시사항",instructionsDescription:"AI의 역할, 성격, 어조 등 핵심 정체성을 정의합니다.",instructionsPlaceholder:"예: 당신은 친절한 AI 비서입니다.",promptExamplesLabel:"프롬프트 예시",promptExamplesDescription:"AI가 따를 구체적인 대화 예시를 제공합니다.",promptExamplesPlaceholder:"예: 사용자: 날씨 어때? / AI: 맑고 화창한 날씨입니다!",tagsLabel:"태그",tagsDescription:"쉼표(,)로 구분하여 여러 태그를 한 번에 추가할 수 있습니다.",tagsPlaceholder:"예: AI, 친구, 대화",addButton:"추가",errorRequired:"이름과 페르소나 타입은 필수 입력 항목입니다.",errorSaveFailed:"저장 실패: {message}"},n={title:"내 페이지",logout:"로그아웃",credits:"내 뉴런",plan:"플랜",charge:"뉴런 충전",myPersonas:"내 AI 페르소나",newPersona:"+ 새 AI 페르소나",broadcastStart:"방송 시작",broadcastEnd:"방송 종료",auctionStart:"경매 시작",edit:"편집",delete:"삭제",deleteConfirm:"페르소나 '{name}'을(를) 정말 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.",editProfile:"수정",save:"저장",cancel:"취소"},t={noConversation:"아직 대화가 없습니다. 질문을 입력해보세요.",thinking:"생각 중"},a={hide:"사이드바 숨기기",show:"사이드바 보기",exitFullscreen:"전체화면 종료",enterFullscreen:"전체화면 시작",tutorial:"튜토리얼",community:"커뮤니티 참여"},r={placeholder:"무엇이든 물어보세요",sendButton:"보내기"},i={placeholder:"채팅을 입력하세요...",sendButton:"보내기"},o={githubSoon:"깃허브 로그인은 아직 준비 중입니다.",emailSoon:"이메일 로그인은 아직 준비 중입니다.",loginWith:"{provider}로 로그인"},s={createFailed:"경매 생성 실패"},c={bidTooLow:"입찰가는 현재 최고 입찰가({currentHighestBid} 뉴런)보다 높아야 합니다.",bidIncrementError:"입찰가는 {minBidIncrement} 뉴런 단위로 입력해주세요.",bidError:"입찰 중 오류가 발생했습니다.",title:"경매 입찰하기",currentHighestBid:"현재 최고 입찰가",creditsUnit:"뉴런",minBidIncrement:"최소 입찰 단위",bidCredits:"입찰 뉴런",minBidPlaceholder:"이상",biddingInProgress:"입찰 중...",placeBid:"입찰하기",cancel:"취소"},l={pack100Name:"기본 뉴런 팩",pack300Name:"실속 뉴런 팩",pack500Name:"프리미엄 뉴런 팩",pack1000Name:"무제한 뉴런 팩 (한정)",pack50Name:"맛보기 뉴런",purchaseLog:"결제 요청: {name} ({price}원) - {credits} 뉴런 추가",purchaseAlert:'"{name}" 결제 기능을 개발 중입니다! (실제 결제는 이루어지지 않습니다.)',creditLowTitle:"⚠️ 뉴런이 부족합니다!",creditLowMessage1:"더 많은 캐릭터 챗을 이용하시려면 뉴런을 충전해주세요.",creditLowMessage2:"아래에서 원하는 뉴런 팩을 선택하여 충전할 수 있습니다.",chargeCreditsTitle:"뉴런 충전하기",chargeCreditsMessage:"원하는 뉴런 팩을 선택하여 더 많은 기능을 이용해보세요.",creditsUnit:"뉴런",currencyUnit:"원",purchaseButton:"구매하기",contactSupport:"결제 관련 문의는 고객센터로 연락주세요."},d={title:"세션 설정",like:"좋아요",dislike:"싫어요",resetChat:"채팅 초기화 하기",deleteChat:"삭제하기",includeAllUtterances:"발화 전부 포함하기",guidanceText:"* 각 기능은 현재 캐릭터 세션에 영향을 미칩니다. 신중하게 선택해주세요."},g={searchByName:"이름",searchByTags:"태그",searchNamePlaceholder:"캐릭터 이름으로 검색",searchTagsPlaceholder:"태그로 검색 (쉼표로 구분)",auctionInProgress:"경매 중"},m={bidder:"입찰자",auctionEnded:"경매 종료!",dayUnit:"일",hourUnit:"시",minuteUnit:"분",secondUnit:"초",noTimeInfo:"시간 정보 없음",myCredits:"내 뉴런",highestBid:"최고 입찰가",creditsUnit:"뉴런",remainingTime:"남은 시간",currentLeader:"현재 선두",placeBidButton:"입찰하기"},u={privacyPolicy:"개인정보처리방침",termsOfService:"이용약관",licensesAndCredits:"라이선스 · 뉴런",chatLogConsent:"채팅/로그 수집 동의",title:"정책"},p={loadError:"라이선스 정보를 불러오는 데 실패했습니다.",pageTitle:"라이선스 및 뉴런 - [사이트/서비스 이름]"},h={loadError:"개인정보처리방침을 불러오는 데 실패했습니다.",pageTitle:"개인정보처리방침 - [사이트/서비스 이름]"},b={loadError:"채팅 및 로그 수집 동의 정보를 불러오는 데 실패했습니다.",pageTitle:"채팅 및 로그 수집 동의 - [사이트/서비스 이름]"},v={loadError:"이용약관을 불러오는 데 실패했습니다.",pageTitle:"이용약관 - [사이트/서비스 이름]"},P={title:"튜토리얼",description:"서비스 이용 방법을 확인해보세요.",iframeTitle:"튜토리얼 문서"},I={viewer1:"시청자1",viewer1Message:"이 캐릭터 뭐야 ㅋㅋ",viewer2:"시청자2",viewer2Message:"존예다 ㄹㅇ",viewer3:"시청자3",viewer3Message:"대답함??",me:"나",websocketDisconnected:"🔌 WebSocket 연결 해제",broadcastContent:"방송 콘텐츠"},y={system:{search:"탐색",user:"사용자",feed:"피드",create:"만들기",legal:"법률"}},T={title:"PersonaXI에 오신 것을 환영합니다!",message:"PersonaXI에 가입해주셔서 감사합니다. 즐거운 시간 되시길 바랍니다!",neuronReward:"환영 선물로 {amount} 뉴런이 지급되었습니다!",confirmButton:"탐험 시작하기"},B={title:"뉴런이 부족해요!",description:"더 많은 대화를 나누려면 뉴런을 충전해주세요.",rechargeTitle:"뉴런 충전!",rechargeDescription:"더 많은 대화를 나누려면 뉴런을 충전해주세요.",firstCreationReward:"페르소나 최초 생성 시 200 뉴런 지급!",getFreeNeurons:"무료 뉴런 받기",currentNeurons:"현재 수량: {count} 뉴런"},C={title:"서비스 이용 동의",privacyPolicyTab:"개인정보처리방침",termsOfServiceTab:"이용약관",chatLogsConsentTab:"채팅 및 로그 데이터 동의",agreePrivacy:"개인정보처리방침에 동의합니다.",agreeTerms:"이용약관에 동의합니다.",agreeChatLogs:"채팅 및 로그 데이터 수집에 동의합니다.",agreeToAll:"모든 약관에 동의합니다.",confirmButton:"확인",alertAllAgreed:"모든 필수 약관에 동의해야 합니다.",privacyPolicyTitle:"개인정보처리방침",privacyPolicyContent:`저희 [사이트/서비스 이름]은(는) 이용자의 개인정보를 소중히 생각하며, 「개인정보보호법」 및 관련 법규를 준수하고 있습니다. 본 개인정보처리방침을 통해 이용자께서 제공하시는 개인정보가 어떠한 용도와 방식으로 이용되고 있으며, 개인정보 보호를 위해 어떠한 조치가 취해지고 있는지 알려드립니다.
+
+### 1. 수집하는 개인정보 항목 및 수집 방법
+
+저희는 회원 가입, 서비스 이용, 상담 과정 등에서 다음과 같은 개인정보를 수집할 수 있습니다.
+
+*   필수 항목: 이메일, 비밀번호, 닉네임
+*   선택 항목: 프로필 이미지, 소셜 미디어 ID (연동 시)
+
+개인정보는 웹사이트, 모바일 앱, 서면 양식, 전화, 이메일, 이벤트 응모 등을 통해 수집됩니다.
+
+### 2. 개인정보의 수집 및 이용 목적
+
+수집된 개인정보는 다음의 목적으로만 이용됩니다.
+
+*   서비스 제공에 관한 계약 이행 및 서비스 제공에 따른 요금 정산
+*   회원 관리 (본인 확인, 개인 식별, 부정 이용 방지 등)
+*   서비스 개선 및 신규 서비스 개발
+*   마케팅 및 광고 활용 (동의 시)
+
+### 3. 개인정보의 보유 및 이용 기간
+
+이용자의 개인정보는 원칙적으로 개인정보의 수집 및 이용 목적이 달성되면 지체 없이 파기합니다. 단, 관계 법령의 규정에 의하여 보존할 필요가 있는 경우 해당 법령에서 정한 기간 동안 개인정보를 보관합니다.
+
+### 4. 개인정보의 파기 절차 및 방법
+
+이용자의 개인정보는 목적 달성 후 별도의 DB로 옮겨져(종이의 경우 별도의 서류함) 관계 법령에 따라 일정 기간 저장된 후 파기됩니다. 종이 문서는 분쇄기로 분쇄하거나 소각을 통해 파기하며, 전자적 파일 형태는 기록을 재생할 수 없는 기술적 방법을 사용하여 삭제합니다.
+
+### 5. 개인정보 제공
+
+저희는 이용자의 개인정보를 원칙적으로 외부에 제공하지 않습니다. 다만, 아래의 경우에는 예외로 합니다.
+
+*   이용자들이 사전에 동의한 경우
+*   법령의 규정에 의거하거나, 수사 목적으로 법령에 정해진 절차와 방법에 따라 수사기관의 요구가 있는 경우
+
+### 6. 이용자 및 법정대리인의 권리 및 그 행사 방법
+
+이용자는 언제든지 등록되어 있는 자신의 개인정보를 조회하거나 수정할 수 있으며, 가입 해지를 요청할 수도 있습니다. 권리 행사는 [담당자 이메일 주소 또는 문의 채널]을 통해 가능합니다.
+
+### 7. 개인정보 보호책임자
+
+저희는 개인정보 처리에 관한 업무를 총괄해서 책임지고, 개인정보 처리와 관련한 이용자의 불만 처리 및 피해 구제 등을 위하여 아래와 같이 개인정보 보호책임자를 지정하고 있습니다.
+
+*   성명: [담당자 이름]
+*   소속: [소속 부서]
+*   이메일: [이메일 주소]
+
+### 8. 고지의 의무
+
+현 개인정보처리방침은 정부의 정책 또는 보안 기술의 변경에 따라 내용이 추가, 삭제 및 수정될 수 있습니다. 내용이 변경될 시 웹사이트 공지사항을 통해 알려드리겠습니다.
+
+최종 업데이트: 2025년 6월 7일`,termsOfServiceTitle:"이용약관",termsOfServiceContent:`본 약관은 [사이트/서비스 이름] (이하 "회사")에서 제공하는 모든 서비스의 이용과 관련하여 회사와 회원 간의 권리, 의무 및 책임 사항, 기타 필요한 사항을 규정함을 목적으로 합니다.
+
+### 1. 약관의 효력 및 변경
+
+본 약관은 서비스 화면에 게시하거나 기타의 방법으로 회원에게 공지함으로써 효력이 발생합니다. 회사는 "약관의 규제에 관한 법률", "정보통신망 이용촉진 및 정보보호 등에 관한 법률" 등 관련 법령을 위배하지 않는 범위에서 본 약관을 개정할 수 있습니다.
+
+### 2. 회원의 의무
+
+회원은 다음 각 호의 행위를 하여서는 안 됩니다.
+
+*   다른 회원의 ID 및 비밀번호를 도용하는 행위
+*   회사 서비스의 운영을 방해하는 행위
+*   공서양속에 위반되는 저속, 음란한 내용의 정보 등을 유포하는 행위
+*   기타 관계 법령에 위배되는 행위
+
+### 3. 서비스 이용 제한
+
+회원이 본 약관의 의무를 위반하거나 서비스의 정상적인 운영을 방해한 경우, 회사는 서비스 이용을 제한하거나 회원 자격을 상실시킬 수 있습니다.
+
+### 4. 책임의 한계
+
+회사는 천재지변 또는 이에 준하는 불가항력으로 인하여 서비스를 제공할 수 없는 경우에는 서비스 제공에 관한 책임이 면제됩니다.
+
+최종 업데이트: 2025년 6월 7일`,chatLogsConsentTitle:"채팅 및 로그 데이터 수집·이용 동의 안내",chatLogsConsentContent:`저희 [사이트/서비스 이름]은(는) 서비스 개선 및 이용자 경험 향상을 위해 채팅 내용 및 서비스 이용 로그 데이터를 수집하고 이용할 수 있습니다. 본 안내를 통해 데이터 수집 및 이용에 대한 상세 내용을 알려드립니다.
+
+### 1. 수집하는 데이터 항목
+
+저희는 서비스 이용 과정에서 다음과 같은 데이터를 수집할 수 있습니다.
+
+*   **채팅 데이터:** 채팅방 내의 텍스트, 이미지, 파일 등 이용자가 생성하는 모든 대화 내용
+*   **서비스 이용 로그:** 접속 시간, IP 주소, 기기 정보, 브라우저 종류, 서비스 이용 기록 (클릭, 페이지 이동 등).
+*   **시스템 오류 로그:** 서비스 오류 발생 시의 기술적 정보
+
+### 2. 수집 및 이용 목적
+
+수집된 데이터는 다음의 목적으로만 이용됩니다.
+
+*   서비스의 안정적인 운영 및 기능 개선 (오류 분석 및 해결).
+*   이용자 문의 응대 및 분쟁 해결.
+*   부적절한 이용 (불법 행위, 약관 위반 등) 방지 및 제재.
+*   서비스 맞춤형 기능 제공 및 추천 (동의 시).
+
+*   통계 분석을 통한 서비스 성능 개선 및 신규 기능 개발.
+
+**참고:** 채팅 내용은 익명화 또는 비식별화 처리되어 통계 분석에 활용될 수 있으며, 특정 개인을 식별할 수 있는 형태로 외부에 공개되지 않습니다.
+
+### 3. 데이터 보유 및 이용 기간
+
+수집된 데이터는 법령에 따른 의무를 준수하거나 서비스 목적 달성 시까지 보유하며, 이후 파기됩니다. (예: 채팅 기록은 [6개월] 보관 후 파기, 오류 로그는 [3개월] 보관 후 파기).
+
+### 4. 동의 철회 및 거부
+
+이용자는 데이터 수집 및 이용에 대한 동의를 언제든지 철회할 수 있습니다. 다만, 필수적인 서비스 제공에 필요한 데이터 수집에 동의하지 않을 경우 일부 서비스 이용이 제한될 수 있습니다. 동의 철회 및 문의는 [담당자 이메일 주소 또는 문의 채널]을 통해 가능합니다.
+
+최종 업데이트: 2025년 6월 7일`},L={editPage:e,settingPage:n,chatWindow:t,sidebar:a,chatInput:r,broadcastChatInput:i,login:o,auctionModal:s,bidModal:c,paymentModal:l,settingModal:d,contentHub:g,auctionPage:m,legal:u,licenses:p,policy:h,privacyChatLogs:b,terms:v,tutorial:P,livePage:I,chatSession:y,welcomeModal:T,needNeuronsModal:B,consentModal:C};export{s as auctionModal,m as auctionPage,c as bidModal,i as broadcastChatInput,r as chatInput,y as chatSession,t as chatWindow,C as consentModal,g as contentHub,L as default,e as editPage,u as legal,p as licenses,I as livePage,o as login,B as needNeuronsModal,l as paymentModal,h as policy,b as privacyChatLogs,d as settingModal,n as settingPage,a as sidebar,v as terms,P as tutorial,T as welcomeModal};
