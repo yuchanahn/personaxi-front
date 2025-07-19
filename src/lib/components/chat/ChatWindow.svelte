@@ -29,54 +29,86 @@
     }
   }
 
-  function print(text: string) {
-    // --- 1. 메시지 끝에 붙은 JSON 블록을 찾아서 추출하는 로직 ---
-    const jsonRegex = /```json\s*([\s\S]*?)\s*```$/;
-    const match = text.match(jsonRegex);
+  function print(text: string): Promise<string> {
+    // --- 1단계: <img> 태그에서 정보 추출 및 제거 ---
 
-    if (match && match[1]) {
+    // 이미지 삽입 명령을 저장할 배열
+    const instructions: { pos: string; ins: number }[] = [];
+
+    // replace 콜백을 사용해 <img> 태그를 찾아서 정보만 빼내고, 태그 자체는 제거한다.
+    let cleanText = text.replace(
+      /<img>(.*?)<\/img>/g,
+      (match, capturedContent) => {
+        try {
+          const parts = capturedContent.split(",");
+          if (parts.length < 2) return ""; // 형식이 안 맞으면 그냥 태그만 제거
+
+          const pos = parts[0].trim();
+          const ins = parseInt(parts[1].trim(), 10);
+
+          if (!isNaN(ins)) {
+            // 추출한 정보를 instructions 배열에 저장
+            instructions.push({ pos, ins });
+          }
+        } catch (e) {
+          console.error("Error parsing img tag:", e);
+        }
+        // 콜백이 빈 문자열("")을 반환하므로, 원본의 <img> 태그는 사라진다.
+        return "";
+      },
+    );
+
+    // --- 2단계: 추출된 정보로 본문에 이미지 삽입 ---
+
+    let processedText = cleanText;
+
+    instructions.forEach((instruction) => {
       try {
-        const instruction = JSON.parse(match[1]);
-        if (instruction.pos && instruction.ins) {
-          // JSON 블록을 제외한 순수 텍스트만 남김
-          const mainText = text.replace(jsonRegex, "").trim();
+        if (persona === null) throw new Error("persona is null");
+        if (instruction.pos === "") return; // pos가 비어있으면 삽입하지 않음
 
-          if (persona === null) throw "persona === null";
+        const imageUrl = persona.image_metadatas[instruction.ins].url;
+        //const imageUrl = `${ASSET_URL}${persona.owner_id[0]}/${persona.id}-${instruction.ins}.asset`;
+        const imageTag = `<img src="${imageUrl}" alt="장면 삽화" class="inserted-image">`;
 
-          // 이미지 URL 생성 (여기의 CDN 주소는 실제 주소로 변경해야 해!)
-          const imageUrl = `${ASSET_URL}${persona.owner_id[0]}/${persona.id}-${instruction.ins}.asset`;
-          const imageTag = `<img src="${imageUrl}" alt="장면 삽화" class="inserted-image">`;
+        // 본문에서 pos 텍스트를 찾아 그 아래에 이미지 태그를 삽입
+        processedText = processedText.replace(
+          instruction.pos,
+          `${instruction.pos}\n${imageTag}`,
+        );
 
-          console.log(imageUrl);
-
-          // 순수 텍스트에서 'pos' 부분을 이미지 태그로 교체
-          text = mainText.replace(
-            instruction.pos,
-            instruction.pos + "\n" + imageTag,
-          );
+        // 본문에서 pos를 발견하지 못한 경우 오류 메시지 출력
+        if (!processedText.includes(instruction.pos)) {
+          processedText += `\n${imageTag} ##### -> ${instruction.pos}`;
         }
       } catch (e) {
-        // JSON 파싱 실패 시, 그냥 원본 텍스트를 그대로 렌더링
+        console.error("Error inserting image tag:", e);
       }
-    }
+    });
 
-    // <think> 태그 처리
-    if (text.includes("<think>") && !text.includes("</think>")) {
+    if (
+      processedText.includes("<think>") &&
+      !processedText.includes("</think>")
+    ) {
       return "";
     }
-    text = text.replace(/<think>[\s\S]*?<\/think>/g, "");
+    processedText = processedText.replace(/<think>[\s\S]*?<\/think>/g, "");
 
     // 기타 마크다운 전처리
-    text = text.replace(/---/g, "\n\n---\n\n");
-    text = text.replace(/^(.+?\|)/gm, "**$1**");
-    text = text.replace(/\(([^)]+)\)/g, "*($1)*");
-    text = text.replace(
+    processedText = processedText.replace(/---/g, "\n\n---\n\n");
+    processedText = processedText.replace(/^(.+?\|)/gm, "**$1**");
+    processedText = processedText.replace(/\(([^)]+)\)/g, "*($1)*");
+    processedText = processedText.replace(
       /^(.*?)\s*(".*?")$/gm,
       '<span class="narration">$1</span><span class="dialogue">$2</span>',
     );
-    text = text.replace(/^\[([^\]]+)\]$/gm, '<p class="narrator">[$1]</p>');
+    processedText = processedText.replace(
+      /^\[([^\]]+)\]$/gm,
+      '<p class="narrator">[$1]</p>',
+    );
 
-    return marked(text.trimEnd(), { breaks: true, gfm: true });
+    // marked 라이브러리로 최종 HTML 변환 후 반환
+    return marked(processedText.trimEnd(), { breaks: true, gfm: true });
   }
 
   // 자동 스크롤 로직은 onMount 대신 messages가 변경될 때마다 실행하는 것이 더 안정적입니다.

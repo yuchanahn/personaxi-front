@@ -36,6 +36,10 @@
         portrait_url: "", // Add this
         image_metadatas: [], // Add this
         visibility: "private", // Add this, default to private
+        created_at: "",
+        updated_at: "",
+        creator_name: "",
+        first_scene: "",
     };
     let instruction = "";
     let promptExample = "";
@@ -654,6 +658,20 @@
             <div class="form-column">
                 <div class="form-section-card">
                     <h2>{$t("editPage.aiSettings")}</h2>
+                    <div class="form-group">
+                        <label for="first_scene"
+                            >{$t("editPage.firstSceneLabel")}</label
+                        >
+                        <p class="description">
+                            {$t("editPage.firstSceneDescription")}
+                        </p>
+                        <textarea
+                            id="first_scene"
+                            bind:value={persona.first_scene}
+                            placeholder={$t("editPage.firstScenePlaceholder")}
+                            rows="5"
+                        ></textarea>
+                    </div>
                     <div class="form-group">
                         <label for="instruction-input"
                             >{$t("editPage.instructionsLabel")}</label

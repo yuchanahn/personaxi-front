@@ -55,13 +55,13 @@
 {/if}
 <main class="chat-layout">
   {#if persona !== null}
-    <div class="persona-container">
+    <!-- <div class="persona-container">
       <img
         src={`${PORTRAIT_URL}${persona.owner_id[0]}/${persona.id}.portrait`}
         alt="portrait"
         class="portrait"
       />
-    </div>
+    </div> -->
   {/if}
 
   <div class="settings-button-2d">

@@ -23,9 +23,10 @@ export interface Persona {
     portrait_url: string; // Add this
     image_metadatas: ImageMetadata[];
     visibility: string; // e.g., "public", "private"
-    createdAt: string;
-    updatedAt: string;
+    created_at: string;
+    updated_at: string;
     creator_name: string;
+    first_scene: string;
 }
 
 export interface User {

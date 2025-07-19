@@ -257,7 +257,7 @@
     }
 
     .image-container {
-        position: relative; /* 자식 요소를 오버레이하기 위한 기준점! */
+        position: relative;
         width: 100%;
     }
     /* 새로 디자인된 네모난 이미지 스타일 */
@@ -271,7 +271,6 @@
     }
 
     .creator-tag {
-        /* 기존 스타일 */
         display: inline-block;
         padding: 0.2rem 0.5rem;
         font-size: 0.7rem;
@@ -279,15 +278,15 @@
         border-radius: 6px;
 
         position: absolute; /* 부모(.image-container) 기준으로 위치 지정 */
-        bottom: 0.5rem; /* 아래쪽에서 0.5rem 떨어짐 */
-        right: 0.5rem; /* 오른쪽에서 0.5rem 떨어짐 */
+        bottom: 0.1rem; /* 아래쪽에서 0.5rem 떨어짐 */
+        right: 0.1rem; /* 오른쪽에서 0.5rem 떨어짐 */
         background-color: rgba(
             0,
             0,
             0,
-            0.6
+            0.3
         ); /* 이미지 위에 잘 보이도록 반투명 배경 */
-        color: #f0f0f0;
+        color: #f0f0f015;
         border: 1px solid rgba(255, 255, 255, 0.1);
     }
 
@@ -341,21 +340,14 @@
         gap: 0.4rem;
     }
 
-    /* 제작자 정보 라인 스타일 */
-    .creator-line {
-        display: flex;
-        justify-content: flex-end; /* 컨테이너 오른쪽 정렬 */
-        margin-top: 0.75rem; /* 태그 라인과 간격 띄우기 */
-    }
-
     /* @제작자이름 태그(작은 네모 박스) 스타일 */
     .creator-tag {
         display: inline-block;
-        padding: 0.2rem 0.5rem;
-        font-size: 0.7rem;
-        font-weight: 500;
-        background-color: #3a3a3a; /* 다른 태그와 살짝 다른 배경색 */
-        color: #b0b0b0;
+        padding: 0.1rem 0.3rem;
+        font-size: 0.6rem;
+        font-weight: 300;
+        background-color: #3a3a3ab7; /* 다른 태그와 살짝 다른 배경색 */
+        color: #e2e2e2;
         border-radius: 6px;
         border: 1px solid #4a4a4a;
     }
