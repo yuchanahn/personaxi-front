@@ -2,7 +2,8 @@ import { API_BASE_URL } from '$lib/constants';
 import { ttsState } from '$lib/stores/ttsStore';
 
 let socket: WebSocket | null = null;
-let audioContext: AudioContext | null = null; // ★ AudioContext 인스턴스 생성
+let audioContext: AudioContext | null = null;
+let heartbeatInterval: ReturnType<typeof setInterval> | null = null;
 
 function initializeAudioContext() {
     if (!audioContext) {
@@ -17,7 +18,24 @@ function initializeAudioContext() {
     }
 }
 
+function startHeartbeat() {
+    if (heartbeatInterval) {
+        clearInterval(heartbeatInterval);
+    }
+    heartbeatInterval = setInterval(() => {
+        if (socket && socket.readyState === WebSocket.OPEN) {
+            console.log('❤️ Sending heartbeat ping');
+            socket.send(JSON.stringify({ type: 'ping' }));
+        }
+    }, 30000); // 30초마다
+}
 
+function stopHeartbeat() {
+    if (heartbeatInterval) {
+        clearInterval(heartbeatInterval);
+        heartbeatInterval = null;
+    }
+}
 
 export function connectTTSSocket(speek?: (audio: ArrayBuffer) => void): WebSocket {
     socket = new WebSocket(`wss://api.personaxi.com/ws/tts`);
@@ -33,18 +51,33 @@ export function connectTTSSocket(speek?: (audio: ArrayBuffer) => void): WebSocke
     socket.onopen = () => {
         console.log("✅ tts WebSocket 연결됨");
         ttsState.set('connected');
+        startHeartbeat();
     };
 
     socket.onclose = () => {
         console.warn("⚠️ tts WebSocket 끊김");
         ttsState.set('disconnected');
+        stopHeartbeat();
     };
 
     socket.onmessage = async (event) => {
-        if (!audioContext || audioContext.state === 'closed') {
-            initializeAudioContext(); // AudioContext가 닫혔거나 없으면 다시 초기화 시도
+        // 하트비트 응답 처리
+        if (typeof event.data === 'string') {
+            try {
+                const message = JSON.parse(event.data);
+                if (message.type === 'pong') {
+                    console.log('❤️ Received heartbeat pong');
+                    return; // pong 메시지는 오디오 처리를 하지 않음
+                }
+            } catch (e) {
+                // JSON 파싱 실패 시, 일반 텍스트 메시지로 간주 (필요 시 처리)
+            }
         }
-        if (!audioContext) { // 초기화 실패했으면 더 이상 진행 불가
+
+        if (!audioContext || audioContext.state === 'closed') {
+            initializeAudioContext();
+        }
+        if (!audioContext) {
             console.error("❌ AudioContext가 초기화되지 않았습니다. 사용자 제스처가 필요할 수 있습니다.");
             return;
         }
@@ -65,22 +98,22 @@ export function connectTTSSocket(speek?: (audio: ArrayBuffer) => void): WebSocke
             if (speek) {
                 console.log("🎶 외부 함수 호출로 오디오 재생 시작");
 
-                speek(audioData); // 외부 함수 호출
-                return; // 외부 함수가 처리하면 여기서 종료
+                speek(audioData);
+                return;
             }
 
             const audioBuffer = await audioContext.decodeAudioData(audioData);
 
             const source = audioContext.createBufferSource();
-            source.buffer = audioBuffer; // 디코딩된 오디오 버퍼 연결
-            source.connect(audioContext.destination); // 오디오 출력 장치에 연결
+            source.buffer = audioBuffer;
+            source.connect(audioContext.destination);
 
-            source.start(0); // 0초부터 재생 시작
+            source.start(0);
             console.log("🎶 오디오 재생 시작!");
 
             source.onended = () => {
                 console.log("🔇 오디오 재생 완료.");
-                source.disconnect(); // 리소스 해제
+                source.disconnect();
             };
 
         } catch (e) {
@@ -93,6 +126,7 @@ export function connectTTSSocket(speek?: (audio: ArrayBuffer) => void): WebSocke
 
 //연결 해제
 export function disconnectTTSSocket() {
+    stopHeartbeat();
     if (socket) {
         socket.close();
         socket = null;

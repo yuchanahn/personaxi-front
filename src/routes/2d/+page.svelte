@@ -8,17 +8,38 @@
   import { loadPersona } from "$lib/api/edit_persona";
   import type { Persona } from "$lib/types";
   import SettingsModal from "$lib/components/modal/SettingModal.svelte";
-  import { PORTRAIT_URL } from "$lib/constants";
+  import { get } from "svelte/store";
+  import { messages } from "$lib/stores/messages";
 
   let lastSessionId: string | null = null;
   let persona: Persona | null = null;
 
+  const setupScene = () => {
+    if (get(messages).length === 0) {
+      if (persona?.first_scene) {
+        messages.set([
+          {
+            role: "assistant",
+            content:
+              `<img src="${persona.portrait_url}" alt="장면 삽화" class="inserted-image">` +
+              persona.first_scene,
+          },
+        ]);
+      }
+    }
+  };
+
   onMount(() => {
     const sessionId = $page.url.searchParams.get("c");
     lastSessionId = sessionId;
-    loadChatHistory(sessionId ?? "");
+    loadChatHistory(sessionId ?? "").then(() => {
+      setupScene();
+    });
     if (sessionId) {
-      loadPersona(sessionId).then((p) => (persona = p));
+      loadPersona(sessionId).then((p) => {
+        persona = p;
+        setupScene();
+      });
     }
   });
 
