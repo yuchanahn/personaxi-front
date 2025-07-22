@@ -3,6 +3,7 @@ import { chatSessions } from "$lib/stores/chatSessions";
 import { is_login } from "$lib/stores/user";
 import { API_BASE_URL } from "$lib/constants";
 import { t as $t, locale as $locale, locale } from "svelte-i18n";
+import { get } from "svelte/store";
 
 
 // 기본 URL을 동적으로 결정하는 함수
@@ -43,6 +44,30 @@ export async function getCurrentUser(): Promise<any | null> {
     console.log(" # USER DATA SET LOCALE");
     if (user.data.language != null && user.data.language != "") {
       locale.set(user.data.language);
+    } else {
+      user.data.language = get(locale)
+      const settingRq: any = {
+        name: user.name,
+        nickname: user.data.nickname || "",
+        language: get(locale) || "en",
+      };
+
+      try {
+        const res = await fetch(`${API_BASE_URL}/api/user/edit`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(settingRq),
+          credentials: "include",
+        });
+
+        if (res.ok) {
+        } else {
+          const errorText = await res.text();
+          alert(errorText);
+        }
+      } catch (err) {
+        console.log(err);
+      }
     }
   } else {
     console.log("No user data found");
