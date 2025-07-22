@@ -207,7 +207,7 @@ export const emotionExpressions = [
   {
     name: 'anger', // 분노, 화
     targets: [
-      { targetName: 'Fcl_BRW_Angry', weight: 1.0 },
+      { targetName: 'Fcl_BRW_Angry', weight: 0.7 },
       { targetName: 'Fcl_EYE_Angry', weight: 0.9 },
       { targetName: 'Fcl_MTH_Angry', weight: 0.8 }
     ]
@@ -215,7 +215,7 @@ export const emotionExpressions = [
   {
     name: 'annoyance', // 짜증, 성가심
     targets: [
-      { targetName: 'Fcl_BRW_Angry', weight: 0.8 },
+      { targetName: 'Fcl_BRW_Angry', weight: 0.6 },
       { targetName: 'Fcl_EYE_Close_R', weight: 0.6 },
       { targetName: 'Fcl_EYE_Close_L', weight: 0.6 },
       { targetName: 'Fcl_MTH_Angry', weight: 0.7 }
@@ -325,7 +325,7 @@ export const emotionExpressions = [
       { "targetName": "Fcl_EYE_Fun", "weight": 1 },
       { "targetName": "Fcl_MTH_Fun", "weight": 1 },
       { "targetName": "Fcl_BRW_Fun", "weight": 0.68 },
-      { "targetName": "Fcl_BRW_Angry", "weight": 1 },
+      { "targetName": "Fcl_BRW_Angry", "weight": 7 },
       { "targetName": "Fcl_EYE_Spread", "weight": 0.38 },
       { "targetName": "Fcl_EYE_Surprised", "weight": 0.4 },
       { "targetName": "Fcl_MTH_Joy", "weight": 0.46 },
@@ -419,7 +419,7 @@ export const emotionExpressions = [
       [
         { "targetName": "Fcl_EYE_Close", "weight": 0.16 },
         { "targetName": "Fcl_MTH_Fun", "weight": 1 },
-        { "targetName": "Fcl_BRW_Angry", "weight": 1 },
+        { "targetName": "Fcl_BRW_Angry", "weight": 7 },
         { "targetName": "Fcl_MTH_Joy", "weight": 0.18 },
         { "targetName": "Fcl_MTH_Large", "weight": 0.17 }
       ]

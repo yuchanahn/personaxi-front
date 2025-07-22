@@ -2,13 +2,16 @@ import * as THREE from 'three/webgpu';
 import { Model } from './model';
 import { v4 as uuidv4 } from 'uuid';
 
+import { PostProcessing, uniform, bloom, pass } from 'three/tsl';
+import { RGBELoader } from 'three/addons/loaders/RGBELoader.js';
+
 export class Viewer {
   public model = new Model();
 
   private renderer: THREE.WebGPURenderer;
   private scene: THREE.Scene;
   public camera: THREE.PerspectiveCamera;
-  private light: THREE.DirectionalLight;
+  //private light: THREE.DirectionalLight;
   private clock = new THREE.Clock();
 
   private canvas: HTMLCanvasElement;
@@ -17,24 +20,69 @@ export class Viewer {
   private animationFrameId: number | null = null; // 애니메이션 프레임 ID를 저장할 변수
   private isStopped = false;
 
+  private postProcessing: PostProcessing;
+
   constructor(canvas: HTMLCanvasElement) {
     this.canvas = canvas;
 
-    this.renderer = new THREE.WebGPURenderer({ canvas, antialias: true, alpha: true }); // alpha: true 추가 (배경 투명도)
+    // --- 1. 렌더러 설정 (그림자 추가) ---
+    this.renderer = new THREE.WebGPURenderer({ canvas, antialias: true, alpha: true });
     this.renderer.setSize(canvas.clientWidth, canvas.clientHeight);
     this.renderer.setPixelRatio(window.devicePixelRatio);
+    //this.renderer.shadowMap.enabled = true; // 그림자 활성화
+    //this.renderer.shadowMap.type = THREE.PCFSoftShadowMap; // 부드러운 그림자
+    //this.renderer.toneMapping = THREE.ACESFilmicToneMapping; // 톤 매핑으로 색감 개선
+    this.renderer.outputColorSpace = THREE.SRGBColorSpace;
 
     this.scene = new THREE.Scene();
-    this.camera = new THREE.PerspectiveCamera(25, canvas.clientWidth / canvas.clientHeight, 0.01, 100);
-    this.camera.position.set(0, 1.35, 2.5); // Z 값을 조금 뒤로 빼서 시작
+    this.camera = new THREE.PerspectiveCamera(
+      25,
+      canvas.clientWidth / canvas.clientHeight,
+      0.1,
+      100
+    );
+    this.camera.position.set(0, 1.35, 2.5);
 
-    const ambient = new THREE.AmbientLight(0xffffff, 1.5);
-    ambient.position.set(1, 3, 1);
-    this.scene.add(ambient);
+    // --- 2. 조명 업그레이드 (3점 조명 + 자연광) ---
+    this.scene.remove(...this.scene.children.filter((c) => c instanceof THREE.Light));
 
-    this.light = new THREE.DirectionalLight(0xffffff, 1.0);
-    this.light.position.set(1, 2, 1);
-    this.scene.add(this.light);
+    // 자연스러운 환경광(흰색 -> 회색)
+    //const hemisphereLight = new THREE.HemisphereLight(0xffffff, 0x8d8d8d, 1.5);
+    //this.scene.add(hemisphereLight);
+
+    // 주 조명 (Key Light, 태양 역할)
+    const keyLight = new THREE.DirectionalLight(0xffffff, 1.6);
+    keyLight.position.set(1, 2, 2);
+    //keyLight.castShadow = true;
+    //keyLight.shadow.mapSize.set(2048, 2048); // 그림자 해상도
+    this.scene.add(keyLight);
+
+    // 보조 조명 (Fill Light, 그림자 영역을 부드럽게)
+    //const fillLight = new THREE.DirectionalLight(0xffffff, 1.8);
+    //fillLight.position.set(-1, 1, 2);
+    //this.scene.add(fillLight);
+    //
+    //// 후광 (Back Light, 캐릭터 윤곽 강조)
+    //const backLight = new THREE.DirectionalLight(0xffffff, 1.0);
+    //backLight.position.set(-1, 2, -2);
+    //this.scene.add(backLight);
+
+    // --- 3. HDRI 환경맵 설정 (사실적인 반사광) ---
+    if (false)
+      new RGBELoader().load('/studio_small_03_1k.hdr', (texture) => {
+        texture.mapping = THREE.EquirectangularReflectionMapping;
+        //this.scene.background = texture;
+        this.scene.environment = texture;
+      });
+
+    // --- 4. 후처리 설정 (블룸 효과) ---
+    const scenePass = pass(this.scene, this.camera);
+    // 강도(strength)를 낮추고, 임계값(threshold)을 높여서 효과를 줄임
+    const bloomPass = bloom(scenePass, 0.1, 0.001, 0.2);
+
+    this.postProcessing = new PostProcessing(this.renderer);
+    //this.postProcessing.outputNode = bloomPass;
+    this.postProcessing.outputNode = scenePass;
   }
 
   public getHeadPointInUI(): { x: number, y: number } | null {
@@ -66,8 +114,6 @@ export class Viewer {
     return null; // 화면 밖에 있을 경우 null 반환
   }
 
-
-
   async loadModel(url: string) {
     if (this.model.vrm) {
       this.scene.remove(this.model.vrm.scene);
@@ -78,6 +124,12 @@ export class Viewer {
       console.error("VRM 로딩 실패");
       return null;
     }
+    vrm.scene.traverse((obj) => {
+      if ((obj as THREE.Mesh).isMesh) {
+        obj.castShadow = true;
+        obj.receiveShadow = true; // 다른 부분의 그림자가 맺힐 수 있도록 설정
+      }
+    });
 
     const box = new THREE.Box3().setFromObject(vrm.scene);
     vrm.scene.position.y = -box.min.y;
@@ -95,8 +147,11 @@ export class Viewer {
     this.camera.lookAt(new THREE.Vector3(center.x, cameraHeight, center.z));
     this.camera.updateProjectionMatrix();
 
-    this.model.initAnimations(vrm);
+    this.model.initAnimations();
     this.scene.add(vrm.scene);
+
+    //this.scene.add(new THREE.SkeletonHelper(vrm.scene));
+
 
     if (!this.clock.running) {
       this.start();
@@ -116,6 +171,7 @@ export class Viewer {
     this.model.update(delta);
 
     await this.renderer.renderAsync(this.scene, this.camera);
+    this.postProcessing.render();
 
     // 4. 다음 프레임을 요청합니다.
     this.animationFrameId = requestAnimationFrame(this.renderLoop);
@@ -124,11 +180,9 @@ export class Viewer {
   private updateUIPosition() {
     if (!this.model?.vrm) return;
 
-    // ★★★ 가장 큰 문제점 수정: .clone()을 제거해야 합니다. ★★★
     const headBone = this.model.vrm.humanoid.getBoneNode("head");
 
     if (!headBone) {
-      // 헤드 본을 못 찾을 경우, 이 프레임에서는 UI 업데이트를 건너뜁니다.
       return;
     }
 
@@ -154,11 +208,10 @@ export class Viewer {
 
   start() {
     this.clock.start();
-    this.renderLoop(); // update 대신 renderLoop를 호출
+    this.renderLoop();
     this.isStopped = false;
   }
 
-  // Viewer 클래스의 stop 함수를 아래 내용으로 교체
 
   stop() {
     if (this.isStopped) {
@@ -170,27 +223,20 @@ export class Viewer {
 
     console.log("Stopping viewer and releasing resources...");
 
-    // 1. 애니메이션 루프를 최우선으로 중지합니다.
     if (this.animationFrameId) {
       cancelAnimationFrame(this.animationFrameId);
       // this.animationFrameId = 0; // ID 초기화 (선택 사항)
     }
     this.clock.stop();
 
-    // 2. 씬(Scene)에서 VRM 객체를 제거합니다.
-    // vrm.dispose()를 직접 호출하는 대신, 씬 그래프에서만 분리합니다.
     if (this.model && this.model.vrm) {
       this.scene.remove(this.model.vrm.scene);
       console.log("VRM model removed from scene.");
     }
 
-    // 3. 렌더러를 dispose 합니다.
-    // WebGPURenderer의 dispose는 연관된 모든 GPU 리소스를 해제해야 합니다.
-    // 개별 재질/지오메트리 dispose 호출 시 충돌이 나므로, 렌더러 자체의 dispose에 맡깁니다.
     this.renderer.dispose();
     console.log("Renderer disposed.");
 
-    // 4. 참조를 정리하여 가비지 컬렉터가 메모리를 회수하도록 돕습니다.
     if (this.model) {
       this.model.vrm = null;
     }

@@ -1,42 +1,110 @@
 <script lang="ts">
-    // ▼▼▼ 기존 컴포넌트의 스크립트 로직을 거의 그대로 가져왔어요. ▼▼▼
     import { goto } from "$app/navigation";
-    import {
-        loadContent,
-        loadContentWithName,
-        loadContentWithTags,
-    } from "$lib/api/content";
+    import { onMount, onDestroy, tick } from "svelte";
     import type { Persona } from "$lib/types";
-    import { onMount } from "svelte";
-    import { get, writable } from "svelte/store";
-    import { fetchLivePersonas } from "$lib/services/live";
-    import { fetchAuctionPersonas } from "$lib/services/auction";
-    import type { AuctionPersona } from "$lib/services/auction";
+    import { writable } from "svelte/store";
     import { t } from "svelte-i18n";
     import Icon from "@iconify/svelte";
     import { PORTRAIT_URL } from "$lib/constants";
+    import { loadContent } from "$lib/api/content";
+    import { type AuctionPersona } from "$lib/services/auction";
 
-    let contents = writable<Persona[]>([]);
+    //TODO: 나중에 처리 해주기!
     let liveIds: string[] = [];
     let auctions: AuctionPersona[] = [];
 
-    // 데이터 로딩 (기존과 동일)
+    let contents = writable<Persona[]>([]);
+    let currentImageIndices = new Map<string, number>();
+    let imageInterval: ReturnType<typeof setInterval>;
+
+    let activePersonaId: string | null = null;
+    let observer: IntersectionObserver;
+    let feedContainer: HTMLElement; // .feed-container 요소를 바인딩할 변수
+
+    $: getBackgroundImage = (content: Persona): string => {
+        let imageUrl = `${PORTRAIT_URL}${content.owner_id[0]}/${content.id}.portrait`;
+        if (content.image_metadatas && content.image_metadatas.length > 0) {
+            const currentIndex = currentImageIndices.get(content.id) || 0;
+            if (content.image_metadatas[currentIndex]?.url) {
+                imageUrl = content.image_metadatas[currentIndex].url;
+            }
+        }
+        return `url(${imageUrl})`;
+    };
+
     onMount(async () => {
         const data = await loadContent();
+        data.forEach((p: Persona) => {
+            if (p.image_metadatas && p.image_metadatas.length > 0) {
+                currentImageIndices.set(p.id, 0);
+                p.image_metadatas.unshift({
+                    url: `${PORTRAIT_URL}${p.owner_id[0]}/${p.id}.portrait`,
+                    description: "",
+                });
+            }
+        });
         contents.set(data);
 
-        const live = await fetchLivePersonas();
-        auctions = await fetchAuctionPersonas();
-        liveIds = [...live];
+        await tick();
+
+        const options = {
+            root: feedContainer, // 바인딩된 feedContainer를 root로 사용
+            threshold: 0.8,
+        };
+
+        observer = new IntersectionObserver((entries) => {
+            entries.forEach((entry) => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add("active");
+                    activePersonaId = entry.target.id;
+
+                    console.log("CLASS : " + entry.target.classList);
+                } else {
+                    entry.target.classList.remove("active");
+                }
+            });
+        }, options);
+
+        const reels = feedContainer.querySelectorAll(".reel");
+        reels.forEach((reel) => observer.observe(reel));
+
+        // 인터벌 로직은 동일
+        imageInterval = setInterval(() => {
+            if (!activePersonaId) return;
+
+            const activePersona = $contents.find(
+                (p) => p.id === activePersonaId,
+            );
+            if (
+                activePersona &&
+                activePersona.image_metadatas &&
+                activePersona.image_metadatas.length > 1
+            ) {
+                const newIndices = new Map(currentImageIndices);
+                const currentIndex = newIndices.get(activePersonaId) || 0;
+                const nextIndex =
+                    (currentIndex + 1) % activePersona.image_metadatas.length;
+
+                newIndices.set(activePersonaId, nextIndex);
+
+                currentImageIndices = newIndices;
+            }
+        }, 5000);
     });
 
-    // 상태 체크 함수 (기존과 동일)
+    onDestroy(() => {
+        clearInterval(imageInterval);
+        if (observer) {
+            observer.disconnect();
+        }
+    });
+
     $: isLive = (id: string) => liveIds.includes(id);
+
     $: isAuctioning = (id: string) => {
         return auctions.some((auction) => auction.personaId === id);
     };
 
-    // 캐릭터 클릭 시 적절한 페이지로 이동시키는 함수
     function navigateToCharacter(content: Persona) {
         switch (content.personaType) {
             case "live":
@@ -61,32 +129,34 @@
     }
 </script>
 
-<div class="feed-container">
+<div class="feed-container" bind:this={feedContainer}>
     {#each $contents as content (content.id)}
         <section
+            id={content.id}
             class="reel"
-            style="background-image: url({PORTRAIT_URL}{content
-                .owner_id[0]}/{content.id}.portrait);"
+            style="background-image: {getBackgroundImage(content)};"
         >
             <div class="overlay">
                 <div class="info-box">
-                    <div class="name-line">
-                        <strong class="name">{content.name}</strong>
-                        {#if isLive(content.id)}
-                            <span class="badge live">LIVE</span>
-                        {/if}
-                        {#if isAuctioning(content.id)}
-                            <span class="badge auction">AUCTION</span>
-                        {/if}
+                    <div class="creator-line">
+                        <span class="creator-name">@{content.creator_name}</span
+                        >
                     </div>
 
-                    <div class="tags-line">
-                        {#if content.tags}
-                            {#each content.tags.slice(0, 4) as tag}
-                                <span class="tag">#{tag}</span>
-                            {/each}
-                        {/if}
+                    <div class="name-line">
+                        <strong class="name">{content.name}</strong>
                     </div>
+
+                    {#if content.first_scene}
+                        <p class="first-scene">
+                            "{content.first_scene.slice(0, 80)}{content
+                                .first_scene.length > 80
+                                ? "..."
+                                : ""}"
+                        </p>
+                    {/if}
+
+                    <div class="tags-line"></div>
                 </div>
 
                 <div class="action-sidebar">
@@ -106,6 +176,11 @@
                         <span class="action-label">{content.feedback.like}</span
                         >
                     </button>
+                    <button class="action-button">
+                        <Icon icon="ph:eye-duotone" width="32" height="32" />
+                        <span class="action-label">{content.feedback.view}</span
+                        >
+                    </button>
                 </div>
             </div>
         </section>
@@ -113,63 +188,84 @@
 </div>
 
 <style>
-    /* 전체 피드 컨테이너: 세로 스크롤 스냅을 적용해 틱톡처럼 보이게 하는 핵심 부분! */
+    /* 전체 피드 컨테이너 */
     .feed-container {
         width: 100%;
-        height: 100vh; /* 화면 전체 높이를 차지 */
-        overflow-y: scroll; /* 세로 스크롤 활성화 */
-        scroll-snap-type: y mandatory; /* Y축(세로)으로 스크롤이 딱딱 끊어지게 설정 */
+        height: 100vh;
+        overflow-y: scroll;
+        scroll-snap-type: y mandatory;
         background-color: #121212;
-        /* 모바일에서 스크롤바 숨기기 */
-        -ms-overflow-style: none; /* IE and Edge */
-        scrollbar-width: none; /* Firefox */
+        scrollbar-width: none;
     }
     .feed-container::-webkit-scrollbar {
-        display: none; /* Chrome, Safari, Opera*/
+        display: none;
     }
 
-    /* 개별 캐릭터를 보여주는 '릴' */
+    /* 개별 캐릭터 릴 */
     .reel {
         width: 100%;
-        height: 100vh; /* 화면 전체 높이 */
-        scroll-snap-align: start; /* 스크롤 시 이 요소의 시작 부분에 맞춰 멈춤 */
-        position: relative; /* 자식 요소인 오버레이를 위한 기준점 */
-        display: flex;
-        align-items: center;
-        justify-content: center;
-
-        /* 캐릭터 이미지를 배경으로 설정 */
+        height: 100vh;
+        scroll-snap-align: start;
+        position: relative;
         background-size: cover;
         background-position: center;
         color: white;
+        /* 배경 이미지 전환 시 부드러운 효과 */
+        transition: background-image 0.5s ease-in-out;
     }
 
-    /* 정보가 표시되는 오버레이 */
+    /* 정보 오버레이 */
     .overlay {
         position: absolute;
-        bottom: 0;
-        left: 0;
-        right: 0;
-        top: 0;
+        inset: 0;
         display: flex;
-        justify-content: space-between; /* 정보는 왼쪽, 액션 버튼은 오른쪽에 배치 */
-        align-items: flex-end; /* 모든 요소를 하단에 정렬 */
-        padding: 1rem 1rem 3rem 1rem; /* 하단 여백을 더 줘서 모바일 제스처와 겹치지 않게 함 */
-
-        /* 텍스트가 잘 보이도록 배경에 어두운 그라데이션 추가 */
+        justify-content: space-between;
+        align-items: flex-end;
+        padding: 1rem 1rem 3rem 1rem;
         background: linear-gradient(
             to top,
-            rgba(0, 0, 0, 0.7) 0%,
+            rgba(0, 0, 0, 0.8) 0%,
             rgba(0, 0, 0, 0) 50%
         );
     }
 
-    /* 이름, 태그 등 정보 영역 */
+    .creator-line {
+        font-size: 1rem;
+        font-weight: 500;
+        background-color: rgba(0, 0, 0, 0.3);
+        padding: 0.2rem 0.6rem;
+        border-radius: 8px;
+        width: fit-content;
+    }
+
+    .info-box,
+    .action-sidebar {
+        opacity: 0;
+        transition:
+            opacity 0.5s ease-out,
+            transform 0.5s ease-out;
+    }
     .info-box {
+        transform: translateY(20px);
+        /* ▼▼▼ 빠진 내용 추가 ▼▼▼ */
         display: flex;
         flex-direction: column;
         gap: 0.75rem;
-        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8); /* 텍스트 가독성을 위한 그림자 */
+        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+    }
+    .action-sidebar {
+        transform: translateX(20px);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 1.5rem;
+        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+    }
+
+    .reel:global(.active) .info-box,
+    .reel:global(.active) .action-sidebar {
+        opacity: 1;
+        transform: translate(0, 0);
     }
 
     .name-line {
@@ -181,22 +277,12 @@
         font-size: 1.8rem;
         font-weight: bold;
     }
-
-    /* 뱃지 공통 스타일 */
-    .badge {
-        font-size: 0.75rem;
-        font-weight: bold;
-        padding: 0.2rem 0.5rem;
-        border-radius: 6px;
-        color: white;
+    .first-scene {
+        font-style: italic;
+        color: #e0e0e0;
+        max-width: 500px;
+        line-height: 1.4;
     }
-    .badge.live {
-        background-color: #e91e63; /* 좀 더 톡톡 튀는 색으로 */
-    }
-    .badge.auction {
-        background-color: #3f51b5;
-    }
-
     .tags-line {
         display: flex;
         flex-wrap: wrap;
@@ -209,14 +295,22 @@
         font-size: 0.85rem;
     }
 
-    /* 오른쪽 액션 버튼 사이드바 */
-    .action-sidebar {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: 1.5rem; /* 버튼 사이 간격 */
-        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+    /* 뱃지 */
+    .badge {
+        font-size: 0.75rem;
+        font-weight: bold;
+        padding: 0.2rem 0.5rem;
+        border-radius: 6px;
+        color: white;
     }
+    .badge.live {
+        background-color: #e91e63;
+    }
+    .badge.auction {
+        background-color: #3f51b5;
+    }
+
+    /* 액션 버튼 사이드바 */
     .action-button {
         background: none;
         border: none;
@@ -228,9 +322,10 @@
         gap: 0.2rem;
         padding: 0;
         transition: transform 0.2s ease;
+        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
     }
     .action-button:hover {
-        transform: scale(1.1); /* 살짝 커지는 호버 효과 */
+        transform: scale(1.1);
     }
     .action-label {
         font-size: 0.9rem;

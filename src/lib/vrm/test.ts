@@ -14,7 +14,7 @@ export function getViewer(): Viewer | null {
 export function test(canvas: HTMLCanvasElement, persona: Persona) {
 
     if (current_model) {
-        current_model.unloadVrm();
+        //current_model.unloadVrm();
     }
     if (viewer) {
         viewer.stop();
@@ -42,6 +42,6 @@ export function get_model_head_position(): { x: number, y: number } | null {
 export function unload() {
     if (current_model) {
         viewer?.stop();
-        current_model.unloadVrm();
+        //current_model.unloadVrm();
     }
 }

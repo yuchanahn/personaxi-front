@@ -4,6 +4,7 @@
   import { t } from "svelte-i18n";
 
   export let onSend: (text: string) => void;
+  export let onChangeInput: (text: string) => void;
   let prompt = "";
 
   function handleSubmit(e: KeyboardEvent) {
@@ -38,6 +39,7 @@
       rows="1"
       use:autoResize={180}
       on:keydown={handleSubmit}
+      on:input={() => onChangeInput(prompt)}
     ></textarea>
     <button
       class="chat-send-button"

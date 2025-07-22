@@ -13,7 +13,7 @@
   let persona: Persona | null = null;
 
   let Viewer: VrmModelViewer;
-  let showChat: boolean = true;
+  let showChat: boolean = false;
 
   onMount(() => {
     const sessionId = $page.url.searchParams.get("c");
