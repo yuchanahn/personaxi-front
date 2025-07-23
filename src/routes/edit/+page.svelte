@@ -363,8 +363,67 @@
 
                 error = "";
 
-                if (!persona.name.trim() || !persona.personaType) {
-                    error = $t("editPage.errorRequired");
+                if (
+                    !persona.name.trim() ||
+                    !persona.personaType.trim() ||
+                    !persona.greeting.trim() ||
+                    !persona.first_scene.trim() ||
+                    persona.instructions.length === 0 ||
+                    persona.promptExamples.length === 0 ||
+                    persona.tags.length === 0
+                ) {
+                    error =
+                        "모든 필드를 채워주세요. 지침, 프롬프트 예시, 태그는 최소 1개 이상 추가해야 합니다.";
+                    return;
+                }
+
+                if (
+                    persona.greeting.length > 200 ||
+                    persona.first_scene.length > 500
+                ) {
+                    error = "소개 또는 첫 장면의 글자 수를 초과했습니다.";
+                    return;
+                }
+
+                if (
+                    persona.instructions.some((inst) => inst.length > 200) ||
+                    persona.instructions.length > 10
+                ) {
+                    error = "지침의 글자 수를 초과했거나 10개를 초과했습니다.";
+                    return;
+                }
+
+                if (
+                    persona.promptExamples.some((ex) => ex.length > 200) ||
+                    persona.promptExamples.length > 10
+                ) {
+                    error =
+                        "프롬프트 예시의 글자 수를 초과했거나 10개를 초과했습니다.";
+                    return;
+                }
+
+                if (
+                    persona.greeting.length > 200 ||
+                    persona.first_scene.length > 500
+                ) {
+                    error = "소개 또는 첫 장면의 글자 수를 초과했습니다.";
+                    return;
+                }
+
+                if (
+                    persona.instructions.some((inst) => inst.length > 200) ||
+                    persona.instructions.length > 10
+                ) {
+                    error = "지침의 글자 수를 초과했거나 10개를 초과했습니다.";
+                    return;
+                }
+
+                if (
+                    persona.promptExamples.some((ex) => ex.length > 200) ||
+                    persona.promptExamples.length > 10
+                ) {
+                    error =
+                        "프롬프트 예시의 글자 수를 초과했거나 10개를 초과했습니다.";
                     return;
                 }
 
@@ -451,7 +510,13 @@
                             rows="3"
                             maxlength="200"
                         ></textarea>
-                        <div class="char-counter">{persona.greeting.length} / 200</div>
+                        <div
+                            class="char-counter"
+                            class:warning={persona.greeting.length > 160}
+                            class:error={persona.greeting.length >= 200}
+                        >
+                            {persona.greeting.length} / 200
+                        </div>
                     </div>
                     <div class="form-group">
                         <label for="personaType"
@@ -694,7 +759,15 @@
                             bind:value={persona.first_scene}
                             placeholder={$t("editPage.firstScenePlaceholder")}
                             rows="5"
+                            maxlength="500"
                         ></textarea>
+                        <div
+                            class="char-counter"
+                            class:warning={persona.first_scene.length > 400}
+                            class:error={persona.first_scene.length >= 500}
+                        >
+                            {persona.first_scene.length} / 500
+                        </div>
                     </div>
                     <div class="form-group">
                         <label for="instruction-input"
@@ -712,13 +785,24 @@
                                     "editPage.instructionsPlaceholder",
                                 )}
                                 rows="3"
+                                maxlength="200"
                             />
                             <button
                                 type="button"
                                 class="btn btn-secondary"
+                                class:btn-add-emphasis={instruction.length > 0}
                                 on:click={addInstruction}
-                                >{$t("editPage.addButton")}</button
+                                disabled={persona.instructions.length >= 10}
+                                >[+] {$t("editPage.addButton")}</button
                             >
+                        </div>
+                        <div
+                            class="char-counter"
+                            class:warning={instruction.length > 160}
+                            class:error={instruction.length >= 200}
+                        >
+                            {instruction.length} / 200 | {persona.instructions
+                                .length} / 10
                         </div>
                         <ul class="item-list">
                             {#each persona.instructions as inst, i}
@@ -748,13 +832,23 @@
                                 placeholder={$t(
                                     "editPage.promptExamplesPlaceholder",
                                 )}
+                                maxlength="200"
                             />
                             <button
                                 type="button"
                                 class="btn btn-secondary"
                                 on:click={addPromptExample}
+                                disabled={persona.promptExamples.length >= 10}
                                 >{$t("editPage.addButton")}</button
                             >
+                        </div>
+                        <div
+                            class="char-counter"
+                            class:warning={promptExample.length > 160}
+                            class:error={promptExample.length >= 200}
+                        >
+                            {promptExample.length} / 200 | {persona
+                                .promptExamples.length} / 10
                         </div>
                         <ul class="item-list">
                             {#each persona.promptExamples as prompt, i}
@@ -793,8 +887,9 @@
                             <button
                                 type="button"
                                 class="btn btn-secondary"
+                                class:btn-add-emphasis={tags.length > 0}
                                 on:click={addTag}
-                                >{$t("editPage.addButton")}</button
+                                >[+] {$t("editPage.addButton")}</button
                             >
                         </div>
                         <ul class="tag-list">
@@ -1054,6 +1149,22 @@
         background: #3c3c3c;
     }
 
+    .btn-add-emphasis {
+        animation: pulse 1.5s infinite;
+    }
+
+    @keyframes pulse {
+        0% {
+            box-shadow: 0 0 0 0 rgba(74, 144, 226, 0.7);
+        }
+        70% {
+            box-shadow: 0 0 0 10px rgba(74, 144, 226, 0);
+        }
+        100% {
+            box-shadow: 0 0 0 0 rgba(74, 144, 226, 0);
+        }
+    }
+
     .btn-remove {
         background: none;
         border: none;
@@ -1108,6 +1219,18 @@
     }
 
     /* style 블록 맨 아래에 추가 */
+    .char-counter {
+        font-size: 0.8rem;
+        color: var(--text-secondary);
+        text-align: right;
+        margin-top: 0.25rem;
+    }
+    .char-counter.warning {
+        color: orange;
+    }
+    .char-counter.error {
+        color: var(--accent-danger);
+    }
 
     .voice-selector {
         display: flex;
