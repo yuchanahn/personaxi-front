@@ -10,7 +10,7 @@
         dispatch("close");
     }
 
-    // Escape 키를 누르면 모달이 닫히도록 설정 (사용자 경험 향상!)
+    // Escape 키를 누르면 모달이 닫히도록 설정
     function handleKeydown(event: KeyboardEvent) {
         if (event.key === "Escape") {
             closeModal();
@@ -83,24 +83,6 @@
                         위한 과정의 일부입니다.
                     </p>
                 </div>
-
-                <div class="info-section">
-                    <h3 class="info-title">
-                        <Icon icon="ph:currency-circle-dollar-duotone" />
-                        체험용 크레딧 '뉴런' 제공
-                    </h3>
-                    <p>
-                        회원가입 시, 약 <strong>20~40회</strong>의 채팅을 보낼
-                        수 있는 체험용 화폐 '뉴런(Neuron)'이 기본으로
-                        제공됩니다. 마음껏 페르소나와 대화하며 다양한 기능을
-                        테스트해주세요!
-                    </p>
-                </div>
-
-                <p class="final-notice">
-                    <strong>※ 중요:</strong> 정식 출시 시 모든 데이터(계정, 페르소나,
-                    대화 기록 등)는 초기화됩니다.
-                </p>
             </div>
 
             <button class="confirm-button" on:click={closeModal}>
@@ -135,6 +117,11 @@
         width: 90%;
         max-width: 500px;
         border: 1px solid #444;
+
+        /* --- 스크롤을 위한 핵심 스타일 --- */
+        max-height: 85vh;
+        display: flex;
+        flex-direction: column;
     }
 
     .close-button {
@@ -154,6 +141,13 @@
         color: white;
     }
 
+    .modal-content {
+        display: flex;
+        flex-direction: column;
+        flex-grow: 1; /* 남는 공간을 모두 차지 */
+        overflow: hidden; /* 내부 body가 스크롤되도록 */
+    }
+
     .modal-title {
         display: flex;
         align-items: center;
@@ -162,13 +156,26 @@
         font-weight: 600;
         margin: 0 0 1rem 0;
         color: white;
+        flex-shrink: 0; /* 제목은 줄어들지 않도록 */
     }
 
     .modal-body {
-        font-size: 1rem;
+        text-align: left;
+        font-size: 0.95rem;
         line-height: 1.6;
         margin: 0 0 2rem 0;
         color: #ccc;
+
+        /* --- 스크롤을 위한 핵심 스타일 --- */
+        flex-grow: 1;
+        overflow-y: auto;
+        padding-right: 1rem; /* 스크롤바와 내용 간격 */
+    }
+
+    /* --- strong 태그 스타일 수정 --- */
+    .modal-body strong {
+        font-weight: 700;
+        color: #ffffff;
     }
 
     .confirm-button {
@@ -182,18 +189,16 @@
         border-radius: 8px;
         cursor: pointer;
         transition: all 0.3s ease;
+        flex-shrink: 0; /* 버튼은 줄어들지 않도록 */
     }
     .confirm-button:hover {
         transform: translateY(-2px);
         box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
     }
-    .modal-body {
-        text-align: left; /* 내용을 왼쪽 정렬로 변경 */
-        font-size: 0.95rem;
-        line-height: 1.6;
-        margin: 0 0 2rem 0;
-        color: #ccc;
+    .confirm-button span {
+        margin-left: 0.5rem;
     }
+
     .info-section {
         background-color: rgba(0, 0, 0, 0.2);
         border: 1px solid #444;
@@ -201,6 +206,7 @@
         padding: 1rem 1.5rem;
         margin: 1.5rem 0;
     }
+
     .info-title {
         display: flex;
         align-items: center;
@@ -210,32 +216,34 @@
         color: #e0e0e0;
         margin: 0 0 0.5rem 0;
     }
+
     .tech-list {
-        list-style-type: "⚡️"; /* 리스트 마커 변경 */
+        list-style-type: "⚡️";
         padding-left: 1.5rem;
     }
+
     .tech-list li {
         padding-left: 0.5rem;
         margin-bottom: 0.5rem;
     }
-    .final-notice {
-        text-align: center;
-        font-size: 0.9rem;
-        color: #ffc107; /* 강조 색상 */
-    }
-    .confirm-button span {
-        /* 버튼 텍스트가 길어졌으니 추가 */
-        margin-left: 0.5rem;
-    }
-
-    /* 👇 이 코드를 <style> 블록 안에 추가하세요. */
-
-    .modal-body strong {
-        font-weight: 700; /* bold와 동일, 굵은 글씨체로 강제 적용 */
-        color: #ffffff; /* 기본 텍스트보다 살짝 더 밝은 흰색으로 강조 */
-    }
 
     .final-notice strong {
         font-weight: 700;
+    }
+
+    /* --- 스크롤바 디자인 --- */
+    .modal-body::-webkit-scrollbar {
+        width: 8px;
+    }
+    .modal-body::-webkit-scrollbar-track {
+        background: rgba(0, 0, 0, 0.2);
+        border-radius: 4px;
+    }
+    .modal-body::-webkit-scrollbar-thumb {
+        background: #555;
+        border-radius: 4px;
+    }
+    .modal-body::-webkit-scrollbar-thumb:hover {
+        background: #777;
     }
 </style>
