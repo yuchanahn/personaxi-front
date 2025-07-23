@@ -99,10 +99,9 @@
     });
 
     function handleStartChat() {
-        if (persona?.personaType === "2D") {
+        if (persona?.personaType === "2D" || persona?.personaType === "2d") {
             goto(`/2d?c=${persona.id}`);
-        }
-        if (persona?.personaType === "3D") {
+        } else if (persona?.personaType === "3D") {
             goto(`/character?c=${persona.id}`);
         } else {
             alert(persona?.personaType);
