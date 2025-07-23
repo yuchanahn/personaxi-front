@@ -41,7 +41,6 @@ export async function getCurrentUser(): Promise<any | null> {
   const user = await res.json();
 
   if (user.data) {
-    console.log(" # USER DATA SET LOCALE");
     if (user.data.language != null && user.data.language != "") {
       locale.set(user.data.language);
     } else {

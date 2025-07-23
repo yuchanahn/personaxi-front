@@ -1,4 +1,3 @@
-
 <script lang="ts">
     import "$lib/styles/theme.css"; // 이미 적용된 글로벌 CSS
     import Sidebar from "$lib/components/sidebar/Sidebar.svelte"; // 사이드바 컴포넌트
@@ -69,7 +68,7 @@
 <div class="layout">
     <Sidebar bind:showSidebar />
     <main>
-        {#if !$is_login}
+        {#if !$is_login && $page.url.pathname !== "/hub" && $page.url.pathname !== "/feed"}
             <Login />
         {:else}
             <slot />
@@ -80,7 +79,6 @@
         />
     </main>
 
-    
     <NeedMoreNeuronsModal
         bind:isOpen={$needMoreNeuronsModal}
         isNeedNeurons={true}
