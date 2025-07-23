@@ -1,16 +1,18 @@
 <script lang="ts">
   import SettingsButton from "$lib/components/common/SettingsButton.svelte";
   import SettingsModal from "$lib/components/modal/SettingModal.svelte";
+  import type { Persona } from "$lib/types";
 
   export let cssid: string;
   export let showChat: boolean;
+  export let persona: Persona; // persona prop 추가
 
   let isSettingsModalOpen = false;
 </script>
 
 {#if isSettingsModalOpen}
   <SettingsModal
-    {cssid}
+    {persona}
     isOpen={isSettingsModalOpen}
     on:close={() => (isSettingsModalOpen = false)}
   />

@@ -67,9 +67,9 @@
   let isSettingsModalOpen = false;
 </script>
 
-{#if isSettingsModalOpen}
+{#if isSettingsModalOpen && persona}
   <SettingsModal
-    cssid={lastSessionId ?? ""}
+    {persona}
     isOpen={isSettingsModalOpen}
     on:close={() => (isSettingsModalOpen = false)}
   />

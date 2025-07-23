@@ -4,7 +4,7 @@
   import { t } from "svelte-i18n";
 
   export let onSend: (text: string) => void;
-  export let onChangeInput: (text: string) => void;
+  export let onChangeInput: (text: string) => void = (t: string) => {};
   let prompt = "";
 
   function handleSubmit(e: KeyboardEvent) {

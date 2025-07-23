@@ -5,7 +5,7 @@
     import { writable } from "svelte/store";
     import { t } from "svelte-i18n";
     import Icon from "@iconify/svelte";
-    import { PORTRAIT_URL } from "$lib/constants";
+    import { PORTRAIT_URL, API_BASE_URL } from "$lib/constants";
     import { loadContent } from "$lib/api/content";
     import { type AuctionPersona } from "$lib/services/auction";
 
@@ -127,6 +127,54 @@
                 break;
         }
     }
+
+    async function FeedbackBtn(persona: Persona, isLikeAction: boolean) {
+        const endpoint = isLikeAction ? "like" : "dislike";
+        const url = `${API_BASE_URL}/api/persona/${endpoint}?id=${persona.id}`;
+
+        try {
+            const res = await fetch(url, {
+                credentials: "include",
+            });
+
+            if (res.ok) {
+                // 성공적으로 좋아요/싫어요 처리됨
+                contents.update((currentContents) => {
+                    return currentContents.map((p) => {
+                        if (p.id === persona.id) {
+                            return {
+                                ...p,
+                                is_liked: isLikeAction,
+                                likes_count: isLikeAction
+                                    ? p.likes_count + 1
+                                    : p.likes_count - 1,
+                            };
+                        }
+                        return p;
+                    });
+                });
+                alert(
+                    `Successfully ${isLikeAction ? "liked" : "disliked"} this persona!`,
+                );
+            } else if (res.status === 409) {
+                // 이미 좋아요/싫어요를 누른 경우
+                const errorData = await res.json();
+                alert(
+                    errorData.message ||
+                        `You have already ${isLikeAction ? "liked" : "disliked"} this persona.`,
+                );
+            } else {
+                // 기타 에러
+                const errorData = await res.json();
+                alert(
+                    `Failed to ${isLikeAction ? "like" : "dislike"} persona: ${errorData.message || res.statusText}`,
+                );
+            }
+        } catch (error) {
+            console.error("Network or other error:", error);
+            alert("An unexpected error occurred. Please try again.");
+        }
+    }
 </script>
 
 <div class="feed-container" bind:this={feedContainer}>
@@ -171,9 +219,34 @@
                         />
                         <span class="action-label">{$t("feed.interact")}</span>
                     </button>
-                    <button class="action-button">
-                        <Icon icon="ph:heart-duotone" width="32" height="32" />
-                        <span class="action-label">{content.feedback.like}</span
+                    <button
+                        class="action-button"
+                        on:click={() => FeedbackBtn(content, true)}
+                        disabled={content.is_liked}
+                    >
+                        <Icon
+                            icon={content.is_liked
+                                ? "ph:heart-fill"
+                                : "ph:heart-duotone"}
+                            width="32"
+                            height="32"
+                        />
+                        <span class="action-label">{content.likes_count}</span>
+                    </button>
+                    <button
+                        class="action-button"
+                        on:click={() => FeedbackBtn(content, false)}
+                        disabled={!content.is_liked}
+                    >
+                        <Icon
+                            icon={!content.is_liked
+                                ? "ph:heart-break-fill"
+                                : "ph:heart-break-duotone"}
+                            width="32"
+                            height="32"
+                        />
+                        <span class="action-label"
+                            >{content.dislikes_count}</span
                         >
                     </button>
                     <button class="action-button">

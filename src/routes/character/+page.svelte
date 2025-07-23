@@ -74,7 +74,7 @@
     />
   {/if}
 
-  <ChatControls3D cssid={lastSessionId ?? ""} bind:showChat />
+  <ChatControls3D cssid={lastSessionId ?? ""} bind:showChat {persona} />
 </main>
 
 <style>

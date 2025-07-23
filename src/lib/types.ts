@@ -1,6 +1,4 @@
 export interface PersonaFeedback {
-    like: number;
-    dislike: number;
     view: number;
 }
 
@@ -27,6 +25,10 @@ export interface Persona {
     updated_at: string;
     creator_name: string;
     first_scene: string;
+    greeting: string;
+    likes_count: number;
+    dislikes_count: number;
+    is_liked?: boolean; // Optional, as it's only present when fetched with user context
 }
 
 export interface User {

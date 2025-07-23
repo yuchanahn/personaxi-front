@@ -40,6 +40,7 @@
         updated_at: "",
         creator_name: "",
         first_scene: "",
+        greeting: "",
     };
     let instruction = "";
     let promptExample = "";
@@ -428,6 +429,27 @@
                             required
                             placeholder={$t("editPage.namePlaceholder")}
                         />
+                    </div>
+                    <div class="form-group">
+                        <label for="greeting"
+                            >{$t("editPage.greetingLabel", {
+                                default: "캐릭터 소개",
+                            })}</label
+                        >
+                        <p class="description">
+                            {$t("editPage.greetingDescription", {
+                                default: "당신의 캐릭터를 소개해 보세요!",
+                            })}
+                        </p>
+                        <textarea
+                            id="greeting"
+                            bind:value={persona.greeting}
+                            placeholder={$t("editPage.greetingPlaceholder", {
+                                default:
+                                    "예: 언제나 활기 넘치는 미소와 폭발(!)을 몰고 다니는 천재 연금술사 '루나'입니다. 실패는 성공의 어머니라고 굳게 믿으며, 오늘도 세상을 놀라게 할 발명에 도전하고 있죠!",
+                            })}
+                            rows="3"
+                        ></textarea>
                     </div>
                     <div class="form-group">
                         <label for="personaType"

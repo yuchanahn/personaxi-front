@@ -138,11 +138,13 @@
                                 } else if (isLive(content.id)) {
                                     goto(`/live?c=${content.id}`);
                                 } else {
-                                    goto(`/character?c=${content.id}`);
+                                    goto(`/profile?c=${content.id}`);
+                                    //goto(`/character?c=${content.id}`);
                                 }
                                 break;
                             case "2D":
-                                goto(`/2d?c=${content.id}`);
+                                goto(`/profile?c=${content.id}`);
+                                //goto(`/2d?c=${content.id}`);
                                 break;
                             case "text":
                                 goto(`/chat`);
