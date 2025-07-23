@@ -36,7 +36,7 @@
 <div class="login-page-wrapper">
     <div class="login-container">
         <div class="login-header">
-            <img src="/logo.svg" alt="서비스 로고" class="logo" />
+            <img src="/logo.png" alt="서비스 로고" class="logo" />
             <h1 class="title">다시 만나서 반가워요!</h1>
             <p class="subtitle">로그인하고 모든 서비스를 이용해보세요.</p>
         </div>

@@ -6,7 +6,7 @@
     import { t } from "svelte-i18n";
     import Icon from "@iconify/svelte";
     import { PORTRAIT_URL, API_BASE_URL } from "$lib/constants";
-    import { loadContent } from "$lib/api/content";
+    import { loadContent, loadlikesdata } from "$lib/api/content";
     import { type AuctionPersona } from "$lib/services/auction";
 
     //TODO: 나중에 처리 해주기!
@@ -34,12 +34,20 @@
 
     onMount(async () => {
         const data = await loadContent();
+        const likes: string[] = await loadlikesdata();
         data.forEach((p: Persona) => {
             if (p.image_metadatas && p.image_metadatas.length > 0) {
                 currentImageIndices.set(p.id, 0);
                 p.image_metadatas.unshift({
                     url: `${PORTRAIT_URL}${p.owner_id[0]}/${p.id}.portrait`,
                     description: "",
+                });
+            }
+            if (likes) {
+                likes.forEach((like) => {
+                    if (like === p.id) {
+                        p.is_liked = true;
+                    }
                 });
             }
         });
@@ -153,9 +161,6 @@
                         return p;
                     });
                 });
-                alert(
-                    `Successfully ${isLikeAction ? "liked" : "disliked"} this persona!`,
-                );
             } else if (res.status === 409) {
                 // 이미 좋아요/싫어요를 누른 경우
                 const errorData = await res.json();
@@ -195,10 +200,10 @@
                         <strong class="name">{content.name}</strong>
                     </div>
 
-                    {#if content.first_scene}
+                    {#if content.greeting}
                         <p class="first-scene">
-                            "{content.first_scene.slice(0, 80)}{content
-                                .first_scene.length > 80
+                            "{content.greeting.slice(0, 80)}{content.greeting
+                                .length > 80
                                 ? "..."
                                 : ""}"
                         </p>
@@ -233,7 +238,7 @@
                         />
                         <span class="action-label">{content.likes_count}</span>
                     </button>
-                    <button
+                    <!-- <button
                         class="action-button"
                         on:click={() => FeedbackBtn(content, false)}
                         disabled={!content.is_liked}
@@ -248,11 +253,18 @@
                         <span class="action-label"
                             >{content.dislikes_count}</span
                         >
-                    </button>
-                    <button class="action-button">
+                    </button> -->
+                    <!-- <button class="action-button">
                         <Icon icon="ph:eye-duotone" width="32" height="32" />
                         <span class="action-label">{content.feedback.view}</span
                         >
+                    </button> -->
+                    <button
+                        class="action-button"
+                        on:click={() => navigateToCharacter(content)}
+                    >
+                        <Icon icon="ph:eye-duotone" width="32" height="32" />
+                        <span class="action-label">{content.chat_count}</span>
                     </button>
                 </div>
             </div>

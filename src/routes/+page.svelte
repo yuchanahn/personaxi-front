@@ -5,6 +5,9 @@
   import { goto } from "$app/navigation";
 
   import "$lib/styles/theme.css";
+  import NoticeModal from "$lib/components/modal/NoticeModal.svelte";
+
+  let isModalOpen = false;
 
   onMount(async () => {
     const url = new URL(window.location.href);
@@ -12,7 +15,7 @@
     if (authKey) {
       await loginWithAuthKey(authKey);
     } else {
-      goto("/hub");
+      isModalOpen = true;
     }
     let user = await getCurrentUser();
     if (user != null) {
@@ -22,7 +25,16 @@
   });
 </script>
 
-<main></main>
+<main>
+  {#if isModalOpen}
+    <NoticeModal
+      on:close={() => {
+        isModalOpen = false;
+        goto("/hub");
+      }}
+    />
+  {/if}
+</main>
 
 <style>
   :global(body) {

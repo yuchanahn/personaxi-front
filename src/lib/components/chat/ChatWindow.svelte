@@ -1,10 +1,9 @@
 <script lang="ts">
   import "$lib/styles/custom-markdown.css";
-  import { onMount, tick } from "svelte"; // tick 추가
+  import { onMount, tick, onDestroy } from "svelte";
   import { marked } from "marked";
   import { messages } from "$lib/stores/messages";
-  import { t } from "svelte-i18n"; // svelte-i18n import 추가
-  import { ASSET_URL, PORTRAIT_URL } from "$lib/constants";
+  import { t } from "svelte-i18n";
   import type { Persona } from "$lib/types";
 
   export let isLoading: boolean = false;
@@ -15,134 +14,218 @@
   let chatWindowEl: HTMLElement;
   let isThink = false;
 
+  // 메모이제이션을 위한 캐시
+  let processedMessagesCache = new Map<string, string>();
+  let lastMessagesLength = 0;
+
+  // think 상태 계산 최적화
   $: {
-    isThink = false; // 기본값은 false
-    if ($messages.length > 0) {
-      const lastMessage = $messages[$messages.length - 1];
-      if (
+    const messagesArray = $messages;
+    if (messagesArray.length > 0) {
+      const lastMessage = messagesArray[messagesArray.length - 1];
+      isThink =
         lastMessage.role === "assistant" &&
         lastMessage.content.includes("<think>") &&
-        !lastMessage.content.includes("</think>")
-      ) {
-        isThink = true;
-      }
+        !lastMessage.content.includes("</think>");
+    } else {
+      isThink = false;
     }
   }
 
-  function print(text: string): Promise<string> {
-    // --- 1단계: <img> 태그에서 정보 추출 및 제거 ---
-
-    // 이미지 삽입 명령을 저장할 배열
-    const instructions: { pos: string; ins: number }[] = [];
-
-    // replace 콜백을 사용해 <img> 태그를 찾아서 정보만 빼내고, 태그 자체는 제거한다.
-    let cleanText = text.replace(
-      /<img>(.*?)<\/img>/g,
-      (match, capturedContent) => {
-        try {
-          const parts = capturedContent.split(",");
-          if (parts.length < 2) return ""; // 형식이 안 맞으면 그냥 태그만 제거
-
-          const pos = parts[0].trim();
-          const ins = parseInt(parts[1].trim(), 10);
-
-          if (!isNaN(ins)) {
-            // 추출한 정보를 instructions 배열에 저장
-            instructions.push({ pos, ins });
-          }
-        } catch (e) {
-          console.error("Error parsing img tag:", e);
-        }
-        // 콜백이 빈 문자열("")을 반환하므로, 원본의 <img> 태그는 사라진다.
-        return "";
-      },
-    );
-
-    // --- 2단계: 추출된 정보로 본문에 이미지 삽입 ---
-
-    let processedText = cleanText;
-
-    instructions.forEach((instruction) => {
-      try {
-        if (persona === null) throw new Error("persona is null");
-        if (instruction.pos === "") return; // pos가 비어있으면 삽입하지 않음
-
-        const imageUrl = persona.image_metadatas[instruction.ins].url;
-        //const imageUrl = `${ASSET_URL}${persona.owner_id[0]}/${persona.id}-${instruction.ins}.asset`;
-        const imageTag = `<img src="${imageUrl}" alt="장면 삽화" class="inserted-image">`;
-
-        // 본문에서 pos 텍스트를 찾아 그 아래에 이미지 태그를 삽입
-        processedText = processedText.replace(
-          instruction.pos,
-          `${instruction.pos}\n${imageTag}`,
-        );
-
-        // 본문에서 pos를 발견하지 못한 경우 오류 메시지 출력
-        if (!processedText.includes(instruction.pos)) {
-          processedText += `\n${imageTag} ##### -> ${instruction.pos}`;
-        }
-      } catch (e) {
-        console.error("Error inserting image tag:", e);
-      }
-    });
-
-    if (
-      processedText.includes("<think>") &&
-      !processedText.includes("</think>")
-    ) {
-      return "";
-    }
-    processedText = processedText.replace(/<think>[\s\S]*?<\/think>/g, "");
-
-    // 기타 마크다운 전처리
-    processedText = processedText.replace(/---/g, "\n\n---\n\n");
-    processedText = processedText.replace(/^(.+?\|)/gm, "**$1**");
-    processedText = processedText.replace(/\(([^)]+)\)/g, "*($1)*");
-    processedText = processedText.replace(
-      /^(.*?)\s*(".*?")$/gm,
-      '<span class="narration">$1</span><span class="dialogue">$2</span>',
-    );
-    processedText = processedText.replace(
-      /^\[([^\]]+)\]$/gm,
-      '<p class="narrator">[$1]</p>',
-    );
-
-    // marked 라이브러리로 최종 HTML 변환 후 반환
-    return marked(processedText.trimEnd(), { breaks: true, gfm: true });
-  }
-
-  // 자동 스크롤 로직은 onMount 대신 messages가 변경될 때마다 실행하는 것이 더 안정적입니다.
+  // 메시지 변경 감지 및 스크롤 처리 - 원래 방식대로 복원
   $: if ($messages && chatWindowEl) {
-    // tick()을 사용해 DOM 업데이트가 완료된 후 스크롤
+    // DOM 업데이트 후 스크롤
     tick().then(() => {
-      chatWindowEl.scrollTo({
-        top: chatWindowEl.scrollHeight,
-        behavior: "smooth",
-      });
+      scrollToBottom();
     });
 
-    // 마지막 메시지가 user 역할인 경우 로딩 상태를 false로 설정
+    // 로딩 상태 업데이트
     if ($messages.length > 0) {
       const lastMessage = $messages[$messages.length - 1];
-      if (lastMessage.role === "user") {
-        isLoading = true;
-      } else {
-        isLoading = false;
-      }
+      isLoading = lastMessage.role === "user";
+    } else {
+      isLoading = false;
     }
   }
+
+  // 이미지 태그 파싱 최적화 (정규식 미리 컴파일)
+  const IMG_TAG_REGEX = /<img>(.*?)<\/img>/g;
+  const THINK_REGEX = /<think>[\s\S]*?<\/think>/g;
+  const SEPARATOR_REGEX = /---/g;
+  const TABLE_REGEX = /^(.+?\|)/gm;
+  const PARENTHESIS_REGEX = /\(([^)]+)\)/g;
+  const DIALOGUE_REGEX = /^(.*?)\s*(".*?")$/gm;
+  const NARRATOR_REGEX = /^\[([^\]]+)\]$/gm;
+
+  interface ImageInstruction {
+    pos: string;
+    ins: number;
+  }
+
+  function parseImageTags(text: string): {
+    cleanText: string;
+    instructions: ImageInstruction[];
+  } {
+    const instructions: ImageInstruction[] = [];
+
+    const cleanText = text.replace(IMG_TAG_REGEX, (match, capturedContent) => {
+      try {
+        const parts = capturedContent.split(",");
+        if (parts.length < 2) return "";
+
+        const pos = parts[0]?.trim();
+        const ins = parseInt(parts[1]?.trim(), 10);
+
+        if (pos && !isNaN(ins)) {
+          instructions.push({ pos, ins });
+        }
+      } catch (error) {
+        console.error("Error parsing img tag:", error);
+      }
+      return "";
+    });
+
+    return { cleanText, instructions };
+  }
+
+  function insertImages(
+    text: string,
+    instructions: ImageInstruction[],
+  ): string {
+    if (!persona?.image_metadatas || instructions.length === 0) {
+      return text;
+    }
+
+    let processedText = text;
+
+    for (const instruction of instructions) {
+      try {
+        const imageMetadata = persona.image_metadatas[instruction.ins];
+        if (!imageMetadata?.url) {
+          console.warn(
+            `Image metadata not found for index: ${instruction.ins}`,
+          );
+          continue;
+        }
+
+        const imageTag = `<img src="${imageMetadata.url}" alt="장면 삽화" class="inserted-image" loading="lazy">`;
+
+        if (instruction.pos && processedText.includes(instruction.pos)) {
+          processedText = processedText.replace(
+            instruction.pos,
+            `${instruction.pos}\n${imageTag}`,
+          );
+        } else {
+          processedText += `\n${imageTag}`;
+          if (instruction.pos) {
+            console.warn(`Position text not found: ${instruction.pos}`);
+          }
+        }
+      } catch (error) {
+        console.error("Error inserting image:", error);
+      }
+    }
+
+    return processedText;
+  }
+
+  function preprocessMarkdown(text: string): string {
+    return text
+      .replace(SEPARATOR_REGEX, "\n\n---\n\n")
+      .replace(TABLE_REGEX, "**$1**")
+      .replace(PARENTHESIS_REGEX, "*($1)*")
+      .replace(
+        DIALOGUE_REGEX,
+        '<span class="narration">$1</span><span class="dialogue">$2</span>',
+      )
+      .replace(NARRATOR_REGEX, '<p class="narrator">[$1]</p>');
+  }
+
+  function print(text: string): string {
+    // 캐시 확인
+    const cacheKey = `${text}_${persona?.id || "null"}`;
+    if (processedMessagesCache.has(cacheKey)) {
+      return processedMessagesCache.get(cacheKey)!;
+    }
+
+    try {
+      // think 태그가 열려있으면 빈 문자열 반환
+      if (text.includes("<think>") && !text.includes("</think>")) {
+        return "";
+      }
+
+      // 1단계: 이미지 태그 파싱
+      const { cleanText, instructions } = parseImageTags(text);
+
+      // 2단계: 이미지 삽입
+      let processedText = insertImages(cleanText, instructions);
+
+      // 3단계: think 태그 제거
+      processedText = processedText.replace(THINK_REGEX, "");
+
+      // 4단계: 마크다운 전처리
+      processedText = preprocessMarkdown(processedText);
+
+      // 5단계: 마크다운 변환
+      const result = marked(processedText.trimEnd(), {
+        breaks: true,
+        gfm: true,
+        silent: true, // 파싱 에러를 콘솔에 출력하지 않음
+      });
+
+      // 캐시에 저장 (메모리 누수 방지를 위해 크기 제한)
+      if (processedMessagesCache.size > 100) {
+        const firstKey = processedMessagesCache.keys().next().value;
+        processedMessagesCache.delete(firstKey!);
+      }
+      processedMessagesCache.set(cacheKey, result);
+
+      return result;
+    } catch (error) {
+      console.error("Error in print function:", error);
+      return text; // 에러 시 원본 텍스트 반환
+    }
+  }
+
+  function scrollToBottom() {
+    if (!chatWindowEl) return;
+
+    chatWindowEl.scrollTo({
+      top: chatWindowEl.scrollHeight,
+      behavior: "smooth",
+    });
+  }
+
+  onMount(() => {
+    if (chatWindowEl) {
+      scrollToBottom();
+    }
+  });
+
+  onDestroy(() => {
+    processedMessagesCache.clear();
+  });
 </script>
 
 <div
   class="chat-window"
   bind:this={chatWindowEl}
   style:opacity={showChat ? "0.7" : "0"}
+  role="log"
+  aria-label="채팅 메시지"
 >
   {#if $messages.length === 0}
-    <div class="empty-message">{$t("chatWindow.noConversation")}</div>
+    <div class="empty-message" role="status">
+      {$t("chatWindow.noConversation")}
+    </div>
   {/if}
-  {#each $messages as msg, i (i)}
-    <div class="message {msg.role}">
+
+  {#each $messages as msg}
+    <div
+      class="message {msg.role}"
+      role="article"
+      aria-label="{msg.role} 메시지"
+    >
       {#if msg.role === "assistant"}
         <div class="markdown-body">
           {@html print(msg.content)}
@@ -152,59 +235,63 @@
       {/if}
     </div>
   {/each}
+
   {#if isLoading}
-    <div class="loading-dots assistant">
+    <div
+      class="loading-dots assistant"
+      role="status"
+      aria-label="메시지 로딩 중"
+    >
       <svg
         xmlns="http://www.w3.org/2000/svg"
         width="24"
         height="24"
         viewBox="0 0 24 24"
-        ><circle cx="4" cy="12" r="3" fill="currentColor"
-          ><animate
+        aria-hidden="true"
+      >
+        <circle cx="4" cy="12" r="3" fill="currentColor">
+          <animate
             id="svgSpinners3DotsScale0"
             attributeName="r"
             begin="0;svgSpinners3DotsScale1.end-0.25s"
             dur="0.75s"
             values="3;.2;3"
-          /></circle
-        ><circle cx="12" cy="12" r="3" fill="currentColor"
-          ><animate
+          />
+        </circle>
+        <circle cx="12" cy="12" r="3" fill="currentColor">
+          <animate
             attributeName="r"
             begin="svgSpinners3DotsScale0.end-0.6s"
             dur="0.75s"
             values="3;.2;3"
-          /></circle
-        ><circle cx="20" cy="12" r="3" fill="currentColor"
-          ><animate
+          />
+        </circle>
+        <circle cx="20" cy="12" r="3" fill="currentColor">
+          <animate
             id="svgSpinners3DotsScale1"
             attributeName="r"
             begin="svgSpinners3DotsScale0.end-0.45s"
             dur="0.75s"
             values="3;.2;3"
-          /></circle
-        ></svg
-      >
+          />
+        </circle>
+      </svg>
     </div>
   {/if}
+
   {#if isThink}
-    <div class="loading-dots assistant">
+    <div class="loading-dots assistant" role="status" aria-label="생각 중">
       {$t("chatWindow.thinking")}<span>.</span><span>.</span><span>.</span>
     </div>
   {/if}
 </div>
 
 <style>
-  /* 뷰포트에 맞게 꽉 채우되 800 px 이상은 넓어지지 않음 */
   .chat-window {
-    width: 100%; /* NEW: 가변 폭 */
-    max-width: 800px; /* 데스크톱 상한 */
-    /* min-width 제거 → 모바일에서 불필요한 여백 감소 */
-    min-height: clamp(
-      200px,
-      50vh,
-      300px
-    ); /* 200~300px 사이, 화면 높이 50% 목표 */
-    margin: 0 auto 1rem; /* 가운데 정렬 */
+    width: 100%;
+    max-width: 800px;
+    min-height: clamp(200px, 50vh, 300px);
+    margin: 0 auto 1rem;
     padding: 1rem 1rem 1rem 1rem;
     display: flex;
     flex-direction: column;
@@ -212,10 +299,10 @@
     overflow-y: auto;
     background: transparent;
     position: relative;
-    padding-top: 50px; /* 설정 버튼 공간 */
+    padding-top: 50px;
+    scroll-behavior: smooth;
   }
 
-  /* 메시지 버블은 컨테이너 폭의 90 % 까지 사용 (모바일 가독성↑) */
   .message {
     width: fit-content;
     max-width: 90%;
@@ -224,9 +311,10 @@
     line-height: 1.5;
     word-break: break-word;
     white-space: normal;
+    /* 성능 최적화 */
+    contain: layout style paint;
   }
 
-  /* 데스크톱(≥ 768 px)에서는 기존 70 % 폭 유지 */
   @media (min-width: 768px) {
     .message {
       max-width: 70%;
@@ -237,10 +325,10 @@
       max-width: 100%;
     }
   }
-  /* .assistant 클래스를 loading-dots와 함께 사용할 수 있도록 수정 */
+
   .loading-dots.assistant {
-    align-self: flex-start; /* assistant 메시지처럼 왼쪽에 표시 */
-    background-color: #222222; /* assistant 메시지와 유사한 배경 */
+    align-self: flex-start;
+    background-color: #222222;
     padding: 0.75rem 1rem;
     border-radius: 16px;
   }
@@ -269,6 +357,9 @@
     border-radius: 8px;
     margin-top: 0.75rem;
     display: block;
+    height: auto;
+    /* 이미지 로딩 최적화 */
+    image-rendering: auto;
   }
 
   @keyframes blink {
@@ -281,5 +372,23 @@
     100% {
       opacity: 0.2;
     }
+  }
+
+  /* 스크롤바 스타일링 (선택사항) */
+  .chat-window::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  .chat-window::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .chat-window::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 3px;
+  }
+
+  .chat-window::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.3);
   }
 </style>

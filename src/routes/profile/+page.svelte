@@ -6,6 +6,7 @@
     import type { Persona, ImageMetadata } from "$lib/types"; // ImageMetadata 타입도 가져오자!
     import { PORTRAIT_URL } from "$lib/constants";
     import Icon from "@iconify/svelte"; // 화살표 아이콘을 위해 추가!
+    import { LikeBtn, loadlikesdata } from "$lib/api/content";
 
     // --- 가짜 댓글 데이터 (이전과 동일) ---
     type Comment = {
@@ -59,11 +60,21 @@
         }
 
         try {
-            const [p, c] = await Promise.all([
+            const [p, c, likes] = await Promise.all([
                 loadPersona(personaId),
                 loadComments(personaId),
+                loadlikesdata(),
             ]);
             persona = p;
+
+            if (likes) {
+                (likes as string[]).forEach((like) => {
+                    if (like === p.id) {
+                        p.is_liked = true;
+                    }
+                });
+            }
+
             comments = c;
 
             // --- ★ 이미지 메타데이터 처리 로직 추가 ★ ---
@@ -96,6 +107,29 @@
         } else {
             alert(persona?.personaType);
         }
+    }
+
+    async function handleLike(p: Persona) {
+        // 이미 좋아요를 눌렀으면 아무것도 하지 않음
+        if (p.is_liked) return;
+
+        await LikeBtn(
+            p,
+            // 성공 콜백: 화면의 상태를 즉시 업데이트
+            () => {
+                if (persona && persona.id === p.id) {
+                    persona = {
+                        ...persona,
+                        is_liked: true,
+                        likes_count: persona.likes_count + 1,
+                    };
+                }
+            },
+            // 실패 콜백: 에러 메시지를 alert으로 표시
+            (errorMessage) => {
+                alert(`좋아요 처리에 실패했습니다: ${errorMessage}`);
+            },
+        );
     }
 
     // --- ★ 이미지 갤러리 탐색 함수들 ★ ---
@@ -194,7 +228,32 @@
                             <p class="scene-text">{persona.first_scene}</p>
                         </div>
                     {/if}
+                    <div class="stats-container">
+                        <button
+                            class="stat-item"
+                            on:click={() => handleLike(persona)}
+                            disabled={persona.is_liked}
+                            aria-label="좋아요"
+                        >
+                            <Icon
+                                icon={persona.is_liked
+                                    ? "ph:heart-fill"
+                                    : "ph:heart-bold"}
+                                style={persona.is_liked
+                                    ? "color: #ff79c6;"
+                                    : ""}
+                            />
+                            <span class="stat-label">좋아요</span>
+                            <span class="stat-value">{persona.likes_count}</span
+                            >
+                        </button>
 
+                        <div class="stat-item non-clickable">
+                            <Icon icon="ph:chat-circle-dots-bold" />
+                            <span class="stat-label">상호작용</span>
+                            <span class="stat-value">{persona.chat_count}</span>
+                        </div>
+                    </div>
                     <button
                         class="chat-start-button"
                         on:click={handleStartChat}
@@ -255,6 +314,39 @@
 </div>
 
 <style>
+    /* --- 👇 통계 섹션 스타일 추가 --- */
+
+    .stats-container {
+        display: flex;
+        justify-content: space-around;
+        align-items: center;
+        width: 100%;
+        background-color: rgba(0, 0, 0, 0.2);
+        border: 1px solid #2a2a2a;
+        border-radius: 12px;
+        padding: 1rem;
+        margin-bottom: 2.5rem; /* '대화 시작하기' 버튼과의 간격 */
+    }
+
+    .stat-item {
+        display: flex;
+        flex-direction: column; /* 아이콘과 텍스트를 세로로 정렬 */
+        align-items: center;
+        gap: 0.5rem; /* 아이콘과 텍스트 사이 간격 */
+        font-size: 1.2rem;
+        font-weight: 600;
+        color: #e0e0e0;
+    }
+
+    /* 아이콘 색상 좀 더 부드럽게 */
+    .stat-item :global(svg) {
+        color: #888;
+        width: 28px;
+        height: 28px;
+    }
+
+    /* --- 여기까지 추가 --- */
+
     .scroll-container {
         height: 100vh; /* 화면 전체 높이를 차지 */
         overflow-y: auto; /* ★★★ 내용이 길어지면 세로 스크롤을 자동으로 생성! ★★★ */

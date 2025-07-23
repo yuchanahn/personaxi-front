@@ -29,6 +29,7 @@ export interface Persona {
     likes_count: number;
     dislikes_count: number;
     is_liked?: boolean; // Optional, as it's only present when fetched with user context
+    chat_count: number;
 }
 
 export interface User {

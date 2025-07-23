@@ -68,7 +68,7 @@
 <div class="layout">
     <Sidebar bind:showSidebar />
     <main>
-        {#if !$is_login && $page.url.pathname !== "/hub" && $page.url.pathname !== "/feed" && $page.url.pathname !== "/profile"}
+        {#if !$is_login && $page.url.pathname !== "/hub" && $page.url.pathname !== "/feed" && $page.url.pathname !== "/profile" && $page.url.pathname !== "/"}
             <Login />
         {:else}
             <slot />

@@ -449,7 +449,9 @@
                                     "예: 언제나 활기 넘치는 미소와 폭발(!)을 몰고 다니는 천재 연금술사 '루나'입니다. 실패는 성공의 어머니라고 굳게 믿으며, 오늘도 세상을 놀라게 할 발명에 도전하고 있죠!",
                             })}
                             rows="3"
+                            maxlength="200"
                         ></textarea>
+                        <div class="char-counter">{persona.greeting.length} / 200</div>
                     </div>
                     <div class="form-group">
                         <label for="personaType"
