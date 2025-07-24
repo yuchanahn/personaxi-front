@@ -117,10 +117,16 @@
         overscroll-behavior: none;
     }
 
+    :global(html) {
+        overscroll-behavior: none;
+    }
+
     .layout {
         display: flex; /* 기본이 row, 그래서 Sidebar가 ‘옆’ */
         height: 100vh; /* min-height → height 로 정확히 고정 */
         overflow: hidden; /* 바깥 스크롤 차단 */
+        position: fixed;
+        width: 100%;
     }
 
     main {
@@ -129,5 +135,7 @@
         flex-direction: column;
         min-height: 0; /* 내부 shrink 허용 (1 px 오버 방지) */
         overscroll-behavior: none;
+        overflow-y: auto; /* main 내부 스크롤 허용 */
+        -webkit-overflow-scrolling: touch; /* iOS 부드러운 스크롤 */
     }
 </style>
