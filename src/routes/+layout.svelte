@@ -17,6 +17,19 @@
     import { theme } from "$lib/stores/themeStore";
     import { browser } from "$app/environment";
 
+    if ("serviceWorker" in navigator) {
+        window.addEventListener("load", () => {
+            navigator.serviceWorker.register("/service-worker.js").then(
+                (registration) => {
+                    console.log("Service Worker registered:", registration);
+                },
+                (error) => {
+                    console.error("Service Worker registration failed:", error);
+                },
+            );
+        });
+    }
+
     // theme 스토어 값이 바뀌거나, OS의 다크 모드 설정이 바뀔 때마다 실행되는 반응형 로직
     $: {
         if (browser) {
