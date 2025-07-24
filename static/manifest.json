@@ -5,7 +5,7 @@
     "start_url": "/",
     "display": "standalone",
     "background_color": "#ffffff",
-    "theme_color": "#4e8ef7",
+    "theme_color": "#ffffff",
     "icons": [
         {
             "src": "windows11/SmallTile.scale-100.png",

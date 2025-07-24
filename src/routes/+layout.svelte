@@ -114,6 +114,7 @@
         background: var(--color-bg);
         color: var(--color-text);
         font-family: "Segoe UI", sans-serif;
+        overscroll-behavior: none;
     }
 
     .layout {
