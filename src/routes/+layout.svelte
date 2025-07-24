@@ -128,5 +128,6 @@
         display: flex;
         flex-direction: column;
         min-height: 0; /* 내부 shrink 허용 (1 px 오버 방지) */
+        overscroll-behavior: none;
     }
 </style>
