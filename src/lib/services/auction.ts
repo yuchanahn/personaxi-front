@@ -1,6 +1,7 @@
 import { API_BASE_URL } from '$lib/constants';
 
 
+
 /*
 var resp []struct {
         PersonaID     string `json:"personaId"`
@@ -25,7 +26,7 @@ export async function fetchAuctionPersonas(): Promise<AuctionPersona[]> {
     const res = await fetch(`${API_BASE_URL}/api/auction/list`, { credentials: "include" });
 
     if (!res.ok) {
-        throw new Error("경매 리스트 불러오기 실패");
+        throw new Error("auction.fetchListFailed");
     }
 
     const json = await res.json();

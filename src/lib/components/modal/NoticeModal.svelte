@@ -3,6 +3,7 @@
     import { fade } from "svelte/transition";
     import { onMount, onDestroy } from "svelte";
     import Icon from "@iconify/svelte";
+    import { t } from "svelte-i18n";
 
     const dispatch = createEventDispatcher();
 
@@ -39,54 +40,51 @@
         <div class="modal-content">
             <h2 class="modal-title">
                 <Icon icon="ph:sparkle-duotone" />
-                <span>알파 테스트 참여 안내</span>
+                <span>{$t("noticeModal.title")}</span>
             </h2>
 
             <div class="modal-body">
                 <p>
-                    이 서비스는 현재 개발 중인 <strong>알파 버전</strong>으로,
-                    여러분과 함께 더 나은 AI 페르소나를 만들어가고자 합니다.
+                    {@html $t("noticeModal.description1")}
                     <br /><br />
-                    테스트 기간 중에는
-                    <strong>예기치 않은 오류가 발생</strong>하거나 데이터가
-                    임의로 <strong>변경 또는 초기화</strong>될 수 있습니다. 정식
-                    출시를 위해 최선을 다하고 있으니, 너그러운 양해
-                    부탁드립니다.
+                    {@html $t("noticeModal.description2")}
                 </p>
 
                 <div class="info-section">
                     <h3 class="info-title">
                         <Icon icon="ph:robot-duotone" />
-                        주요 기술 스택
+                        {$t("noticeModal.techStackTitle")}
                     </h3>
                     <p>
-                        본 서비스는 최신 기술들을 실험적으로 적용하고 있습니다.
+                        {$t("noticeModal.techStackDescription")}
                     </p>
                     <ul class="tech-list">
                         <li>
-                            <strong>AI 모델:</strong> Google Gemini 2.5 Flash & Lite
+                            <strong>{$t("noticeModal.aiModel")}</strong> Google Gemini
+                            2.5 Flash & Lite
                         </li>
-                        <li><strong>음성모델(TTS):</strong> ElevenLabs</li>
-                        <li><strong>3D 모델:</strong> Pixiv VRM</li>
+                        <li>
+                            <strong>{$t("noticeModal.ttsModel")}</strong> ElevenLabs
+                        </li>
+                        <li>
+                            <strong>{$t("noticeModal.vrmModel")}</strong> Pixiv VRM
+                        </li>
                     </ul>
                 </div>
 
                 <div class="info-section">
                     <h3 class="info-title">
                         <Icon icon="ph:warning-circle-duotone" />
-                        AI 답변 관련 주의사항
+                        {$t("noticeModal.aiWarningTitle")}
                     </h3>
                     <p>
-                        AI 모델에 실험적인 프롬프팅 기술을 적용하고 있어, 때때로
-                        AI가 <strong>민감하거나 부적절한 답변</strong>을 할 수
-                        있습니다. 이는 더 자유롭고 인간적인 상호작용을 구현하기
-                        위한 과정의 일부입니다.
+                        {@html $t("noticeModal.aiWarningDescription")}
                     </p>
                 </div>
             </div>
 
             <button class="confirm-button" on:click={closeModal}>
-                <span>위 내용을 모두 확인했습니다</span>
+                <span>{$t("noticeModal.confirm")}</span>
             </button>
         </div>
     </div>

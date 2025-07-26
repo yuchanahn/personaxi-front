@@ -200,7 +200,7 @@
                     }}
                     aria-label="언어 선택"
                 >
-                    <option value="ko">한국어</option>
+                    <option value="ko">{$t("settingPage.korean")}</option>
                     <option value="en">English</option>
                 </select>
             </div>

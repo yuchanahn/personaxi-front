@@ -49,7 +49,7 @@ export function custom_expressions(
     // Face 오브젝트 찾기
     const faceObject = vrm.scene.getObjectByName('Face')
     if (!faceObject) {
-      console.warn('Face 오브젝트를 찾을 수 없습니다.')
+      console.warn('vrm.faceObjectNotFound')
       return
     }
 
@@ -63,7 +63,7 @@ export function custom_expressions(
     const morphTargetDictionary = skinnedMesh.morphTargetDictionary
 
     if (!morphTargetDictionary) {
-      console.warn('morphTargetDictionary를 찾을 수 없습니다.')
+      console.warn('vrm.morphTargetDictionaryNotFound')
       return
     }
 
@@ -78,7 +78,7 @@ export function custom_expressions(
           })
         )
       } else {
-        console.warn(`Target '${targetName}'을 찾을 수 없습니다.`)
+        console.warn('vrm.targetNotFound', { values: { targetName } })
       }
     })
 

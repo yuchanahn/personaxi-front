@@ -40,7 +40,7 @@
     ];
 
     function handleRecharge(amount: number) {
-        alert(`${amount} 뉴런 충전을 선택했습니다. (결제 로직 연동 필요)`);
+        alert($t('needNeuronsModal.rechargeAlert', { values: { amount } }));
         closeModal();
     }
 

@@ -82,7 +82,7 @@
         sendChatMessage(msg);
     }
 
-    let remainingTimeFormatted: string = "시간 계산 중...";
+    let remainingTimeFormatted: string = $t("auctionPage.calculatingTime");
     let countdownInterval: number; // setInterval의 반환 값 타입을 지정
 
     // 시간을 "1일 1시 1분 1초" 형식으로 포맷하는 함수

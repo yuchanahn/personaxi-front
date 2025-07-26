@@ -165,19 +165,25 @@
                 // 이미 좋아요/싫어요를 누른 경우
                 const errorData = await res.json();
                 alert(
-                    errorData.message ||
-                        `You have already ${isLikeAction ? "liked" : "disliked"} this persona.`,
+                    $t("feed.alreadyFeedback", {
+                        values: { action: isLikeAction ? "좋아요" : "싫어요" },
+                    }),
                 );
             } else {
                 // 기타 에러
                 const errorData = await res.json();
                 alert(
-                    `Failed to ${isLikeAction ? "like" : "dislike"} persona: ${errorData.message || res.statusText}`,
+                    $t("feed.feedbackFailed", {
+                        values: {
+                            action: isLikeAction ? "좋아요" : "싫어요",
+                            message: errorData.message || res.statusText,
+                        },
+                    }),
                 );
             }
         } catch (error) {
             console.error("Network or other error:", error);
-            alert("An unexpected error occurred. Please try again.");
+            alert($t("feed.unexpectedError"));
         }
     }
 </script>

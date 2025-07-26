@@ -36,9 +36,13 @@
 <div class="login-page-wrapper">
     <div class="login-container">
         <div class="login-header">
-            <img src="/logo.png" alt="서비스 로고" class="logo" />
-            <h1 class="title">다시 만나서 반가워요!</h1>
-            <p class="subtitle">로그인하고 모든 서비스를 이용해보세요.</p>
+            <img
+                src="/logo.png"
+                alt={$t("login.serviceLogoAlt")}
+                class="logo"
+            />
+            <h1 class="title">{$t("login.welcomeBack")}</h1>
+            <p class="subtitle">{$t("login.slogan")}</p>
         </div>
         <div class="button-group">
             {#each loginOptions as option}
@@ -71,8 +75,8 @@
         align-items: center;
         justify-content: center;
         min-height: 100vh;
-        background-color: var(--color-bg-page); /* 변수 사용 */
-        transition: background-color 0.3s ease; /* 부드러운 전환 효과 */
+        background-color: var(--color-bg-page);
+        transition: background-color 0.3s ease;
     }
 
     .login-container {
@@ -83,10 +87,10 @@
         width: 100%;
         margin: 2rem;
         padding: 2.5rem;
-        background-color: var(--color-bg-container); /* 변수 사용 */
-        border: 1px solid var(--color-border); /* 변수 사용 */
+        background-color: var(--color-bg-container);
+        border: 1px solid var(--color-border);
         border-radius: 16px;
-        box-shadow: 0 4px 12px var(--shadow-color); /* 변수 사용 */
+        box-shadow: 0 4px 12px var(--shadow-color);
         transition:
             background-color 0.3s ease,
             border-color 0.3s ease;
@@ -104,12 +108,12 @@
     .title {
         font-size: 1.8rem;
         font-weight: 600;
-        color: var(--color-text-primary); /* 변수 사용 */
+        color: var(--color-text-primary);
         margin: 0;
     }
     .subtitle {
         font-size: 1rem;
-        color: var(--color-text-secondary); /* 변수 사용 */
+        color: var(--color-text-secondary);
         margin-top: 0.5rem;
     }
 
@@ -128,16 +132,16 @@
         padding: 0.75rem 1rem;
         font-size: 1rem;
         font-weight: 500;
-        color: var(--color-text-primary); /* 변수 사용 */
-        background-color: var(--color-bg-container); /* 변수 사용 */
-        border: 1px solid var(--color-border); /* 변수 사용 */
+        color: var(--color-text-primary);
+        background-color: var(--color-bg-container);
+        border: 1px solid var(--color-border);
         border-radius: 8px;
         cursor: pointer;
         transition: background-color 0.2s;
     }
 
     .login-button:hover {
-        background-color: var(--color-button-hover); /* 변수 사용 */
+        background-color: var(--color-button-hover);
     }
 
     .login-icon {
@@ -148,10 +152,10 @@
     .legal-links {
         text-align: center;
         font-size: 0.8rem;
-        color: var(--color-text-secondary); /* 변수 사용 */
+        color: var(--color-text-secondary);
     }
     .legal-links a {
-        color: var(--color-text-secondary); /* 변수 사용 */
+        color: var(--color-text-secondary);
         text-decoration: none;
     }
     .legal-links a:hover {

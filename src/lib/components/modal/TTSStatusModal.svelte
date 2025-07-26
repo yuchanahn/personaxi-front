@@ -1,6 +1,7 @@
 <script lang="ts">
     import Icon from "@iconify/svelte";
     import { ttsState } from "$lib/stores/ttsStore";
+    import { t } from "svelte-i18n";
     import type { TTSState } from "$lib/stores/ttsStore";
 
     // --- 컴포넌트 내부에서 모든 상태를 관리 ---
@@ -67,17 +68,17 @@
     {#if isModalOpen}
         <div class="tts-modal">
             {#if $ttsState === "connected"}
-                <p>음성(TTS)이 연결되었습니다.</p>
+                <p>{$t("tts.connectedMessage")}</p>
                 <button class="modal-button disconnect" on:click={disconnectTTS}
-                    >연결 끊기</button
+                    >{$t("tts.disconnectButton")}</button
                 >
             {:else if $ttsState === "disconnected"}
-                <p>음성(TTS) 연결이 끊겼습니다.</p>
+                <p>{$t("tts.disconnectedMessage")}</p>
                 <button class="modal-button connect" on:click={connectTTS}
-                    >재연결</button
+                    >{$t("tts.reconnectButton")}</button
                 >
             {:else}
-                <p>음성(TTS)을 연결하고 있습니다...</p>
+                <p>{$t("tts.connectingMessage")}</p>
             {/if}
         </div>
     {/if}

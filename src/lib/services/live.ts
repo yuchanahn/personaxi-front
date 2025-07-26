@@ -1,16 +1,17 @@
 const BASE = "/api/live";
 import { API_BASE_URL } from '$lib/constants';
 
+
 export async function fetchLivePersonas(): Promise<string[]> {
     const res = await fetch(`${API_BASE_URL}${BASE}/list`, { credentials: "include" });
 
     if (!res.ok) {
-        throw new Error("라이브 리스트 불러오기 실패");
+        throw new Error("live.fetchListFailed");
     }
 
     const json = await res.json();
     if (!Array.isArray(json)) {
-        throw new Error("응답이 배열이 아님");
+        throw new Error("live.responseNotArray");
     }
 
     return json as string[];
@@ -25,6 +26,6 @@ export async function setLiveStatus(personaId: string, isLive: boolean): Promise
         credentials: "include",
         body: JSON.stringify({ personaId, isLive })
     });
-    if (!res.ok) throw new Error("방송 상태 변경 실패");
+    if (!res.ok) throw new Error("live.setStatusFailed");
 }
 

@@ -25,7 +25,34 @@
     "tagsPlaceholder": "예: AI, 친구, 대화",
     "addButton": "추가",
     "errorRequired": "이름과 페르소나 타입은 필수 입력 항목입니다.",
-    "errorSaveFailed": "저장 실패: {message}"
+    "errorSaveFailed": "저장 실패: {message}",
+    "validation": {
+      "allFieldsRequired": "모든 필수 필드를 입력해주세요.",
+      "charLimitExceeded": "글자 수 제한을 초과했습니다.",
+      "instructionsLimitExceeded": "지시사항 글자 수 제한을 초과했습니다.",
+      "promptExamplesLimitExceeded": "프롬프트 예시 글자 수 제한을 초과했습니다."
+    },
+    "greetingLabel": "시작 인사",
+    "greetingLabelDefault": "기본 시작 인사",
+    "greetingDescription": "페르소나가 대화를 시작할 때 사용할 인사말입니다.",
+    "greetingDescriptionDefault": "기본 인사말 설명",
+    "greetingPlaceholder": "예: 안녕하세요! 무엇을 도와드릴까요?",
+    "greetingPlaceholderDefault": "기본 인사말 플레이스홀더",
+    "visibilityLabel": "공개 설정",
+    "public": "공개",
+    "private": "비공개",
+    "assetSectionTitle": "자산 관리",
+    "assetSectionDescription": "페르소나의 이미지 및 기타 자산을 관리합니다.",
+    "imageSelect": "이미지 선택",
+    "assetDescriptionPlaceholder": "자산에 대한 설명",
+    "addAssetButton": "자산 추가",
+    "voiceLabel": "목소리",
+    "voiceDescription": "페르소나의 목소리를 선택합니다.",
+    "voiceSelectDefault": "목소리 선택",
+    "voiceLoading": "목소리 로딩 중...",
+    "firstSceneLabel": "첫 장면",
+    "firstSceneDescription": "페르소나와 처음 만났을 때의 배경 설명을 정의합니다.",
+    "firstScenePlaceholder": "예: 당신은 고요한 숲속에서 길을 잃은 여행자입니다."
   },
   "settingPage": {
     "title": "내 페이지",
@@ -43,7 +70,8 @@
     "deleteConfirm": "페르소나 '{name}'을(를) 정말 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.",
     "editProfile": "수정",
     "save": "저장",
-    "cancel": "취소"
+    "cancel": "취소",
+    "korean": "한국어"
   },
   "chatWindow": {
     "noConversation": "아직 대화가 없습니다. 질문을 입력해보세요.",
@@ -68,7 +96,12 @@
   "login": {
     "githubSoon": "깃허브 로그인은 아직 준비 중입니다.",
     "emailSoon": "이메일 로그인은 아직 준비 중입니다.",
-    "loginWith": "{provider}로 로그인"
+    "loginWith": "{provider}로 로그인",
+    "serviceLogoAlt": "서비스 로고",
+    "welcomeBack": "환영합니다!",
+    "slogan": "당신만의 AI 페르소나를 만드세요.",
+    "terms": "이용약관",
+    "privacy": "개인정보처리방침"
   },
   "auctionModal": {
     "createFailed": "경매 생성 실패"
@@ -134,7 +167,8 @@
     "creditsUnit": "뉴런",
     "remainingTime": "남은 시간",
     "currentLeader": "현재 선두",
-    "placeBidButton": "입찰하기"
+    "placeBidButton": "입찰하기",
+    "calculatingTime": "시간 계산 중..."
   },
   "legal": {
     "privacyPolicy": "개인정보처리방침",

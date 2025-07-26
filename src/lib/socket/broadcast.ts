@@ -11,12 +11,12 @@ export function connectBroadcastSocket(
     socket = new WebSocket(`ws://localhost:8080/ws/broadcast?personaId=${personaId}`);
 
     socket.onopen = () => {
-        console.log("✅ 방송 WebSocket 연결됨");
+        console.log("broadcast.connected");
         onConnect?.();
     };
 
     socket.onclose = () => {
-        console.warn("⚠️ 방송 WebSocket 끊김");
+        console.warn("broadcast.disconnected");
         onDisconnect?.();
     };
 
@@ -25,7 +25,7 @@ export function connectBroadcastSocket(
             const packet = JSON.parse(event.data);
             onReaction(packet);
         } catch (e) {
-            console.warn("⚠️ 수신 메시지 JSON 파싱 실패", event.data);
+            console.warn("broadcast.jsonParseFailed")
             console.error(e);
         }
     };
@@ -37,6 +37,6 @@ export function sendChatMessage(message: string) {
     if (socket && socket.readyState === WebSocket.OPEN) {
         socket.send(JSON.stringify({ type: "chat", msg: message }));
     } else {
-        console.warn("❌ WebSocket 연결 안 됨, 메시지 전송 실패");
+        console.warn("broadcast.sendFailed");
     }
 }

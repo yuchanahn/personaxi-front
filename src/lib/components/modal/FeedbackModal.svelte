@@ -3,6 +3,7 @@
     import { fade } from "svelte/transition";
     import Icon from "@iconify/svelte";
     import { API_BASE_URL } from "$lib/constants";
+    import { t } from "svelte-i18n";
 
     const dispatch = createEventDispatcher();
 
@@ -36,7 +37,7 @@
             }, 1500);
         } catch (error) {
             console.error("Feedback submission error:", error);
-            alert("피드백 제출에 실패했습니다. 잠시 후 다시 시도해주세요.");
+            alert($t("feedbackModal.submitFailed"));
             isLoading = false;
         }
     }
@@ -71,20 +72,20 @@
         {#if isSuccess}
             <div class="success-message">
                 <Icon icon="ph:check-circle-duotone" />
-                <h2>소중한 의견 감사합니다!</h2>
-                <p>더 나은 서비스를 만드는 데 큰 힘이 됩니다.</p>
+                <h2>{$t("feedbackModal.thanks")}</h2>
+                <p>{$t("feedbackModal.thanksMessage")}</p>
             </div>
         {:else}
             <div class="modal-content">
-                <h2 class="modal-title">개발자에게 익명으로 의견 전달하기</h2>
+                <h2 class="modal-title">{$t("feedbackModal.title")}</h2>
                 <p class="modal-body">
-                    어떤 의견이든 괜찮습니다. 욕설이나 비판도 귀담아듣겠습니다.
+                    {$t("feedbackModal.body1")}
                     <br />
-                    보내주신 소중한 의견은 서비스 개선에 큰 힘이 됩니다.
+                    {$t("feedbackModal.body2")}
                 </p>
                 <textarea
                     bind:value={feedbackText}
-                    placeholder="여기에 내용을 입력하세요..."
+                    placeholder={$t("feedbackModal.placeholder")}
                     disabled={isLoading}
                 />
                 <button
@@ -93,9 +94,9 @@
                     disabled={isLoading || !feedbackText.trim()}
                 >
                     {#if isLoading}
-                        <span>전송 중...</span>
+                        <span>{$t("feedbackModal.sending")}</span>
                     {:else}
-                        <span>의견 전달하기</span>
+                        <span>{$t("feedbackModal.send")}</span>
                     {/if}
                 </button>
             </div>

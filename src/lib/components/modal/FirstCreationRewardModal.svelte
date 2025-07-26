@@ -1,6 +1,7 @@
 <script lang="ts">
     import { createEventDispatcher, onDestroy, onMount } from "svelte";
     import NeuronIcon from "$lib/components/icons/NeuronIcon.svelte"; // 우리가 만들었던 뉴런 아이콘
+    import { t } from "svelte-i18n";
 
     // 부모로부터 모달의 열림/닫힘 상태를 받아와
     export let isOpen: boolean = false;
@@ -39,19 +40,24 @@
                 <NeuronIcon size={64} color={"#ffc107"} />
             </div>
 
-            <h2>첫 페르소나 생성 완료!</h2>
+            <h2>{$t("firstCreationRewardModal.title")}</h2>
 
             <p class="reward-text">
-                첫걸음을 축하하는 의미로<br />
-                <span class="highlight">100 뉴런</span>을 선물로 드렸어요!
+                {$t("firstCreationRewardModal.message1")}<br />
+                <span class="highlight"
+                    >100 {$t("paymentModal.creditsUnit")}</span
+                >{$t("firstCreationRewardModal.message2", {
+                    values: { amount: 100 },
+                })}
             </p>
 
             <p class="description">
-                이제 이 뉴런으로 당신만의 '디지털 생명체'와<br />더 깊은 대화를
-                나눠보세요.
+                {$t("firstCreationRewardModal.message3")}
             </p>
 
-            <button class="confirm-button" on:click={closeModal}> 확인 </button>
+            <button class="confirm-button" on:click={closeModal}>
+                {$t("firstCreationRewardModal.confirm")}
+            </button>
         </div>
     </div>
 {/if}

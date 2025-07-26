@@ -1,7 +1,5 @@
 import * as THREE from 'three'
 
-
-
 export function serializeClip(clip: THREE.AnimationClip): object {
     return {
         name: clip.name,
@@ -59,8 +57,8 @@ export async function saveClipAsJSON(clip: THREE.AnimationClip, fileName: string
     })
 
     if (!response.ok) {
-        console.error('서버 전송 실패:', response.statusText)
+        console.error("anim.sendFailed", response.statusText)
     } else {
-        console.log('서버 전송 성공!')
+        console.log("anim.sendSuccess")
     }
 }

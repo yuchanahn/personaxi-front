@@ -372,8 +372,31 @@
                     persona.promptExamples.length === 0 ||
                     persona.tags.length === 0
                 ) {
-                    error =
-                        "모든 필드를 채워주세요. 지침, 프롬프트 예시, 태그는 최소 1개 이상 추가해야 합니다.";
+                    error = $t("editPage.validation.allFieldsRequired");
+                    return;
+                }
+
+                if (
+                    persona.greeting.length > 200 ||
+                    persona.first_scene.length > 500
+                ) {
+                    error = $t("editPage.validation.charLimitExceeded");
+                    return;
+                }
+
+                if (
+                    persona.instructions.some((inst) => inst.length > 200) ||
+                    persona.instructions.length > 10
+                ) {
+                    error = $t("editPage.validation.instructionsLimitExceeded");
+                    return;
+                }
+
+                if (
+                    persona.promptExamples.some((ex) => ex.length > 200) ||
+                    persona.promptExamples.length > 10
+                ) {
+                    error = $t("editPage.validation.promptExamplesLimitExceeded");
                     return;
                 }
 
@@ -397,33 +420,7 @@
                     persona.promptExamples.some((ex) => ex.length > 200) ||
                     persona.promptExamples.length > 10
                 ) {
-                    error =
-                        "프롬프트 예시의 글자 수를 초과했거나 10개를 초과했습니다.";
-                    return;
-                }
-
-                if (
-                    persona.greeting.length > 200 ||
-                    persona.first_scene.length > 500
-                ) {
-                    error = "소개 또는 첫 장면의 글자 수를 초과했습니다.";
-                    return;
-                }
-
-                if (
-                    persona.instructions.some((inst) => inst.length > 200) ||
-                    persona.instructions.length > 10
-                ) {
-                    error = "지침의 글자 수를 초과했거나 10개를 초과했습니다.";
-                    return;
-                }
-
-                if (
-                    persona.promptExamples.some((ex) => ex.length > 200) ||
-                    persona.promptExamples.length > 10
-                ) {
-                    error =
-                        "프롬프트 예시의 글자 수를 초과했거나 10개를 초과했습니다.";
+                    error = $t("editPage.validation.promptExamplesLimitExceeded");
                     return;
                 }
 
@@ -492,20 +489,19 @@
                     <div class="form-group">
                         <label for="greeting"
                             >{$t("editPage.greetingLabel", {
-                                default: "캐릭터 소개",
+                                default: $t("editPage.greetingLabelDefault"),
                             })}</label
                         >
                         <p class="description">
                             {$t("editPage.greetingDescription", {
-                                default: "당신의 캐릭터를 소개해 보세요!",
+                                default: $t("editPage.greetingDescriptionDefault"),
                             })}
                         </p>
                         <textarea
                             id="greeting"
                             bind:value={persona.greeting}
                             placeholder={$t("editPage.greetingPlaceholder", {
-                                default:
-                                    "예: 언제나 활기 넘치는 미소와 폭발(!)을 몰고 다니는 천재 연금술사 '루나'입니다. 실패는 성공의 어머니라고 굳게 믿으며, 오늘도 세상을 놀라게 할 발명에 도전하고 있죠!",
+                                default: $t("editPage.greetingPlaceholderDefault"),
                             })}
                             rows="3"
                             maxlength="200"
@@ -536,14 +532,14 @@
                     </div>
 
                     <div class="form-group">
-                        <label for="visibility">공개 여부</label>
+                        <label for="visibility">{$t("editPage.visibilityLabel")}</label>
                         <select
                             id="visibility"
                             bind:value={persona.visibility}
                             required
                         >
-                            <option value="public">공개</option>
-                            <option value="private">비공개</option>
+                            <option value="public">{$t("editPage.public")}</option>
+                            <option value="private">{$t("editPage.private")}</option>
                         </select>
                     </div>
                 </div>
@@ -582,11 +578,10 @@
                         {#if persona.personaType == "2D"}
                             <div class="form-group asset-section">
                                 <h3 class="asset-title">
-                                    에셋 (상황별 이미지)
+                                    {$t("editPage.assetSectionTitle")}
                                 </h3>
                                 <p class="description">
-                                    채팅 중 특정 상황에 맞는 이미지를 표시할 수
-                                    있습니다.
+                                    {$t("editPage.assetSectionDescription")}
                                 </p>
 
                                 <div class="asset-card-list">
@@ -616,7 +611,7 @@
                                                     for="asset-file-{index}"
                                                     class="file-input-label small"
                                                 >
-                                                    <span>이미지 선택</span>
+                                                    <span>{$t("editPage.imageSelect")}</span>
                                                 </label>
                                                 <input
                                                     id="asset-file-{index}"
@@ -633,7 +628,7 @@
                                             <div class="asset-details">
                                                 <textarea
                                                     class="asset-description-input"
-                                                    placeholder="이미지 상황 설명 (예: 웃는 얼굴, 슬픈 표정)"
+                                                    placeholder={$t("editPage.assetDescriptionPlaceholder")}
                                                     rows="3"
                                                     bind:value={
                                                         asset.description
@@ -658,7 +653,7 @@
                                         for="multiple-asset-upload"
                                         class="btn btn-secondary"
                                     >
-                                        + 에셋 추가
+                                        {$t("editPage.addAssetButton")}
                                     </label>
                                     <input
                                         id="multiple-asset-upload"
@@ -713,9 +708,7 @@
                                         bind:value={selectedVoiceId}
                                     >
                                         <option value="" disabled
-                                            >{$t(
-                                                "editPage.voiceSelectDefault",
-                                            )}</option
+                                            >{$t("editPage.voiceSelectDefault")}</option
                                         >
                                         {#each allVoices as voice (voice.voice_id)}
                                             <option value={voice.voice_id}

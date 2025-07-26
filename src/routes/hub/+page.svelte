@@ -2,6 +2,7 @@
     import ContentHub from "$lib/components/portal/ContentHub.svelte";
     import FeedbackModal from "$lib/components/modal/FeedbackModal.svelte"; // 👈 피드백 모달 import
     import Icon from "@iconify/svelte"; // 👈 버튼 아이콘 import
+    import { t } from "svelte-i18n";
 
     let isFeedbackModalOpen = false;
 </script>
@@ -13,10 +14,10 @@
 <button
     class="feedback-fab"
     on:click={() => (isFeedbackModalOpen = true)}
-    aria-label="피드백 보내기"
+    aria-label={$t("hub.feedbackButtonLabel")}
 >
     <Icon icon="ph:paper-plane-tilt-bold" />
-    <span>피드백</span>
+    <span>{$t("hub.feedbackButtonText")}</span>
 </button>
 
 {#if isFeedbackModalOpen}

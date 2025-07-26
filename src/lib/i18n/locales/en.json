@@ -25,7 +25,36 @@
     "tagsPlaceholder": "e.g., AI, friend, conversation",
     "addButton": "Add",
     "errorRequired": "Name and Persona Type are required fields.",
-    "errorSaveFailed": "Failed to save: {message}"
+    "errorSaveFailed": "Failed to save: {message}",
+    "saveError": "Failed to save persona information",
+    "saveFailedMessage": "Error saving persona:",
+    "validation": {
+      "allFieldsRequired": "Please fill in all fields. Instructions, prompt examples, and tags must have at least one entry.",
+      "charLimitExceeded": "Exceeded character limit for greeting or first scene.",
+      "instructionsLimitExceeded": "Exceeded character limit for instructions or more than 10 entries.",
+      "promptExamplesLimitExceeded": "Exceeded character limit for prompt examples or more than 10 entries."
+    },
+    "greetingLabelDefault": "Character Introduction",
+    "greetingDescriptionDefault": "Introduce your character!",
+    "greetingPlaceholderDefault": "e.g., I'm Luna, a genius alchemist who always brings a vibrant smile and explosions(!). I firmly believe failure is the mother of success, and today I'm challenging myself to invent something that will amaze the world!",
+    "visibilityLabel": "Visibility",
+    "public": "Public",
+    "private": "Private",
+    "assetSectionTitle": "Assets (Contextual Images)",
+    "assetSectionDescription": "You can display images appropriate for specific situations during chat.",
+    "imageSelect": "Select Image",
+    "addAssetButton": "+ Add Asset",
+    "voiceSelectDefault": "Select a voice",
+    "voiceLoading": "Loading voices...",
+    "firstSceneLabel": "First Scene",
+    "firstSceneDescription": "Describe the background and situation when the character first appears.",
+    "firstScenePlaceholder": "e.g., Luna is brewing a magic potion in a small cabin in a quiet forest.",
+    "assetDescriptionPlaceholder": "Description for asset",
+    "greetingLabel": "Greeting",
+    "greetingDescription": "Greeting message the persona will use to start a conversation.",
+    "greetingPlaceholder": "e.g., Hello! How can I help you?",
+    "voiceLabel": "Voice",
+    "voiceDescription": "Select the persona's voice."
   },
   "settingPage": {
     "title": "My Page",
@@ -43,11 +72,25 @@
     "deleteConfirm": "Are you sure you want to delete the persona '{name}'? This action cannot be undone.",
     "editProfile": "edit",
     "save": "save",
-    "cancel": "cancel"
+    "cancel": "cancel",
+    "languageSelect": "Select Language",
+    "korean": "Korean",
+    "profileAlt": "Profile",
+    "nicknamePlaceholder": "Nickname"
   },
-  "chatWindow": {
-    "noConversation": "No conversation yet. Type a question to start.",
-    "thinking": "Thinking"
+  "tts": {
+    "connectionFailed": "TTS WebSocket connection failed",
+    "connectedMessage": "Voice (TTS) is connected.",
+    "disconnectButton": "Disconnect",
+    "disconnectedMessage": "Voice (TTS) connection is lost.",
+    "reconnectButton": "Reconnect",
+    "connectingMessage": "Connecting voice (TTS)..."
+  },
+  "feed": {
+    "interact": "Interact",
+    "alreadyFeedback": "You have already {action} this persona.",
+    "feedbackFailed": "Failed to {action} persona: {message}",
+    "unexpectedError": "An unexpected error occurred. Please try again."
   },
   "sidebar": {
     "hide": "Hide Sidebar",
@@ -68,10 +111,15 @@
   "login": {
     "githubSoon": "GitHub login is coming soon.",
     "emailSoon": "Email login is coming soon.",
-    "loginWith": "Login with {provider}"
+    "loginWith": "Login with {provider}",
+    "serviceLogoAlt": "Service Logo",
+    "welcomeBack": "Welcome back!",
+    "slogan": "Log in and enjoy all services.",
+    "terms": "Terms of Service",
+    "privacy": "Privacy Policy"
   },
-  "auctionModal": {
-    "createFailed": "Failed to create auction"
+  "auction": {
+    "fetchListFailed": "Failed to fetch auction list"
   },
   "bidModal": {
     "bidTooLow": "Bid must be higher than current highest bid ({currentHighestBid} neurons).",
@@ -94,7 +142,7 @@
     "pack1000Name": "Unlimited Neuron Pack (Limited)",
     "pack50Name": "Trial Neuron Pack",
     "purchaseLog": "Purchase request: {name} ({price} KRW) - {credits} neurons added",
-    "purchaseAlert": "\"{name}\" payment feature is under development! (No actual payment will be made.)",
+    "purchaseAlert": "{name} payment feature is under development! (No actual payment will be made.)",
     "creditLowTitle": "⚠️ Low Neurons!",
     "creditLowMessage1": "Please recharge your neurons to use more character chat.",
     "creditLowMessage2": "You can select and recharge your desired neuron pack below.",
@@ -105,21 +153,34 @@
     "purchaseButton": "Purchase",
     "contactSupport": "Please contact customer support for payment inquiries."
   },
-  "settingModal": {
-    "title": "Session Settings",
-    "like": "Like",
-    "dislike": "Dislike",
-    "resetChat": "Reset Chat",
-    "deleteChat": "Delete Chat",
-    "includeAllUtterances": "Include All Utterances",
-    "guidanceText": "* Each function affects the current character session. Please choose carefully."
+  "feedbackModal": {
+    "submitFailed": "Failed to submit feedback. Please try again later.",
+    "thanks": "Thank you for your valuable feedback!",
+    "thanksMessage": "Your feedback helps us make better services.",
+    "title": "Send anonymous feedback to the developer",
+    "body1": "Any feedback is welcome. We will listen to insults and criticisms.",
+    "body2": "Your valuable feedback helps us improve our service.",
+    "sending": "Sending...",
+    "send": "Send Feedback",
+    "placeholder": "Enter your feedback here..."
   },
+  "title": "Session Settings",
+  "like": "Like",
+  "dislike": "Dislike",
+  "resetChat": "Reset Chat",
+  "deleteChat": "Delete Chat",
+  "includeAllUtterances": "Include All Utterances",
+  "guidanceText": "* Each function affects the current character session. Please choose carefully.",
   "contentHub": {
     "searchByName": "Name",
     "searchByTags": "Tags",
     "searchNamePlaceholder": "Search by character name",
     "searchTagsPlaceholder": "Search by tags (comma separated)",
     "auctionInProgress": "Auctioning"
+  },
+  "hub": {
+    "feedbackButtonLabel": "Send Feedback",
+    "feedbackButtonText": "Feedback"
   },
   "auctionPage": {
     "bidder": "Bidder",
@@ -134,7 +195,8 @@
     "creditsUnit": "Neurons",
     "remainingTime": "Remaining Time",
     "currentLeader": "Current Leader",
-    "placeBidButton": "Place Bid"
+    "placeBidButton": "Place Bid",
+    "calculatingTime": "Calculating time..."
   },
   "legal": {
     "privacyPolicy": "Privacy Policy",
@@ -164,25 +226,28 @@
     "description": "Check out how to use the service.",
     "iframeTitle": "Tutorial Document"
   },
-  "livePage": {
-    "viewer1": "Viewer1",
-    "viewer1Message": "What is this character ㅋㅋ",
-    "viewer2": "Viewer2",
-    "viewer2Message": "So beautiful lol",
-    "viewer3": "Viewer3",
-    "viewer3Message": "Does it answer??",
-    "me": "Me",
-    "websocketDisconnected": "🔌 WebSocket disconnected",
-    "broadcastContent": "Broadcast Content"
+  "live": {
+    "fetchListFailed": "Failed to fetch live list",
+    "responseNotArray": "Response is not an array",
+    "setStatusFailed": "Failed to change broadcast status"
   },
-  "chatSession": {
-    "system": {
-      "search": "Search",
-      "feed": "Feed",
-      "user": "User",
-      "create": "Create",
-      "legal": "Legal"
-    }
+  "vrm": {
+    "faceObjectNotFound": "Face object not found.",
+    "morphTargetDictionaryNotFound": "morphTargetDictionary not found.",
+    "targetNotFound": "Target '{targetName}' not found."
+  },
+  "sendFailed": "Server send failed:",
+  "sendSuccess": "Server send successful!",
+  "connected": "Broadcast WebSocket connected",
+  "disconnected": "Broadcast WebSocket disconnected",
+  "jsonParseFailed": "Received message JSON parsing failed",
+  "sendFailedWs": "WebSocket not connected, message sending failed",
+  "system": {
+    "search": "Search",
+    "user": "User",
+    "feed": "Feed",
+    "create": "Create",
+    "legal": "Legal"
   },
   "welcomeModal": {
     "title": "Welcome to PersonaXI!",
@@ -190,14 +255,35 @@
     "neuronReward": "As a welcome gift, you've received {amount} Neurons!",
     "confirmButton": "Start Exploring"
   },
-  "needNeuronsModal": {
+  "noticeModal": {
+    "title": "Alpha Test Participation Guide",
+    "description1": "This service is currently an <strong>alpha version</strong> under development, and we aim to create a better AI persona with you.",
+    "description2": "During the test period, <strong>unexpected errors may occur</strong> or data may be arbitrarily <strong>changed or initialized</strong>. We are doing our best for the official release, so we ask for your kind understanding.",
+    "techStackTitle": "Key Technology Stack",
+    "techStackDescription": "This service is experimentally applying the latest technologies.",
+    "aiModel": "AI Model:",
+    "ttsModel": "Voice Model (TTS):",
+    "vrmModel": "3D Model:",
+    "aiWarningTitle": "AI Response Precautions",
+    "aiWarningDescription": "We are applying experimental prompting techniques to the AI model, so sometimes the AI may give <strong>sensitive or inappropriate answers</strong>. This is part of the process to implement more free and human-like interactions.",
+    "confirm": "I have read and understood all of the above."
+  },
+  "firstPersonaCreatedModal": {
+    "title": "First Persona Created!",
+    "message1": "To celebrate your first step,",
+    "message2": "you've received {amount} Neurons as a gift!",
+    "message3": "Now, use these neurons to have deeper conversations with your own 'digital life form'.",
+    "confirm": "Confirm"
+  },
+  "notEnoughNeuronsModal": {
     "title": "Not Enough Neurons!",
     "description": "Please recharge your neurons to continue the conversation.",
     "rechargeTitle": "Recharge Neurons!",
     "rechargeDescription": "Recharge neurons to enjoy more conversations.",
     "firstCreationReward": "Get 200 Neurons for your first Persona creation!",
     "getFreeNeurons": "Get Free Neurons",
-    "currentNeurons": "Current: {count} Neurons"
+    "currentNeurons": "Current: {count} Neurons",
+    "rechargeAlert": "Selected {amount} neurons for recharge. (Payment logic integration needed)"
   },
   "consentModal": {
     "title": "Service Agreement",
@@ -212,5 +298,79 @@
     "alertAllAgreed": "You must agree to all required terms.",
     "privacyPolicyTitle": "Privacy Policy",
     "termsOfServiceTitle": "Terms of Service"
+  },
+  "profilePage": {
+    "loadingPersona": "Loading character information...",
+    "imageAlt": "{name} image {index}",
+    "imageMoveLabel": "Move to image {index}",
+    "creatorInfo": "Created by: @{creatorName}",
+    "defaultGreeting": "No introduction available for this character yet.",
+    "firstSceneTitle": "Starting Story",
+    "likeButtonLabel": "Like",
+    "interactionLabel": "Interactions",
+    "startChatButton": "Start Chat",
+    "commentsTitle": "Words of Encouragement ({count})",
+    "noComments": "No words of encouragement registered yet. Be the first to encourage!",
+    "commentPlaceholder": "Leave a message of encouragement for the character...",
+    "registerButton": "Register",
+    "personaNotFound": "Character information not found. (T_T)",
+    "likeFailed": "Failed to process like: {message}",
+    "dummyComments": {
+      "author1": "Story Explorer",
+      "text1": "I love this character setting! I'm curious about the background story.",
+      "timestamp1": "3 hours ago",
+      "author2": "AI Friend",
+      "text2": "I chatted with it and it's really smart and fun. Highly recommended!",
+      "timestamp2": "1 day ago",
+      "author3": "Passerby",
+      "text3": "The illustration is truly beautiful...✨",
+      "timestamp3": "2 days ago"
+    },
+    "defaultProfile": "Default Profile"
+  },
+  "auctionModal": {
+    "createFailed": "Auction creation failed"
+  },
+  "chatWindow": {
+    "noConversation": "No conversation yet. Type a question to start.",
+    "thinking": "Thinking"
+  },
+  "livePage": {
+    "viewer1": "Viewer1",
+    "viewer1Message": "What is this character lol",
+    "viewer2": "Viewer2",
+    "viewer2Message": "So pretty for real",
+    "viewer3": "Viewer3",
+    "viewer3Message": "Does it answer??",
+    "me": "Me",
+    "websocketDisconnected": "🔌 WebSocket disconnected",
+    "broadcastContent": "Broadcast Content"
+  },
+  "needNeuronsModal": {
+    "title": "Not Enough Neurons!",
+    "description": "Please recharge your neurons to continue the conversation.",
+    "rechargeTitle": "Recharge Neurons!",
+    "rechargeDescription": "Recharge neurons to enjoy more conversations.",
+    "firstCreationReward": "Get 200 Neurons for your first Persona creation!",
+    "getFreeNeurons": "Get Free Neurons",
+    "currentNeurons": "Current: {count} Neurons"
+  },
+  "settingModal": {
+    "title": "Session Settings",
+    "like": "Like",
+    "dislike": "Dislike",
+    "resetChat": "Reset Chat",
+    "deleteChat": "Delete Chat",
+    "includeAllUtterances": "Include All Utterances",
+    "guidanceText": "* Each function affects the current character session. Please choose carefully."
+  },
+  "chatSession": {
+    "system": {
+      "search": "Search",
+      "user": "User",
+      "feed": "Feed",
+      "create": "Create",
+      "legal": "Legal"
+    }
   }
 }

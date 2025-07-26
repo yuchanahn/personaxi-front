@@ -1,6 +1,6 @@
 ## Privacy Policy
 
-Our [Site/Service Name] values your personal information and complies with the 「Personal Information Protection Act」 and related laws and regulations. Through this Privacy Policy, we inform you about how the personal information you provide is used and what measures are being taken to protect your personal information.
+Our PersonaXI values your personal information and complies with the 「Personal Information Protection Act」 and related laws and regulations. Through this Privacy Policy, we inform you about how the personal information you provide is used and what measures are being taken to protect your personal information.
 
 ### 1. Items of Personal Information Collected and Collection Methods
 

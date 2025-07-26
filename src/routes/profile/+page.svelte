@@ -7,6 +7,7 @@
     import { PORTRAIT_URL } from "$lib/constants";
     import Icon from "@iconify/svelte"; // 화살표 아이콘을 위해 추가!
     import { LikeBtn, loadlikesdata } from "$lib/api/content";
+    import { t } from "svelte-i18n";
 
     // --- 가짜 댓글 데이터 (이전과 동일) ---
     type Comment = {
@@ -82,7 +83,7 @@
             // 1. 기본 포트레이트 이미지를 제일 앞에 추가
             images.push({
                 url: persona.portrait_url,
-                description: "기본 프로필",
+                description: $t("profilePage.defaultProfile"),
             });
 
             // 2. image_metadatas에 있는 추가 이미지들을 뒤에 추가
@@ -150,7 +151,7 @@
 <div class="scroll-container">
     <div class="profile-page-wrapper">
         {#if isLoading}
-            <p class="loading-text">캐릭터 정보를 불러오는 중...</p>
+            <p class="loading-text">{$t("profilePage.loadingPersona")}</p>
         {:else if persona}
             <div class="profile-container">
                 <div class="profile-main">
@@ -193,7 +194,10 @@
                                                 currentImageIndex}
                                             on:click|stopPropagation={() =>
                                                 goToImage(i)}
-                                            aria-label="{i + 1}번 이미지로 이동"
+                                            aria-label={$t(
+                                                "profilePage.imageMoveLabel",
+                                                { values: { index: i + 1 } },
+                                            )}
                                         ></button>
                                     {/each}
                                 </div>
@@ -208,7 +212,7 @@
                     {/if}
                     <p class="character-description">
                         {persona.greeting ||
-                            "이 캐릭터에 대한 소개가 아직 준비되지 않았어요."}
+                            $t("profilePage.defaultGreeting")}
                     </p>
                     <div class="tags-container">
                         {#if persona.tags && persona.tags.length > 0}
@@ -222,7 +226,7 @@
                         <div class="first-scene-container">
                             <h3 class="scene-title">
                                 <Icon icon="ph:scroll-duotone" />
-                                <span>시작하는 이야기</span>
+                                <span>{$t("profilePage.firstSceneTitle")}</span>
                             </h3>
                             <p class="scene-text">{persona.first_scene}</p>
                         </div>
@@ -232,7 +236,7 @@
                             class="stat-item"
                             on:click={() => handleLike(persona)}
                             disabled={persona.is_liked}
-                            aria-label="좋아요"
+                            aria-label={$t("profilePage.likeButtonLabel")}
                         >
                             <Icon
                                 icon={persona.is_liked
@@ -242,14 +246,14 @@
                                     ? "color: #ff79c6;"
                                     : ""}
                             />
-                            <span class="stat-label">좋아요</span>
+                            <span class="stat-label">{$t("profilePage.likeButtonLabel")}</span>
                             <span class="stat-value">{persona.likes_count}</span
                             >
                         </button>
 
                         <div class="stat-item non-clickable">
                             <Icon icon="ph:chat-circle-dots-bold" />
-                            <span class="stat-label">상호작용</span>
+                            <span class="stat-label">{$t("profilePage.interactionLabel")}</span>
                             <span class="stat-value">{persona.chat_count}</span>
                         </div>
                     </div>
@@ -257,7 +261,7 @@
                         class="chat-start-button"
                         on:click={handleStartChat}
                     >
-                        <span>대화 시작하기</span>
+                        <span>{$t("profilePage.startChatButton")}</span>
                         <Icon
                             icon="ph:chat-circle-dots-duotone"
                             width="22"
@@ -268,7 +272,7 @@
 
                 <div class="comments-section">
                     <h2 class="comments-title">
-                        응원의 한마디 ({comments.length})
+                        {$t("profilePage.commentsTitle", { values: { count: comments.length } })}
                     </h2>
                     <div class="comments-list">
                         {#each comments as comment (comment.id)}
@@ -292,22 +296,21 @@
                             </div>
                         {:else}
                             <p class="no-comments">
-                                아직 등록된 응원이 없어요. 첫 번째로
-                                응원해보세요!
+                                {$t("profilePage.noComments")}
                             </p>
                         {/each}
                     </div>
                     <div class="comment-input-box">
                         <input
                             type="text"
-                            placeholder="캐릭터에게 응원의 메시지를 남겨주세요..."
+                            placeholder={$t("profilePage.commentPlaceholder")}
                         />
-                        <button>등록</button>
+                        <button>{$t("profilePage.registerButton")}</button>
                     </div>
                 </div>
             </div>
         {:else}
-            <p class="error-text">캐릭터 정보를 찾을 수 없어요. (T_T)</p>
+            <p class="error-text">{$t("profilePage.personaNotFound")}</p>
         {/if}
     </div>
 </div>

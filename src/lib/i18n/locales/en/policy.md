@@ -1,54 +1,54 @@
-## 개인정보처리방침(EN)
+## Privacy Policy (EN)
 
-저희 [사이트/서비스 이름]은(는) 이용자의 개인정보를 소중히 생각하며, 「개인정보보호법」 및 관련 법규를 준수하고 있습니다. 본 개인정보처리방침을 통해 이용자께서 제공하시는 개인정보가 어떠한 용도와 방식으로 이용되고 있으며, 개인정보 보호를 위해 어떠한 조치가 취해지고 있는지 알려드립니다.
+Our PersonaXI values your personal information and complies with the 「Personal Information Protection Act」 and related laws and regulations. Through this Privacy Policy, we inform you about how the personal information you provide is used and what measures are being taken to protect your personal information.
 
-### 1. 수집하는 개인정보 항목 및 수집 방법
+### 1. Items of Personal Information Collected and Collection Methods
 
-저희는 회원 가입, 서비스 이용, 상담 과정 등에서 다음과 같은 개인정보를 수집할 수 있습니다.
+We may collect the following personal information during member registration, service use, and consultation processes:
 
-*   필수 항목: 이메일, 비밀번호, 닉네임
-*   선택 항목: 프로필 이미지, 소셜 미디어 ID (연동 시)
+*   Required items: Email, password, nickname
+*   Optional items: Profile image, social media ID (when linked)
 
-개인정보는 웹사이트, 모바일 앱, 서면 양식, 전화, 이메일, 이벤트 응모 등을 통해 수집됩니다.
+Personal information is collected through websites, mobile apps, written forms, phone calls, emails, event applications, etc.
 
-### 2. 개인정보의 수집 및 이용 목적
+### 2. Purpose of Collection and Use of Personal Information
 
-수집된 개인정보는 다음의 목적으로만 이용됩니다.
+Collected personal information is used only for the following purposes:
 
-*   서비스 제공에 관한 계약 이행 및 서비스 제공에 따른 요금 정산
-*   회원 관리 (본인 확인, 개인 식별, 부정 이용 방지 등)
-*   서비스 개선 및 신규 서비스 개발
-*   마케팅 및 광고 활용 (동의 시)
+*   Fulfillment of contracts for service provision and settlement of fees for service provision
+*   Member management (identity verification, personal identification, prevention of unauthorized use, etc.)
+*   Service improvement and new service development
+*   Marketing and advertising (with consent)
 
-### 3. 개인정보의 보유 및 이용 기간
+### 3. Retention and Use Period of Personal Information
 
-이용자의 개인정보는 원칙적으로 개인정보의 수집 및 이용 목적이 달성되면 지체 없이 파기합니다. 단, 관계 법령의 규정에 의하여 보존할 필요가 있는 경우 해당 법령에서 정한 기간 동안 개인정보를 보관합니다.
+In principle, your personal information will be destroyed without delay once the purpose of collection and use of personal information has been achieved. However, if it is necessary to preserve personal information in accordance with the provisions of relevant laws and regulations, it will be stored for the period specified by those laws.
 
-### 4. 개인정보의 파기 절차 및 방법
+### 4. Procedures and Methods for Destroying Personal Information
 
-이용자의 개인정보는 목적 달성 후 별도의 DB로 옮겨져(종이의 경우 별도의 서류함) 관계 법령에 따라 일정 기간 저장된 후 파기됩니다. 종이 문서는 분쇄기로 분쇄하거나 소각을 통해 파기하며, 전자적 파일 형태는 기록을 재생할 수 없는 기술적 방법을 사용하여 삭제합니다.
+After the purpose of use is achieved, your personal information is transferred to a separate DB (or a separate document box for paper documents), stored for a certain period in accordance with relevant laws, and then destroyed. Paper documents are shredded or incinerated, and electronic files are deleted using technical methods that prevent their recovery.
 
-### 5. 개인정보 제공
+### 5. Provision of Personal Information to Third Parties
 
-저희는 이용자의 개인정보를 원칙적으로 외부에 제공하지 않습니다. 다만, 아래의 경우에는 예외로 합니다.
+In principle, we do not provide your personal information to external parties. However, exceptions are made in the following cases:
 
-*   이용자들이 사전에 동의한 경우
-*   법령의 규정에 의거하거나, 수사 목적으로 법령에 정해진 절차와 방법에 따라 수사기관의 요구가 있는 경우
+*   When users have given prior consent
+*   When required by law, or when investigative agencies request it in accordance with legal procedures and methods for investigation purposes
 
-### 6. 이용자 및 법정대리인의 권리 및 그 행사 방법
+### 6. Rights of Users and Legal Representatives and How to Exercise Them
 
-이용자는 언제든지 등록되어 있는 자신의 개인정보를 조회하거나 수정할 수 있으며, 가입 해지를 요청할 수도 있습니다. 권리 행사는 [담당자 이메일 주소 또는 문의 채널]을 통해 가능합니다.
+Users can view or modify their registered personal information at any time, and can also request account termination. Rights can be exercised through [contact person's email address or inquiry channel].
 
-### 7. 개인정보 보호책임자
+### 7. Personal Information Protection Officer
 
-저희는 개인정보 처리에 관한 업무를 총괄해서 책임지고, 개인정보 처리와 관련한 이용자의 불만 처리 및 피해 구제 등을 위하여 아래와 같이 개인정보 보호책임자를 지정하고 있습니다.
+We are responsible for overseeing personal information processing and have designated a Personal Information Protection Officer as follows to handle user complaints and provide remedies related to personal information processing:
 
-*   성명: [담당자 이름]
-*   소속: [소속 부서]
-*   이메일: [이메일 주소]
+*   Name: [Contact Person's Name]
+*   Department: [Department Name]
+*   Email: [Email Address]
 
-### 8. 고지의 의무
+### 8. Duty to Notify
 
-현 개인정보처리방침은 정부의 정책 또는 보안 기술의 변경에 따라 내용이 추가, 삭제 및 수정될 수 있습니다. 내용이 변경될 시 웹사이트 공지사항을 통해 알려드리겠습니다.
+This Privacy Policy may be added, deleted, or amended according to changes in government policies or security technologies. We will notify you through website announcements when the content changes.
 
-최종 업데이트: 2025년 6월 7일
+Last updated: June 7, 2025
