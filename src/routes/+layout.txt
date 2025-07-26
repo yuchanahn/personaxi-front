@@ -27,8 +27,6 @@
     import { onMount } from "svelte";
     import { page } from "$app/stores";
     import { browser } from "$app/environment";
-    import { goto } from "$app/navigation";
-    import Icon from "@iconify/svelte";
 
     /* ────────────── PWA: Service Worker ────────────── */
     if ("serviceWorker" in navigator) {
@@ -86,10 +84,6 @@
         loadChatSessions();
         loadCharacterSessions();
     }
-
-    function handleBack() {
-        history.length > 1 ? history.back() : goto("/hub");
-    }
 </script>
 
 <!-- ────────────── 레이아웃 ────────────── -->
@@ -130,12 +124,6 @@
         }}
     />
     <WelcomeModal neuronAmount={200} isOpen={welcomeModal} />
-
-    {#if !"/hub".includes($page.url.pathname)}
-        <button class="back-btn" on:click={handleBack}
-            ><Icon icon="weui:back-filled" width="12" height="24" />
-        </button>
-    {/if}
 </div>
 
 <style>
@@ -150,48 +138,25 @@
 
     /* ────────────── 전체 레이아웃 (Grid로 수정) ────────────── */
     .layout {
-        display: grid;
         position: fixed;
-        grid-template-rows: 1fr auto;
         inset: 0;
         display: grid;
+        grid-template-columns: auto 1fr;
         overflow: hidden;
-        height: 100vh;
     }
 
     /* ────────────── 메인 영역 ────────────── */
     main {
-        display: grid;
-        grid-template-rows: 1fr auto;
+        display: flex;
         flex-direction: column;
         overflow-y: auto;
         -webkit-overflow-scrolling: touch;
         height: 100%;
     }
 
-    .back-btn {
-        position: absolute;
-        top: 10px;
-        left: 10px;
-        background: none;
-        border: none;
-        font-size: 16px;
-        cursor: pointer;
-        padding: 8px 12px;
-        border-radius: 8px;
-        transition: background 0.2s ease;
-        display: none;
-
-        z-index: 99999;
-    }
-
     @media (max-width: 768px) {
-        .back-btn {
-            display: block;
+        main {
+            padding-bottom: 56px;
         }
-    }
-
-    .back-btn:hover {
-        background: #ffffff18;
     }
 </style>

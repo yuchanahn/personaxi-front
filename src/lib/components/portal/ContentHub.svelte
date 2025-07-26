@@ -79,7 +79,6 @@
 </script>
 
 <div class="page-wrapper">
-    <!-- 헤더와 검색창은 기존과 동일해요 -->
     <div class="header-section">
         <div class="unified-search-container">
             <div class="search-options">
@@ -163,7 +162,7 @@
     .page-wrapper {
         display: flex;
         flex-direction: column;
-        height: 100vh;
+        height: 100%;
         background-color: #121212;
     }
     .header-section {

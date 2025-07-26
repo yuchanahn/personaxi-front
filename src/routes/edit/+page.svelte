@@ -945,7 +945,7 @@
 
     /* === 기본 레이아웃 === */
     .container {
-        height: 100vh;
+        height: 100%;
         display: flex;
         flex-direction: column;
         background-color: var(--bg-primary);

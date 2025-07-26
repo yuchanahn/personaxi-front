@@ -406,7 +406,7 @@
         max-width: 960px;
         margin: 0 auto;
         padding: 0 1.5rem;
-        height: 100vh;
+        height: 100%;
         box-sizing: border-box;
     }
     .header {
@@ -420,7 +420,6 @@
         justify-content: space-between;
         align-items: center;
         gap: 1rem;
-        position: sticky;
         top: 0;
         padding: 1rem;
         z-index: 10;
@@ -561,7 +560,6 @@
         justify-content: center;
         align-items: center;
         padding: 0;
-        background: transparent;
         position: relative;
     }
 

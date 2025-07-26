@@ -63,7 +63,7 @@
             height="24"
         />
     </button>
-    <button
+    <!-- <button
         on:click={toggleFullscreen}
         title={isFullscreen
             ? $t("sidebar.exitFullscreen")
@@ -77,7 +77,7 @@
             width="24"
             height="24"
         />
-    </button>
+    </button> -->
 </div>
 
 {#if isMobile && showSidebar}
@@ -275,7 +275,7 @@
         z-index: 30;
         display: flex;
         gap: 8px;
-        background-color: rgba(30, 30, 30, 0.5);
+        background-color: rgba(151, 151, 151, 0.5);
         padding: 6px;
         border-radius: 8px;
         transition: left var(--sidebar-transition-duration) ease;

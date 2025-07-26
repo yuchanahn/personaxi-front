@@ -282,7 +282,7 @@
     /* 전체 피드 컨테이너 */
     .feed-container {
         width: 100%;
-        height: 100vh;
+        height: 100%;
         overflow-y: scroll;
         scroll-snap-type: y mandatory;
         background-color: #121212;
@@ -295,7 +295,7 @@
     /* 개별 캐릭터 릴 */
     .reel {
         width: 100%;
-        height: 100vh;
+        height: 100%;
         scroll-snap-align: start;
         position: relative;
         background-size: cover;

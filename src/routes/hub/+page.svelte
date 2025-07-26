@@ -26,10 +26,10 @@
 
 <style>
     .feedback-fab {
-        position: fixed; /* 화면에 고정 */
-        bottom: 2rem; /* 오른쪽 아래에 위치 */
-        right: 2rem;
-        z-index: 999; /* 다른 요소들 위에 오도록 */
+        position: fixed;
+        bottom: 4rem;
+        right: 0.5rem;
+        z-index: 999;
 
         display: flex;
         align-items: center;
@@ -39,7 +39,7 @@
         background: linear-gradient(45deg, #ff79c6, #bd93f9);
         color: white;
         border: none;
-        border-radius: 50px; /* 동그란 알약 모양 */
+        border-radius: 50px;
         font-size: 1rem;
         font-weight: bold;
         cursor: pointer;
