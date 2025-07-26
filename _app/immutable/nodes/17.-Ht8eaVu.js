@@ -1,0 +1,1 @@
+import{d as t,a as p}from"../chunks/CDq_e0-T.js";import"../chunks/Bb9eCz3w.js";var v=t('<div class="split svelte-196o2ps"><div class="top svelte-196o2ps"></div> <div class="bottom svelte-196o2ps"></div></div>');function e(o){var s=v();p(o,s)}export{e as component};
