@@ -78,7 +78,8 @@
 
             comments = c;
 
-            // --- ★ 이미지 메타데이터 처리 로직 추가 ★ ---
+            if (persona === null) throw "persona === null";
+
             let images: ImageMetadata[] = [];
             // 1. 기본 포트레이트 이미지를 제일 앞에 추가
             images.push({
@@ -211,8 +212,7 @@
                         </p>
                     {/if}
                     <p class="character-description">
-                        {persona.greeting ||
-                            $t("profilePage.defaultGreeting")}
+                        {persona.greeting || $t("profilePage.defaultGreeting")}
                     </p>
                     <div class="tags-container">
                         {#if persona.tags && persona.tags.length > 0}
@@ -234,7 +234,9 @@
                     <div class="stats-container">
                         <button
                             class="stat-item"
-                            on:click={() => handleLike(persona)}
+                            on:click={() => {
+                                if (persona) handleLike(persona);
+                            }}
                             disabled={persona.is_liked}
                             aria-label={$t("profilePage.likeButtonLabel")}
                         >
@@ -246,14 +248,18 @@
                                     ? "color: #ff79c6;"
                                     : ""}
                             />
-                            <span class="stat-label">{$t("profilePage.likeButtonLabel")}</span>
+                            <span class="stat-label"
+                                >{$t("profilePage.likeButtonLabel")}</span
+                            >
                             <span class="stat-value">{persona.likes_count}</span
                             >
                         </button>
 
                         <div class="stat-item non-clickable">
                             <Icon icon="ph:chat-circle-dots-bold" />
-                            <span class="stat-label">{$t("profilePage.interactionLabel")}</span>
+                            <span class="stat-label"
+                                >{$t("profilePage.interactionLabel")}</span
+                            >
                             <span class="stat-value">{persona.chat_count}</span>
                         </div>
                     </div>
@@ -272,7 +278,9 @@
 
                 <div class="comments-section">
                     <h2 class="comments-title">
-                        {$t("profilePage.commentsTitle", { values: { count: comments.length } })}
+                        {$t("profilePage.commentsTitle", {
+                            values: { count: comments.length },
+                        })}
                     </h2>
                     <div class="comments-list">
                         {#each comments as comment (comment.id)}

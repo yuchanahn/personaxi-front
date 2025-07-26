@@ -218,6 +218,21 @@
       "legal": "법률"
     }
   },
+  "hub": {
+    "feedbackButtonLabel": "피드백 보내기",
+    "feedbackButtonText": "피드백"
+  },
+  "feedbackModal": {
+    "submitFailed": "피드백 제출에 실패했습니다. 나중에 다시 시도해 주세요.",
+    "thanks": "소중한 의견 감사합니다!",
+    "thanksMessage": "여러분의 피드백은 더 나은 서비스를 만드는 데 큰 도움이 됩니다.",
+    "title": "개발자에게 익명으로 피드백 보내기",
+    "body1": "어떤 의견이든 환영합니다. 욕설과 비판도 기꺼이 듣겠습니다.",
+    "body2": "여러분의 소중한 피드백은 서비스 개선에 큰 힘이 됩니다.",
+    "sending": "전송 중...",
+    "send": "피드백 보내기",
+    "placeholder": "여기에 피드백을 입력해 주세요..."
+  },
   "welcomeModal": {
     "title": "PersonaXI에 오신 것을 환영합니다!",
     "message": "PersonaXI에 가입해주셔서 감사합니다. 즐거운 시간 되시길 바랍니다!",

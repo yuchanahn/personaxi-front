@@ -1,5 +1,3 @@
-/// service-worker.js
-// 빌드 시 vite.define 로 주입하거나, SvelteKit adapter 사용 시 %sveltekit.version% 활용
 const VERSION = 'v2';                            // ← 버전만 올리면 배포된 SW가 교체됨
 const PRECACHE = `precache-${VERSION}`;          // 정적 자산
 const RUNTIME = `runtime-${VERSION}`;           // 동적 캐시

@@ -27,8 +27,6 @@
         tags: [],
 
         feedback: {
-            like: 0,
-            dislike: 0,
             view: 0,
         },
         voice_id: "",
@@ -41,7 +39,11 @@
         creator_name: "",
         first_scene: "",
         greeting: "",
+        likes_count: 0,
+        dislikes_count: 0,
+        chat_count: 0,
     };
+
     let instruction = "";
     let promptExample = "";
     let tags = "";
@@ -396,7 +398,9 @@
                     persona.promptExamples.some((ex) => ex.length > 200) ||
                     persona.promptExamples.length > 10
                 ) {
-                    error = $t("editPage.validation.promptExamplesLimitExceeded");
+                    error = $t(
+                        "editPage.validation.promptExamplesLimitExceeded",
+                    );
                     return;
                 }
 
@@ -420,7 +424,9 @@
                     persona.promptExamples.some((ex) => ex.length > 200) ||
                     persona.promptExamples.length > 10
                 ) {
-                    error = $t("editPage.validation.promptExamplesLimitExceeded");
+                    error = $t(
+                        "editPage.validation.promptExamplesLimitExceeded",
+                    );
                     return;
                 }
 
@@ -494,14 +500,18 @@
                         >
                         <p class="description">
                             {$t("editPage.greetingDescription", {
-                                default: $t("editPage.greetingDescriptionDefault"),
+                                default: $t(
+                                    "editPage.greetingDescriptionDefault",
+                                ),
                             })}
                         </p>
                         <textarea
                             id="greeting"
                             bind:value={persona.greeting}
                             placeholder={$t("editPage.greetingPlaceholder", {
-                                default: $t("editPage.greetingPlaceholderDefault"),
+                                default: $t(
+                                    "editPage.greetingPlaceholderDefault",
+                                ),
                             })}
                             rows="3"
                             maxlength="200"
@@ -532,14 +542,20 @@
                     </div>
 
                     <div class="form-group">
-                        <label for="visibility">{$t("editPage.visibilityLabel")}</label>
+                        <label for="visibility"
+                            >{$t("editPage.visibilityLabel")}</label
+                        >
                         <select
                             id="visibility"
                             bind:value={persona.visibility}
                             required
                         >
-                            <option value="public">{$t("editPage.public")}</option>
-                            <option value="private">{$t("editPage.private")}</option>
+                            <option value="public"
+                                >{$t("editPage.public")}</option
+                            >
+                            <option value="private"
+                                >{$t("editPage.private")}</option
+                            >
                         </select>
                     </div>
                 </div>
@@ -611,7 +627,11 @@
                                                     for="asset-file-{index}"
                                                     class="file-input-label small"
                                                 >
-                                                    <span>{$t("editPage.imageSelect")}</span>
+                                                    <span
+                                                        >{$t(
+                                                            "editPage.imageSelect",
+                                                        )}</span
+                                                    >
                                                 </label>
                                                 <input
                                                     id="asset-file-{index}"
@@ -628,7 +648,9 @@
                                             <div class="asset-details">
                                                 <textarea
                                                     class="asset-description-input"
-                                                    placeholder={$t("editPage.assetDescriptionPlaceholder")}
+                                                    placeholder={$t(
+                                                        "editPage.assetDescriptionPlaceholder",
+                                                    )}
                                                     rows="3"
                                                     bind:value={
                                                         asset.description
@@ -708,7 +730,9 @@
                                         bind:value={selectedVoiceId}
                                     >
                                         <option value="" disabled
-                                            >{$t("editPage.voiceSelectDefault")}</option
+                                            >{$t(
+                                                "editPage.voiceSelectDefault",
+                                            )}</option
                                         >
                                         {#each allVoices as voice (voice.voice_id)}
                                             <option value={voice.voice_id}
