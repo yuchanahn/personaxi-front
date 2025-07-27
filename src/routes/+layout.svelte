@@ -28,6 +28,7 @@
     import { goto } from "$app/navigation";
     import Icon from "@iconify/svelte";
     import { slide } from "svelte/transition";
+    import { accessToken } from "$lib/stores/auth";
 
     /* ────────────── PWA: Service Worker ────────────── */
     if ("serviceWorker" in navigator) {
@@ -54,6 +55,40 @@
 
     /* ────────────── 인증 확인 ────────────── */
     onMount(async () => {
+        //TODO: PWA 일경우 어떻게 될지 모름. 아마 브라우져겠지?
+        if (!browser) return;
+
+        const hash = window.location.hash;
+        if (hash.includes("access_token=")) {
+            const token = new URLSearchParams(hash.substring(1)).get(
+                "access_token",
+            );
+            if (token) {
+                accessToken.set(token);
+                window.history.replaceState(
+                    null,
+                    "",
+                    window.location.pathname + window.location.search,
+                );
+                return;
+            }
+        }
+
+        try {
+            const response = await fetch("/api/refresh-token", {
+                method: "POST",
+            });
+            if (response.ok) {
+                const data = await response.json();
+                accessToken.set(data.access_token);
+            } else {
+                accessToken.set(null);
+            }
+        } catch (error) {
+            accessToken.set(null);
+        }
+
+        //TODO: 수정 필요!
         try {
             const user = (await getCurrentUser()) as User | null;
             if (!user) {
