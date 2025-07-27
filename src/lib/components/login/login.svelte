@@ -1,6 +1,24 @@
 <script lang="ts">
+    import { goto } from "$app/navigation";
+    import { ownloginWithEmailPass } from "$lib/api/auth";
     import { API_BASE_URL } from "$lib/constants";
     import { t } from "svelte-i18n";
+
+    let mode: "options" | "email" | "register" = "options";
+
+    let email = "";
+    let password = "";
+
+    const toOptions = () => (mode = "options");
+    const toEmailForm = () => (mode = "email");
+
+    const loginWithEmail = () => {
+        ownloginWithEmailPass(email, password);
+    };
+
+    const onSignup = () => {
+        goto("/signup");
+    };
 
     type LoginOption = {
         name: string;
@@ -26,9 +44,7 @@
         {
             name: "Email",
             icon: "/icons/email.svg",
-            handler: () => {
-                alert($t("login.emailSoon"));
-            },
+            handler: toEmailForm,
         },
     ];
 </script>
@@ -44,28 +60,68 @@
             <h1 class="title">{$t("login.welcomeBack")}</h1>
             <p class="subtitle">{$t("login.slogan")}</p>
         </div>
-        <div class="button-group">
-            {#each loginOptions as option}
-                <button class="login-button" on:click={option.handler}>
-                    <img
-                        class="login-icon"
-                        src={option.icon}
-                        alt="{option.name} icon"
-                    />
-                    <span
-                        >{$t("login.loginWith", {
-                            values: { provider: option.name },
-                        })}</span
-                    >
-                </button>
-            {/each}
-        </div>
 
-        <div class="legal-links">
-            <a href="/terms">{$t("login.terms")}</a>
-            <span>·</span>
-            <a href="/privacy">{$t("login.privacy")}</a>
-        </div>
+        <!-- Provider 선택 화면 -->
+        {#if mode === "options"}
+            <div class="button-group">
+                {#each loginOptions as option}
+                    <button class="login-button" on:click={option.handler}>
+                        <img
+                            class="login-icon"
+                            src={option.icon}
+                            alt={`${option.name} icon`}
+                        />
+                        <span>
+                            {$t("login.loginWith", {
+                                values: { provider: option.name },
+                            })}
+                        </span>
+                    </button>
+                {/each}
+            </div>
+
+            <div class="legal-links">
+                <a href="/terms">{$t("login.terms")}</a>
+                <span>·</span>
+                <a href="/privacy">{$t("login.privacy")}</a>
+            </div>
+        {:else}
+            <form class="email-form" on:submit|preventDefault={loginWithEmail}>
+                <div class="form-group">
+                    <label for="email">Email</label>
+                    <input
+                        id="email"
+                        type="email"
+                        bind:value={email}
+                        required
+                        placeholder="you@example.com"
+                    />
+                </div>
+                <div class="form-group">
+                    <label for="password">Password</label>
+                    <input
+                        id="password"
+                        type="password"
+                        bind:value={password}
+                        required
+                        placeholder=""
+                    />
+                </div>
+                <button class="submit-button" type="submit"
+                    >{$t("login.signIn")}</button
+                >
+            </form>
+
+            <div class="alt-actions">
+                <button class="link-button" on:click={onSignup}
+                    >{$t("login.signUp")}</button
+                >
+                <span>·</span>
+                <button class="link-button" on:click={toOptions}
+                    >{$t("common.back")}</button
+                >
+            </div>
+        {/if}
     </div>
 </div>
 
@@ -96,6 +152,7 @@
             border-color 0.3s ease;
     }
 
+    /* HEADER */
     .login-header {
         text-align: center;
         margin-bottom: 1rem;
@@ -117,12 +174,12 @@
         margin-top: 0.5rem;
     }
 
+    /* PROVIDER BUTTONS */
     .button-group {
         display: flex;
         flex-direction: column;
         gap: 1rem;
     }
-
     .login-button {
         display: flex;
         align-items: center;
@@ -139,14 +196,75 @@
         cursor: pointer;
         transition: background-color 0.2s;
     }
-
     .login-button:hover {
         background-color: var(--color-button-hover);
     }
-
     .login-icon {
         width: 20px;
         height: 20px;
+    }
+
+    /* EMAIL FORM */
+    .email-form {
+        display: flex;
+        flex-direction: column;
+        gap: 1.25rem;
+    }
+    .form-group {
+        display: flex;
+        flex-direction: column;
+        gap: 0.25rem;
+    }
+    .form-group label {
+        font-size: 0.85rem;
+        color: var(--color-text-secondary);
+    }
+    .form-group input {
+        padding: 0.65rem 0.85rem;
+        border: 1px solid var(--color-border);
+        border-radius: 8px;
+        background-color: var(--color-bg-input, #fff);
+        font-size: 0.95rem;
+        color: var(--color-text-primary);
+    }
+    .form-group input:focus {
+        outline: none;
+        border-color: var(--primary);
+        box-shadow: 0 0 0 2px var(--ring);
+    }
+
+    .submit-button {
+        margin-top: 0.5rem;
+        padding: 0.75rem 1rem;
+        border-radius: 8px;
+        font-weight: 600;
+        font-size: 1rem;
+        color: var(--primary-foreground);
+        background-color: var(--primary);
+        cursor: pointer;
+        transition: background-color 0.2s;
+        border: none;
+    }
+    .submit-button:hover {
+        background-color: hsl(260 75% 52%);
+    }
+
+    .alt-actions {
+        margin-top: 1.5rem;
+        text-align: center;
+        font-size: 0.85rem;
+        color: var(--color-text-secondary);
+    }
+    .link-button {
+        background: none;
+        border: none;
+        color: var(--primary);
+        cursor: pointer;
+        padding: 0;
+        font: inherit;
+    }
+    .link-button:hover {
+        text-decoration: underline;
     }
 
     .legal-links {

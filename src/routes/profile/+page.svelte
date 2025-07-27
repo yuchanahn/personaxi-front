@@ -324,53 +324,48 @@
 </div>
 
 <style>
-    /* --- 👇 통계 섹션 스타일 추가 --- */
-
     .stats-container {
         display: flex;
         justify-content: space-around;
         align-items: center;
         width: 100%;
-        background-color: rgba(0, 0, 0, 0.2);
-        border: 1px solid #2a2a2a;
-        border-radius: 12px;
+        background-color: hsla(var(--dark), 0.2);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-card);
         padding: 1rem;
-        margin-bottom: 2.5rem; /* '대화 시작하기' 버튼과의 간격 */
+        margin-bottom: 2.5rem;
     }
 
     .stat-item {
         display: flex;
-        flex-direction: column; /* 아이콘과 텍스트를 세로로 정렬 */
+        flex-direction: column;
         align-items: center;
-        gap: 0.5rem; /* 아이콘과 텍스트 사이 간격 */
+        gap: 0.5rem;
         font-size: 1.2rem;
         font-weight: 600;
-        color: #e0e0e0;
+        color: var(--foreground);
     }
 
-    /* 아이콘 색상 좀 더 부드럽게 */
     .stat-item :global(svg) {
-        color: #888;
+        color: var(--muted-foreground);
         width: 28px;
         height: 28px;
     }
 
-    /* --- 여기까지 추가 --- */
-
     .scroll-container {
-        height: 100%; /* 화면 전체 높이를 차지 */
-        overflow-y: auto; /* ★★★ 내용이 길어지면 세로 스크롤을 자동으로 생성! ★★★ */
-        background-color: #121212; /* 배경색을 이쪽으로 옮겨주자 */
+        height: 100%;
+        overflow-y: auto;
+        background-color: var(--background);
     }
 
     .first-scene-container {
         width: 100%;
-        background-color: rgba(0, 0, 0, 0.2);
-        border: 1px solid #2a2a2a;
-        border-radius: 12px;
+        background-color: hsla(var(--dark), 0.2);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-card);
         padding: 1.5rem;
         margin-bottom: 2.5rem;
-        text-align: left; /* 내부 텍스트는 왼쪽 정렬 */
+        text-align: left;
     }
 
     .scene-title {
@@ -379,25 +374,25 @@
         gap: 0.5rem;
         font-size: 1.1rem;
         font-weight: 600;
-        color: #e0e0e0;
+        color: var(--foreground);
         margin: 0 0 1rem 0;
         padding-bottom: 0.75rem;
-        border-bottom: 1px solid #2a2a2a;
+        border-bottom: 1px solid var(--border);
     }
 
     .scene-text {
         font-size: 0.95rem;
         line-height: 1.7;
-        color: #ccc;
-        white-space: pre-wrap; /* ★★★ 이게 핵심! 줄바꿈과 공백을 그대로 보여줘 ★★★ */
+        color: var(--muted-foreground);
+        white-space: pre-wrap;
         margin: 0;
-        font-style: italic; /* 살짝 기울여서 이야기 느낌을 더해봐 */
+        font-style: italic;
     }
 
     .profile-main {
-        background: #1e1e1e;
-        border: 1px solid #2a2a2a;
-        border-radius: 16px;
+        background: var(--card);
+        border: 1px solid var(--border-card);
+        border-radius: var(--radius-card-lg);
         padding: 2rem;
         display: flex;
         flex-direction: column;
@@ -408,46 +403,44 @@
         position: absolute;
         top: 10px;
         right: 10px;
-        background-color: rgba(0, 0, 0, 0.6);
-        color: white;
-        padding: 5px 10px;
-        border-radius: 20px; /* 동글동글한 알약 모양 */
-        font-size: 0.8rem;
-        font-weight: 500;
         display: flex;
         align-items: center;
-        gap: 6px;
-        z-index: 10;
-        backdrop-filter: blur(3px); /* 뒷배경 블러 효과 */
-        border: 1px solid rgba(255, 255, 255, 0.1);
+        gap: 0.3rem;
+        font-size: 0.75rem;
+        color: var(--accent-foreground);
+        background-color: hsl(var(--background) / 0.9);
+        padding: 0.2rem 0.4rem;
+        border-radius: var(--radius-button);
+        font-weight: 600;
+        border: 1px solid hsl(var(--border) / 0.5);
+        backdrop-filter: blur(8px);
+        text-shadow: 0 1px 2px hsl(var(--background) / 0.8);
     }
 
-    /* 1. 동그라미 -> 네모난 갤러리 형태로 변경 */
     .image-gallery-wrapper {
-        position: relative; /* 화살표와 점을 위한 기준점 */
+        position: relative;
         width: 100%;
-        aspect-ratio: 1 / 1; /* 1:1 비율의 정사각형 */
+        aspect-ratio: 1 / 1;
         margin-bottom: 1.5rem;
-        border-radius: 12px; /* 살짝 둥근 모서리 */
-        overflow: hidden; /* 모서리 밖으로 이미지가 나가지 않게 */
-        background-color: #121212; /* 이미지 로딩 전 배경색 */
+        border-radius: var(--radius-card);
+        overflow: hidden;
+        background-color: var(--background);
     }
 
     .profile-portrait-square {
         width: 100%;
         height: 100%;
-        object-fit: cover; /* 이미지가 꽉 차도록 */
+        object-fit: cover;
         display: block;
         transition: opacity 0.3s ease-in-out;
     }
 
-    /* 2. 좌/우 화살표 스타일 */
     .nav-arrow {
         position: absolute;
         top: 50%;
         transform: translateY(-50%);
-        background-color: rgba(0, 0, 0, 0.4);
-        color: white;
+        background-color: hsla(var(--dark), 0.4);
+        color: var(--accent-foreground);
         border: none;
         border-radius: 50%;
         width: 36px;
@@ -460,7 +453,7 @@
         z-index: 10;
     }
     .nav-arrow:hover {
-        background-color: rgba(0, 0, 0, 0.7);
+        background-color: hsla(var(--dark), 0.7);
     }
     .nav-arrow.left {
         left: 10px;
@@ -469,49 +462,43 @@
         right: 10px;
     }
 
-    /* 3. 하단 인디케이터(점) 스타일 */
     .indicator-dots {
         position: absolute;
         bottom: 10px;
         left: 50%;
         transform: translateX(-50%);
-
-        max-width: 80%; /* 양옆에 약간의 여백을 확보 */
-        overflow-x: auto; /* 내용이 넘치면 가로 스크롤! */
-        padding: 4px 0; /* 스크롤바가 생겨도 잘리지 않도록 패딩 추가 */
-
+        max-width: 80%;
+        overflow-x: auto;
+        padding: 4px 0;
         display: flex;
         gap: 8px;
         z-index: 10;
-
-        scrollbar-width: none; /* Firefox */
+        scrollbar-width: none;
     }
     .indicator-dots::-webkit-scrollbar {
-        display: none; /* Chrome, Safari, Opera */
+        display: none;
     }
 
     .dot {
         width: 8px;
         height: 8px;
         border-radius: 50%;
-        background-color: rgba(255, 255, 255, 0.4);
+        background-color: hsla(var(--contrast), 0.4);
         border: none;
         padding: 0;
         cursor: pointer;
         transition: background-color 0.2s;
     }
     .dot:hover {
-        background-color: rgba(255, 255, 255, 0.7);
+        background-color: hsla(var(--contrast), 0.7);
     }
     .dot.active {
-        background-color: white;
+        background-color: var(--contrast);
     }
-    /* --- ★★★ 여기까지 스타일 변경점 ★★★ --- */
 
-    /* 기존 스타일들 (거의 그대로) */
     .profile-page-wrapper {
-        background-color: #121212;
-        color: #e0e0e0;
+        background-color: var(--background);
+        color: var(--foreground);
         min-height: 100vh;
         padding: 2rem;
         display: flex;
@@ -521,7 +508,7 @@
     .loading-text,
     .error-text {
         font-size: 1.2rem;
-        color: #888;
+        color: var(--muted-foreground);
     }
     .profile-container {
         display: grid;
@@ -533,20 +520,20 @@
     .character-name {
         font-size: 2.5rem;
         font-weight: bold;
-        color: #fff;
+        color: var(--foreground);
         margin-bottom: 0.5rem;
         text-align: center;
     }
     .creator-info {
         font-size: 1rem;
-        color: #aaa;
+        color: var(--muted-foreground);
         margin-bottom: 1.5rem;
         text-align: center;
     }
     .character-description {
         font-size: 1rem;
         line-height: 1.6;
-        color: #ccc;
+        color: var(--muted-foreground);
         margin-bottom: 2rem;
         text-align: center;
     }
@@ -558,8 +545,8 @@
         margin-bottom: 2.5rem;
     }
     .tag {
-        background-color: #333;
-        color: #e0e0e0;
+        background-color: var(--secondary);
+        color: var(--secondary-foreground);
         padding: 0.3rem 0.8rem;
         border-radius: 12px;
         font-size: 0.8rem;
@@ -570,8 +557,8 @@
         padding: 1rem;
         font-size: 1.2rem;
         font-weight: bold;
-        color: #fff;
-        background: linear-gradient(45deg, #ff79c6, #bd93f9);
+        color: var(--primary-foreground);
+        background: var(--primary);
         border: none;
         border-radius: 12px;
         cursor: pointer;
@@ -583,12 +570,12 @@
     }
     .chat-start-button:hover {
         transform: translateY(-3px);
-        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
+        box-shadow: var(--shadow-popover);
     }
     .comments-section {
-        background: #1e1e1e;
-        border: 1px solid #2a2a2a;
-        border-radius: 16px;
+        background: var(--card);
+        border: 1px solid var(--border-card);
+        border-radius: var(--radius-card-lg);
         padding: 2rem;
         display: flex;
         flex-direction: column;
@@ -597,7 +584,7 @@
         font-size: 1.5rem;
         margin-bottom: 1.5rem;
         padding-bottom: 1rem;
-        border-bottom: 1px solid #2a2a2a;
+        border-bottom: 1px solid var(--border);
     }
     .comments-list {
         flex-grow: 1;
@@ -611,8 +598,8 @@
         display: flex;
         gap: 1rem;
         padding: 1rem;
-        background: #252525;
-        border-radius: 10px;
+        background: var(--muted);
+        border-radius: var(--radius-card-sm);
     }
     .comment-avatar {
         width: 40px;
@@ -630,19 +617,19 @@
     }
     .comment-author {
         font-weight: bold;
-        color: #fff;
+        color: var(--foreground);
     }
     .comment-timestamp {
         font-size: 0.8rem;
-        color: #888;
+        color: var(--muted-foreground);
     }
     .comment-text {
         font-size: 0.95rem;
-        color: #ccc;
+        color: var(--muted-foreground);
         line-height: 1.5;
     }
     .no-comments {
-        color: #888;
+        color: var(--muted-foreground);
         text-align: center;
         padding: 2rem 0;
     }
@@ -653,31 +640,30 @@
     }
     .comment-input-box input {
         flex-grow: 1;
-        background: #2a2a2a;
-        border: 1px solid #444;
-        color: white;
+        background: var(--input);
+        border: 1px solid var(--border-input);
+        color: var(--foreground);
         padding: 0.75rem 1rem;
-        border-radius: 8px;
+        border-radius: var(--radius-input);
         font-size: 0.9rem;
     }
     .comment-input-box input:focus {
         outline: none;
-        border-color: #5a5a5a;
+        border-color: var(--border-input-hover);
     }
     .comment-input-box button {
         padding: 0.75rem 1.2rem;
-        background-color: #3e3e3e;
-        color: white;
+        background-color: var(--secondary);
+        color: var(--secondary-foreground);
         border: none;
-        border-radius: 8px;
+        border-radius: var(--radius-button);
         cursor: pointer;
         transition: background-color 0.2s;
     }
     .comment-input-box button:hover {
-        background-color: #4a4a4a;
+        opacity: 0.9;
     }
 
-    /* 반응형 */
     @media (max-width: 992px) {
         .profile-container {
             grid-template-columns: 1fr;

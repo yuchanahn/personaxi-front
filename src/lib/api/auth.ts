@@ -29,6 +29,25 @@ export async function loginWithAuthKey(authKey: string): Promise<void> {
   }
 }
 
+export async function ownloginWithEmailPass(email: string, password: string): Promise<void> {
+  const res = await fetch(`${API_BASE_URL}/api/auth/ownlogin`, {
+    method: "POST", // ❗ POST 메소드로 지정
+    headers: {
+      "Content-Type": "application/json",
+    },
+    credentials: "include",
+    body: JSON.stringify({ email, password }),
+  });
+
+  if (res.ok) {
+    //window.location.href = getBaseUrl();
+  } else {
+    const errorResponse = await res.json();
+    throw new Error(errorResponse.Error || "로그인에 실패했습니다.");
+  }
+}
+
+
 export async function getCurrentUser(): Promise<any | null> {
   const res = await fetch(`${API_BASE_URL}/api/user/me`, {
     credentials: 'include'

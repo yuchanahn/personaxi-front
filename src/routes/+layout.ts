@@ -76,7 +76,7 @@ export async function load() {
         console.error("레이아웃 로드 중 심각한 에러 발생:", e);
     }
 
-    return {}
+    return {};
 }
 
 export const ssr = false

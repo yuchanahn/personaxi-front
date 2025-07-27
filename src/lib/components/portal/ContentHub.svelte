@@ -13,7 +13,6 @@
     import { fetchAuctionPersonas } from "$lib/services/auction";
     import type { AuctionPersona } from "$lib/services/auction";
     import { t } from "svelte-i18n";
-    import { PORTRAIT_URL } from "$lib/constants";
     import CharacterCard from "../card/CharacterCard.svelte";
 
     let contents = writable<Persona[]>([]);
@@ -163,7 +162,6 @@
         display: flex;
         flex-direction: column;
         height: 100%;
-        background-color: #121212;
     }
     .header-section {
         flex-shrink: 0;
@@ -176,11 +174,10 @@
     .hub-container > .content {
         display: grid;
         grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-        gap: 1.5rem; /* 타일 간격을 조금 더 넓혔어요 */
+        gap: 1.5rem;
         padding: 1.5rem;
     }
 
-    /* 검색창 관련 CSS (기존과 동일) */
     .unified-search-container {
         display: flex;
         flex-direction: row;
@@ -193,26 +190,26 @@
         display: flex;
         flex-shrink: 0;
         gap: 0.5rem;
-        background-color: #2a2a2a;
+        background-color: var(--muted);
         padding: 0.25rem;
-        border-radius: 8px;
+        border-radius: var(--radius-input);
     }
     .search-options button {
         padding: 0.4rem 0.8rem;
         font-size: 0.8rem;
         font-weight: 500;
         background-color: transparent;
-        color: #aaa;
+        color: var(--muted-foreground);
         border: none;
-        border-radius: 6px;
+        border-radius: var(--radius-button);
         cursor: pointer;
         transition: all 0.2s ease-in-out;
         white-space: nowrap;
     }
     .search-options button.active {
-        background-color: #4a4a4a;
-        color: white;
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        background-color: var(--secondary);
+        color: var(--secondary-foreground);
+        box-shadow: var(--shadow-mini);
     }
     .search-input-wrapper {
         position: relative;
@@ -220,12 +217,12 @@
         max-width: 400px;
     }
     .search-input-wrapper input {
-        background-color: #2a2a2a;
-        border: 1px solid #444;
-        color: white;
+        background-color: var(--input);
+        border: 1px solid var(--border-input);
+        color: var(--foreground);
         padding: 0.75rem 3rem 0.75rem 1rem;
         font-size: 1rem;
-        border-radius: 8px;
+        border-radius: var(--radius-input);
         width: 100%;
         transition:
             border-color 0.2s,
@@ -233,11 +230,11 @@
     }
     .search-input-wrapper input:focus {
         outline: none;
-        border-color: #5a5a5a;
-        box-shadow: 0 0 0 2px rgba(90, 90, 90, 0.5);
+        border-color: var(--border-input-hover);
+        box-shadow: 0 0 0 2px var(--ring);
     }
     .search-input-wrapper input::placeholder {
-        color: #888;
+        color: var(--muted-foreground);
     }
     .search-button {
         position: absolute;
@@ -247,22 +244,21 @@
         padding: 0.5rem;
         background: none;
         border: none;
-        color: #bbb;
+        color: var(--muted-foreground);
         cursor: pointer;
         display: flex;
         align-items: center;
         justify-content: center;
-        border-radius: 6px;
+        border-radius: var(--radius-button);
         transition: background-color 0.2s;
     }
     .search-button:hover {
-        color: white;
-        background-color: #333;
+        color: var(--foreground);
+        background-color: var(--muted);
     }
 
     @media (max-width: 768px) {
         .hub-container > .content {
-            /* 카드 내부가 아닌, 카드들을 담는 '그리드'에 대한 반응형 스타일은 여기 남아야 해! */
             grid-template-columns: repeat(3, 1fr);
             gap: 0.5rem;
             padding: 0.5rem;

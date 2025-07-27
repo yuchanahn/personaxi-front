@@ -810,7 +810,7 @@
                                 class:btn-add-emphasis={instruction.length > 0}
                                 on:click={addInstruction}
                                 disabled={persona.instructions.length >= 10}
-                                >[+] {$t("editPage.addButton")}</button
+                                >{$t("editPage.addButton")}</button
                             >
                         </div>
                         <div
@@ -906,7 +906,7 @@
                                 class="btn btn-secondary"
                                 class:btn-add-emphasis={tags.length > 0}
                                 on:click={addTag}
-                                >[+] {$t("editPage.addButton")}</button
+                                >{$t("editPage.addButton")}</button
                             >
                         </div>
                         <ul class="tag-list">
@@ -932,25 +932,14 @@
 <FirstCreationRewardModal bind:isOpen={showRewardModal} />
 
 <style>
-    :root {
-        --bg-primary: #121212;
-        --bg-secondary: #1e1e1e;
-        --bg-tertiary: #2a2a2a;
-        --text-primary: #e0e0e0;
-        --text-secondary: #a0a0a0;
-        --border-color: #333;
-        --accent-primary: #4a90e2;
-        --accent-danger: #e24a4a;
-    }
-
     /* === 기본 레이아웃 === */
     .container {
         height: 100%;
         display: flex;
         flex-direction: column;
-        background-color: var(--bg-primary);
-        color: var(--text-primary);
-        max-width: 1200px; /* 최대 너비 조정 */
+        background-color: var(--background);
+        color: var(--foreground);
+        max-width: 1200px;
         margin: 0 auto;
         padding: 0 1.5rem;
         box-sizing: border-box;
@@ -962,7 +951,7 @@
         align-items: center;
         padding: 1.5rem 0;
         flex-shrink: 0;
-        border-bottom: 1px solid var(--border-color);
+        border-bottom: 1px solid var(--border);
     }
 
     .scrollable-content {
@@ -979,11 +968,11 @@
         background: transparent;
     }
     .scrollable-content::-webkit-scrollbar-thumb {
-        background: #555;
+        background: var(--muted-foreground);
         border-radius: 4px;
     }
     .scrollable-content::-webkit-scrollbar-thumb:hover {
-        background: #777;
+        background: var(--foreground-alt);
     }
 
     /* === 2단 폼 레이아웃 === */
@@ -1001,16 +990,16 @@
     }
 
     .form-section-card {
-        background-color: var(--bg-secondary);
-        border: 1px solid var(--border-color);
-        border-radius: 12px;
+        background-color: var(--card);
+        border: 1px solid var(--border-card);
+        border-radius: var(--radius-card);
         padding: 1.5rem;
     }
     .form-section-card h2 {
         margin-top: 0;
         margin-bottom: 1.5rem;
         font-size: 1.25rem;
-        border-bottom: 1px solid var(--border-color);
+        border-bottom: 1px solid var(--border);
         padding-bottom: 0.75rem;
     }
 
@@ -1028,7 +1017,7 @@
     }
     .description {
         font-size: 0.85rem;
-        color: var(--text-secondary);
+        color: var(--muted-foreground);
         margin-top: -0.25rem;
         margin-bottom: 0.75rem;
     }
@@ -1037,10 +1026,10 @@
     textarea {
         width: 100%;
         padding: 0.75rem;
-        border: 1px solid var(--border-color);
-        border-radius: 8px;
-        background: var(--bg-tertiary);
-        color: var(--text-primary);
+        border: 1px solid var(--border-input);
+        border-radius: var(--radius-input);
+        background: var(--input);
+        color: var(--foreground);
         box-sizing: border-box;
         transition:
             border-color 0.2s,
@@ -1050,8 +1039,8 @@
     select:focus,
     textarea:focus {
         outline: none;
-        border-color: var(--accent-primary);
-        box-shadow: 0 0 0 2px rgba(74, 144, 226, 0.3);
+        border-color: var(--primary);
+        box-shadow: 0 0 0 2px var(--ring);
     }
 
     .input-group {
@@ -1074,26 +1063,26 @@
     .file-input-label {
         display: inline-block;
         padding: 0.6rem 1.2rem;
-        background-color: var(--bg-tertiary);
-        border: 1px solid var(--border-color);
-        border-radius: 8px;
+        background-color: var(--secondary);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-button);
         cursor: pointer;
         transition: background-color 0.2s;
     }
     .file-input-label:hover {
-        background-color: #3c3c3c;
+        background-color: var(--muted);
     }
     .file-name {
         font-size: 0.9rem;
-        color: var(--text-secondary);
+        color: var(--muted-foreground);
     }
     .preview-image {
         margin-top: 1rem;
         max-width: 150px;
         max-height: 150px;
-        border-radius: 8px;
+        border-radius: var(--radius-input);
         object-fit: cover;
-        border: 1px solid var(--border-color);
+        border: 1px solid var(--border);
     }
 
     /* === 동적 아이템 리스트 === */
@@ -1109,15 +1098,15 @@
         display: flex;
         justify-content: space-between;
         align-items: flex-start;
-        background: var(--bg-tertiary);
+        background: var(--muted);
         padding: 0.75rem;
-        border-radius: 6px;
+        border-radius: var(--radius-card-sm);
         font-size: 0.9rem;
         line-height: 1.5;
         word-break: break-word;
     }
     .item-text {
-        white-space: pre-wrap; /* 줄바꿈 문자 표시 */
+        white-space: pre-wrap;
     }
 
     .tag-list {
@@ -1129,8 +1118,8 @@
         gap: 0.5rem;
     }
     .tag-item {
-        background-color: var(--bg-tertiary);
-        color: var(--text-primary);
+        background-color: var(--secondary);
+        color: var(--secondary-foreground);
         padding: 0.3rem 0.8rem;
         border-radius: 16px;
         display: flex;
@@ -1144,26 +1133,18 @@
         padding: 0.6rem 1.2rem;
         font-size: 0.9rem;
         font-weight: 600;
-        border: 1px solid var(--border-color);
-        border-radius: 8px;
+        border: 1px solid var(--border);
+        border-radius: var(--radius-button);
         cursor: pointer;
         transition: all 0.2s;
     }
-    .btn-primary {
-        background: var(--accent-primary);
-        border-color: var(--accent-primary);
-        color: white;
-    }
-    .btn-primary:hover:not(:disabled) {
-        background: #62a2e9;
-    }
 
     .btn-secondary {
-        background: var(--bg-tertiary);
-        color: var(--text-primary);
+        background: var(--secondary);
+        color: var(--secondary-foreground);
     }
     .btn-secondary:hover:not(:disabled) {
-        background: #3c3c3c;
+        opacity: 0.9;
     }
 
     .btn-add-emphasis {
@@ -1172,73 +1153,67 @@
 
     @keyframes pulse {
         0% {
-            box-shadow: 0 0 0 0 rgba(74, 144, 226, 0.7);
+            box-shadow: 0 0 0 0 hsl(260 90% 68% / 0.7);
+            border-color: hsl(260 90% 68% / 0.8);
         }
         70% {
-            box-shadow: 0 0 0 10px rgba(74, 144, 226, 0);
+            box-shadow: 0 0 0 8px hsl(260 90% 68% / 0);
+            border-color: hsl(260 90% 68% / 1);
         }
         100% {
-            box-shadow: 0 0 0 0 rgba(74, 144, 226, 0);
+            box-shadow: 0 0 0 0 hsl(260 90% 68% / 0);
+            border-color: hsl(260 90% 68% / 0.8);
         }
     }
 
     .btn-remove {
         background: none;
         border: none;
-        color: var(--text-secondary);
+        color: var(--muted-foreground);
         font-size: 1.5rem;
         line-height: 1;
         cursor: pointer;
         padding: 0 0.25rem;
     }
     .btn-remove:hover {
-        color: var(--accent-danger);
+        color: var(--destructive);
     }
 
     .save-button {
-        /* .btn, .btn-primary 스타일 상속 */
         padding: 0.6rem 1.2rem;
         font-size: 0.9rem;
         font-weight: 600;
         border-radius: 8px;
         cursor: pointer;
         transition: all 0.2s;
-        background: var(--accent-primary);
-        border: 1px solid var(--accent-primary);
-        color: white;
+        background: var(--primary);
+        border: 1px solid var(--primary);
+        color: var(--primary-foreground);
     }
     .save-button:disabled {
         opacity: 0.6;
         cursor: not-allowed;
     }
     .save-button:hover:not(:disabled) {
-        background: #62a2e9;
-        border-color: #62a2e9;
+        opacity: 0.9;
     }
 
     .error {
-        color: var(--accent-danger);
-        background-color: rgba(226, 74, 74, 0.1);
+        color: var(--destructive);
+        background-color: hsla(var(--destructive), 0.1);
         padding: 1rem;
         border-radius: 8px;
         margin-bottom: 1.5rem;
     }
 
-    /* 기존 .save-button 관련 스타일 아래에 추가 */
     .save-button.success {
-        background: #28a745; /* 성공 시 초록색 배경 */
+        background: #28a745; /* 이건 성공 상태를 위한 특별한 색이라 그대로 둬도 좋아! */
         border-color: #28a745;
     }
 
-    .save-button:disabled {
-        opacity: 0.8; /* 로딩 중일 때 버튼 약간 투명하게 */
-        cursor: wait; /* 커서 모양 변경 */
-    }
-
-    /* style 블록 맨 아래에 추가 */
     .char-counter {
         font-size: 0.8rem;
-        color: var(--text-secondary);
+        color: var(--muted-foreground);
         text-align: right;
         margin-top: 0.25rem;
     }
@@ -1246,7 +1221,7 @@
         color: orange;
     }
     .char-counter.error {
-        color: var(--accent-danger);
+        color: var(--destructive);
     }
 
     .voice-selector {
@@ -1260,13 +1235,12 @@
     }
 
     .voice-selector audio {
-        height: 42px; /* select 태그 높이와 비슷하게 맞춤 */
+        height: 42px;
     }
 
-    /* 오디오 플레이어 컨트롤을 어두운 테마에 맞게 조정 */
     .voice-selector audio::-webkit-media-controls-panel {
-        background-color: var(--bg-tertiary);
-        color: var(--text-primary);
+        background-color: var(--muted);
+        color: var(--foreground);
     }
     .voice-selector audio::-webkit-media-controls-play-button,
     .voice-selector audio::-webkit-media-controls-timeline,
@@ -1278,7 +1252,7 @@
     }
 
     .asset-section {
-        border-top: 1px solid var(--border-color);
+        border-top: 1px solid var(--border);
         margin-top: 1.5rem;
         padding-top: 1.5rem;
     }
@@ -1298,10 +1272,10 @@
     .asset-card {
         display: flex;
         gap: 1rem;
-        background-color: var(--bg-tertiary);
+        background-color: var(--muted);
         padding: 1rem;
         border-radius: 8px;
-        border: 1px solid var(--border-color);
+        border: 1px solid var(--border);
     }
 
     .asset-image-uploader {
@@ -1312,9 +1286,10 @@
         width: 120px;
         height: 120px;
         flex-shrink: 0;
-        background-color: var(--bg-primary);
+        background-color: var(--background);
         border-radius: 6px;
         position: relative;
+        overflow: hidden;
     }
 
     .asset-preview-image {
@@ -1329,7 +1304,6 @@
         font-size: 0.8rem;
         position: absolute;
         bottom: 8px;
-        /* 미리보기가 있을 때만 보이도록, 혹은 항상 보이도록 조절 가능 */
     }
 
     .asset-details {
@@ -1340,8 +1314,8 @@
     }
 
     .asset-description-input {
-        flex-grow: 1; /* 남은 공간을 모두 차지 */
-        resize: vertical; /* 세로 크기만 조절 가능 */
+        flex-grow: 1;
+        resize: vertical;
     }
 
     .asset-remove {
@@ -1354,28 +1328,12 @@
         align-items: center;
         justify-content: center;
         border-radius: 50%;
-        background-color: var(--bg-tertiary);
+        background-color: var(--card);
     }
 
     .asset-actions {
         display: flex;
         gap: 0.5rem;
-    }
-
-    .progress-bar-container {
-        position: absolute;
-        bottom: 0;
-        left: 0;
-        width: 100%;
-        height: 5px;
-        background-color: rgba(0, 0, 0, 0.5);
-        border-bottom-left-radius: 6px;
-        border-bottom-right-radius: 6px;
-        overflow: hidden;
-    }
-    .asset-image-uploader {
-        /* position: relative; 가 이미 있으니 그대로 활용 */
-        overflow: hidden; /* 자식 요소가 튀어나가지 않게 */
     }
 
     .progress-bar-overlay {
@@ -1384,41 +1342,15 @@
         left: 0;
         width: 100%;
         height: 100%;
-        background-color: rgba(0, 0, 0, 0.6); /* 반투명 검은 배경 */
+        background-color: rgba(0, 0, 0, 0.6);
         display: flex;
-        align-items: flex-start; /* 프로그레스 바를 상단에 위치시킴 */
+        align-items: flex-start;
     }
 
     .progress-bar {
-        width: 0%; /* 기본 넓이는 0 */
-        height: 5px; /* 프로그레스 바 두께 */
-        background-color: var(--accent-primary); /* 테마의 accent 색상 사용 */
-        transition: width 0.2s ease-in-out; /* 넓이가 변할 때 부드럽게 애니메이션 */
-    }
-
-    .upload-success,
-    .upload-error {
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        font-size: 2rem;
-        font-weight: bold;
-        color: white;
-        background-color: rgba(0, 0, 0, 0.7);
-        border-radius: 50%;
-        width: 40px;
-        height: 40px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-    }
-
-    .upload-success {
-        background-color: rgba(40, 167, 69, 0.7); /* Green */
-    }
-
-    .upload-error {
-        background-color: rgba(220, 53, 69, 0.7); /* Red */
+        width: 0%;
+        height: 5px;
+        background-color: var(--primary);
+        transition: width 0.2s ease-in-out;
     }
 </style>

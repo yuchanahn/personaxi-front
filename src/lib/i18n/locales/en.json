@@ -372,5 +372,54 @@
       "create": "Create",
       "legal": "Legal"
     }
+  },
+  "register": {
+    "title": "Create a new account",
+    "slogan": "Just a few steps and you're ready to go.",
+    "label": {
+      "email": "Email Address",
+      "username": "Username",
+      "password": "Password",
+      "passwordConfirm": "Confirm Password",
+      "gender": "Gender"
+    },
+    "placeholder": {
+      "email": "your-email@example.com",
+      "username": "Your unique name",
+      "password": "At least 8 characters",
+      "passwordConfirm": "Enter your password again"
+    },
+    "gender": {
+      "male": "Male",
+      "female": "Female",
+      "other": "Other"
+    },
+    "button": {
+      "submit": "Create Account",
+      "loading": "Processing..."
+    },
+    "error": {
+      "emailRequired": "Email is required.",
+      "emailInvalid": "Please enter a valid email address.",
+      "usernameRequired": "Username is required.",
+      "passwordLength": "Password must be at least 8 characters long.",
+      "passwordMismatch": "Passwords do not match.",
+      "genderRequired": "Please select your gender.",
+      "generic": "An error occurred. Please try again later.",
+      "network": "Please check your network connection."
+    },
+    "success": {
+      "title": "Almost there!",
+      "message": "We've sent a verification email to {email}. Please check your inbox to complete the registration.",
+      "backToLogin": "Back to Login"
+    },
+    "alreadyHaveAccount": "Already have an account?",
+    "goToLogin": "Log in",
+    "prompt": {
+      "email": "First, what's your email address?",
+      "username": "Let's create a cool username.",
+      "password": "Please enter a secure password.",
+      "gender": "Lastly, please select your gender."
+    }
   }
 }

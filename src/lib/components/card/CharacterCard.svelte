@@ -58,15 +58,15 @@
 
 <style>
     .tile {
-        background: #1e1e1e;
-        color: white;
-        border-radius: 12px;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+        background: var(--card);
+        color: var(--foreground);
+        border-radius: var(--radius-card);
+        box-shadow: var(--shadow-card);
         cursor: pointer;
         transition:
             transform 0.2s ease-in-out,
             box-shadow 0.2s ease-in-out;
-        border: 1px solid #2a2a2a;
+        border: 1px solid var(--border-card);
         overflow: hidden;
         display: flex;
         flex-direction: column;
@@ -74,7 +74,7 @@
 
     .tile:hover {
         transform: translateY(-5px);
-        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.5);
+        box-shadow: var(--shadow-popover);
     }
 
     .image-container {
@@ -90,17 +90,36 @@
         object-fit: cover;
         display: block;
     }
+    .creator-tag {
+        position: absolute;
+        bottom: 0.5rem;
+        right: 0.5rem;
+        background-color: rgba(0, 0, 0, 0.7);
+        color: white;
+        padding: 0.2rem 0.5rem;
+        border-radius: var(--radius-button);
+        font-size: 0.7rem;
+        font-weight: 600; /* 볼더 추가 */
+        z-index: 2;
+        backdrop-filter: blur(4px); /* 블러 효과 */
+    }
+
+    /* ✅ 테마를 따르면서 오버레이에서 잘 보이는 버전 */
 
     .creator-tag {
         position: absolute;
         bottom: 0.5rem;
         right: 0.5rem;
-        background-color: rgba(0, 0, 0, 0.6);
-        color: #f0f0f0;
+        background-color: hsl(var(--background) / 0.9);
+        color: var(--accent-foreground);
         padding: 0.2rem 0.5rem;
-        border-radius: 6px;
+        border-radius: var(--radius-button);
         font-size: 0.7rem;
+        font-weight: 600;
         z-index: 2;
+        border: 1px solid hsl(var(--border) / 0.5);
+        backdrop-filter: blur(8px);
+        text-shadow: 0 1px 2px hsl(var(--background) / 0.8);
     }
 
     .overlay-stats {
@@ -119,10 +138,14 @@
         align-items: center;
         gap: 0.3rem;
         font-size: 0.75rem;
-        color: white;
-        background-color: rgba(0, 0, 0, 0.6);
+        color: var(--accent-foreground);
+        background-color: hsl(var(--background) / 0.9);
         padding: 0.2rem 0.4rem;
-        border-radius: 4px;
+        border-radius: var(--radius-button);
+        font-weight: 600;
+        border: 1px solid hsl(var(--border) / 0.5);
+        backdrop-filter: blur(8px);
+        text-shadow: 0 1px 2px hsl(var(--background) / 0.8);
     }
 
     .like-overlay {
@@ -133,11 +156,15 @@
         align-items: center;
         gap: 0.3rem;
         font-size: 0.75rem;
-        color: white;
-        background-color: rgba(0, 0, 0, 0.6);
+        color: var(--accent-foreground);
+        background-color: hsl(var(--background) / 0.9);
         padding: 0.2rem 0.4rem;
-        border-radius: 4px;
-        z-index: 2; /* 이미지 위 */
+        border-radius: var(--radius-button);
+        font-weight: 600;
+        z-index: 2;
+        border: 1px solid hsl(var(--border) / 0.5);
+        backdrop-filter: blur(8px);
+        text-shadow: 0 1px 2px hsl(var(--background) / 0.8);
     }
 
     .tile-info {
@@ -150,7 +177,7 @@
     .title-line {
         font-size: 1rem;
         font-weight: bold;
-        color: #eee;
+        color: var(--foreground);
         overflow: hidden;
         white-space: nowrap;
         text-overflow: ellipsis;
@@ -161,7 +188,7 @@
         white-space: nowrap;
         text-overflow: ellipsis;
         font-size: 0.7rem;
-        color: #bbb;
+        color: var(--muted-foreground);
     }
 
     .tags-line span {

@@ -9,7 +9,9 @@
     import { loadContent, loadlikesdata } from "$lib/api/content";
     import { type AuctionPersona } from "$lib/services/auction";
 
+    //TODO: 사용자가 끝에 다다르면, 또 새로운 정보를 부르거나, 다시 처음부터 나오게 하기.
     //TODO: 나중에 처리 해주기!
+
     let liveIds: string[] = [];
     let auctions: AuctionPersona[] = [];
 
@@ -282,29 +284,55 @@
     /* 전체 피드 컨테이너 */
     .feed-container {
         width: 100%;
-        height: 100%;
+        height: 100vh;
         overflow-y: scroll;
         scroll-snap-type: y mandatory;
         background-color: #121212;
         scrollbar-width: none;
     }
+
     .feed-container::-webkit-scrollbar {
         display: none;
     }
 
-    /* 개별 캐릭터 릴 */
     .reel {
         width: 100%;
-        height: 100%;
+        height: 96%;
         scroll-snap-align: start;
         position: relative;
         background-size: cover;
         background-position: center;
         color: white;
-        /* 배경 이미지 전환 시 부드러운 효과 */
         transition: background-image 0.5s ease-in-out;
     }
+    .reel::after {
+        content: "";
+        position: absolute;
+        bottom: 40px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 30px;
+        height: 4px;
+        background: rgba(255, 255, 255, 0.5);
+        border-radius: 2px;
+        animation: bounce 2s infinite;
+    }
 
+    @keyframes bounce {
+        0%,
+        20%,
+        50%,
+        80%,
+        100% {
+            transform: translateX(-50%) translateY(0);
+        }
+        40% {
+            transform: translateX(-50%) translateY(-5px);
+        }
+        60% {
+            transform: translateX(-50%) translateY(-3px);
+        }
+    }
     /* 정보 오버레이 */
     .overlay {
         position: absolute;

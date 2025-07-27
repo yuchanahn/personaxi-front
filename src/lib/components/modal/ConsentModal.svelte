@@ -65,7 +65,9 @@
 </script>
 
 {#if isOpen}
+    <!-- svelte-ignore a11y_no_static_element_interactions -->
     <div class="modal-overlay">
+        <!-- svelte-ignore a11y_click_events_have_key_events -->
         <div class="modal-content" on:click|stopPropagation>
             <div class="modal-header">
                 <h2>{$t("consentModal.title")}</h2>
@@ -201,7 +203,9 @@
         display: flex;
         align-items: center;
         justify-content: center;
-        background-color: rgba(0, 0, 0, 0.7);
+        background-color: hsl(
+            from var(--dark) h s l / 0.7
+        ); /* ❗ 수정: 테마의 --dark 변수를 사용해 반투명 배경 생성 */
         backdrop-filter: blur(5px);
     }
 
@@ -214,8 +218,10 @@
         max-width: 700px;
         max-height: 90vh;
         margin: 1rem;
-        border-radius: var(--radius-card-lg, 20px);
-        background-color: var(--background-alt);
+        border-radius: 16px; /* ❗ 수정: 테마에 맞는 적절한 값으로 변경 */
+        background-color: var(
+            --popover
+        ); /* ❗ 수정: --background-alt 대신 --popover 사용 */
         color: var(--foreground);
         border: 1px solid var(--border);
         box-shadow: var(--shadow-popover);
@@ -235,17 +241,6 @@
         font-size: 1.8rem;
         font-weight: bold;
     }
-    .close-button {
-        background: none;
-        border: none;
-        font-size: 2rem;
-        color: var(--muted-foreground);
-        cursor: pointer;
-        transition: color 0.2s;
-    }
-    .close-button:hover {
-        color: var(--foreground);
-    }
 
     /* 본문 (스크롤 영역) */
     .modal-body {
@@ -262,9 +257,11 @@
         display: flex;
         align-items: center;
         padding: 1rem;
-        background-color: var(--background);
+        background-color: var(
+            --secondary
+        ); /* ❗ 수정: 구분감을 위해 --secondary 사용 */
         border: 1px solid var(--border-input);
-        border-radius: var(--radius-card, 16px);
+        border-radius: var(--radius-card); /* ❗ 수정: 테마 변수 사용 */
         cursor: pointer;
     }
     .all-agree-text {
@@ -307,15 +304,9 @@
         cursor: pointer;
         color: var(--muted-foreground);
     }
-    .toggle-icon {
-        transition: transform 0.3s ease;
-    }
-    .toggle-icon.rotated {
-        transform: rotate(180deg);
-    }
 
     .toggle-icon-wrapper {
-        display: flex; /* 아이콘을 가운데 정렬하기 위해 추가 */
+        display: flex;
         align-items: center;
         transition: transform 0.3s ease;
     }
@@ -330,9 +321,11 @@
         padding: 1rem;
         max-height: 200px;
         overflow-y: auto;
-        background-color: var(--background);
+        background-color: var(
+            --secondary
+        ); /* ❗ 수정: 구분감을 위해 --secondary 사용 */
         border: 1px solid var(--border-input);
-        border-radius: var(--radius-card-sm, 10px);
+        border-radius: var(--radius-card); /* ❗ 수정: 테마 변수 사용 */
         line-height: 1.6;
         color: var(--foreground-alt);
     }
@@ -348,7 +341,7 @@
         padding-left: 1.25rem;
     }
     .agreement-content :global(a) {
-        color: var(--accent);
+        color: var(--primary); /* ❗ 수정: 강조 링크는 --primary 색상 사용 */
     }
 
     /* 푸터 */
@@ -363,9 +356,13 @@
         font-size: 1.1rem;
         font-weight: bold;
         border: none;
-        border-radius: var(--radius-button, 5px);
-        color: var(--accent-foreground);
-        background-color: var(--accent);
+        border-radius: var(--radius-button);
+        color: var(
+            --primary-foreground
+        ); /* ❗ 수정: --primary에 어울리는 전경색 */
+        background-color: var(
+            --primary
+        ); /* ❗ 수정: 주요 버튼은 --primary 색상 사용 */
         cursor: pointer;
         transition: opacity 0.2s;
     }
@@ -389,7 +386,7 @@
     .checkmark {
         height: 20px;
         width: 20px;
-        background-color: var(--background);
+        background-color: var(--card); /* ❗ 수정: 테마에 맞는 배경색 */
         border: 1px solid var(--border-input);
         border-radius: 4px;
         display: inline-block;
@@ -397,11 +394,15 @@
     }
     .checkbox-label:hover input ~ .checkmark,
     .all-agree-container:hover input ~ .checkmark {
-        border-color: var(--border-input-hover);
+        border-color: var(
+            --ring
+        ); /* ❗ 수정: hover 시 포커스 색상(ring) 사용 */
     }
     input:checked ~ .checkmark {
-        background-color: var(--accent);
-        border-color: var(--accent);
+        background-color: var(
+            --primary
+        ); /* ❗ 수정: 체크 시 --primary 색상 사용 */
+        border-color: var(--primary);
     }
     .checkmark:after {
         content: "";
@@ -416,14 +417,14 @@
         top: 2px;
         width: 5px;
         height: 10px;
-        border: solid var(--accent-foreground, white);
+        border: solid var(--primary-foreground); /* ❗ 수정: --primary에 어울리는 전경색 */
         border-width: 0 3px 3px 0;
         transform: rotate(45deg);
     }
     /* 불확정 상태 스타일 */
     input:indeterminate ~ .checkmark {
-        background-color: var(--accent);
-        border-color: var(--accent);
+        background-color: var(--primary); /* ❗ 수정: --primary 색상 사용 */
+        border-color: var(--primary);
     }
     input:indeterminate ~ .checkmark:after {
         content: "";
@@ -433,7 +434,9 @@
         top: 8px;
         width: 10px;
         height: 2px;
-        background: var(--accent-foreground, white);
+        background: var(
+            --primary-foreground
+        ); /* ❗ 수정: --primary에 어울리는 전경색 */
         transform: none;
         border: none;
     }

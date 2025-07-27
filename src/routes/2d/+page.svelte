@@ -98,7 +98,7 @@
 <style>
   .chat-layout {
     display: flex;
-    height: 100vh;
+    height: 100%;
     width: 100vw;
     overflow: hidden;
     /* 모바일 기본: 세로 배치 */

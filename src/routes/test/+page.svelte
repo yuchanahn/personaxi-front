@@ -1,21 +1,8 @@
-<div class="split">
-    <div class="top"></div>
-    <div class="bottom"></div>
-</div>
+<script lang="ts">
+    import Register from "$lib/components/login/Register.svelte";
+    import ConsentModal from "$lib/components/modal/ConsentModal.svelte";
+</script>
 
-<style>
-    .split {
-        display: flex;
-        flex-direction: column;
-        height: 100%;
-    }
+<!-- <Register /> -->
 
-    .top {
-        height: 50%;
-        background: #3b82f6;
-    }
-    .bottom {
-        height: 50%;
-        background: #22c55e;
-    }
-</style>
+<ConsentModal isOpen={true} />

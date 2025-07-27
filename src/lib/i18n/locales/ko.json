@@ -218,6 +218,12 @@
       "legal": "법률"
     }
   },
+  "feed": {
+    "interact": "대화",
+    "alreadyFeedback": "You have already {action} this persona.",
+    "feedbackFailed": "Failed to {action} persona: {message}",
+    "unexpectedError": "An unexpected error occurred. Please try again."
+  },
   "hub": {
     "feedbackButtonLabel": "피드백 보내기",
     "feedbackButtonText": "피드백"
@@ -314,5 +320,54 @@
       "timestamp3": "2일 전"
     },
     "defaultProfile": "기본 프로필"
+  },
+  "register": {
+    "title": "새로운 계정 만들기",
+    "slogan": "몇 단계만 거치면 바로 시작할 수 있어요.",
+    "label": {
+      "email": "이메일 주소",
+      "username": "사용자 이름",
+      "password": "비밀번호",
+      "passwordConfirm": "비밀번호 확인",
+      "gender": "성별"
+    },
+    "placeholder": {
+      "email": "your-email@example.com",
+      "username": "세상에 하나뿐인 이름",
+      "password": "8자 이상 입력해주세요",
+      "passwordConfirm": "비밀번호를 다시 한번 입력해주세요"
+    },
+    "gender": {
+      "male": "남성",
+      "female": "여성",
+      "other": "기타"
+    },
+    "button": {
+      "submit": "계정 만들기",
+      "loading": "처리 중..."
+    },
+    "error": {
+      "emailRequired": "이메일은 필수 항목이에요.",
+      "emailInvalid": "올바른 이메일 형식이 아니에요.",
+      "usernameRequired": "사용자 이름은 필수 항목이에요.",
+      "passwordLength": "비밀번호는 8자 이상이어야 해요.",
+      "passwordMismatch": "비밀번호가 서로 일치하지 않아요.",
+      "genderRequired": "성별을 선택해주세요.",
+      "generic": "오류가 발생했습니다. 잠시 후 다시 시도해주세요.",
+      "network": "네트워크 연결을 확인해주세요."
+    },
+    "success": {
+      "title": "거의 다 됐어요!",
+      "message": "{email}(으)로 인증 메일을 보냈어요. 메일을 확인하여 가입을 완료해주세요.",
+      "backToLogin": "로그인 화면으로 돌아가기"
+    },
+    "alreadyHaveAccount": "이미 계정이 있으신가요?",
+    "goToLogin": "로그인하기",
+    "prompt": {
+      "email": "먼저, 사용하실 이메일 주소를 알려주세요.",
+      "username": "멋진 사용자 이름을 만들어 볼까요?",
+      "password": "안전하게 사용할 비밀번호를 입력해주세요.",
+      "gender": "마지막으로, 성별을 선택해주세요."
+    }
   }
 }

@@ -260,14 +260,16 @@
                 </div>
             {:else}
                 <div class="profile-header-actions">
-                    <button class="btn" on:click={cancelEditing}>
-                        {$t("settingPage.cancel")}
+                    <button class="btn editing" on:click={cancelEditing}>
+                        <!-- {$t("settingPage.cancel")} -->
+                        <Icon icon="ri:close-line" />
                     </button>
                     <button
-                        class="btn btn-primary"
+                        class="btn btn-primary editing"
                         on:click={saveProfileChanges}
                     >
-                        {$t("settingPage.save")}
+                        <Icon icon="ri:check-line" />
+                        <!-- {$t("settingPage.save")} -->
                     </button>
                 </div>
             {/if}
@@ -389,26 +391,17 @@
 </div>
 
 <style>
-    :root {
-        --bg-primary: #121212;
-        --bg-secondary: #1e1e1e;
-        --bg-tertiary: #2a2a2a;
-        --text-primary: #e0e0e0;
-        --text-secondary: #a0a0a0;
-        --border-color: #333;
-        --accent-primary: #4a90e2;
-        --accent-danger: #e24a4a;
-        --live-color: #e91e63;
-    }
     .page-container {
         display: flex;
         flex-direction: column;
         max-width: 960px;
+        width: 100%;
         margin: 0 auto;
         padding: 0 1.5rem;
         height: 100%;
         box-sizing: border-box;
     }
+
     .header {
         flex-shrink: 0;
         padding-top: 2rem;
@@ -423,23 +416,37 @@
         top: 0;
         padding: 1rem;
         z-index: 10;
-        border-bottom: 1px solid var(--border-color);
+        border-bottom: 1px solid var(--border);
         margin-bottom: 1rem;
     }
 
+    .editing {
+        width: 100%;
+    }
+    .btn.editing {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0.1rem;
+    }
+
     .personas-section::-webkit-scrollbar {
-        width: 8px;
+        width: 6px;
     }
+
     .personas-section::-webkit-scrollbar-track {
-        background: var(--bg-secondary);
-        border-radius: 4px;
+        background: transparent;
     }
+
     .personas-section::-webkit-scrollbar-thumb {
-        background: #555;
-        border-radius: 4px;
+        background: var(--muted-foreground);
+        border-radius: 3px;
+        opacity: 0.5;
     }
+
     .personas-section::-webkit-scrollbar-thumb:hover {
-        background: #777;
+        background: var(--foreground);
+        opacity: 0.8;
     }
 
     .profile-header,
@@ -455,20 +462,22 @@
         font-size: 2.25rem;
         font-weight: bold;
     }
+
     h2 {
         font-size: 1.5rem;
         font-weight: 600;
     }
+
     h3 {
         font-size: 1.25rem;
         font-weight: 600;
     }
 
     .card {
-        background-color: var(--bg-secondary);
-        border-radius: 12px;
+        background-color: var(--card);
+        border-radius: var(--radius-card);
         padding: 1.5rem;
-        border: 1px solid var(--border-color);
+        border: 1px solid var(--border-card);
     }
 
     .profile-section {
@@ -485,46 +494,49 @@
         padding: 0.5rem;
         margin: 0 -0.5rem;
     }
+
     .profile-avatar {
         width: 80px;
         height: 80px;
         border-radius: 50%;
         object-fit: cover;
-        border: 3px solid var(--border-color);
+        border: 3px solid var(--border);
     }
+
     .profile-avatar-placeholder {
         width: 80px;
         height: 80px;
         border-radius: 50%;
-        background-color: var(--bg-tertiary);
+        background-color: var(--muted);
         display: flex;
         align-items: center;
         justify-content: center;
         font-size: 2.5rem;
         font-weight: bold;
-        color: var(--text-primary);
+        color: var(--foreground);
     }
+
     .profile-info {
         flex-grow: 1;
     }
-    .profile-info .email {
-        color: var(--text-secondary);
-        font-size: 0.9rem;
-    }
+
     .profile-details {
-        background-color: var(--bg-tertiary);
+        background-color: var(--secondary);
         padding: 1rem;
-        border-radius: 8px;
+        border-radius: var(--radius-input);
         flex-wrap: wrap;
     }
+
     .profile-details > div {
         display: flex;
         flex-direction: column;
     }
+
     .profile-details .label {
         font-size: 0.8rem;
-        color: var(--text-secondary);
+        color: var(--muted-foreground);
     }
+
     .profile-details .value {
         font-size: 1.1rem;
         font-weight: 600;
@@ -538,19 +550,20 @@
 
     .persona-card {
         position: relative;
-        background: var(--bg-secondary);
-        border-radius: 12px;
-        border: 1px solid var(--border-color);
+        background: var(--card);
+        border-radius: var(--radius-card);
+        border: 1px solid var(--border-card);
         overflow: hidden;
         display: flex;
         flex-direction: column;
-        transition:
-            transform 0.2s,
-            box-shadow 0.2s;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        cursor: pointer;
     }
+
     .persona-card:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+        transform: translateY(-8px);
+        box-shadow: var(--shadow-popover);
+        border-color: var(--primary);
     }
 
     .card-header {
@@ -564,38 +577,38 @@
     }
 
     select {
-        background-color: #2e2e2e; /* select 박스 자체의 배경색 */
-        color: white; /* 선택된 값의 글자색 */
-        border: 1px solid #555;
-        border-radius: 8px;
+        background-color: var(--input);
+        color: var(--foreground);
+        border: 1px solid var(--border-input);
+        border-radius: var(--radius-input);
         padding: 8px;
     }
 
-    /* option 태그의 스타일. 이 부분이 많은 브라우저에서 무시됩니다. */
     select option {
-        background: #333333;
-        color: white;
+        background: var(--background);
+        color: var(--foreground);
     }
 
     .live-indicator {
         position: absolute;
         top: 1.5rem;
         right: 1.5rem;
-        background-color: var(--live-color);
-        color: white;
+        background-color: var(--destructive);
+        color: var(--destructive-foreground);
         padding: 0.25rem 0.75rem;
         border-radius: 12px;
         font-size: 0.8rem;
         font-weight: bold;
-        box-shadow: 0 2px 5px rgba(233, 30, 99, 0.5);
+        box-shadow: 0 2px 5px hsl(0 85% 52% / 0.5);
     }
 
     .card-body {
         text-align: center;
         padding: 1.5rem;
     }
+
     .card-body .persona-type {
-        color: var(--text-secondary);
+        color: var(--muted-foreground);
         font-size: 0.9rem;
     }
 
@@ -606,11 +619,13 @@
         flex-direction: column;
         gap: 0.75rem;
     }
+
     .actions-group {
         display: flex;
         gap: 0.75rem;
         width: 100%;
     }
+
     .actions-group > .btn {
         flex-grow: 1;
     }
@@ -619,107 +634,110 @@
         padding: 0.6rem 1.2rem;
         font-size: 0.9rem;
         font-weight: 600;
-        background: var(--bg-tertiary);
-        color: var(--text-primary);
-        border: 1px solid var(--border-color);
-        border-radius: 8px;
+        background: var(--secondary);
+        color: var(--secondary-foreground);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-button);
         cursor: pointer;
-        transition: all 0.2s;
+        transition: all 0.2s ease;
         text-align: center;
+        position: relative;
+        overflow: hidden;
     }
+
     .btn:hover:not(:disabled) {
-        background: #3c3c3c;
-        border-color: #555;
+        transform: translateY(-1px);
+        box-shadow: var(--shadow-mini);
     }
+
+    .btn:active:not(:disabled) {
+        transform: translateY(0);
+    }
+
     .btn:disabled {
         opacity: 0.5;
         cursor: not-allowed;
+        transform: none;
     }
 
     .btn-primary {
-        background: var(--accent-primary);
-        border-color: var(--accent-primary);
-        color: white;
+        background: var(--primary);
+        border-color: var(--primary);
+        color: var(--primary-foreground);
     }
+
     .btn-primary:hover {
-        background: #62a2e9;
-        border-color: #62a2e9;
+        opacity: 0.9;
     }
 
     .btn-danger {
         background: transparent;
-        border-color: var(--accent-danger);
-        color: var(--accent-danger);
+        border-color: var(--destructive);
+        color: var(--destructive);
     }
+
     .btn-danger:hover {
-        background: var(--accent-danger);
-        color: white;
+        background: var(--destructive);
+        color: var(--destructive-foreground);
     }
 
     .btn-toggle.active {
-        background: var(--live-color);
-        border-color: var(--live-color);
-        color: white;
+        background: var(--destructive);
+        border-color: var(--destructive);
+        color: var(--destructive-foreground);
     }
 
     .error {
-        color: var(--accent-danger);
-        background-color: rgba(226, 74, 74, 0.1);
+        color: var(--destructive);
+        background-color: hsl(0 85% 52% / 0.1);
         padding: 1rem;
-        border-radius: 8px;
+        border-radius: var(--radius-input);
     }
 
     .creator-name {
-        color: #888; /* 예시: 연한 회색으로 변경 */
-        font-size: 0.75em; /* 부모 요소보다 약간 작게 */
-        font-weight: bold; /* 굵게 (bold) */
-        font-style: italic; /* 이탤릭체 (italic) */
+        color: var(--muted-foreground);
+        font-size: 0.75em;
+        font-weight: bold;
+        font-style: italic;
     }
+
     .btn-logout {
         background-color: transparent;
-        color: var(--text-secondary);
-        border-color: var(--border-color);
+        color: var(--muted-foreground);
+        border-color: var(--border);
     }
 
     .btn-logout:hover {
-        background-color: rgba(226, 74, 74, 0.1); /* 붉은색 배경 (10% 투명도) */
-        color: var(--accent-danger);
-        border-color: var(--accent-danger);
+        background-color: hsl(0 85% 52% / 0.1);
+        color: var(--destructive);
+        border-color: var(--destructive);
     }
 
-    /* 이름과 수정 아이콘을 나란히 배치하기 위한 래퍼 */
     .name-display-wrapper {
         display: flex;
-        align-items: center; /* 세로 중앙 정렬 */
-        gap: 0.5rem; /* 이름과 아이콘 사이 간격 */
+        align-items: center;
+        gap: 0.5rem;
     }
 
-    /* 아이콘 버튼 스타일 */
     .btn-icon-edit {
         background: none;
         border: none;
-        padding: 0;
+        padding: 0.25rem;
         cursor: pointer;
-        color: var(--text-secondary); /* 평상시엔 옅은 색 */
-        transition: color 0.2s;
+        color: var(--muted-foreground);
+        transition: all 0.2s ease;
         display: inline-flex;
         align-items: center;
+        border-radius: var(--radius-button);
     }
 
     .btn-icon-edit:hover {
-        color: var(--text-primary); /* 마우스 올리면 밝은 색 */
+        color: var(--foreground);
+        background-color: var(--muted);
+        transform: scale(1.05);
     }
 
-    /* ================================== */
-    /* 모바일 반응형 스타일         */
-    /* ================================== */
     @media (max-width: 768px) {
-        /* 페이지 전체의 기본 글자 크기를 약간 줄일 수 있습니다.
-       html { font-size: 14px; } 
-       (단, rem 단위를 전역적으로 사용했을 때 효과적입니다.)
-    */
-
-        /* 헤더 제목 크기 조절 */
         h1 {
             font-size: 1.75rem;
         }
@@ -729,25 +747,16 @@
         h3 {
             font-size: 1.1rem;
         }
-
-        /* 프로필 섹션 글자 크기 조절 */
-        .profile-info .email {
-            font-size: 0.8rem;
-        }
         .profile-details .label {
             font-size: 0.75rem;
         }
         .profile-details .value {
             font-size: 1rem;
         }
-
-        /* 버튼 글자 크기 조절 */
         .btn {
             font-size: 0.8rem;
             padding: 0.5rem 1rem;
         }
-
-        /* 페르소나 카드 내부 글자 크기 조절 */
         .card-body .persona-type {
             font-size: 0.85rem;
         }

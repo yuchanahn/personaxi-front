@@ -4,7 +4,6 @@
   import { is_login } from "$lib/stores/user";
   import { goto } from "$app/navigation";
 
-  import "$lib/styles/theme.css";
   import NoticeModal from "$lib/components/modal/NoticeModal.svelte";
 
   let isModalOpen = false;
@@ -41,6 +40,5 @@
     margin: 0;
     background: var(--color-bg);
     color: var(--color-text);
-    font-family: "Segoe UI", sans-serif;
   }
 </style>

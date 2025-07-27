@@ -62,7 +62,10 @@
             } else if (packet.type === "chat") {
                 broadcastMessages.update((prev) => [
                     ...prev,
-                    { user: $t("auctionPage.bidder"), msg: packet.msg as string },
+                    {
+                        user: $t("auctionPage.bidder"),
+                        msg: packet.msg as string,
+                    },
                 ]);
             }
         });
@@ -105,7 +108,8 @@
         if (h > 0) parts.push(`${h}${$t("auctionPage.hourUnit")}`);
         if (m > 0) parts.push(`${m}${$t("auctionPage.minuteUnit")}`);
         // 남은 시간이 1분 미만이거나, '일', '시', '분'이 모두 0일 경우 '초'를 표시
-        if (s > 0 || parts.length === 0) parts.push(`${s}${$t("auctionPage.secondUnit")}`);
+        if (s > 0 || parts.length === 0)
+            parts.push(`${s}${$t("auctionPage.secondUnit")}`);
 
         // 모든 단위가 0일 경우 (예: ms가 0과 1000 사이) "0초"로 표시될 것
         if (parts.length === 0 && ms > 0) {
@@ -173,7 +177,8 @@
                         <strong>{$t("auctionPage.highestBid")}:</strong>
                         <span class="highlight-bid"
                             >{auctionStatus.highestBid}</span
-                        > {$t("auctionPage.creditsUnit")}
+                        >
+                        {$t("auctionPage.creditsUnit")}
                     </p>
                     <p>
                         <strong>{$t("auctionPage.remainingTime")}:</strong>
@@ -219,7 +224,6 @@
     /* ✨ 전체 페이지 기본 스타일 (body, html 등에 적용될 수 있음) */
     :global(body) {
         margin: 0;
-        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
         background-color: #121212; /* 전체 배경을 더 어둡게 */
         color: #e0e0e0; /* 기본 텍스트 색상 */
         overflow: hidden; /* 스크롤바 숨김 */

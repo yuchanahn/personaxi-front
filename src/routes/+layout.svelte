@@ -1,7 +1,6 @@
 <!-- src/routes/+layout.svelte -->
 <script lang="ts">
     /* ────────────── 글로벌 스타일 및 공통 CSS ────────────── */
-    import "$lib/styles/theme.css";
     import "../app.css";
 
     /* ────────────── 레이아웃 구성 요소 ────────────── */
@@ -20,7 +19,6 @@
     import { confirmConsent, getCurrentUser } from "$lib/api/auth";
     import { is_login, st_user } from "$lib/stores/user";
     import { needMoreNeuronsModal } from "$lib/stores/modal";
-    import { theme } from "$lib/stores/themeStore";
     import type { User } from "$lib/types";
 
     /* ────────────── SvelteKit 내장 ────────────── */
@@ -29,6 +27,7 @@
     import { browser } from "$app/environment";
     import { goto } from "$app/navigation";
     import Icon from "@iconify/svelte";
+    import { slide } from "svelte/transition";
 
     /* ────────────── PWA: Service Worker ────────────── */
     if ("serviceWorker" in navigator) {
@@ -38,19 +37,6 @@
                 (e) => console.error("Service Worker registration failed:", e),
             );
         });
-    }
-
-    /* ────────────── 테마 (다크/라이트/시스템) ────────────── */
-    $: if (browser) {
-        const prefersDark = window.matchMedia(
-            "(prefers-color-scheme: dark)",
-        ).matches;
-        const html = document.documentElement;
-        if ($theme === "dark" || ($theme === "system" && prefersDark)) {
-            html.classList.add("dark");
-        } else {
-            html.classList.remove("dark");
-        }
     }
 
     /* ────────────── 화면 크기 감지 ────────────── */
@@ -88,8 +74,13 @@
     }
 
     function handleBack() {
+        console.log("back!");
+
         history.length > 1 ? history.back() : goto("/hub");
     }
+
+    $: showNavBottom =
+        isMobile && !["/test", "/2d"].includes($page.url.pathname);
 </script>
 
 <!-- ────────────── 레이아웃 ────────────── -->
@@ -99,7 +90,7 @@
     {/if}
 
     <main>
-        {#if !$is_login && !["/hub", "/feed", "/profile", "/"].includes($page.url.pathname)}
+        {#if !$is_login && !["/hub", "/feed", "/profile", "/", "/test", "/signup"].includes($page.url.pathname)}
             <Login />
         {:else}
             <slot />
@@ -111,8 +102,13 @@
         />
     </main>
 
-    {#if isMobile}
-        <NavBottom />
+    {#if showNavBottom}
+        <div
+            class="nav-bottom-wrapper"
+            transition:slide={{ duration: 300, axis: "y" }}
+        >
+            <NavBottom />
+        </div>
     {/if}
 
     <!-- ────────────── 모달 ────────────── -->
@@ -131,7 +127,7 @@
     />
     <WelcomeModal neuronAmount={200} isOpen={welcomeModal} />
 
-    {#if !"/hub".includes($page.url.pathname)}
+    {#if !["/hub", "/"].includes($page.url.pathname)}
         <button class="back-btn" on:click={handleBack}
             ><Icon icon="weui:back-filled" width="12" height="24" />
         </button>
@@ -145,7 +141,6 @@
         overscroll-behavior: none;
         background: var(--color-bg);
         color: var(--color-text);
-        font-family: "Segoe UI", sans-serif;
     }
 
     /* ────────────── 전체 레이아웃 (Grid로 수정) ────────────── */
@@ -162,11 +157,15 @@
     /* ────────────── 메인 영역 ────────────── */
     main {
         display: grid;
+        position: relative;
+        z-index: 1;
         grid-template-rows: 1fr auto;
         flex-direction: column;
         overflow-y: auto;
         -webkit-overflow-scrolling: touch;
         height: 100%;
+
+        padding-bottom: calc(85px + env(safe-area-inset-bottom, 0px));
     }
 
     .back-btn {

@@ -47,7 +47,6 @@
         dispatch("close");
     }
 
-    // (Esc 키로 닫는 로직)
     function handleKeydown(event: KeyboardEvent) {
         if (event.key === "Escape") {
             closeModal();
@@ -111,7 +110,7 @@
         left: 0;
         width: 100%;
         height: 100%;
-        background-color: rgba(0, 0, 0, 0.7);
+        background-color: hsl(from var(--dark) h s l / 0.7);
         display: flex;
         justify-content: center;
         align-items: center;
@@ -121,14 +120,14 @@
 
     .modal-container {
         position: relative;
-        background: #2a2a2a;
-        color: #e0e0e0;
+        background: var(--popover);
+        color: var(--foreground);
         padding: 2.5rem;
         border-radius: 16px;
-        box-shadow: 0 10px_30px rgba(0, 0, 0, 0.5);
+        box-shadow: var(--shadow-popover);
         width: 90%;
         max-width: 500px;
-        border: 1px solid #444;
+        border: 1px solid var(--border);
     }
 
     .close-button {
@@ -137,7 +136,7 @@
         right: 1rem;
         background: none;
         border: none;
-        color: #888;
+        color: var(--muted-foreground);
         cursor: pointer;
         font-size: 1.5rem;
         line-height: 1;
@@ -145,7 +144,7 @@
         transition: color 0.2s;
     }
     .close-button:hover {
-        color: white;
+        color: var(--foreground);
     }
 
     .modal-content {
@@ -155,14 +154,14 @@
     .modal-title {
         font-size: 1.5rem;
         font-weight: 600;
-        margin: 0 0 0.75rem 0; /* 간격 살짝 조정 */
-        color: white;
+        margin: 0 0 0.75rem 0;
+        color: var(--foreground);
     }
 
     .modal-body {
         font-size: 0.95rem;
         line-height: 1.6;
-        color: #ccc;
+        color: var(--muted-foreground);
     }
 
     textarea {
@@ -170,10 +169,10 @@
         min-height: 150px;
         margin: 1.5rem 0;
         padding: 0.75rem;
-        background: #222;
-        border: 1px solid #555;
-        border-radius: 8px;
-        color: white;
+        background: var(--input);
+        border: 1px solid var(--border-input);
+        border-radius: var(--radius-input);
+        color: var(--foreground);
         font-size: 1rem;
         resize: vertical;
         transition:
@@ -181,11 +180,10 @@
             box-shadow 0.2s;
     }
 
-    /* 👇 포커스 시 테두리 강조 효과 추가 */
     textarea:focus {
         outline: none;
-        border-color: #bd93f9;
-        box-shadow: 0 0 0 3px rgba(189, 147, 249, 0.3);
+        border-color: var(--ring);
+        box-shadow: 0 0 0 3px hsl(from var(--ring) h s l / 0.3);
     }
 
     .submit-button {
@@ -196,7 +194,7 @@
         color: #fff;
         background: linear-gradient(45deg, #ff79c6, #bd93f9);
         border: none;
-        border-radius: 8px;
+        border-radius: var(--radius-button);
         cursor: pointer;
         transition: all 0.3s ease;
     }
@@ -204,7 +202,6 @@
         transform: translateY(-2px);
         box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
     }
-    /* 👇 비활성화 상태일 때 스타일 추가 */
     .submit-button:disabled {
         opacity: 0.5;
         cursor: not-allowed;
