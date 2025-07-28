@@ -8,17 +8,7 @@
   let isModalOpen = false;
 
   onMount(async () => {
-    //const url = new URL(window.location.href);
-    //const authKey = url.searchParams.get("auth_key");
-    //if (authKey) {
-    //  await loginWithAuthKey(authKey);
-    //} else {
-    //  isModalOpen = true;
-    //}
-    //let user = await getCurrentUser();
-    //if (user != null) {
-    //  goto("/hub");
-    //}
+    isModalOpen = true;
   });
 </script>
 
@@ -34,9 +24,4 @@
 </main>
 
 <style>
-  :global(body) {
-    margin: 0;
-    background: var(--color-bg);
-    color: var(--color-text);
-  }
 </style>

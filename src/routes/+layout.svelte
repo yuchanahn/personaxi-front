@@ -56,13 +56,8 @@
 
     /* ────────────── 인증 확인 ────────────── */
     onMount(async () => {
-        //TODO: PWA 일경우 어떻게 될지 모름. 아마 브라우져겠지?
         if (!browser) return;
         if (["/login"].includes($page.url.pathname)) {
-            //is_login.set(false);
-
-            console.log("Return!");
-
             return;
         }
 
@@ -93,26 +88,11 @@
         } catch (error) {
             accessToken.set(null);
         }
-
-        //TODO: 수정 필요!
-        //try {
-        //    const user = (await getCurrentUser()) as User | null;
-        //    if (!user) {
-        //        is_login.set(false);
-        //        return;
-        //    }
-        //    st_user.set(user);
-        //    if (user.state === "new") consentModal = true;
-        //} catch {
-        //    is_login.set(false);
-        //}
     });
 
     /* ────────────── 로그인 후 세션 로드 ────────────── */
-    //$: if ($is_login) {
     //loadChatSessions();
     //loadCharacterSessions();
-    //}
 
     function handleBack() {
         history.length > 1 ? history.back() : goto("/hub");
