@@ -60,6 +60,7 @@ async function fetchWithAuth(url: string, options: RequestInit = {}): Promise<Re
 
 export const api = {
     get: (url: string, options?: RequestInit) => fetchWithAuth(API_BASE_URL + url, { ...options, method: 'GET' }),
+    get2: (url: string, options?: RequestInit) => fetch(API_BASE_URL + url, { ...options, method: 'GET', credentials: 'include' }),
     post: (url: string, data: any, options?: RequestInit) =>
         fetchWithAuth(API_BASE_URL + url, { ...options, method: 'POST', body: JSON.stringify(data) }),
 };

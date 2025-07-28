@@ -19,7 +19,7 @@
         }
 
         try {
-            const response = await api.get(`/api/auth/email?t=${token}`);
+            const response = await api.get2(`/api/auth/email?t=${token}`);
 
             if (response.ok) {
                 status = "success";
