@@ -2,7 +2,7 @@ import { browser, dev } from '$app/environment';
 import { accessToken } from '$lib/stores/auth';
 import { get } from 'svelte/store';
 
-const API_BASE_URL = dev ? '' : "https://api.personaxi.com/";
+const API_BASE_URL = dev ? '' : "https://api.personaxi.com";
 
 let isRefreshing = false;
 
@@ -38,7 +38,7 @@ async function fetchWithAuth(url: string, options: RequestInit = {}): Promise<Re
             console.log(refreshResponse)
 
             if (!refreshResponse.ok) {
-                window.location.href = '/login';
+                //window.location.href = '/login';
                 throw new Error('Session expired');
             }
 
