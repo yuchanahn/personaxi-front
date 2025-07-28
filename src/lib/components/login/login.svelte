@@ -31,6 +31,7 @@
             name: "Google",
             icon: "/icons/google.svg",
             handler: () => {
+                console.log("STATE : " + getBaseUrl());
                 window.location.href = `${API_BASE_URL}/auth/google/login?state=${getBaseUrl()}`;
             },
         },
