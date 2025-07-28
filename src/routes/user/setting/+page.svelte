@@ -60,9 +60,10 @@
                         lastLoginIP: "",
                     };
                 } else {
-                    if (user.data.language != "") {
-                        $locale = user.data.language;
-                    }
+                    //TODO:
+                    // if (user.data.language != "") {
+                    //     $locale = user.data.language;
+                    // }
                 }
             } else {
                 error = "Failed to load user : " + userRes.status;
@@ -158,10 +159,9 @@
         }
     }
 
-    async function handleLanguageChange(lang: string) {
-        locale.set(lang);
-        saveProfileChanges();
-    }
+    import SettingsModal from "$lib/components/modal/UserSettingsModal.svelte";
+
+    let showSettingsModal = false;
 </script>
 
 <div class="page-container">
@@ -172,19 +172,12 @@
             <h1>{$t("settingPage.title")}</h1>
         </div>
         {#if $locale}
-            <div class="language-selector">
-                <select
-                    bind:value={$locale}
-                    on:change={async (e) => {
-                        locale.set(e.currentTarget.value);
-                        await handleLanguageChange(e.currentTarget.value);
-                    }}
-                    aria-label="언어 선택"
-                >
-                    <option value="ko">{$t("settingPage.korean")}</option>
-                    <option value="en">English</option>
-                </select>
-            </div>
+            <button
+                class="btn-icon settings-button"
+                on:click={() => (showSettingsModal = true)}
+            >
+                <Icon icon="ph:gear-six-bold" width="32" height="32" />
+            </button>
         {/if}
     </div>
 
@@ -369,6 +362,7 @@
         on:close={handleModalClose}
         isNeedNeurons={false}
     />
+    <SettingsModal bind:isOpen={showSettingsModal} />
 </div>
 
 <style>
@@ -399,6 +393,21 @@
         z-index: 10;
         border-bottom: 1px solid var(--border);
         margin-bottom: 1rem;
+    }
+
+    .settings-button {
+        background: none;
+        border: none;
+        padding: 0.5rem;
+        cursor: pointer;
+        color: var(--muted-foreground);
+        transition: all 0.2s;
+        border-radius: 50%;
+    }
+    .settings-button:hover {
+        color: var(--foreground);
+        background-color: var(--muted);
+        transform: rotate(45deg);
     }
 
     .editing {
@@ -557,19 +566,6 @@
         position: relative;
     }
 
-    select {
-        background-color: var(--input);
-        color: var(--foreground);
-        border: 1px solid var(--border-input);
-        border-radius: var(--radius-input);
-        padding: 8px;
-    }
-
-    select option {
-        background: var(--background);
-        color: var(--foreground);
-    }
-
     .live-indicator {
         position: absolute;
         top: 1.5rem;
@@ -617,7 +613,7 @@
         font-weight: 600;
         background: var(--secondary);
         color: var(--secondary-foreground);
-        border: 1px solid var(--border);
+
         border-radius: var(--radius-button);
         cursor: pointer;
         transition: all 0.2s ease;
@@ -646,6 +642,7 @@
         background-size: 200% 200%;
         animation: gradient-animation 3s ease infinite;
         border-color: var(--primary-gradient);
+        border-radius: 22px;
         color: var(--primary-foreground);
     }
 

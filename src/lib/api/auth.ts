@@ -40,32 +40,38 @@ export async function getCurrentUser(): Promise<any | null> {
 
   const user = await res.json();
 
-  if (user.data) {
-    if (user.data.language != null && user.data.language != "") {
-      locale.set(user.data.language);
-    } else {
-      user.data.language = get(locale)
-      const settingRq: any = {
-        name: user.name,
-        nickname: user.data.nickname || "",
-        language: get(locale) || "en",
-      };
-
-      try {
-        const res = await api.post(`/api/user/edit`, settingRq);
-
-        if (res.ok) {
-        } else {
-          const errorText = await res.text();
-          alert(errorText);
-        }
-      } catch (err) {
-        console.log(err);
-      }
-    }
-  } else {
-    console.log("No user data found");
-  }
+  //if (user.data) {
+  //  if (user.data.language != null && user.data.language != "") {
+  //
+  //
+  //    
+  //    locale.set(user.data.language);
+  //
+  //
+  //
+  //  } else {
+  //    user.data.language = get(locale)
+  //    const settingRq: any = {
+  //      name: user.name,
+  //      nickname: user.data.nickname || "",
+  //      language: get(locale) || "en",
+  //    };
+  //
+  //    try {
+  //      const res = await api.post(`/api/user/edit`, settingRq);
+  //
+  //      if (res.ok) {
+  //      } else {
+  //        const errorText = await res.text();
+  //        alert(errorText);
+  //      }
+  //    } catch (err) {
+  //      console.log(err);
+  //    }
+  //  }
+  //} else {
+  //  console.log("No user data found");
+  //}
 
   return res.ok ? user : null;
 }

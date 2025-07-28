@@ -7,20 +7,17 @@
     import Sidebar from "$lib/components/sidebar/Sidebar.svelte";
     import NavBottom from "$lib/components/Nav/NavBottom.svelte";
     import CheatConsole from "$lib/components/cheat/CheatConsole.svelte";
-    import Login from "$lib/components/login/login.svelte";
-
+    import { settings } from "$lib/stores/settings";
     /* ────────────── 모달들 ────────────── */
     import NeedMoreNeuronsModal from "$lib/components/modal/NeedMoreNeuronsModal.svelte";
     import ConsentModal from "$lib/components/modal/ConsentModal.svelte";
     import WelcomeModal from "$lib/components/modal/WelcomeModal.svelte";
 
     /* ────────────── API · 스토어 ────────────── */
-    import { api } from "$lib/api";
     import { loadCharacterSessions, loadChatSessions } from "$lib/api/sessions";
     import { confirmConsent, getCurrentUser } from "$lib/api/auth";
     import { st_user } from "$lib/stores/user";
     import { needMoreNeuronsModal } from "$lib/stores/modal";
-    import type { User } from "$lib/types";
 
     /* ────────────── SvelteKit 내장 ────────────── */
     import { onMount, tick } from "svelte";
@@ -30,6 +27,7 @@
     import Icon from "@iconify/svelte";
     import { slide } from "svelte/transition";
     import { accessToken } from "$lib/stores/auth";
+    import { locale } from "svelte-i18n";
 
     /* ────────────── PWA: Service Worker ────────────── */
     if ("serviceWorker" in navigator) {
