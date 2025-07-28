@@ -12,6 +12,8 @@ async function fetchWithAuth(url: string, options: RequestInit = {}): Promise<Re
         return fetch(url, options);
     }
 
+    console.log(API_BASE_URL)
+
     options.credentials = 'include';
 
     const headers = new Headers(options.headers);
