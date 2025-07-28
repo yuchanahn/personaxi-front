@@ -32,8 +32,7 @@ async function fetchWithAuth(url: string, options: RequestInit = {}): Promise<Re
     if (response.status === 401 && !isRefreshing) {
         isRefreshing = true;
         try {
-            console.log("/api/auth/refresh-token")
-            const refreshResponse = await fetch('/api/auth/refresh-token', {
+            const refreshResponse = await fetch(API_BASE_URL + '/api/auth/refresh-token', {
                 method: 'POST',
                 credentials: 'include'
             });
