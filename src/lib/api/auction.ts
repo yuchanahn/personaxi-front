@@ -1,9 +1,7 @@
-import { API_BASE_URL } from "$lib/constants";
+import { api } from "$lib/api";
 
 export async function fetchAuctionStatus(personaId: string) {
-    const res = await fetch(`${API_BASE_URL}/api/auction/status?c=${personaId}`, {
-        credentials: "include",
-    });
+    const res = await api.get(`/api/auction/status?c=${personaId}`);
 
     if (!res.ok) throw new Error("Failed to load auction status");
 
@@ -11,14 +9,7 @@ export async function fetchAuctionStatus(personaId: string) {
 }
 
 export async function placeBid(personaId: string, amount: number) {
-    const res = await fetch(`${API_BASE_URL}/api/auction/bid?c=${personaId}`, {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json",
-        },
-        credentials: "include",
-        body: JSON.stringify({ amount }),
-    });
+    const res = await api.post(`/api/auction/bid?c=${personaId}`, { amount });
 
     if (!res.ok) {
         const text = await res.text();
@@ -29,17 +20,10 @@ export async function placeBid(personaId: string, amount: number) {
 }
 
 export async function createAuction(personaId: string, startBid: number, duration: number) {
-    const res = await fetch(`${API_BASE_URL}/api/auction/create`, {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json",
-        },
-        credentials: "include",
-        body: JSON.stringify({
-            personaId,
-            startBid,
-            duration,
-        }),
+    const res = await api.post(`/api/auction/create`, {
+        personaId,
+        startBid,
+        duration,
     });
 
     if (!res.ok) {

@@ -24,6 +24,27 @@ export default defineConfig({
     tailwindcss(),
     sveltekit(),
   ],
+  server: {
+    proxy: {
+      // '/api'로 시작하는 모든 요청을 실제 API 서버로 전달합니다.
+      '/api': {
+        target: 'https://api.personaxi.com',
+        changeOrigin: true,
+      },
+      '/auth': {
+        target: 'https://api.personaxi.com',
+        changeOrigin: true,
+      },
+      '/ws': {
+        target: 'wss://api.personaxi.com',
+        ws: true,
+      },
+      'health': {
+        target: 'https://api.personaxi.com',
+        changeOrigin: true,
+      },
+    }
+  },
   esbuild: {
     target: "es2022"
   },

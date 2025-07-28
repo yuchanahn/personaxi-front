@@ -1,6 +1,6 @@
 <script lang="ts">
     import { createEventDispatcher, onMount, onDestroy } from "svelte";
-    import { API_BASE_URL } from "$lib/constants"; // API_BASE_URL 임포트
+    import { api } from "$lib/api";
 
     export let isVisible: boolean = false; // 콘솔의 가시성 제어 (부모 컴포넌트에서 바인딩)
 
@@ -21,13 +21,7 @@
         addMessage(`➡️ ${cmd} 명령어 실행 중...`);
 
         try {
-            const response = await fetch(
-                `${API_BASE_URL}/api/cheat?cmd=${cmd}`,
-                {
-                    method: "GET",
-                    credentials: "include",
-                },
-            );
+            const response = await api.get(`/api/cheat?cmd=${cmd}`);
 
             if (response.ok) {
                 const message = `✅ '${cmd}' 치트 실행 성공!`;

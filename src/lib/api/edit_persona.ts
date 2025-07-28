@@ -1,19 +1,13 @@
 import type { Persona } from "$lib/types";
-import { API_BASE_URL } from '$lib/constants';
+import { api } from "$lib/api";
 
 
-export async function getUploadUrl(tpye: "vrm" | "portrait" | "asset") {
-    const response = await fetch(
-        `${API_BASE_URL}/api/upload-url?type=${tpye}`,
-        {
-            credentials: "include",
-        },
-    );
-
-    if (!response.ok) {
-        throw new Error(`Failed to get signed URL for ${tpye}`);
+export async function getUploadUrl(fileType: "vrm" | "portrait" | "asset"): Promise<Response> {
+    const res = await api.get(`/api/upload-url?type=${fileType}`);
+    if (!res.ok) {
+        throw new Error("Failed to get upload URL");
     }
-    return response;
+    return res;
 }
 
 
@@ -62,53 +56,21 @@ export function uploadFileWithProgress(
 }
 
 
-export async function savePersona(
-    persona: Persona
-): Promise<string | null> {
-    try {
-        const response = await fetch(`${API_BASE_URL}/api/persona/edit`, {
-            credentials: 'include',
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(persona),
-        });
-
-        if (!response.ok) {
-            const errorData = await response.json();
-            throw new Error(errorData.error || '페르소나 정보 저장 실패');
-        }
-
-        const result = await response.json();
-
-        return result.ID;
-
-    } catch (error) {
-        console.error("페르소나 저장 중 오류 발생:", error);
-        throw error;
+export async function savePersona(persona: Persona): Promise<string> {
+    const response = await api.post(`/api/persona/edit`, persona);
+    if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Failed to save persona");
     }
+    const data = await response.json();
+    return data.id;
 }
 
 
-
-
-export async function loadPersona(id: string) {
-
-    if (id) {
-        try {
-            const res = await fetch(
-                `${API_BASE_URL}/api/persona?id=${id}`,
-                {
-                    credentials: 'include'
-                }
-            );
-            if (res.ok) {
-                let persona = await res.json();
-
-                return persona;
-            }
-        } catch (error) {
-            console.error(error);
-        }
+export async function loadPersona(id: string): Promise<Persona> {
+    const response = await api.get(`/api/persona?id=${id}`);
+    if (!response.ok) {
+        throw new Error("Failed to load persona");
     }
-    return null;
+    return (await response.json()) as Persona;
 }

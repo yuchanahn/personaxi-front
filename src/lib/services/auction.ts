@@ -1,6 +1,4 @@
-import { API_BASE_URL } from '$lib/constants';
-
-
+import { api } from "$lib/api";
 
 /*
 var resp []struct {
@@ -23,7 +21,7 @@ export type AuctionPersona = {
 
 
 export async function fetchAuctionPersonas(): Promise<AuctionPersona[]> {
-    const res = await fetch(`${API_BASE_URL}/api/auction/list`, { credentials: "include" });
+    const res = await api.get(`/api/auction/list`);
 
     if (!res.ok) {
         throw new Error("auction.fetchListFailed");

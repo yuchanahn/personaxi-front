@@ -3,14 +3,12 @@ import { tickSSEStream, extractCSSID } from '$lib/parser/sseParser';
 import { loadCharacterSessions, loadChatSessions } from './sessions';
 import { get, type Writable } from 'svelte/store';
 import { goto } from '$app/navigation';
-import { API_BASE_URL } from '$lib/constants';
+import { api } from '$lib/api';
 import { showNeedMoreNeuronsModal } from '$lib/stores/modal';
 
 
 export async function loadChatHistory(sessionId: string) {
-    const res = await fetch(`${API_BASE_URL}/api/chat/history?CSSID=${sessionId}`, {
-        credentials: 'include'
-    });
+    const res = await api.get(`/api/chat/history?CSSID=${sessionId}`);
     if (res.ok) {
         const history = await res.json();
         if (history === null) {
@@ -25,9 +23,7 @@ export async function loadChatHistory(sessionId: string) {
 }
 
 export async function resetChatHistory(sessionId: string) {
-    const res = await fetch(`${API_BASE_URL}/api/chat/reset?CSSID=${sessionId}`, {
-        credentials: 'include'
-    });
+    const res = await api.get(`/api/chat/reset?CSSID=${sessionId}`);
     if (res.ok) {
         const r = await res.json();
         messages.set([]);
@@ -38,9 +34,7 @@ export async function resetChatHistory(sessionId: string) {
 }
 
 export async function deleteChatHistory(sessionId: string) {
-    const res = await fetch(`${API_BASE_URL}/api/chat/delete?CSSID=${sessionId}`, {
-        credentials: 'include'
-    });
+    const res = await api.get(`/api/chat/delete?CSSID=${sessionId}`);
     if (res.ok) {
         const r = await res.json();
 
@@ -101,13 +95,7 @@ export async function impl_sendPromptStream(
         type: type ?? "chat",
     };
     //HandleLLMChat
-    const response = await fetch(`${API_BASE_URL}/api/chat/${type ?? "2d"}`, {
-        //const response = await fetch(`${API_BASE_URL}/api/ChatLLM`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify(body)
-    });
+    const response = await api.post(`/api/chat/${type ?? "2d"}`, body);
 
     if (response.status === 402) {
         showNeedMoreNeuronsModal()

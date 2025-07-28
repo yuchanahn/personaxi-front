@@ -1,4 +1,5 @@
 import * as THREE from 'three'
+import { api } from "$lib/api";
 
 export function serializeClip(clip: THREE.AnimationClip): object {
     return {
@@ -48,13 +49,7 @@ export async function saveClipAsJSON(clip: THREE.AnimationClip, fileName: string
     const blob = new Blob([], { type: 'application/json' })
 
     // 2. 전송
-    const response = await fetch('http://localhost:3000/anim/anim', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ name: fileName, file: json }),
-    })
+    const response = await api.post('/anim/anim', { name: fileName, file: json });
 
     if (!response.ok) {
         console.error("anim.sendFailed", response.statusText)

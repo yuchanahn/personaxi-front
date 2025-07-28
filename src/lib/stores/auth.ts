@@ -1,4 +1,5 @@
 import { writable, derived } from 'svelte/store';
+import { api } from '$lib/api';
 
 export const accessToken = writable<string | null>(null);
 
@@ -8,7 +9,7 @@ export const isAuthenticated = derived(
 );
 
 export async function logout() {
-    await fetch('/api/logout', { method: 'POST' });
+    await api.post('/api/logout', {});
 
     accessToken.set(null);
     window.location.href = '/login';

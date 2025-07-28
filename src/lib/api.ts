@@ -1,13 +1,17 @@
 import { browser } from '$app/environment';
 import { accessToken } from '$lib/stores/auth';
 import { get } from 'svelte/store';
+import { API_BASE_URL } from './constants';
 
 let isRefreshing = false;
 
 async function fetchWithAuth(url: string, options: RequestInit = {}): Promise<Response> {
     if (!browser) {
+        console.log("NOT IN BROWSER!!")
         return fetch(url, options);
     }
+
+    options.credentials = 'include';
 
     const headers = new Headers(options.headers);
     const token = get(accessToken);
@@ -25,7 +29,12 @@ async function fetchWithAuth(url: string, options: RequestInit = {}): Promise<Re
     if (response.status === 401 && !isRefreshing) {
         isRefreshing = true;
         try {
-            const refreshResponse = await fetch('/api/refresh-token', { method: 'POST' });
+            console.log("/api/auth/refresh-token")
+            const refreshResponse = await fetch('/api/auth/refresh-token', {
+                method: 'POST',
+                credentials: 'include'
+            });
+            console.log(refreshResponse)
 
             if (!refreshResponse.ok) {
                 window.location.href = '/login';
@@ -38,7 +47,11 @@ async function fetchWithAuth(url: string, options: RequestInit = {}): Promise<Re
             headers.set('Authorization', `Bearer ${newAccessToken}`);
             options.headers = headers;
             response = await fetch(url, options);
-        } finally {
+        }
+        catch (e) {
+            console.log(e)
+        }
+        finally {
             isRefreshing = false;
         }
     }

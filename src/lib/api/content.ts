@@ -1,11 +1,9 @@
-import { API_BASE_URL } from '$lib/constants';
+import { api } from "$lib/api";
 import type { Persona } from '$lib/types';
 
 
 export async function loadContent() {
-    const res = await fetch(`${API_BASE_URL}/api/contents`, {
-        credentials: 'include'
-    });
+    const res = await api.get(`/api/contents`);
     if (res.ok) {
         const data = await res.json();
         return data;
@@ -14,9 +12,7 @@ export async function loadContent() {
 }
 
 export async function loadlikesdata() {
-    const res = await fetch(`${API_BASE_URL}/api/contents/likesdata`, {
-        credentials: 'include'
-    });
+    const res = await api.get(`/api/contents/likesdata`);
     if (res.ok) {
         const data = await res.json();
         return data;
@@ -25,12 +21,10 @@ export async function loadlikesdata() {
 }
 
 export async function LikeBtn(persona: Persona, onOk: () => void, onError: (message: string) => void) {
-    const url = `${API_BASE_URL}/api/persona/like?id=${persona.id}`;
+    const url = `/api/persona/like?id=${persona.id}`;
 
     try {
-        const res = await fetch(url, {
-            credentials: "include",
-        });
+        const res = await api.get(url);
 
         if (res.ok) {
             onOk()
@@ -46,9 +40,7 @@ export async function LikeBtn(persona: Persona, onOk: () => void, onError: (mess
 
 
 export async function loadContentWithTags(tags: string[]) {
-    const res = await fetch(`${API_BASE_URL}/api/contents/t?t=${tags.join(",")}`, {
-        credentials: 'include'
-    });
+    const res = await api.get(`/api/contents/t?t=${tags.join(",")}`);
     if (res.ok) {
         const data = await res.json();
         return data;
@@ -59,9 +51,7 @@ export async function loadContentWithTags(tags: string[]) {
 
 
 export async function loadContentWithName(name: string) {
-    const res = await fetch(`${API_BASE_URL}/api/contents/s?q=${name}`, {
-        credentials: 'include'
-    });
+    const res = await api.get(`/api/contents/s?q=${name}`);
     if (res.ok) {
         const data = await res.json();
         return data;

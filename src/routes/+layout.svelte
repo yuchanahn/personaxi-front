@@ -15,9 +15,10 @@
     import WelcomeModal from "$lib/components/modal/WelcomeModal.svelte";
 
     /* ────────────── API · 스토어 ────────────── */
+    import { api } from "$lib/api";
     import { loadCharacterSessions, loadChatSessions } from "$lib/api/sessions";
     import { confirmConsent, getCurrentUser } from "$lib/api/auth";
-    import { is_login, st_user } from "$lib/stores/user";
+    import { st_user } from "$lib/stores/user";
     import { needMoreNeuronsModal } from "$lib/stores/modal";
     import type { User } from "$lib/types";
 
@@ -57,6 +58,13 @@
     onMount(async () => {
         //TODO: PWA 일경우 어떻게 될지 모름. 아마 브라우져겠지?
         if (!browser) return;
+        if (["/login"].includes($page.url.pathname)) {
+            //is_login.set(false);
+
+            console.log("Return!");
+
+            return;
+        }
 
         const hash = window.location.hash;
         if (hash.includes("access_token=")) {
@@ -75,9 +83,7 @@
         }
 
         try {
-            const response = await fetch("/api/refresh-token", {
-                method: "POST",
-            });
+            const response = await api.post("/api/auth/refresh-token", {});
             if (response.ok) {
                 const data = await response.json();
                 accessToken.set(data.access_token);
@@ -89,28 +95,26 @@
         }
 
         //TODO: 수정 필요!
-        try {
-            const user = (await getCurrentUser()) as User | null;
-            if (!user) {
-                is_login.set(false);
-                return;
-            }
-            st_user.set(user);
-            if (user.state === "new") consentModal = true;
-        } catch {
-            is_login.set(false);
-        }
+        //try {
+        //    const user = (await getCurrentUser()) as User | null;
+        //    if (!user) {
+        //        is_login.set(false);
+        //        return;
+        //    }
+        //    st_user.set(user);
+        //    if (user.state === "new") consentModal = true;
+        //} catch {
+        //    is_login.set(false);
+        //}
     });
 
     /* ────────────── 로그인 후 세션 로드 ────────────── */
-    $: if ($is_login) {
-        loadChatSessions();
-        loadCharacterSessions();
-    }
+    //$: if ($is_login) {
+    //loadChatSessions();
+    //loadCharacterSessions();
+    //}
 
     function handleBack() {
-        console.log("back!");
-
         history.length > 1 ? history.back() : goto("/hub");
     }
 
@@ -125,11 +129,7 @@
     {/if}
 
     <main>
-        {#if !$is_login && !["/hub", "/feed", "/profile", "/", "/test", "/signup"].includes($page.url.pathname)}
-            <Login />
-        {:else}
-            <slot />
-        {/if}
+        <slot />
 
         <CheatConsole
             isVisible={showCheatConsole}

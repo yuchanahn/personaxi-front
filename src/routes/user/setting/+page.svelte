@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { API_BASE_URL, PORTRAIT_URL } from "$lib/constants";
+    import { PORTRAIT_URL } from "$lib/constants";
     import { goto } from "$app/navigation";
     import { onMount } from "svelte";
     import type { Persona } from "$lib/types";
@@ -13,6 +13,7 @@
     import { get } from "svelte/store";
     import type { User } from "$lib/types";
     import Icon from "@iconify/svelte";
+    import { api } from "$lib/api";
 
     let user = {
         id: "",
@@ -45,9 +46,7 @@
 
     onMount(async () => {
         try {
-            const userRes = await fetch(`${API_BASE_URL}/api/user/me`, {
-                credentials: "include",
-            });
+            const userRes = await api.get(`/api/user/me`);
             if (userRes.ok) {
                 user = await userRes.json();
 
@@ -69,12 +68,7 @@
                 error = "Failed to load user : " + userRes.status;
             }
 
-            const personasRes = await fetch(
-                `${API_BASE_URL}/api/persona/user`,
-                {
-                    credentials: "include",
-                },
-            );
+            const personasRes = await api.get(`/api/persona/user`);
             if (personasRes.ok) {
                 personas = await personasRes.json();
             } else {
@@ -103,15 +97,7 @@
     }
 
     async function deletePersona(id: string) {
-        const res = await fetch(`${API_BASE_URL}/api/persona/${id}`, {
-            method: "DELETE",
-            credentials: "include",
-        });
-        if (res.ok) {
-            personas = personas.filter((p) => p.id !== id);
-        } else {
-            error = "Failed to delete persona";
-        }
+        alert("지원하지 않는 기능입니다!");
     }
 
     function openAuctionModal(p: Persona) {
@@ -157,12 +143,7 @@
         };
 
         try {
-            const res = await fetch(`${API_BASE_URL}/api/user/edit`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(settingRq),
-                credentials: "include",
-            });
+            const res = await api.post(`/api/user/edit`, settingRq);
 
             if (res.ok) {
                 //user = await res.json();

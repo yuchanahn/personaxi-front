@@ -2,8 +2,8 @@
     import { createEventDispatcher, onDestroy, onMount } from "svelte";
     import { fade } from "svelte/transition";
     import Icon from "@iconify/svelte";
-    import { API_BASE_URL } from "$lib/constants";
     import { t } from "svelte-i18n";
+    import { api } from "$lib/api";
 
     const dispatch = createEventDispatcher();
 
@@ -12,14 +12,7 @@
     let isSuccess = false;
 
     async function submitFeedback(text: string) {
-        const res = await fetch(`${API_BASE_URL}/api/feedback`, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-            },
-            credentials: "include",
-            body: JSON.stringify({ text }),
-        });
+        const res = await api.post(`/api/feedback`, { text });
         if (!res.ok) {
             const errorData = await res.json().catch(() => ({}));
             throw new Error(errorData.error || "Failed to submit feedback");

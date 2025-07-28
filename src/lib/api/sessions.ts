@@ -1,6 +1,6 @@
 import { chatSessions, ChatSessionType, createNewSession, updateSession } from '$lib/stores/chatSessions';
 import { get } from 'svelte/store';
-import { API_BASE_URL } from '$lib/constants';
+import { api } from '$lib/api';
 import { t } from 'svelte-i18n';
 
 export async function loadChatSessions() {
@@ -8,9 +8,7 @@ export async function loadChatSessions() {
     chatSessions.set([]);
     createNewSession("S4", "", ChatSessionType.SPACE);
 
-    const res = await fetch(`${API_BASE_URL}/api/chat/sessions`, {
-        credentials: 'include'
-    });
+    const res = await api.get(`/api/chat/sessions`);
     if (res.ok) {
         const data = await res.json();
         for (const chatSession of data) {
@@ -22,9 +20,7 @@ export async function loadChatSessions() {
 }
 
 export async function loadCharacterSessions() {
-    const res = await fetch(`${API_BASE_URL}/api/chat/char/sessions`, {
-        credentials: 'include'
-    });
+    const res = await api.get(`/api/chat/char/sessions`);
     if (res.ok) {
         const data = await res.json();
         for (const chatSession of data) {

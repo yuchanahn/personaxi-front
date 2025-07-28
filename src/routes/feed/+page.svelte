@@ -8,6 +8,7 @@
     import { PORTRAIT_URL, API_BASE_URL } from "$lib/constants";
     import { loadContent, loadlikesdata } from "$lib/api/content";
     import { type AuctionPersona } from "$lib/services/auction";
+    import { api } from "$lib/api";
 
     //TODO: 사용자가 끝에 다다르면, 또 새로운 정보를 부르거나, 다시 처음부터 나오게 하기.
     //TODO: 나중에 처리 해주기!
@@ -140,12 +141,10 @@
 
     async function FeedbackBtn(persona: Persona, isLikeAction: boolean) {
         const endpoint = isLikeAction ? "like" : "dislike";
-        const url = `${API_BASE_URL}/api/persona/${endpoint}?id=${persona.id}`;
+        const url = `/api/persona/${endpoint}?id=${persona.id}`;
 
         try {
-            const res = await fetch(url, {
-                credentials: "include",
-            });
+            const res = await api.get(url);
 
             if (res.ok) {
                 // 성공적으로 좋아요/싫어요 처리됨

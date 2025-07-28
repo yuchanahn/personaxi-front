@@ -1,6 +1,6 @@
 <script lang="ts">
     import { goto } from "$app/navigation";
-    import { ownloginWithEmailPass } from "$lib/api/auth";
+    import { getBaseUrl, ownloginWithEmailPass } from "$lib/api/auth";
     import { API_BASE_URL } from "$lib/constants";
     import { t } from "svelte-i18n";
 
@@ -31,7 +31,7 @@
             name: "Google",
             icon: "/icons/google.svg",
             handler: () => {
-                window.location.href = `${API_BASE_URL}/auth/google/login`;
+                window.location.href = `${API_BASE_URL}/auth/google/login?state=${getBaseUrl()}`;
             },
         },
         {

@@ -2,9 +2,9 @@
 <script lang="ts">
     import { createEventDispatcher } from "svelte";
     import { deleteChatHistory, resetChatHistory } from "$lib/api/chat";
-    import { API_BASE_URL } from "$lib/constants";
     import { t } from "svelte-i18n";
     import type { Persona } from "$lib/types";
+    import { api } from "$lib/api";
 
     export let isOpen: boolean = false; // 부모 컴포넌트로부터 모달 가시성 상태를 받음
     export let persona: Persona; // Persona 객체를 prop으로 받음
@@ -55,12 +55,10 @@
 
     async function FeedbackBtn(isLikeAction: boolean) {
         const endpoint = isLikeAction ? "like" : "dislike";
-        const url = `${API_BASE_URL}/api/persona/${endpoint}?id=${persona.id}`;
+        const url = `/api/persona/${endpoint}?id=${persona.id}`;
 
         try {
-            const res = await fetch(url, {
-                credentials: "include",
-            });
+            const res = await api.get(url);
 
             if (res.ok) {
                 // 성공적으로 좋아요/싫어요 처리됨

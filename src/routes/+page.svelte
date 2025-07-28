@@ -1,7 +1,6 @@
 <script lang="ts">
   import { onMount } from "svelte";
   import { getCurrentUser, loginWithAuthKey } from "$lib/api/auth";
-  import { is_login } from "$lib/stores/user";
   import { goto } from "$app/navigation";
 
   import NoticeModal from "$lib/components/modal/NoticeModal.svelte";
@@ -9,18 +8,17 @@
   let isModalOpen = false;
 
   onMount(async () => {
-    const url = new URL(window.location.href);
-    const authKey = url.searchParams.get("auth_key");
-    if (authKey) {
-      await loginWithAuthKey(authKey);
-    } else {
-      isModalOpen = true;
-    }
-    let user = await getCurrentUser();
-    if (user != null) {
-      is_login.set(true);
-      goto("/hub");
-    }
+    //const url = new URL(window.location.href);
+    //const authKey = url.searchParams.get("auth_key");
+    //if (authKey) {
+    //  await loginWithAuthKey(authKey);
+    //} else {
+    //  isModalOpen = true;
+    //}
+    //let user = await getCurrentUser();
+    //if (user != null) {
+    //  goto("/hub");
+    //}
   });
 </script>
 
