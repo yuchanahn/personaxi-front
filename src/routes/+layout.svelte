@@ -74,18 +74,6 @@
                 return;
             }
         }
-
-        //try {
-        //    const response = await api.post("/api/auth/refresh-token", {});
-        //    if (response.ok) {
-        //        const data = await response.json();
-        //        accessToken.set(data.access_token);
-        //    } else {
-        //        accessToken.set(null);
-        //    }
-        //} catch (error) {
-        //    accessToken.set(null);
-        //}
         accessToken.set(null);
     });
 
@@ -98,16 +86,14 @@
         loadCharacterSessions();
     });
 
-    /* ────────────── 로그인 후 세션 로드 ────────────── */
-    //loadChatSessions();
-    //loadCharacterSessions();
-
     function handleBack() {
         history.length > 1 ? history.back() : goto("/hub");
     }
 
     $: showNavBottom =
         isMobile && !["/test", "/2d"].includes($page.url.pathname);
+
+    $: isChatPage = $page.url.pathname.startsWith("/2d");
 </script>
 
 <!-- ────────────── 레이아웃 ────────────── -->
@@ -116,7 +102,7 @@
         <Sidebar /> <!-- 모바일에선 아예 렌더하지 않는다 -->
     {/if}
 
-    <main>
+    <main class:no-padding-bottom={isChatPage}>
         <slot />
 
         <CheatConsole
@@ -189,6 +175,10 @@
         height: 100%;
 
         padding-bottom: calc(85px + env(safe-area-inset-bottom, 0px));
+    }
+
+    main:global(.no-padding-bottom) {
+        padding-bottom: 0;
     }
 
     .back-btn {

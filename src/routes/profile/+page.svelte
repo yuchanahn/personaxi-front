@@ -312,7 +312,12 @@
                             type="text"
                             placeholder={$t("profilePage.commentPlaceholder")}
                         />
-                        <button>{$t("profilePage.registerButton")}</button>
+                        <button
+                            class="btn-primary icon-button"
+                            aria-label={$t("profilePage.registerButton")}
+                        >
+                            <Icon icon="ph:paper-plane-tilt-bold" />
+                        </button>
                     </div>
                 </div>
             </div>
@@ -639,6 +644,19 @@
         gap: 0.5rem;
         margin-top: auto;
     }
+    .comment-input-box .icon-button {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0.75rem;
+        width: 40px;
+        height: 46px;
+        flex-shrink: 0;
+        border-radius: 30%;
+        background: var(--primary-gradient);
+        color: var(--primary-foreground);
+    }
+
     .comment-input-box input {
         flex-grow: 1;
         background: var(--input);
@@ -664,7 +682,11 @@
     .comment-input-box button:hover {
         opacity: 0.9;
     }
-
+    .profile-main,
+    .comments-section {
+        min-width: 0;
+        word-break: break-word;
+    }
     @media (max-width: 992px) {
         .profile-container {
             grid-template-columns: 1fr;
