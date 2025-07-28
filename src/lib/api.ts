@@ -1,7 +1,8 @@
-import { browser } from '$app/environment';
+import { browser, dev } from '$app/environment';
 import { accessToken } from '$lib/stores/auth';
 import { get } from 'svelte/store';
-import { API_BASE_URL } from './constants';
+
+const API_BASE_URL = dev ? '' : "https://api.personaxi.com";
 
 let isRefreshing = false;
 
