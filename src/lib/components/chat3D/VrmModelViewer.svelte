@@ -406,7 +406,7 @@
     </div>
   </div>
   -->
-  <div class="chat-container">
+  <div class="chat-container select-none">
     <div class="chat-content">
       <ChatWindow cssid={cssid ?? ""} showChat={show} {isLoading} />
       <ChatInput onSend={send} onChangeInput={handleInputChange} />

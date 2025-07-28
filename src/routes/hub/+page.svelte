@@ -8,7 +8,9 @@
 </script>
 
 <main>
-    <ContentHub />
+    <div class="select-none">
+        <ContentHub />
+    </div>
 </main>
 
 <button

@@ -149,7 +149,7 @@
     }
 </script>
 
-<div class="scroll-container">
+<div class="scroll-container select-none">
     <div class="profile-page-wrapper">
         {#if isLoading}
             <p class="loading-text">{$t("profilePage.loadingPersona")}</p>

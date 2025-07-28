@@ -42,7 +42,8 @@ export default defineConfig({
       '/ws': {
         target: 'wss://api.personaxi.com',
         ws: true,
-        agent: new https.Agent({ keepAlive: true }),
+        secure: false,
+        changeOrigin: true,
       },
       'health': {
         target: 'https://api.personaxi.com',

@@ -1,3 +1,4 @@
+import { api } from '$lib/api';
 import { API_BASE_URL } from '$lib/constants';
 import { ttsState } from '$lib/stores/ttsStore';
 
@@ -38,7 +39,8 @@ function stopHeartbeat() {
 }
 
 export function connectTTSSocket(speek?: (audio: ArrayBuffer) => void): WebSocket {
-    socket = new WebSocket(`wss://api.personaxi.com/ws/tts`);
+    socket = api.ws('/ws/tts', {})
+
 
     if (!socket) {
         console.error("❌ WebSocket 연결 실패");
