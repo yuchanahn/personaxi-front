@@ -2,7 +2,7 @@ import { browser, dev } from '$app/environment';
 import { accessToken } from '$lib/stores/auth';
 import { get } from 'svelte/store';
 
-const API_BASE_URL = dev ? '' : "https://api.personaxi.com";
+const API_BASE_URL = dev ? '' : "https://api.personaxi.com/";
 
 let isRefreshing = false;
 
@@ -60,7 +60,7 @@ async function fetchWithAuth(url: string, options: RequestInit = {}): Promise<Re
 }
 
 export const api = {
-    get: (url: string, options?: RequestInit) => fetchWithAuth(url, { ...options, method: 'GET' }),
+    get: (url: string, options?: RequestInit) => fetchWithAuth(API_BASE_URL + url, { ...options, method: 'GET' }),
     post: (url: string, data: any, options?: RequestInit) =>
-        fetchWithAuth(url, { ...options, method: 'POST', body: JSON.stringify(data) }),
+        fetchWithAuth(API_BASE_URL + url, { ...options, method: 'POST', body: JSON.stringify(data) }),
 };
