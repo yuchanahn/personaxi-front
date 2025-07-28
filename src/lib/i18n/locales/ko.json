@@ -1,7 +1,7 @@
 {
   "editPage": {
     "title": "페르소나 생성 및 편집",
-    "saveButton": "페르소나 저장",
+    "saveButton": "저장",
     "saveButtonLoading": "저장 중...",
     "saveButtonSuccess": "✓ 저장됨",
     "basicInfo": "기본 정보",

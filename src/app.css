@@ -16,6 +16,27 @@ body {
     src: url("/CalSans-SemiBold.woff2") format("woff2");
 }
 
+@keyframes gradient-animation {
+    0% {
+        background-position: 0% 50%;
+    }
+
+    50% {
+        background-position: 100% 50%;
+    }
+
+    100% {
+        background-position: 0% 50%;
+    }
+}
+
+.bg-primary-animated {
+    background: var(--primary-gradient);
+    background-size: 200% 200%;
+    /* 애니메이션 효과를 위해 배경을 요소보다 크게 만듦 */
+    animation: gradient-animation 3s ease infinite;
+}
+
 :root {
     --background: hsl(210 25% 96%);
     --foreground: hsl(210 20% 12%);
@@ -26,7 +47,9 @@ body {
     --popover: hsl(210 25% 98%);
     --popover-foreground: var(--foreground);
 
+
     --primary: hsl(271, 81%, 56%);
+    --primary-gradient: linear-gradient(45deg, #ff79c6, #bd93f9);
     --primary-foreground: hsl(45, 100%, 96%);
 
     --accent: hsl(260 30% 18%);

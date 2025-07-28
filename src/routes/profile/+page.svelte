@@ -133,7 +133,6 @@
         );
     }
 
-    // --- ★ 이미지 갤러리 탐색 함수들 ★ ---
     function showPrevImage() {
         currentImageIndex =
             (currentImageIndex - 1 + galleryImages.length) %
@@ -558,7 +557,9 @@
         font-size: 1.2rem;
         font-weight: bold;
         color: var(--primary-foreground);
-        background: var(--primary);
+        background: var(--primary-gradient);
+        background-size: 200% 200%;
+        animation: gradient-animation 3s ease infinite;
         border: none;
         border-radius: 12px;
         cursor: pointer;

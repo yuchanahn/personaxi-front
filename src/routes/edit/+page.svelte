@@ -978,7 +978,7 @@
     /* === 2단 폼 레이아웃 === */
     .form-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+        grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
         gap: 1.5rem;
         align-items: start;
     }
@@ -1186,9 +1186,12 @@
         border-radius: 8px;
         cursor: pointer;
         transition: all 0.2s;
-        background: var(--primary);
-        border: 1px solid var(--primary);
+        background: var(--primary-gradient);
+        border: 1px solid var(--primary-gradient);
         color: var(--primary-foreground);
+
+        background-size: 200% 200%;
+        animation: gradient-animation 3s ease infinite;
     }
     .save-button:disabled {
         opacity: 0.6;

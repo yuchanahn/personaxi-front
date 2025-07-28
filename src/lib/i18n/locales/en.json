@@ -1,7 +1,7 @@
 {
   "editPage": {
     "title": "Create & Edit Persona",
-    "saveButton": "Save Persona",
+    "saveButton": "Save",
     "saveButtonLoading": "Saving...",
     "saveButtonSuccess": "✓ Saved",
     "basicInfo": "Basic Information",

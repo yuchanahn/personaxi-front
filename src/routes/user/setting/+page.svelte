@@ -642,8 +642,10 @@
     }
 
     .btn-primary {
-        background: var(--primary);
-        border-color: var(--primary);
+        background: var(--primary-gradient);
+        background-size: 200% 200%;
+        animation: gradient-animation 3s ease infinite;
+        border-color: var(--primary-gradient);
         color: var(--primary-foreground);
     }
 

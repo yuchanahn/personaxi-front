@@ -16,16 +16,15 @@
 <style>
     .slot {
         display: flex;
-        justify-content: left;
-        align-items: center;
         height: 100%;
-        color: white;
+        color: var(--foreground);
         font-size: 1.1rem;
         border-radius: 8px;
+        padding: 0.5rem 1rem;
     }
 
     .slot:not(.space):hover {
-        background-color: #3e3f4b;
+        background-color: var(--secondary);
     }
 
     .slot button {
@@ -35,13 +34,16 @@
         color: inherit;
         font-size: inherit;
         cursor: pointer;
-        padding: 0.5rem 1rem;
         border-radius: 8px;
         transition: background-color 0.3s ease;
-        /* 여기부터 추가 */
-        white-space: nowrap; /* 텍스트가 다음 줄로 넘어가지 않게 */
-        text-overflow: ellipsis; /* 넘치는 텍스트를 ...으로 표시 */
-        max-width: 100%; /* 부모 요소의 너비를 넘지 않도록 (필요하다면 추가) */
+        white-space: nowrap;
+        text-overflow: ellipsis;
+
+        /* ❗ 아래 속성들을 수정/추가합니다. */
+        padding: 0; /* 패딩 제거 */
+        width: 100%;
+        height: 100%;
+        text-align: left; /* 텍스트를 왼쪽 정렬 */
     }
 
     .slot-delete {
@@ -55,7 +57,8 @@
     }
 
     .space span {
-        color: inherit;
-        font-size: inherit;
+        color: var(--muted-foreground);
+        font-size: 0.9rem;
+        font-weight: 600;
     }
 </style>
