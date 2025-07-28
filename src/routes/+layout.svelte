@@ -23,7 +23,7 @@
     import type { User } from "$lib/types";
 
     /* ────────────── SvelteKit 내장 ────────────── */
-    import { onMount } from "svelte";
+    import { onMount, tick } from "svelte";
     import { page } from "$app/stores";
     import { browser } from "$app/environment";
     import { goto } from "$app/navigation";
@@ -77,17 +77,27 @@
             }
         }
 
-        try {
-            const response = await api.post("/api/auth/refresh-token", {});
-            if (response.ok) {
-                const data = await response.json();
-                accessToken.set(data.access_token);
-            } else {
-                accessToken.set(null);
-            }
-        } catch (error) {
-            accessToken.set(null);
+        //try {
+        //    const response = await api.post("/api/auth/refresh-token", {});
+        //    if (response.ok) {
+        //        const data = await response.json();
+        //        accessToken.set(data.access_token);
+        //    } else {
+        //        accessToken.set(null);
+        //    }
+        //} catch (error) {
+        //    accessToken.set(null);
+        //}
+        accessToken.set(null);
+    });
+
+    accessToken.subscribe(async (token) => {
+        tick();
+        if (!token) {
+            return;
         }
+        loadChatSessions();
+        loadCharacterSessions();
     });
 
     /* ────────────── 로그인 후 세션 로드 ────────────── */

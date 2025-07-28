@@ -1,6 +1,8 @@
 import { sveltekit } from '@sveltejs/kit/vite';
 import { defineConfig } from 'vite';
 import tailwindcss from '@tailwindcss/vite';
+import https from 'https'; // ❗ 이 한 줄을 추가해주세요
+
 
 export default defineConfig({
   // SSR 비활성화
@@ -30,18 +32,22 @@ export default defineConfig({
       '/api': {
         target: 'https://api.personaxi.com',
         changeOrigin: true,
+        agent: new https.Agent({ keepAlive: true }),
       },
       '/auth': {
         target: 'https://api.personaxi.com',
         changeOrigin: true,
+        agent: new https.Agent({ keepAlive: true }),
       },
       '/ws': {
         target: 'wss://api.personaxi.com',
         ws: true,
+        agent: new https.Agent({ keepAlive: true }),
       },
       'health': {
         target: 'https://api.personaxi.com',
         changeOrigin: true,
+        agent: new https.Agent({ keepAlive: true }),
       },
     }
   },

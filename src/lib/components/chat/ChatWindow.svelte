@@ -14,11 +14,9 @@
   let chatWindowEl: HTMLElement;
   let isThink = false;
 
-  // 메모이제이션을 위한 캐시
   let processedMessagesCache = new Map<string, string>();
   let lastMessagesLength = 0;
 
-  // think 상태 계산 최적화
   $: {
     const messagesArray = $messages;
     if (messagesArray.length > 0) {
@@ -32,14 +30,11 @@
     }
   }
 
-  // 메시지 변경 감지 및 스크롤 처리 - 원래 방식대로 복원
   $: if ($messages && chatWindowEl) {
-    // DOM 업데이트 후 스크롤
     tick().then(() => {
       scrollToBottom();
     });
 
-    // 로딩 상태 업데이트
     if ($messages.length > 0) {
       const lastMessage = $messages[$messages.length - 1];
       isLoading = lastMessage.role === "user";
@@ -48,7 +43,6 @@
     }
   }
 
-  // 이미지 태그 파싱 최적화 (정규식 미리 컴파일)
   const IMG_TAG_REGEX = /<img>(.*?)<\/img>/g;
   const THINK_REGEX = /<think>[\s\S]*?<\/think>/g;
   const SEPARATOR_REGEX = /---/g;
@@ -210,7 +204,7 @@
 <div
   class="chat-window"
   bind:this={chatWindowEl}
-  style:opacity={showChat ? "0.7" : "0"}
+  style:opacity={showChat ? "0.9" : "0"}
   role="log"
   aria-label="채팅 메시지"
 >
@@ -332,19 +326,18 @@
     padding: 0.75rem 1rem;
     border-radius: 16px;
   }
-
   .message.user {
     align-self: flex-end;
-    background: #2a2a2a;
-    color: white;
+    background-color: var(--primary);
+    color: var(--primary-foreground);
   }
 
   .message.assistant {
     align-self: flex-start;
-    background: #222222;
-    color: #dbdbdb;
+    background-color: var(--secondary);
+    color: var(--secondary-foreground);
+    border: 1px solid var(--border);
   }
-
   .loading-dots,
   .empty-message {
     align-self: center;

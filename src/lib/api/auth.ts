@@ -15,15 +15,9 @@ export function getBaseUrl(): string {
   }
 }
 
-export async function loginWithAuthKey(authKey: string): Promise<void> {
-  const res = await api.get(`/api/auth/login?auth_key=${authKey}`);
-  if (res.ok) {
-    window.location.href = getBaseUrl();
-  }
-}
 
 export async function ownloginWithEmailPass(email: string, password: string): Promise<void> {
-  const res = await api.post(`/api/auth/ownlogin`, { email, password });
+  const res = await api.post2(`/api/auth/ownlogin`, { email, password });
 
   if (res.ok) {
     //window.location.href = getBaseUrl();

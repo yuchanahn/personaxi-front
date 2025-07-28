@@ -75,16 +75,6 @@
   />
 {/if}
 <main class="chat-layout">
-  {#if persona !== null}
-    <!-- <div class="persona-container">
-      <img
-        src={`${PORTRAIT_URL}${persona.owner_id[0]}/${persona.id}.portrait`}
-        alt="portrait"
-        class="portrait"
-      />
-    </div> -->
-  {/if}
-
   <div class="settings-button-2d">
     <SettingsButton onClick={() => (isSettingsModalOpen = true)} />
   </div>
@@ -103,21 +93,6 @@
     overflow: hidden;
     /* 모바일 기본: 세로 배치 */
     flex-direction: column;
-  }
-
-  .persona-container {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    padding: 1rem;
-    background: #333333; /* 배경색을 추가하여 영역 구분 */
-  }
-
-  .portrait {
-    max-width: 100%;
-    object-fit: contain;
-    /* 모바일에서는 이미지 높이 제한 */
-    max-height: 200px;
   }
 
   .chat-container {
@@ -139,16 +114,6 @@
     .chat-layout {
       /* 가로 배치로 변경 */
       flex-direction: row;
-    }
-
-    .persona-container {
-      /* 왼쪽 영역 고정 너비 할당 */
-      flex: 0 0 400px;
-    }
-
-    .portrait {
-      /* PC에서는 이미지 높이 제한 늘리기 */
-      max-height: 600px;
     }
 
     .chat-container {
