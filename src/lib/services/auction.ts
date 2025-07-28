@@ -21,7 +21,7 @@ export type AuctionPersona = {
 
 
 export async function fetchAuctionPersonas(): Promise<AuctionPersona[]> {
-    const res = await api.get(`/api/auction/list`);
+    const res = await api.get2(`/api/auction/list`);
 
     if (!res.ok) {
         throw new Error("auction.fetchListFailed");

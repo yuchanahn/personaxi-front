@@ -2,7 +2,7 @@ const BASE = "/api/live";
 import { api } from "$lib/api";
 
 export async function fetchLivePersonas(): Promise<string[]> {
-    const res = await api.get(`${BASE}/list`);
+    const res = await api.get2(`${BASE}/list`);
 
     if (!res.ok) {
         throw new Error("live.fetchListFailed");

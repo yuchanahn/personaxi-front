@@ -11,7 +11,6 @@
 
   import * as THREE from "three/webgpu";
   import { sparks } from "$lib/vrm/stores";
-  import { CharacterState } from "$lib/vrm/fsm/StateManager";
 
   export let persona: Persona | null;
   export let cssid: string | null = null;
@@ -56,9 +55,9 @@
 
             if (model) model.cfg = cfg;
 
-            console.log(
-              "############ \n\n\n\n model lodded! \n\n\n\n ##############",
-            );
+            //console.log(
+            //  "############ \n\n\n\n model lodded! \n\n\n\n ##############",
+            //);
           })
           .catch((error) => {
             console.error("Error loading VRM:", error);
