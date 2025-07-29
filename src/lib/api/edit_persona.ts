@@ -63,7 +63,7 @@ export async function savePersona(persona: Persona): Promise<string> {
         throw new Error(errorData.message || "Failed to save persona");
     }
     const data = await response.json();
-    return data.id;
+    return data.ID;
 }
 
 
