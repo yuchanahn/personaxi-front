@@ -28,6 +28,8 @@
     import { slide } from "svelte/transition";
     import { accessToken } from "$lib/stores/auth";
     import { locale } from "svelte-i18n";
+    import { get } from "svelte/store";
+    import { api } from "$lib/api";
 
     /* ────────────── PWA: Service Worker ────────────── */
     if ("serviceWorker" in navigator) {
@@ -82,8 +84,39 @@
         if (!token) {
             return;
         }
+
         loadChatSessions();
         loadCharacterSessions();
+    });
+
+    settings.subscribe(async (settings) => {
+        if (get(accessToken) === null) return;
+        const userRes = await api.get(`/api/user/me`);
+        if (userRes.ok) {
+            let user = await userRes.json();
+
+            if (!user.data) {
+                user.data = {
+                    nickname: user.name,
+                    language: settings.language,
+                    lastLoginAt: "",
+                    createdAt: "",
+                    hasReceivedFirstCreationReward: false,
+                    lastLoginIP: "",
+                };
+            }
+
+            const settingRq: any = {
+                name: user.name,
+                nickname: user.data.nickname || "",
+                language: get(locale) || "en",
+            };
+
+            const res = await api.post(`/api/user/edit`, settingRq);
+            if (res.ok) {
+                console.log("최종 저장완료!");
+            }
+        }
     });
 
     function handleBack() {
