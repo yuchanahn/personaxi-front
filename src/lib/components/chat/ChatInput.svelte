@@ -5,9 +5,12 @@
 
   export let onSend: (text: string) => void;
   export let onChangeInput: (text: string) => void = (t: string) => {};
+  export let isDisabled = false;
   let prompt = "";
 
   function handleSubmit(e: KeyboardEvent) {
+    if (isDisabled) return;
+
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
       if (prompt.trim() === "") return;
@@ -39,6 +42,7 @@
     ></textarea>
     <button
       class="chat-send-button"
+      class:is-disabled={isDisabled}
       on:click={() => {
         if (prompt.trim() === "") return;
         onSend(prompt);
@@ -64,7 +68,11 @@
     position: relative;
     min-height: 50px;
   }
-
+  button.is-disabled {
+    background-color: #ccc;
+    color: #666;
+    cursor: not-allowed;
+  }
   .input-container {
     position: relative;
     width: 100%;

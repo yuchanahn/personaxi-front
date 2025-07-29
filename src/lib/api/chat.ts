@@ -49,7 +49,7 @@ export async function deleteChatHistory(sessionId: string) {
 
 
 
-export async function sendPromptStream(cid: string, prompt: string, type?: string) {
+export async function sendPromptStream(cid: string, prompt: string, type?: string, onDone?: () => void) {
     if (!prompt.trim()) return;
     messages.update((m) => [...m, { role: 'user', content: prompt }]);
 
@@ -77,7 +77,9 @@ export async function sendPromptStream(cid: string, prompt: string, type?: strin
                 goto(`/chat?c=${cssid}`);
             }
         }
-    }, type)
+    }, type).then(() => {
+        onDone?.();
+    });
 }
 
 export async function impl_sendPromptStream(

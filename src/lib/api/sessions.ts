@@ -4,7 +4,7 @@ import { api } from '$lib/api';
 import { t } from 'svelte-i18n';
 
 export async function loadChatSessions() {
-
+    return;
     chatSessions.set([]);
     createNewSession("S4", "", ChatSessionType.SPACE);
 

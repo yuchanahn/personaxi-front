@@ -57,11 +57,14 @@
   }
 
   let isLoading = false;
-
+  let isDisabled = false;
   const send = async (prompt: string) => {
     const sessionId = $page.url.searchParams.get("c");
     isLoading = true;
-    await sendPromptStream(sessionId ?? "", prompt, "2d");
+    isDisabled = true;
+    await sendPromptStream(sessionId ?? "", prompt, "2d", () => {
+      isDisabled = false;
+    });
   };
 
   let isSettingsModalOpen = false;
@@ -81,7 +84,7 @@
 
   <div class="chat-container">
     <ChatWindow cssid={lastSessionId ?? ""} {isLoading} {persona} />
-    <ChatInput onSend={send} />
+    <ChatInput onSend={send} {isDisabled} />
   </div>
 </main>
 
