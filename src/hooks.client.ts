@@ -14,4 +14,5 @@ init({
 
 settings.subscribe((s) => {
     locale.set(s.language);
+    document.body.dataset.theme = s.theme;
 });

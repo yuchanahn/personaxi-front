@@ -148,7 +148,6 @@
     :global(body) {
         margin: 0;
         overscroll-behavior: none;
-        background: var(--color-bg);
         color: var(--color-text);
     }
 

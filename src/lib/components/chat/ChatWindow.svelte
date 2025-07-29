@@ -322,7 +322,7 @@
 
   .loading-dots.assistant {
     align-self: flex-start;
-    background-color: #222222;
+    background-color: var(--card);
     padding: 0.75rem 1rem;
     border-radius: 16px;
   }

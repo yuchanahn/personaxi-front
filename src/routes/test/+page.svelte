@@ -3,6 +3,4 @@
     import ConsentModal from "$lib/components/modal/ConsentModal.svelte";
 </script>
 
-<!-- <Register /> -->
-
-<ConsentModal isOpen={true} />
+<!-- <ConsentModal isOpen={true} /> -->

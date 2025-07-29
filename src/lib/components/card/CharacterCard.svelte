@@ -111,7 +111,7 @@
         bottom: 0.5rem;
         right: 0.5rem;
         background-color: hsl(var(--background) / 0.9);
-        color: var(--accent-foreground);
+        color: var(--white);
         padding: 0.2rem 0.5rem;
         border-radius: var(--radius-button);
         font-size: 0.7rem;
@@ -138,7 +138,7 @@
         align-items: center;
         gap: 0.3rem;
         font-size: 0.75rem;
-        color: var(--accent-foreground);
+        color: aliceblue;
         background-color: hsl(var(--background) / 0.9);
         padding: 0.2rem 0.4rem;
         border-radius: var(--radius-button);
@@ -156,7 +156,7 @@
         align-items: center;
         gap: 0.3rem;
         font-size: 0.75rem;
-        color: var(--accent-foreground);
+        color: var(--white);
         background-color: hsl(var(--background) / 0.9);
         padding: 0.2rem 0.4rem;
         border-radius: var(--radius-button);
