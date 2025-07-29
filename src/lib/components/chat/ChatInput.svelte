@@ -56,7 +56,8 @@
   .chat-input-wrapper {
     display: flex;
     align-items: flex-start;
-    padding-bottom: 0.75rem;
+    padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 0.75rem);
+
     width: 100%;
     max-width: 800px;
     margin: 0 auto;

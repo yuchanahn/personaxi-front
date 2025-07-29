@@ -285,7 +285,7 @@
     width: 100%;
     max-width: 800px;
     min-height: clamp(200px, 50vh, 300px);
-    margin: 0 auto 1rem;
+    margin: 0 auto;
     padding: 1rem 1rem 1rem 1rem;
     display: flex;
     flex-direction: column;

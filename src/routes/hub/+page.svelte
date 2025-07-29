@@ -29,7 +29,7 @@
 <style>
     .feedback-fab {
         position: fixed;
-        bottom: 4rem;
+        bottom: calc(4rem + env(safe-area-inset-bottom, 0px));
         right: 0.5rem;
         z-index: 999;
 

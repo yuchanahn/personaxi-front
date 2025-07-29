@@ -178,7 +178,7 @@
     }
 
     main:global(.no-padding-bottom) {
-        padding-bottom: 0;
+        padding-bottom: env(safe-area-inset-bottom, 0px);
     }
 
     .back-btn {

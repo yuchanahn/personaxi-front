@@ -99,7 +99,7 @@
     flex: 1; /* 남은 공간 모두 차지 */
     display: flex;
     flex-direction: column;
-    min-height: 0; /* flex 자식 요소의 높이 문제 방지 */
+    min-height: 0;
   }
 
   :global(.chat-window) {
