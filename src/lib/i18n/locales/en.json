@@ -113,6 +113,8 @@
     "sendButton": "Send"
   },
   "login": {
+    "signIn": "Sign In",
+    "signUp": "Sign Up",
     "githubSoon": "GitHub login is coming soon.",
     "emailSoon": "Email login is coming soon.",
     "serviceLogoAlt": "Service Logo",
@@ -443,5 +445,8 @@
     "theme": "Theme",
     "light": "Light",
     "dark": "Dark"
+  },
+  "common": {
+    "back": "Back"
   }
 }
