@@ -22,24 +22,24 @@
         return [
             {
                 id: 1,
-                author: "스토리 탐험가",
+                author: $t("profilePage.dummyComments.author1"),
                 avatar: "https://i.pravatar.cc/40?u=a",
-                text: "이 캐릭터 설정 너무 좋아요! 배경 이야기가 더 궁금해지네요.",
-                timestamp: "3시간 전",
+                text: $t("profilePage.dummyComments.text1"),
+                timestamp: $t("profilePage.dummyComments.timestamp1"),
             },
             {
                 id: 2,
-                author: "AI 친구",
+                author: $t("profilePage.dummyComments.author2"),
                 avatar: "https://i.pravatar.cc/40?u=b",
-                text: "대화 나눠봤는데 정말 똑똑하고 재밌어요. 강추!",
-                timestamp: "1일 전",
+                text: $t("profilePage.dummyComments.text2"),
+                timestamp: $t("profilePage.dummyComments.timestamp2"),
             },
             {
                 id: 3,
-                author: "지나가는 행인",
+                author: $t("profilePage.dummyComments.author3"),
                 avatar: "https://i.pravatar.cc/40?u=c",
-                text: "일러스트가 정말 아름답네요...✨",
-                timestamp: "2일 전",
+                text: $t("profilePage.dummyComments.text3"),
+                timestamp: $t("profilePage.dummyComments.timestamp3"),
             },
         ];
     }
@@ -207,7 +207,7 @@
                     <h1 class="character-name">{persona.name}</h1>
                     {#if persona.creator_name}
                         <p class="creator-info">
-                            제작: @{persona.creator_name}
+                            {$t("profilePage.creatorInfo", { values: { creatorName: persona.creator_name } })}
                         </p>
                     {/if}
                     <p class="character-description">

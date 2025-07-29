@@ -8,7 +8,7 @@
     type Status = "verifying" | "success" | "error";
 
     let status: Status = "verifying";
-    let errorMessage = "유효하지 않은 접근입니다.";
+    let errorMessage = $t("verifyPage.invalidAccess");
 
     onMount(async () => {
         const token = $page.url.searchParams.get("token");
@@ -29,11 +29,11 @@
             } else {
                 const errorData = await response.json();
                 errorMessage =
-                    errorData.error || "알 수 없는 오류가 발생했습니다.";
+                    errorData.error || $t("verifyPage.unknownError");
                 status = "error";
             }
         } catch (err) {
-            errorMessage = "인증 서버에 연결할 수 없습니다.";
+            errorMessage = $t("verifyPage.connectionError");
             status = "error";
         }
     });
@@ -43,25 +43,25 @@
     {#if status === "verifying"}
         <div class="card">
             <Icon icon="line-md:loading-twotone-loop" class="icon verifying" />
-            <h1>계정을 활성화하는 중입니다...</h1>
-            <p>잠시만 기다려주세요.</p>
+            <h1>{$t("verifyPage.verifyingTitle")}</h1>
+            <p>{$t("verifyPage.verifyingMessage")}</p>
         </div>
     {/if}
 
     {#if status === "success"}
         <div class="card">
             <Icon icon="line-md:confirm-circle" class="icon success" />
-            <h1>인증이 완료되었습니다!</h1>
-            <p>잠시 후 로그인 페이지로 이동합니다.</p>
+            <h1>{$t("verifyPage.successTitle")}</h1>
+            <p>{$t("verifyPage.successMessage")}</p>
         </div>
     {/if}
 
     {#if status === "error"}
         <div class="card">
             <Icon icon="line-md:close-circle" class="icon error" />
-            <h1>인증 실패</h1>
+            <h1>{$t("verifyPage.errorTitle")}</h1>
             <p>{errorMessage}</p>
-            <a href="/login" class="button">로그인 페이지로 돌아가기</a>
+            <a href="/login" class="button">{$t("verifyPage.backToLogin")}</a>
         </div>
     {/if}
 </div>

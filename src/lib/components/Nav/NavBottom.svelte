@@ -2,15 +2,25 @@
     import Icon from "@iconify/svelte";
     import { page } from "$app/stores";
 
-    const items = [
-        { href: "/hub", icon: "ph:compass-duotone", label: "탐색" },
+    import { t } from "svelte-i18n";
+
+    $: items = [
+        { href: "/hub", icon: "ph:compass-duotone", label: $t("nav.explore") },
         {
             href: "/feed",
             icon: "material-symbols:smart-display-outline",
-            label: "피드",
+            label: $t("nav.feed"),
         },
-        { href: "/edit", icon: "ph:plus-circle-duotone", label: "생성" },
-        { href: "/user/setting", icon: "ph:gear-duotone", label: "설정" },
+        {
+            href: "/edit",
+            icon: "ph:plus-circle-duotone",
+            label: $t("nav.create"),
+        },
+        {
+            href: "/user/setting",
+            icon: "ph:gear-duotone",
+            label: $t("nav.settings"),
+        },
     ];
 
     // 현재 경로 확인

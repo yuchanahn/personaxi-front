@@ -1,5 +1,11 @@
 {
   "editPage": {
+    "promptExamplesTitle": "Prompt Examples",
+    "promptExamplesDescription": "Add conversation examples that guide how the AI should behave.",
+    "greetingTitle": "Greeting Message",
+    "greetingDescriptionDefault": "Let others know who your character is!",
+    "errorSaveFailed": "Unable to save. Error: {message}",
+    "save": "Save",
     "title": "Create & Edit Persona",
     "saveButton": "Save",
     "saveButtonLoading": "Saving...",
@@ -18,14 +24,12 @@
     "instructionsDescription": "Define the core identity of the AI, such as its role, personality, and tone.",
     "instructionsPlaceholder": "e.g., You are a friendly AI assistant.",
     "promptExamplesLabel": "Prompt Examples",
-    "promptExamplesDescription": "Provide specific conversation examples for the AI to follow.",
     "promptExamplesPlaceholder": "e.g., User: How's the weather? / Assistant: It's a bright and sunny day!",
     "tagsLabel": "Tags",
     "tagsDescription": "You can add multiple tags at once, separated by commas (,).",
     "tagsPlaceholder": "e.g., AI, friend, conversation",
     "addButton": "Add",
     "errorRequired": "Name and Persona Type are required fields.",
-    "errorSaveFailed": "Failed to save: {message}",
     "saveError": "Failed to save persona information",
     "saveFailedMessage": "Error saving persona:",
     "validation": {
@@ -35,7 +39,6 @@
       "promptExamplesLimitExceeded": "Exceeded character limit for prompt examples or more than 10 entries."
     },
     "greetingLabelDefault": "Character Introduction",
-    "greetingDescriptionDefault": "Introduce your character!",
     "greetingPlaceholderDefault": "e.g., I'm Luna, a genius alchemist who always brings a vibrant smile and explosions(!). I firmly believe failure is the mother of success, and today I'm challenging myself to invent something that will amaze the world!",
     "visibilityLabel": "Visibility",
     "public": "Public",
@@ -80,16 +83,17 @@
   },
   "tts": {
     "connectionFailed": "TTS WebSocket connection failed",
-    "connectedMessage": "Voice (TTS) is connected.",
+    "connectedMessage": "Voice connection established.",
+    "disconnectedMessage": "TTS has been disconnected.",
     "disconnectButton": "Disconnect",
-    "disconnectedMessage": "Voice (TTS) connection is lost.",
     "reconnectButton": "Reconnect",
     "connectingMessage": "Connecting voice (TTS)..."
   },
   "feed": {
     "interact": "Interact",
     "alreadyFeedback": "You have already {action} this persona.",
-    "feedbackFailed": "Failed to {action} persona: {message}",
+    "feedbackSuccess": "Feedback submitted.",
+    "feedbackFailed": "Could not perform {action} on this persona.",
     "unexpectedError": "An unexpected error occurred. Please try again."
   },
   "sidebar": {
@@ -98,7 +102,7 @@
     "exitFullscreen": "Exit Fullscreen",
     "enterFullscreen": "Enter Fullscreen",
     "tutorial": "Tutorial",
-    "community": "Join Community"
+    "community": "Join the Community"
   },
   "chatInput": {
     "placeholder": "Ask anything...",
@@ -111,12 +115,13 @@
   "login": {
     "githubSoon": "GitHub login is coming soon.",
     "emailSoon": "Email login is coming soon.",
-    "loginWith": "Login with {provider}",
     "serviceLogoAlt": "Service Logo",
     "welcomeBack": "Welcome back!",
-    "slogan": "Log in and enjoy all services.",
     "terms": "Terms of Service",
-    "privacy": "Privacy Policy"
+    "privacy": "Privacy Policy",
+    "title": "Welcome Back",
+    "slogan": "Log in to access all features.",
+    "loginWith": "Log in with {provider}"
   },
   "auction": {
     "fetchListFailed": "Failed to fetch auction list"
@@ -251,9 +256,10 @@
   },
   "welcomeModal": {
     "title": "Welcome to PersonaXI!",
-    "message": "Thank you for joining PersonaXI. We're excited to have you!",
     "neuronReward": "As a welcome gift, you've received {amount} Neurons!",
-    "confirmButton": "Start Exploring"
+    "confirmButton": "Start Exploring",
+    "message": "We're glad you're here!",
+    "startButton": "Start Exploring"
   },
   "noticeModal": {
     "title": "Alpha Test Participation Guide",
@@ -283,7 +289,7 @@
     "firstCreationReward": "Get 200 Neurons for your first Persona creation!",
     "getFreeNeurons": "Get Free Neurons",
     "currentNeurons": "Current: {count} Neurons",
-    "rechargeAlert": "Selected {amount} neurons for recharge. (Payment logic integration needed)"
+    "rechargeAlert": "You need more tokens to continue. Please recharge your account."
   },
   "consentModal": {
     "title": "Service Agreement",
@@ -304,7 +310,7 @@
     "imageAlt": "{name} image {index}",
     "imageMoveLabel": "Move to image {index}",
     "creatorInfo": "Created by: @{creatorName}",
-    "defaultGreeting": "No introduction available for this character yet.",
+    "defaultGreeting": "No introduction provided for this character yet.",
     "firstSceneTitle": "Starting Story",
     "likeButtonLabel": "Like",
     "interactionLabel": "Interactions",
@@ -421,5 +427,21 @@
       "password": "Please enter a secure password.",
       "gender": "Lastly, please select your gender."
     }
+  },
+  "nav": {
+    "explore": "Explore",
+    "feed": "Reels",
+    "create": "Create",
+    "settings": "Settings"
+  },
+  "settingPageModal": {
+    "korean": "Korean",
+    "english": "English",
+    "description": "Change the display language and theme of the app.",
+    "language": "Language",
+    "title": "Settings",
+    "theme": "Theme",
+    "light": "Light",
+    "dark": "Dark"
   }
 }

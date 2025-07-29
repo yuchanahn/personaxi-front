@@ -32,51 +32,49 @@
     <div class="modal-backdrop" on:click|self={closeModal}>
         <div class="modal-content">
             <button class="close-button" on:click={closeModal}>&times;</button>
-            <h2>{$t("settingsModal.title", { default: "설정" })}</h2>
+            <h2>
+                {$t("settingPageModal.title")}
+            </h2>
             <p class="description">
-                {$t("settingsModal.description", {
-                    default: "앱의 표시 언어와 테마를 변경하세요.",
-                })}
+                {$t("settingPageModal.description")}
             </p>
 
             <div class="setting-group">
                 <!-- svelte-ignore a11y_label_has_associated_control -->
-                <label
-                    >{$t("settingsModal.language", { default: "언어" })}</label
-                >
+                <label>{$t("settingPageModal.language")}</label>
                 <div class="button-group">
                     <button
                         class:active={$settings.language === "ko"}
                         on:click={() => ($settings.language = "ko")}
                     >
-                        한국어
+                        {$t("settingPageModal.korean")}
                     </button>
                     <button
                         class:active={$settings.language === "en"}
                         on:click={() => ($settings.language = "en")}
                     >
-                        English
+                        {$t("settingPageModal.english")}
                     </button>
                 </div>
             </div>
 
             <div class="setting-group">
                 <!-- svelte-ignore a11y_label_has_associated_control -->
-                <label>{$t("settingsModal.theme", { default: "테마" })}</label>
+                <label>{$t("settingPageModal.theme")}</label>
                 <div class="button-group">
                     <button
                         class:active={$settings.theme === "light"}
                         on:click={() => ($settings.theme = "light")}
                     >
                         <Icon icon="ph:sun-bold" />
-                        {$t("settingsModal.light", { default: "라이트" })}
+                        {$t("settingPageModal.light")}
                     </button>
                     <button
                         class:active={$settings.theme === "dark"}
                         on:click={() => ($settings.theme = "dark")}
                     >
                         <Icon icon="ph:moon-bold" />
-                        {$t("settingsModal.dark", { default: "다크" })}
+                        {$t("settingPageModal.dark")}
                     </button>
                 </div>
             </div>
