@@ -20,6 +20,9 @@ importers:
       bits-ui:
         specifier: ^2.4.1
         version: 2.4.1(@internationalized/date@3.8.2)(svelte@5.33.14)
+      eventsource-parser:
+        specifier: ^3.0.3
+        version: 3.0.3
       github-markdown-css:
         specifier: ^5.8.1
         version: 5.8.1
@@ -898,6 +901,10 @@ packages:
 
   event-emitter@0.3.5:
     resolution: {integrity: sha512-D9rRn9y7kLPnJ+hMq7S/nhvoKwwvVJahBi2BPmx3bvbsEdK3W9ii8cBSGjP+72/LnM4n6fo3+dkCX5FeTQruXA==}
+
+  eventsource-parser@3.0.3:
+    resolution: {integrity: sha512-nVpZkTMM9rF6AQ9gPJpFsNAMt48wIzB5TQgiTLdHiuO8XEDhUgZEhqKlZWXbIzo9VmJ/HvysHqEaVeD5v9TPvA==}
+    engines: {node: '>=20.0.0'}
 
   ext@1.7.0:
     resolution: {integrity: sha512-6hxeJYaL110a9b5TEJSj0gojyHQAmA2ch5Os+ySCiA1QGdS697XWY1pzsrSjqA9LDEEgdB/KypIlR59RcLuHYw==}
@@ -1960,6 +1967,8 @@ snapshots:
     dependencies:
       d: 1.0.2
       es5-ext: 0.10.64
+
+  eventsource-parser@3.0.3: {}
 
   ext@1.7.0:
     dependencies:

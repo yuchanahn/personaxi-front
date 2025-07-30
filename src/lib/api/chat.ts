@@ -1,5 +1,5 @@
 import { messages, type Message } from '$lib/stores/messages';
-import { tickSSEStream, extractCSSID } from '$lib/parser/sseParser';
+import { tickSSEStream, extractCSSID, tickSSEStream2 } from '$lib/parser/sseParser';
 import { loadCharacterSessions, loadChatSessions } from './sessions';
 import { get, type Writable } from 'svelte/store';
 import { goto } from '$app/navigation';
@@ -61,6 +61,7 @@ export async function sendPromptStream(cid: string, prompt: string, type?: strin
 
     impl_sendPromptStream(prompt, cid, (data) => {
         aiText += data;
+
         messages.update((m) => {
             const last = m.at(-1);
             return last?.role === "assistant"
@@ -79,6 +80,7 @@ export async function sendPromptStream(cid: string, prompt: string, type?: strin
         }
     }, type).then(() => {
         onDone?.();
+        console.log(aiText)
     });
 }
 
@@ -110,7 +112,7 @@ export async function impl_sendPromptStream(
     let buffer = "";
 
     while (true) {
-        const { rts, done } = await tickSSEStream(reader, decoder, { buffer });
+        const { rts, done } = await tickSSEStream2(reader, decoder, { buffer });
 
         for (const rt of rts) {
             const cssid = extractCSSID(rt);
@@ -118,7 +120,6 @@ export async function impl_sendPromptStream(
                 onCSSID?.(cssid);
             } else {
                 onData(rt);
-                console.log("data: ", rt);
             }
         }
 
