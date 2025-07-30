@@ -205,12 +205,12 @@
         height: 20px;
     }
 
-    /* EMAIL FORM */
     .email-form {
         display: flex;
         flex-direction: column;
         gap: 1.25rem;
     }
+
     .form-group {
         display: flex;
         flex-direction: column;
@@ -224,10 +224,31 @@
         padding: 0.65rem 0.85rem;
         border: 1px solid var(--color-border);
         border-radius: 8px;
-        background-color: var(--color-bg-input, #fff);
+        background-color: var(--input, #fff);
         font-size: 0.95rem;
-        color: var(--color-text-primary);
+        color: var(--foreground-alt);
     }
+
+    .form-group input:-webkit-autofill,
+    .form-group input:-webkit-autofill:hover,
+    .form-group input:-webkit-autofill:focus,
+    .form-group input:-webkit-autofill:active {
+        box-shadow: 0 0 0px 1000px var(--input, #fff) inset !important;
+        -webkit-box-shadow: 0 0 0px 1000px var(--input, #fff) inset !important;
+
+        -webkit-text-fill-color: var(--foreground-alt) !important;
+        color: var(--foreground-alt) !important;
+
+        transition:
+            background-color 5000s ease-in-out 0s,
+            color 5000s ease-in-out 0s;
+    }
+
+    .form-group input::placeholder {
+        color: var(--foreground-alt, #93a1b2);
+        opacity: 1;
+    }
+
     .form-group input:focus {
         outline: none;
         border-color: var(--primary);
