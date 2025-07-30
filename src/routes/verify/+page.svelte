@@ -4,6 +4,7 @@
     import { goto } from "$app/navigation";
     import { api } from "$lib/api";
     import Icon from "@iconify/svelte";
+    import { t } from "svelte-i18n";
 
     type Status = "verifying" | "success" | "error";
 
@@ -28,8 +29,7 @@
                 }, 3000);
             } else {
                 const errorData = await response.json();
-                errorMessage =
-                    errorData.error || $t("verifyPage.unknownError");
+                errorMessage = errorData.error || $t("verifyPage.unknownError");
                 status = "error";
             }
         } catch (err) {

@@ -406,27 +406,6 @@
         flex-wrap: wrap;
         gap: 0.5rem;
     }
-    .tag {
-        background-color: rgba(255, 255, 255, 0.2);
-        padding: 0.25rem 0.6rem;
-        border-radius: 12px;
-        font-size: 0.85rem;
-    }
-
-    /* 뱃지 */
-    .badge {
-        font-size: 0.75rem;
-        font-weight: bold;
-        padding: 0.2rem 0.5rem;
-        border-radius: 6px;
-        color: white;
-    }
-    .badge.live {
-        background-color: #e91e63;
-    }
-    .badge.auction {
-        background-color: #3f51b5;
-    }
 
     /* 액션 버튼 사이드바 */
     .action-button {

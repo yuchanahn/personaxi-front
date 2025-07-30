@@ -1209,11 +1209,6 @@
         margin-bottom: 1.5rem;
     }
 
-    .save-button.success {
-        background: #28a745; /* 이건 성공 상태를 위한 특별한 색이라 그대로 둬도 좋아! */
-        border-color: #28a745;
-    }
-
     .char-counter {
         font-size: 0.8rem;
         color: var(--muted-foreground);
