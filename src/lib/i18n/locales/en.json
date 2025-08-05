@@ -179,11 +179,14 @@
   "includeAllUtterances": "Include All Utterances",
   "guidanceText": "* Each function affects the current character session. Please choose carefully.",
   "contentHub": {
-    "searchByName": "Name",
-    "searchByTags": "Tags",
-    "searchNamePlaceholder": "Search by character name",
-    "searchTagsPlaceholder": "Search by tags (comma separated)",
-    "auctionInProgress": "Auctioning"
+    "auctionInProgress": "Auctioning",
+    "searchTitle": "Search Personas",
+    "all": "All",
+    "noResults": "No personas to display.",
+    "searchByName": "Search by Name",
+    "searchByTags": "Search by Tags",
+    "searchNamePlaceholder": "Enter a persona's name...",
+    "searchTagsPlaceholder": "Enter tags, separated by commas..."
   },
   "hub": {
     "feedbackButtonLabel": "Send Feedback",

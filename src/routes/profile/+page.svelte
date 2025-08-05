@@ -59,6 +59,15 @@
         }
     }
 
+    // 제작자 태그 클릭 핸들러
+    function goToCreatorPage(event: MouseEvent) {
+        // 이벤트 버블링을 막아서 카드 전체의 클릭 이벤트가 실행되지 않도록 함
+        event.stopPropagation();
+        if (persona?.owner_id) {
+            goto(`/creator?c=${persona.owner_id}`);
+        }
+    }
+
     // --- 🔽 날짜 포맷팅 헬퍼 함수 🔽 ---
     function formatTimestamp(timestamp: string): string {
         const now = new Date();
@@ -227,11 +236,23 @@
                     </div>
                     <h1 class="character-name">{persona.name}</h1>
                     {#if persona.creator_name}
-                        <p class="creator-info">
-                            {$t("profilePage.creatorInfo", {
+                        <button
+                            class="creator-info clickable"
+                            on:click={goToCreatorPage}
+                            aria-label={$t("profilePage.goToCreatorProfile", {
                                 values: { creatorName: persona.creator_name },
                             })}
-                        </p>
+                        >
+                            <Icon icon="ph:user-circle-duotone" />
+                            <span>
+                                {$t("profilePage.creatorInfo", {
+                                    values: {
+                                        creatorName: persona.creator_name,
+                                    },
+                                })}
+                            </span>
+                            <Icon icon="ph:arrow-right-bold" />
+                        </button>
                     {/if}
                     <p class="character-description">
                         {persona.greeting || $t("profilePage.defaultGreeting")}
@@ -550,6 +571,39 @@
         color: var(--muted-foreground);
         margin-bottom: 1.5rem;
         text-align: center;
+    }
+
+    .creator-info.clickable {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        background: none;
+        border: 1px solid var(--border);
+        border-radius: var(--radius-button);
+        padding: 0.75rem 1rem;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        font-size: 0.95rem;
+        font-weight: 500;
+    }
+
+    .creator-info.clickable:hover {
+        background-color: var(--muted);
+        border-color: var(--border-hover);
+        color: var(--foreground);
+        transform: translateY(-1px);
+    }
+
+    .creator-info.clickable :global(svg) {
+        width: 18px;
+        height: 18px;
+        opacity: 0.7;
+        transition: opacity 0.2s ease;
+    }
+
+    .creator-info.clickable:hover :global(svg) {
+        opacity: 1;
     }
     .character-description {
         font-size: 1rem;

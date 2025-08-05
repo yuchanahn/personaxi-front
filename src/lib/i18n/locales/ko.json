@@ -165,10 +165,13 @@
     "guidanceText": "* 각 기능은 현재 캐릭터 세션에 영향을 미칩니다. 신중하게 선택해주세요."
   },
   "contentHub": {
-    "searchByName": "이름",
-    "searchByTags": "태그",
-    "searchNamePlaceholder": "캐릭터 이름으로 검색",
-    "searchTagsPlaceholder": "태그로 검색 (쉼표로 구분)",
+    "searchTitle": "페르소나 검색",
+    "all": "전체",
+    "noResults": "표시할 페르소나가 없습니다.",
+    "searchByName": "이름으로 검색",
+    "searchByTags": "태그로 검색",
+    "searchNamePlaceholder": "페르소나의 이름을 입력하세요...",
+    "searchTagsPlaceholder": "태그를 쉼표(,)로 구분하여 입력...",
     "auctionInProgress": "경매 중"
   },
   "auctionPage": {

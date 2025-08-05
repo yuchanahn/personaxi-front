@@ -1,20 +1,29 @@
 <script lang="ts">
-    import type { Persona, PersonaDTO } from "$lib/types";
-    import { PORTRAIT_URL } from "$lib/constants";
+    import type { PersonaDTO } from "$lib/types";
     import { createEventDispatcher } from "svelte";
     import Icon from "@iconify/svelte";
+    import { goto } from "$app/navigation"; // goto를 import합니다.
 
     export let content: PersonaDTO;
-    export let isLive: (id: string) => boolean;
-    export let isAuctioning: (id: string) => boolean;
+
+    // isLive와 isAuctioning 프롭은 더 이상 필요하지 않다면 제거해도 좋아.
+    //export let isLive: (id: string) => boolean;
+    //export let isAuctioning: (id: string) => boolean;
 
     const dispatch = createEventDispatcher();
 
     $: assetCount = content.image_metadatas?.length || 0;
+
+    // 제작자 태그 클릭 핸들러
+    function goToCreatorPage(event: MouseEvent) {
+        // 이벤트 버블링을 막아서 카드 전체의 클릭 이벤트가 실행되지 않도록 함
+        event.stopPropagation();
+        if (content.owner_id) {
+            goto(`/creator?c=${content.owner_id.findLast((id) => id)}`);
+        }
+    }
 </script>
 
-<!-- svelte-ignore a11y_no_static_element_interactions -->
-<!-- svelte-ignore a11y_click_events_have_key_events -->
 <div class="tile" on:click={() => dispatch("click")}>
     <div class="image-container">
         <img
@@ -22,9 +31,13 @@
             alt={content.name}
             class="portrait-image"
         />
+
         {#if content.creator_name}
-            <span class="creator-tag">@{content.creator_name}</span>
+            <div class="creator-tag" on:click={goToCreatorPage}>
+                <span>@{content.creator_name}</span>
+            </div>
         {/if}
+
         <div class="overlay-stats">
             <span class="stat">
                 <Icon icon="mdi:chat" />
@@ -43,9 +56,7 @@
     </div>
 
     <div class="tile-info">
-        <div class="title-line">
-            {content.name}
-        </div>
+        <div class="title-line">{content.name}</div>
         <div class="tags-line">
             {#if content.tags}
                 {#each content.tags as tag}
@@ -90,28 +101,14 @@
         object-fit: cover;
         display: block;
     }
-    .creator-tag {
-        position: absolute;
-        bottom: 0.5rem;
-        right: 0.5rem;
-        background-color: rgba(0, 0, 0, 0.7);
-        color: white;
-        padding: 0.2rem 0.5rem;
-        border-radius: var(--radius-button);
-        font-size: 0.7rem;
-        font-weight: 600; /* 볼더 추가 */
-        z-index: 2;
-        backdrop-filter: blur(4px); /* 블러 효과 */
-    }
 
-    /* ✅ 테마를 따르면서 오버레이에서 잘 보이는 버전 */
-
+    /* --- 🔽 제작자 태그 스타일 수정 🔽 --- */
     .creator-tag {
         position: absolute;
         bottom: 0.5rem;
         right: 0.5rem;
         background-color: hsl(var(--background) / 0.9);
-        color: var(--white);
+        color: var(--foreground); /* white 대신 테마의 전경색 사용 */
         padding: 0.2rem 0.5rem;
         border-radius: var(--radius-button);
         font-size: 0.7rem;
@@ -120,7 +117,15 @@
         border: 1px solid hsl(var(--border) / 0.5);
         backdrop-filter: blur(8px);
         text-shadow: 0 1px 2px hsl(var(--background) / 0.8);
+        /* 링크처럼 보이도록 커서 및 호버 효과 추가 */
+        cursor: pointer;
+        transition: background-color 0.2s;
     }
+
+    .creator-tag:hover {
+        background-color: hsl(var(--secondary) / 0.9);
+    }
+    /* --- 여기까지 --- */
 
     .overlay-stats {
         position: absolute;
@@ -138,7 +143,7 @@
         align-items: center;
         gap: 0.3rem;
         font-size: 0.75rem;
-        color: aliceblue;
+        color: var(--foreground); /* aliceblue 대신 테마의 전경색 사용 */
         background-color: hsl(var(--background) / 0.9);
         padding: 0.2rem 0.4rem;
         border-radius: var(--radius-button);
@@ -156,7 +161,7 @@
         align-items: center;
         gap: 0.3rem;
         font-size: 0.75rem;
-        color: var(--white);
+        color: var(--foreground); /* white 대신 테마의 전경색 사용 */
         background-color: hsl(var(--background) / 0.9);
         padding: 0.2rem 0.4rem;
         border-radius: var(--radius-button);
