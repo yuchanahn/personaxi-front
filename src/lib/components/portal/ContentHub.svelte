@@ -6,7 +6,7 @@
         loadContentWithTags,
         loadContentWithName,
     } from "$lib/api/content";
-    import type { Persona } from "$lib/types";
+    import type { Persona, PersonaDTO } from "$lib/types";
     import { onMount } from "svelte";
     import { get, writable } from "svelte/store";
     import { fetchLivePersonas } from "$lib/services/live";
@@ -15,7 +15,7 @@
     import { t } from "svelte-i18n";
     import CharacterCard from "../card/CharacterCard.svelte";
 
-    let contents = writable<Persona[]>([]);
+    let contents = writable<PersonaDTO[]>([]);
     let liveIds: string[] = [];
     let auctions: AuctionPersona[] = [];
 
@@ -59,7 +59,7 @@
             return;
         }
 
-        let data: Persona[] = [];
+        let data: PersonaDTO[] = [];
         if (searchType === "name") {
             data = await loadContentWithName(query);
         } else if (searchType === "tags") {

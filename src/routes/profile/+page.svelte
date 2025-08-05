@@ -3,56 +3,87 @@
     import { page } from "$app/stores";
     import { goto } from "$app/navigation";
     import { loadPersona } from "$lib/api/edit_persona";
-    import type { Persona, ImageMetadata } from "$lib/types"; // ImageMetadata 타입도 가져오자!
+    // 🔽 types.ts에 정의된 실제 Comment 타입을 가져옵니다.
+    import type { Persona, ImageMetadata, Comment } from "$lib/types";
     import { PORTRAIT_URL } from "$lib/constants";
-    import Icon from "@iconify/svelte"; // 화살표 아이콘을 위해 추가!
+    import Icon from "@iconify/svelte";
     import { LikeBtn, loadlikesdata } from "$lib/api/content";
     import { t } from "svelte-i18n";
+    import { api } from "$lib/api";
 
-    // --- 가짜 댓글 데이터 (이전과 동일) ---
-    type Comment = {
-        id: number;
-        author: string;
-        avatar: string;
-        text: string;
-        timestamp: string;
-    };
-    async function loadComments(personaId: string): Promise<Comment[]> {
-        console.log(`Loading comments for ${personaId}...`);
-        return [
-            {
-                id: 1,
-                author: $t("profilePage.dummyComments.author1"),
-                avatar: "https://i.pravatar.cc/40?u=a",
-                text: $t("profilePage.dummyComments.text1"),
-                timestamp: $t("profilePage.dummyComments.timestamp1"),
-            },
-            {
-                id: 2,
-                author: $t("profilePage.dummyComments.author2"),
-                avatar: "https://i.pravatar.cc/40?u=b",
-                text: $t("profilePage.dummyComments.text2"),
-                timestamp: $t("profilePage.dummyComments.timestamp2"),
-            },
-            {
-                id: 3,
-                author: $t("profilePage.dummyComments.author3"),
-                avatar: "https://i.pravatar.cc/40?u=c",
-                text: $t("profilePage.dummyComments.text3"),
-                timestamp: $t("profilePage.dummyComments.timestamp3"),
-            },
-        ];
-    }
-    // --- 여기까지 가짜 데이터 ---
-
+    // --- 상태 관리 ---
     let persona: Persona | null = null;
     let comments: Comment[] = [];
     let isLoading = true;
+    let newCommentText = ""; // 댓글 입력창과 바인딩될 변수
 
-    // 이미지 갤러리 관련 상태 변수들
+    // --- 이미지 갤러리 상태 변수 ---
     let galleryImages: ImageMetadata[] = [];
     let currentImageIndex = 0;
 
+    // --- 🔽 실제 API 호출 함수들 🔽 ---
+
+    // 코멘트 목록을 불러오는 함수
+    async function loadComments(personaId: string): Promise<Comment[]> {
+        const response = await api.get2(`/api/comments?personaId=${personaId}`);
+        if (!response.ok) {
+            console.error("Failed to load comments");
+            return [];
+        }
+        return await response.json();
+    }
+
+    // 새 코멘트를 등록하는 함수
+    async function handlePostComment() {
+        if (!newCommentText.trim() || !persona) return;
+
+        try {
+            const response = await api.post("/api/comments/create", {
+                personaId: persona.id,
+                content: newCommentText,
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.error || "Failed to post comment");
+            }
+
+            const newComment: Comment = await response.json();
+
+            // 성공 시, 화면에 즉시 새 댓글을 추가 (Optimistic Update)
+            comments = [...comments, newComment];
+            newCommentText = ""; // 입력창 초기화
+        } catch (err) {
+            console.error("Error posting comment:", err);
+            alert($t("profilePage.commentPostFailed"));
+        }
+    }
+
+    // --- 🔽 날짜 포맷팅 헬퍼 함수 🔽 ---
+    function formatTimestamp(timestamp: string): string {
+        const now = new Date();
+        const date = new Date(timestamp);
+        const diffSeconds = Math.round((now.getTime() - date.getTime()) / 1000);
+        const diffMinutes = Math.round(diffSeconds / 60);
+        const diffHours = Math.round(diffMinutes / 60);
+        const diffDays = Math.round(diffHours / 24);
+
+        if (diffSeconds < 60) return $t("time.now");
+        if (diffMinutes < 60)
+            return $t("time.minutesAgo", { values: { count: diffMinutes } });
+        if (diffHours < 24)
+            return $t("time.hoursAgo", { values: { count: diffHours } });
+        if (diffDays <= 7)
+            return $t("time.daysAgo", { values: { count: diffDays } });
+
+        return date.toLocaleDateString("ko-KR", {
+            year: "numeric",
+            month: "long",
+            day: "numeric",
+        });
+    }
+
+    // --- 페이지 로드 시 데이터 초기화 ---
     onMount(async () => {
         const personaId = $page.url.searchParams.get("c");
         if (!personaId) {
@@ -63,7 +94,7 @@
         try {
             const [p, c, likes] = await Promise.all([
                 loadPersona(personaId),
-                loadComments(personaId),
+                loadComments(personaId), // 실제 API 호출로 변경됨
                 loadlikesdata(),
             ]);
             persona = p;
@@ -81,18 +112,15 @@
             if (persona === null) throw "persona === null";
 
             let images: ImageMetadata[] = [];
-            // 1. 기본 포트레이트 이미지를 제일 앞에 추가
             images.push({
                 url: persona.portrait_url,
                 description: $t("profilePage.defaultProfile"),
             });
 
-            // 2. image_metadatas에 있는 추가 이미지들을 뒤에 추가
             if (persona.image_metadatas && persona.image_metadatas.length > 0) {
                 images = [...images, ...persona.image_metadatas];
             }
             galleryImages = images;
-            // --- 여기까지 ---
         } catch (error) {
             console.error("Failed to load persona data:", error);
         } finally {
@@ -100,6 +128,7 @@
         }
     });
 
+    // --- 나머지 핸들러 함수들 (handleLike, showPrevImage 등)은 이전과 동일 ---
     function handleStartChat() {
         if (persona?.personaType === "2D" || persona?.personaType === "2d") {
             goto(`/2d?c=${persona.id}`);
@@ -111,12 +140,9 @@
     }
 
     async function handleLike(p: Persona) {
-        // 이미 좋아요를 눌렀으면 아무것도 하지 않음
         if (p.is_liked) return;
-
         await LikeBtn(
             p,
-            // 성공 콜백: 화면의 상태를 즉시 업데이트
             () => {
                 if (persona && persona.id === p.id) {
                     persona = {
@@ -126,7 +152,6 @@
                     };
                 }
             },
-            // 실패 콜백: 에러 메시지를 alert으로 표시
             (errorMessage) => {
                 alert(`좋아요 처리에 실패했습니다: ${errorMessage}`);
             },
@@ -138,11 +163,9 @@
             (currentImageIndex - 1 + galleryImages.length) %
             galleryImages.length;
     }
-
     function showNextImage() {
         currentImageIndex = (currentImageIndex + 1) % galleryImages.length;
     }
-
     function goToImage(index: number) {
         currentImageIndex = index;
     }
@@ -163,7 +186,6 @@
                                     1}"
                                 class="profile-portrait-square"
                             />
-
                             {#if galleryImages.length > 1}
                                 <div class="image-counter">
                                     <Icon icon="ph:images-duotone" />
@@ -171,8 +193,6 @@
                                         >{currentImageIndex + 1} / {galleryImages.length}</span
                                     >
                                 </div>
-                            {/if}
-                            {#if galleryImages.length > 1}
                                 <button
                                     class="nav-arrow left"
                                     on:click|stopPropagation={showPrevImage}
@@ -185,7 +205,6 @@
                                 >
                                     <Icon icon="ph:caret-right-bold" />
                                 </button>
-
                                 <div class="indicator-dots">
                                     {#each galleryImages as _, i}
                                         <button
@@ -196,7 +215,9 @@
                                                 goToImage(i)}
                                             aria-label={$t(
                                                 "profilePage.imageMoveLabel",
-                                                { values: { index: i + 1 } },
+                                                {
+                                                    values: { index: i + 1 },
+                                                },
                                             )}
                                         ></button>
                                     {/each}
@@ -207,7 +228,9 @@
                     <h1 class="character-name">{persona.name}</h1>
                     {#if persona.creator_name}
                         <p class="creator-info">
-                            {$t("profilePage.creatorInfo", { values: { creatorName: persona.creator_name } })}
+                            {$t("profilePage.creatorInfo", {
+                                values: { creatorName: persona.creator_name },
+                            })}
                         </p>
                     {/if}
                     <p class="character-description">
@@ -253,7 +276,6 @@
                             <span class="stat-value">{persona.likes_count}</span
                             >
                         </button>
-
                         <div class="stat-item non-clickable">
                             <Icon icon="ph:chat-circle-dots-bold" />
                             <span class="stat-label"
@@ -274,7 +296,6 @@
                         />
                     </button>
                 </div>
-
                 <div class="comments-section">
                     <h2 class="comments-title">
                         {$t("profilePage.commentsTitle", {
@@ -285,20 +306,26 @@
                         {#each comments as comment (comment.id)}
                             <div class="comment-card">
                                 <img
-                                    src={comment.avatar}
-                                    alt={comment.author}
+                                    src={comment.author_avatar_url ||
+                                        "https://i.pravatar.cc/40?u=" +
+                                            comment.author_id}
+                                    alt={comment.author_name}
                                     class="comment-avatar"
                                 />
                                 <div class="comment-content">
                                     <div class="comment-header">
                                         <span class="comment-author"
-                                            >{comment.author}</span
+                                            >{comment.author_name}</span
                                         >
                                         <span class="comment-timestamp"
-                                            >{comment.timestamp}</span
+                                            >{formatTimestamp(
+                                                comment.created_at,
+                                            )}</span
                                         >
                                     </div>
-                                    <p class="comment-text">{comment.text}</p>
+                                    <p class="comment-text">
+                                        {comment.content}
+                                    </p>
                                 </div>
                             </div>
                         {:else}
@@ -310,10 +337,14 @@
                     <div class="comment-input-box">
                         <input
                             type="text"
+                            bind:value={newCommentText}
+                            on:keydown={(e) =>
+                                e.key === "Enter" && handlePostComment()}
                             placeholder={$t("profilePage.commentPlaceholder")}
                         />
                         <button
                             class="btn-primary icon-button"
+                            on:click={handlePostComment}
                             aria-label={$t("profilePage.registerButton")}
                         >
                             <Icon icon="ph:paper-plane-tilt-bold" />
@@ -339,7 +370,6 @@
         padding: 1rem;
         margin-bottom: 2.5rem;
     }
-
     .stat-item {
         display: flex;
         flex-direction: column;
@@ -349,19 +379,16 @@
         font-weight: 600;
         color: var(--foreground);
     }
-
     .stat-item :global(svg) {
         color: var(--muted-foreground);
         width: 28px;
         height: 28px;
     }
-
     .scroll-container {
         height: 100%;
         overflow-y: auto;
         background-color: var(--background);
     }
-
     .first-scene-container {
         width: 100%;
         background-color: hsla(var(--dark), 0.2);
@@ -371,7 +398,6 @@
         margin-bottom: 2.5rem;
         text-align: left;
     }
-
     .scene-title {
         display: flex;
         align-items: center;
@@ -383,7 +409,6 @@
         padding-bottom: 0.75rem;
         border-bottom: 1px solid var(--border);
     }
-
     .scene-text {
         font-size: 0.95rem;
         line-height: 1.7;
@@ -392,7 +417,6 @@
         margin: 0;
         font-style: italic;
     }
-
     .profile-main {
         background: var(--card);
         border: 1px solid var(--border-card);
@@ -402,7 +426,6 @@
         flex-direction: column;
         align-items: center;
     }
-
     .image-counter {
         position: absolute;
         top: 10px;
@@ -420,7 +443,6 @@
         backdrop-filter: blur(8px);
         text-shadow: 0 1px 2px hsl(var(--background) / 0.8);
     }
-
     .image-gallery-wrapper {
         position: relative;
         width: 100%;
@@ -430,7 +452,6 @@
         overflow: hidden;
         background-color: var(--background);
     }
-
     .profile-portrait-square {
         width: 100%;
         height: 100%;
@@ -438,7 +459,6 @@
         display: block;
         transition: opacity 0.3s ease-in-out;
     }
-
     .nav-arrow {
         position: absolute;
         top: 50%;
@@ -465,7 +485,6 @@
     .nav-arrow.right {
         right: 10px;
     }
-
     .indicator-dots {
         position: absolute;
         bottom: 10px;
@@ -482,7 +501,6 @@
     .indicator-dots::-webkit-scrollbar {
         display: none;
     }
-
     .dot {
         width: 8px;
         height: 8px;
@@ -499,7 +517,6 @@
     .dot.active {
         background-color: var(--contrast);
     }
-
     .profile-page-wrapper {
         background-color: var(--background);
         color: var(--foreground);
@@ -656,7 +673,6 @@
         background: var(--primary-gradient);
         color: var(--primary-foreground);
     }
-
     .comment-input-box input {
         flex-grow: 1;
         background: var(--input);

@@ -30,6 +30,7 @@
     import { locale } from "svelte-i18n";
     import { get } from "svelte/store";
     import { api } from "$lib/api";
+    import type { User } from "$lib/types";
 
     /* ────────────── PWA: Service Worker ────────────── */
     if ("serviceWorker" in navigator) {
@@ -161,8 +162,9 @@
     <ConsentModal
         isOpen={consentModal}
         on:confirm={async () => {
-            const u = await confirmConsent();
+            const u = (await confirmConsent()) as User;
             st_user.set(u);
+
             consentModal = false;
             welcomeModal = true;
         }}

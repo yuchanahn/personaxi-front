@@ -1,6 +1,8 @@
 import { browser, dev } from '$app/environment';
 import { accessToken } from '$lib/stores/auth';
 import { get } from 'svelte/store';
+import { getCurrentUser } from './api/auth';
+import { settings } from './stores/settings';
 
 const API_BASE_URL = dev ? '' : "https://api.personaxi.com";
 
@@ -39,6 +41,15 @@ async function fetchWithAuth(url: string, options: RequestInit = {}): Promise<Re
         const newToken = get(accessToken);
         if (newToken) {
             headers.set('Authorization', `Bearer ${newToken}`);
+
+            let user = await getCurrentUser();
+            if (user.data.language == "") {
+                settings.update((s) => {
+                    console.log("Setting Update!!")
+                    return s;
+                });
+            }
+
         } else {
             window.location.href = '/login';
             throw new Error('Session expired');

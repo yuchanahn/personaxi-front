@@ -314,6 +314,7 @@
     "imageAlt": "{name} 이미지 {index}",
     "imageMoveLabel": "{index}번 이미지로 이동",
     "creatorInfo": "제작: @{creatorName}",
+    "commentPostFailed": "댓글 등록에 실패했습니다. 잠시 후 다시 시도해 주세요.",
     "defaultGreeting": "아직 이 캐릭터의 소개가 없습니다.",
     "firstSceneTitle": "시작 이야기",
     "likeButtonLabel": "좋아요",
@@ -413,5 +414,18 @@
   },
   "common": {
     "back": "뒤로가기"
+  },
+  "creatorPage": {
+    "personas": "개의 AI 페르소나",
+    "follow": "팔로우",
+    "sortByLikes": "인기순",
+    "sortByChats": "대화순",
+    "sortByName": "이름순"
+  },
+  "time": {
+    "now": "방금 전",
+    "minutesAgo": "{count}분 전",
+    "hoursAgo": "{count}시간 전",
+    "daysAgo": "{count}일 전"
   }
 }

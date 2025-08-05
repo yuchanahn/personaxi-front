@@ -23,6 +23,9 @@ export async function loadCharacterSessions() {
     const res = await api.get(`/api/chat/char/sessions`);
     if (res.ok) {
         const data = await res.json();
+        if (data === null) {
+            return;
+        }
         for (const chatSession of data) {
             if (!get(chatSessions).find(s => s.id == chatSession.id)) {
                 createNewSession(chatSession.id, chatSession.name, chatSession.type);

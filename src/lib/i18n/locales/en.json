@@ -308,6 +308,7 @@
     "termsOfServiceTitle": "Terms of Service"
   },
   "profilePage": {
+    "commentPostFailed": "Failed to post comment. Please try again later.",
     "loadingPersona": "Loading character information...",
     "imageAlt": "{name} image {index}",
     "imageMoveLabel": "Move to image {index}",
@@ -448,5 +449,18 @@
   },
   "common": {
     "back": "Back"
+  },
+  "creatorPage": {
+    "personas": "AI Personas",
+    "follow": "Follow",
+    "sortByLikes": "Likes",
+    "sortByChats": "Chats",
+    "sortByName": "Name"
+  },
+  "time": {
+    "now": "Just now",
+    "minutesAgo": "{count}m ago",
+    "hoursAgo": "{count}h ago",
+    "daysAgo": "{count}d ago"
   }
 }

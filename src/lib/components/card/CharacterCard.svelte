@@ -1,10 +1,10 @@
 <script lang="ts">
-    import type { Persona } from "$lib/types";
+    import type { Persona, PersonaDTO } from "$lib/types";
     import { PORTRAIT_URL } from "$lib/constants";
     import { createEventDispatcher } from "svelte";
     import Icon from "@iconify/svelte";
 
-    export let content: Persona;
+    export let content: PersonaDTO;
     export let isLive: (id: string) => boolean;
     export let isAuctioning: (id: string) => boolean;
 
@@ -18,7 +18,7 @@
 <div class="tile" on:click={() => dispatch("click")}>
     <div class="image-container">
         <img
-            src={`${PORTRAIT_URL}${content.owner_id?.[0]}/${content.id}.portrait`}
+            src={content.portrait_url}
             alt={content.name}
             class="portrait-image"
         />
