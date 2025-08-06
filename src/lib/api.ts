@@ -134,5 +134,12 @@ export const api = {
         if (handlers.onError) socket.onerror = handlers.onError;
 
         return socket;
-    }
+    },
+    isLoggedIn: () => {
+        const token = get(accessToken);
+
+        console.log("Access Token: ", !!token);
+
+        return !!token;
+    },
 };

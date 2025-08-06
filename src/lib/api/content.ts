@@ -12,7 +12,11 @@ export async function loadContent() {
 }
 
 export async function loadlikesdata() {
-    const res = await api.get2(`/api/contents/likesdata`);
+    if (!api.isLoggedIn()) {
+        return [];
+    }
+
+    const res = await api.get(`/api/contents/likesdata`);
     if (res.ok) {
         const data = await res.json();
         return data;
