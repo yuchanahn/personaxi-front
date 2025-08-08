@@ -1,0 +1,1 @@
+const s="https://api.personaxi.com",o="https://uohepkqmwbstbmnkoqju.supabase.co/storage/v1/object/public/personaxi-assets/portraits/",t="https://uohepkqmwbstbmnkoqju.supabase.co/storage/v1/object/public/personaxi-assets/vrm-models/";export{s as A,o as P,t as V};
