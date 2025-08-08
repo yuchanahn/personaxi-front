@@ -211,11 +211,13 @@
         -webkit-overflow-scrolling: touch;
         height: 100%;
 
-        padding-bottom: calc(85px + env(safe-area-inset-bottom, 0px));
+        /* padding-bottom: calc(85px + env(safe-area-inset-bottom, 0px)); */
+        padding-bottom: calc(85px);
     }
 
     main:global(.no-padding-bottom) {
-        padding-bottom: env(safe-area-inset-bottom, 0px);
+        /* padding-bottom: env(safe-area-inset-bottom, 0px); */
+        padding-bottom: 0;
     }
 
     .back-btn {
