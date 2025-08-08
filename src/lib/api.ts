@@ -137,9 +137,6 @@ export const api = {
     },
     isLoggedIn: () => {
         const token = get(accessToken);
-
-        console.log("Access Token: ", !!token);
-
         return !!token;
     },
 };

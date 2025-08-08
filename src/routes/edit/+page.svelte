@@ -45,6 +45,8 @@
     };
 
     let instruction = "";
+    let singleInstruction = "";
+    let selectedTemplate = "custom";
     let promptExample = "";
     let tags = "";
     let error = "";
@@ -63,6 +65,23 @@
     function load_persona(id: string) {
         loadPersona(id).then((p) => {
             persona = p;
+
+            singleInstruction = p.instructions[0] || "";
+
+            if (p.instructions.length > 1 && p.instructions[1]) {
+                const templateIdentifier = p.instructions[1];
+                if (templateIdentifier === "conversation") {
+                    selectedTemplate = "conversation";
+                } else if (templateIdentifier === "simulation") {
+                    selectedTemplate = "simulation";
+                } else {
+                    selectedTemplate = "custom";
+                }
+            } else {
+                // 식별자가 없으면 커스텀 프롬프트입니다.
+                selectedTemplate = "custom";
+            }
+
             if (p.voice_id !== "") {
                 selectedVoiceId = p.voice_id;
             } else {
@@ -365,6 +384,20 @@
 
                 error = "";
 
+                let finalInstructions = [singleInstruction];
+
+                // 2. '커스텀'이 아닌 다른 템플릿이 선택되었다면, 식별자를 두 번째 요소로 추가합니다.
+                if (selectedTemplate === "conversation") {
+                    finalInstructions.push("conversation");
+                } else if (selectedTemplate === "simulation") {
+                    finalInstructions.push("simulation");
+                } else {
+                    finalInstructions.push("custom");
+                }
+
+                // 3. 최종적으로 만들어진 배열을 페르소나 객체에 할당합니다.
+                persona.instructions = finalInstructions;
+
                 if (
                     !persona.name.trim() ||
                     !persona.personaType.trim() ||
@@ -386,11 +419,15 @@
                     return;
                 }
 
+                if (persona.instructions[0].length > 3000) {
+                    error = "지침은 3000자를 초과할 수 없습니다.";
+                    return;
+                }
                 if (
-                    persona.instructions.some((inst) => inst.length > 200) ||
-                    persona.instructions.length > 10
+                    persona.instructions.length === 0 ||
+                    !persona.instructions[0].trim()
                 ) {
-                    error = $t("editPage.validation.instructionsLimitExceeded");
+                    error = $t("editPage.validation.allFieldsRequired");
                     return;
                 }
 
@@ -413,7 +450,7 @@
                 }
 
                 if (
-                    persona.instructions.some((inst) => inst.length > 200) ||
+                    persona.instructions.some((inst) => inst.length > 3000) ||
                     persona.instructions.length > 10
                 ) {
                     error = "지침의 글자 수를 초과했거나 10개를 초과했습니다.";
@@ -787,53 +824,46 @@
                         </div>
                     </div>
                     <div class="form-group">
+                        {#if persona.personaType !== "3D"}
+                            <div class="form-group">
+                                <label for="prompt-template"
+                                    >프롬프트 템플릿 선택</label
+                                >
+                                <select
+                                    id="prompt-template"
+                                    bind:value={selectedTemplate}
+                                >
+                                    <option value="custom">커스텀 템플릿</option
+                                    >
+                                    <option value="conversation"
+                                        >대화용 템플릿</option
+                                    >
+                                    <option value="simulation"
+                                        >시뮬레이션 템플릿</option
+                                    >
+                                </select>
+                            </div>
+                        {/if}
                         <label for="instruction-input"
                             >{$t("editPage.instructionsLabel")}</label
                         >
                         <p class="description">
                             {$t("editPage.instructionsDescription")}
                         </p>
-                        <div class="input-group">
-                            <!-- svelte-ignore element_invalid_self_closing_tag -->
-                            <textarea
-                                id="instruction-input"
-                                bind:value={instruction}
-                                placeholder={$t(
-                                    "editPage.instructionsPlaceholder",
-                                )}
-                                rows="3"
-                                maxlength="200"
-                            />
-                            <button
-                                type="button"
-                                class="btn btn-secondary"
-                                class:btn-add-emphasis={instruction.length > 0}
-                                on:click={addInstruction}
-                                disabled={persona.instructions.length >= 10}
-                                >{$t("editPage.addButton")}</button
-                            >
-                        </div>
+                        <textarea
+                            id="instruction-input"
+                            bind:value={singleInstruction}
+                            placeholder={$t("editPage.instructionsPlaceholder")}
+                            rows="10"
+                            maxlength="3000"
+                        ></textarea>
                         <div
                             class="char-counter"
-                            class:warning={instruction.length > 160}
-                            class:error={instruction.length >= 200}
+                            class:warning={singleInstruction.length > 2500}
+                            class:error={singleInstruction.length >= 3000}
                         >
-                            {instruction.length} / 200 | {persona.instructions
-                                .length} / 10
+                            {singleInstruction.length} / 3000
                         </div>
-                        <ul class="item-list">
-                            {#each persona.instructions as inst, i}
-                                <li class="item">
-                                    <span class="item-text">{inst}</span>
-                                    <button
-                                        type="button"
-                                        class="btn-remove"
-                                        on:click={() => removeInstruction(i)}
-                                        >&times;</button
-                                    >
-                                </li>
-                            {/each}
-                        </ul>
                     </div>
                     <div class="form-group">
                         <label for="prompt-example-input"

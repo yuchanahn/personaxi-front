@@ -1,7 +1,5 @@
 import * as THREE from 'three'
 import { VRM, VRMExpressionManager, VRMHumanBoneName } from '@pixiv/three-vrm'
-import { AnimationClip } from 'three'
-
 
 export class VrmAnimation {
   public duration: number

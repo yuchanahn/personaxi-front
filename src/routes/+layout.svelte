@@ -125,9 +125,12 @@
     }
 
     $: showNavBottom =
-        isMobile && !["/test", "/2d"].includes($page.url.pathname);
+        isMobile &&
+        !["/test", "/2d", "/character"].includes($page.url.pathname);
 
-    $: isChatPage = $page.url.pathname.startsWith("/2d");
+    $: isChatPage =
+        $page.url.pathname.startsWith("/2d") ||
+        $page.url.pathname.startsWith("/character");
 </script>
 
 <!-- ────────────── 레이아웃 ────────────── -->
