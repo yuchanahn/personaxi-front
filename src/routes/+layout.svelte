@@ -211,8 +211,8 @@
         -webkit-overflow-scrolling: touch;
         height: 100%;
 
-        padding-bottom: calc(85px + env(safe-area-inset-bottom, 0px));
-        /* padding-bottom: calc(85px); */
+        /* padding-bottom: calc(85px + env(safe-area-inset-bottom, 0px)); */
+        padding-bottom: calc(85px + 34px);
     }
 
     main:global(.no-padding-bottom) {
