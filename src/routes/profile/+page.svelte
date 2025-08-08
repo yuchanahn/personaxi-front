@@ -385,7 +385,6 @@
         justify-content: space-around;
         align-items: center;
         width: 100%;
-        height: 100%;
         background-color: hsla(var(--dark), 0.2);
         border: 1px solid var(--border);
         border-radius: var(--radius-card);

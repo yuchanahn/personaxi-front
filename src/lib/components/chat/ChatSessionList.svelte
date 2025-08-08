@@ -6,9 +6,6 @@
 </script>
 
 <div class="chat-session-list">
-  <br />
-  <br />
-  <br />
   {#each sessions as session}
     <ChatSessionItem
       {session}
