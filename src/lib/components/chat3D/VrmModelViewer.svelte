@@ -436,6 +436,8 @@
     width: 100%; /* 전체 가로 폭 */
     height: 100vh; /* 화면 높이의 40% 차지 (조절 가능) */
 
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+
     /* 배경색 투명하게 */
     background-color: rgba(255, 255, 255, 0); /* 배경색을 반투명하게 설정 */
 
