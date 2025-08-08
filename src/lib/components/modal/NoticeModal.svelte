@@ -93,10 +93,10 @@
 <style>
     .modal-backdrop {
         position: fixed;
-        top: 100px;
+        top: 10%;
         left: 0;
+        bottom: 20%;
         width: 100%;
-        height: 80%;
 
         background-color: rgba(0, 0, 0, 0.7);
         display: flex;
