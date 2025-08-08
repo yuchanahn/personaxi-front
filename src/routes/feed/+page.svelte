@@ -283,7 +283,7 @@
     /* 전체 피드 컨테이너 */
     .feed-container {
         width: 100%;
-        height: 100vh;
+        height: 100dvh;
         overflow-y: scroll;
         scroll-snap-type: y mandatory;
         background-color: #121212;
