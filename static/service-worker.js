@@ -1,4 +1,4 @@
-const VERSION = 'v2.1';                            // ← 버전만 올리면 배포된 SW가 교체됨
+const VERSION = 'v0.3.1';                            // ← 버전만 올리면 배포된 SW가 교체됨
 const PRECACHE = `precache-${VERSION}`;          // 정적 자산
 const RUNTIME = `runtime-${VERSION}`;           // 동적 캐시
 
