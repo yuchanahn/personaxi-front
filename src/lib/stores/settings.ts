@@ -11,6 +11,7 @@ export interface AppSettings {
     fontSize: FontSize;
     enterToSend: boolean;
     soundVolume: number;
+    llmType: string;
 }
 
 function isValidTheme(value: any): value is Theme {
@@ -29,7 +30,8 @@ function initializeSettings(): AppSettings {
         language: 'ko',
         fontSize: 'medium',
         enterToSend: true,
-        soundVolume: 0.8
+        soundVolume: 0.8,
+        llmType: 'gemini_flash' // Default LLM type
     };
 
     if (!browser) {

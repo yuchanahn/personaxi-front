@@ -104,6 +104,7 @@
                     createdAt: "",
                     hasReceivedFirstCreationReward: false,
                     lastLoginIP: "",
+                    llmType: settings.llmType,
                 };
             }
 
@@ -111,6 +112,7 @@
                 name: user.name,
                 nickname: user.data.nickname || "",
                 language: get(locale) || "en",
+                llmType: settings.llmType,
             };
 
             const res = await api.post(`/api/user/edit`, settingRq);

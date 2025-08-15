@@ -14,6 +14,7 @@
     import FirstCreationRewardModal from "$lib/components/modal/FirstCreationRewardModal.svelte";
     import { st_user } from "$lib/stores/user";
     import { get } from "svelte/store";
+    import { api } from "$lib/api";
 
     let vrmFile: File | null = null;
 
@@ -125,6 +126,11 @@
         const id = urlParams.get("c");
         if (id) {
             load_persona(id);
+        }
+
+        if (!api.isLoggedIn()) {
+            goto("/login");
+            return;
         }
 
         try {

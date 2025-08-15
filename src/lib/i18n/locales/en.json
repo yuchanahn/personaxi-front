@@ -368,13 +368,20 @@
     "currentNeurons": "Current: {count} Neurons"
   },
   "settingModal": {
-    "title": "Session Settings",
+    "title": "Chat Settings",
+    "guidanceText": "* Changes affect the current chat session.",
+    "llmTitle": "AI Model",
+    "llmDescription": "Choose the AI model for this chat. Different models have unique personalities and costs.",
+    "feedbackTitle": "Feedback",
     "like": "Like",
-    "dislike": "Dislike",
+    "liked": "Liked",
+    "share": "Share",
+    "chatManagement": "Chat Management",
     "resetChat": "Reset Chat",
     "deleteChat": "Delete Chat",
-    "includeAllUtterances": "Include All Utterances",
-    "guidanceText": "* Each function affects the current character session. Please choose carefully."
+    "confirmReset": "Are you sure you want to reset the chat history? This cannot be undone.",
+    "confirmDelete": "Are you sure you want to permanently delete this chat session?",
+    "includeAllUtterances": "Include All Utterances"
   },
   "chatSession": {
     "system": {

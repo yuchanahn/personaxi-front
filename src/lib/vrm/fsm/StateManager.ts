@@ -353,7 +353,7 @@ const STATE_CONFIGS: Record<CharacterState, StateConfig & { animationPool?: stri
             'happy': 0.4,
             'neutral': 0.6
         },
-        gazePattern: 'mouse_follow',
+        gazePattern: 'forward',
         gazeIntensity: 0.8,
         animationPool: 'speaking_pool',  // ← 말하는 애니메이션 풀
         //baseAnimation: 'Talking.fbx',    // 스피킹은 고정 애니메이션

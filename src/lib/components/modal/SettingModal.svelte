@@ -1,328 +1,469 @@
-<!-- src/lib/components/SettingsModal.svelte 또는 새롭게 생성할 컴포넌트의 경로 -->
 <script lang="ts">
-    import { createEventDispatcher } from "svelte";
-    import { deleteChatHistory, resetChatHistory } from "$lib/api/chat";
+    import { fade, fly } from "svelte/transition"; // 👈 이 줄을 추가하세요
+    import { createEventDispatcher, onDestroy, onMount } from "svelte";
     import { t } from "svelte-i18n";
-    import type { Persona } from "$lib/types";
+    import Icon from "@iconify/svelte";
+
     import { api } from "$lib/api";
+    import type { Persona } from "$lib/types";
+    import { deleteChatHistory, resetChatHistory } from "$lib/api/chat";
+    import { loadlikesdata } from "$lib/api/content";
+    import { settings } from "$lib/stores/settings";
+    import { get } from "svelte/store";
+    // import { userSettings, updateUserSettings } from '$lib/stores/user'; // 사용자 설정 스토어 (가정)
 
-    export let isOpen: boolean = false; // 부모 컴포넌트로부터 모달 가시성 상태를 받음
-    export let persona: Persona; // Persona 객체를 prop으로 받음
+    /* -------------------- Props & Dispatcher -------------------- */
+    export let isOpen: boolean = false;
+    export let persona: Persona;
+    const dispatch = createEventDispatcher();
 
-    const dispatch = createEventDispatcher(); // 부모 컴포넌트로 이벤트를 보낼 디스패처 생성
+    /* -------------------- State Management -------------------- */
+    let isLoading = false;
+    let isConfirmingDelete = false; // 2단계 삭제 확인 상태
+    let statusMessage = ""; // 사용자 피드백 메시지
 
-    let isLiked: boolean = persona.is_liked || false; // 초기 좋아요 상태
+    // [REFACTOR] $: 반응성 문법으로 prop 변경에 안전하게 대응
+    $: isLiked = persona.is_liked || false;
+    $: selectedLLM = get(settings).llmType || "gemini-flash";
 
-    // 모달 콘텐츠 DOM 요소에 대한 참조
-    let modalContent: HTMLDivElement;
+    /**
+     const (
+	GeminiFlashLite LLMType = "gemini-flash-lite"
+	GeminiFlash     LLMType = "gemini-flash"
+	GeminiPro       LLMType = "gemini-pro"
+    )
 
-    // 배경 클릭 시 모달 닫기
-    function handleBackdropClick(event: MouseEvent) {
-        // 클릭된 요소가 백드롭 자체일 경우에만 모달을 닫음 (모달 콘텐츠 내부 클릭 시 닫히지 않도록)
-        if (event.target === event.currentTarget) {
-            dispatch("close"); // 'close' 이벤트를 부모 컴포넌트로 보냄
+    */
+
+    // 사용 가능한 LLM 목록
+    const availableLLMs = [
+        { id: "gemini-flash", name: "Gemini Flash (균형)" },
+        { id: "gemini-flash-lite", name: "Gemini Flash Lite (속도)" },
+        { id: "gemini-pro", name: "Gemini Pro (품질)" },
+    ];
+
+    onMount(async () => {
+        const likes: string[] = await loadlikesdata();
+        persona.is_liked = likes.includes(persona.id);
+
+        // 초기 설정 로드 (가정)
+        // selectedLLM = $userSettings.llmType; // 스토어에서 현재 설정값 가져오기 (가정)
+    });
+
+    /* -------------------- Event Handlers -------------------- */
+    async function showStatus(message: string, duration: number = 2000) {
+        statusMessage = message;
+        if (duration > 0) {
+            setTimeout(() => (statusMessage = ""), duration);
         }
     }
 
-    // Escape 키 누르면 모달 닫기
+    // [REFACTOR] 비동기 처리, 피드백 추가, 이벤트 방식 변경
+    async function handleLikeToggle() {
+        isLoading = true;
+        const newLikeStatus = !isLiked;
+        const endpoint = newLikeStatus ? "like" : "dislike"; // 'unlike' API가 있다고 가정
+        const url = `/api/persona/${endpoint}?id=${persona.id}`;
+
+        try {
+            const res = await api.get(url);
+            if (!res.ok) throw new Error(await res.text());
+
+            isLiked = newLikeStatus;
+            persona.is_liked = newLikeStatus; // 부모에게 전달될 persona 객체도 업데이트
+            dispatch("like-updated", {
+                personaId: persona.id,
+                isLiked: newLikeStatus,
+            });
+            showStatus(newLikeStatus ? "👍 Liked!" : "Like removed.");
+        } catch (error) {
+            console.error("Like toggle failed:", error);
+            showStatus("❌ Error!", 2000);
+        } finally {
+            isLoading = false;
+        }
+    }
+
+    async function handleLLMChange() {
+        isLoading = true;
+        showStatus("Saving...", 0);
+        try {
+            settings.update((currentSettings) => {
+                return { ...currentSettings, llmType: selectedLLM };
+            });
+
+            showStatus("✅ Saved!");
+        } catch (error) {
+            console.error("Failed to save LLM preference:", error);
+            showStatus("❌ Error!", 2000);
+        } finally {
+            isLoading = false;
+        }
+    }
+
+    async function handleResetChat() {
+        if (!confirm($t("settingModal.confirmReset"))) return;
+        isLoading = true;
+        showStatus("Resetting chat...", 0);
+        try {
+            await resetChatHistory(persona.id);
+            //dispatch("reset");
+            showStatus("✅ Chat Reset!");
+            setTimeout(() => dispatch("close"), 1000);
+        } catch (error) {
+            console.error("Failed to reset chat:", error);
+            showStatus("❌ Error!");
+        } finally {
+            isLoading = false;
+        }
+    }
+
+    async function handleDeleteChat() {
+        isLoading = true;
+        showStatus("Deleting chat...", 0);
+        try {
+            await deleteChatHistory(persona.id);
+            //dispatch("deleted");
+            showStatus("✅ Chat Deleted!");
+            setTimeout(() => dispatch("close"), 1000);
+        } catch (error) {
+            console.error("Failed to delete chat:", error);
+            showStatus("❌ Error!");
+        } finally {
+            isLoading = false;
+            isConfirmingDelete = false;
+        }
+    }
+
+    /* -------------------- Modal Closing Logic -------------------- */
     function handleKeydown(event: KeyboardEvent) {
         if (event.key === "Escape") {
             dispatch("close");
         }
     }
 
-    // 모달 열림/닫힘 상태에 따라 keydown 이벤트 리스너 추가/제거
-    $: if (isOpen) {
-        document.addEventListener("keydown", handleKeydown);
-    } else {
-        document.removeEventListener("keydown", handleKeydown);
-    }
-
-    // --- 각 버튼 클릭 시 실행될 TODO 함수들 ---
-    function handleResetChat() {
-        resetChatHistory(persona.id); // cssid 대신 persona.id 사용
-        dispatch("close"); // 작업 완료 후 모달 닫기
-    }
-
-    function handleDeleteChat() {
-        deleteChatHistory(persona.id); // cssid 대신 persona.id 사용
-        dispatch("close"); // 작업 완료 후 모달 닫기
-    }
-
-    function handleIncludeAllUtterances() {
-        dispatch("close"); // 작업 완료 후 모달 닫기
-    }
-
-    async function FeedbackBtn(isLikeAction: boolean) {
-        const endpoint = isLikeAction ? "like" : "dislike";
-        const url = `/api/persona/${endpoint}?id=${persona.id}`;
-
-        try {
-            const res = await api.get(url);
-
-            if (res.ok) {
-                // 성공적으로 좋아요/싫어요 처리됨
-                isLiked = isLikeAction; // 상태 업데이트
-                // TODO: 좋아요/싫어요 카운트 업데이트 로직 추가 (백엔드 응답에 포함될 경우)
-                alert(
-                    `Successfully ${isLikeAction ? "liked" : "disliked"} this persona!`,
-                );
-            } else if (res.status === 409) {
-                // 이미 좋아요/싫어요를 누른 경우
-                const errorData = await res.json();
-                alert(
-                    errorData.message ||
-                        `You have already ${isLikeAction ? "liked" : "disliked"} this persona.`,
-                );
-            } else {
-                // 기타 에러
-                const errorData = await res.json();
-                alert(
-                    `Failed to ${isLikeAction ? "like" : "dislike"} persona: ${errorData.message || res.statusText}`,
-                );
-            }
-        } catch (error) {
-            console.error("Network or other error:", error);
-            alert("An unexpected error occurred. Please try again.");
+    function handleBackdropClick(event: MouseEvent) {
+        if (event.target === event.currentTarget) {
+            dispatch("close");
         }
+    }
+
+    // 모달이 닫힐 때 상태 초기화
+    $: if (!isOpen) {
+        isConfirmingDelete = false;
+        statusMessage = "";
     }
 </script>
 
-<!-- svelte-ignore a11y_no_static_element_interactions -->
+<svelte:window on:keydown={handleKeydown} />
+
 {#if isOpen}
-    <!-- 모달 배경 (클릭 시 닫기 기능 포함) -->
     <!-- svelte-ignore a11y_click_events_have_key_events -->
-    <div class="settings-modal-backdrop" on:click={handleBackdropClick}>
-        <!-- 모달 내용 컨테이너 -->
-        <div class="settings-modal-content" bind:this={modalContent}>
-            <!-- 닫기 버튼 -->
-            <button class="close-button" on:click={() => dispatch("close")}
-                >&times;</button
-            >
-
-            <h2>{$t("settingModal.title")}</h2>
-
-            <!-- 설정 버튼 그룹 -->
-            <div class="button-group">
-                <div
-                    style="display: flex; justify-content: space-between; align-items: center; gap: 10px;"
-                >
-                    <button
-                        class="action-button"
-                        on:click={() => FeedbackBtn(true)}
-                        disabled={isLiked}
-                    >
-                        {$t("settingModal.like")}
-                    </button>
-                    <button
-                        class="action-button"
-                        on:click={() => FeedbackBtn(false)}
-                        disabled={!isLiked}
-                    >
-                        {$t("settingModal.dislike")}
-                    </button>
-                </div>
-                <button class="action-button reset" on:click={handleResetChat}>
-                    {$t("settingModal.resetChat")}
-                </button>
+    <!-- svelte-ignore a11y_no_static_element_interactions -->
+    <div
+        class="modal-backdrop"
+        on:click={handleBackdropClick}
+        transition:fade={{ duration: 200 }}
+    >
+        <div class="modal-content" transition:fly={{ y: -20, duration: 300 }}>
+            <div class="modal-header">
+                <h2>{$t("settingModal.title")}</h2>
                 <button
-                    class="action-button delete"
-                    on:click={handleDeleteChat}
+                    class="close-button"
+                    on:click={() => dispatch("close")}
+                    aria-label="Close modal"
                 >
-                    {$t("settingModal.deleteChat")}
-                </button>
-                <button
-                    class="action-button include-all"
-                    on:click={handleIncludeAllUtterances}
-                >
-                    {$t("settingModal.includeAllUtterances")}
+                    <Icon icon="ph:x-bold" />
                 </button>
             </div>
 
-            <p class="guidance-text">
-                {$t("settingModal.guidanceText")}
-            </p>
+            <div class="settings-section">
+                <h3 class="section-title">
+                    <Icon icon="ph:robot-duotone" />
+                    <span>{$t("settingModal.llmTitle")}</span>
+                </h3>
+                <div class="select-wrapper">
+                    <select
+                        bind:value={selectedLLM}
+                        on:change={handleLLMChange}
+                        disabled={isLoading}
+                    >
+                        {#each availableLLMs as llm}
+                            <option value={llm.id}>{llm.name}</option>
+                        {/each}
+                    </select>
+                    <div class="select-arrow">
+                        <Icon icon="ph:caret-down-bold" />
+                    </div>
+                </div>
+                <p class="section-description">
+                    {$t("settingModal.llmDescription")}
+                </p>
+            </div>
+
+            <div class="settings-section">
+                <h3 class="section-title">
+                    <Icon icon="ph:heart-duotone" />
+                    <span>{$t("settingModal.feedbackTitle")}</span>
+                </h3>
+                <div class="button-grid">
+                    <button
+                        class="action-button"
+                        class:liked={isLiked}
+                        on:click={handleLikeToggle}
+                        disabled={isLoading}
+                    >
+                        <Icon
+                            icon={isLiked ? "ph:heart-fill" : "ph:heart-bold"}
+                        />
+                        <span
+                            >{isLiked
+                                ? $t("settingModal.liked")
+                                : $t("settingModal.like")}</span
+                        >
+                    </button>
+                    <button
+                        class="action-button"
+                        on:click={() => alert("Share feature coming soon!")}
+                        disabled={isLoading}
+                    >
+                        <Icon icon="ph:share-network-bold" />
+                        <span>{$t("settingModal.share")}</span>
+                    </button>
+                </div>
+            </div>
+
+            <div class="settings-section">
+                <h3 class="section-title">
+                    <Icon icon="ph:chats-duotone" />
+                    <span>{$t("settingModal.chatManagement")}</span>
+                </h3>
+                <div class="button-grid">
+                    <button
+                        class="action-button"
+                        on:click={handleResetChat}
+                        disabled={isLoading}
+                    >
+                        <Icon icon="ph:arrow-counter-clockwise-bold" />
+                        <span>{$t("settingModal.resetChat")}</span>
+                    </button>
+                    {#if !isConfirmingDelete}
+                        <button
+                            class="action-button destructive"
+                            on:click={() => (isConfirmingDelete = true)}
+                            disabled={isLoading}
+                        >
+                            <Icon icon="ph:trash-bold" />
+                            <span>{$t("settingModal.deleteChat")}</span>
+                        </button>
+                    {:else}
+                        <button
+                            class="action-button confirm-delete"
+                            on:click={handleDeleteChat}
+                            disabled={isLoading}
+                        >
+                            <Icon icon="ph:warning-bold" />
+                            <span>{$t("settingModal.confirmDelete")}</span>
+                        </button>
+                    {/if}
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <span class="status-text">{statusMessage}</span>
+            </div>
         </div>
     </div>
 {/if}
 
 <style>
-    /* 모달 배경 스타일 */
-    .settings-modal-backdrop {
+    :root {
+        --modal-bg: #2a2a2a;
+        --modal-border: #444;
+        --text-primary: #e0e0e0;
+        --text-secondary: #999;
+        --primary-color: #3f51b5;
+        --primary-hover: #303f9f;
+        --destructive-color: #d32f2f;
+        --destructive-hover: #b71c1c;
+        --button-bg: #4a4a4a;
+        --button-hover: #5e5e5e;
+    }
+
+    .modal-backdrop {
         position: fixed;
-        top: 0;
-        left: 0;
-        width: 100vw; /* 뷰포트 전체 너비 */
-        height: 100vh; /* 뷰포트 전체 높이 */
-        background-color: rgba(0, 0, 0, 0.7); /* 어둡게 배경 처리 */
+        inset: 0;
+        background-color: rgba(0, 0, 0, 0.7);
         display: flex;
         justify-content: center;
         align-items: center;
-        z-index: 1000; /* 다른 모든 요소 위에 오도록 */
-        backdrop-filter: blur(5px); /* 배경 흐림 효과 (선택 사항) */
-        opacity: 0; /* 초기 투명 (애니메이션 적용) */
-        animation: fadeIn 0.3s forwards; /* 서서히 나타나는 애니메이션 */
+        z-index: 1000;
+        backdrop-filter: blur(5px);
     }
 
-    /* 모달 내용 박스 스타일 */
-    .settings-modal-content {
-        background-color: #2a2a2a; /* 어두운 배경 */
-        border-radius: 12px; /* 둥근 모서리 */
-        padding: 30px;
-        width: 90%; /* 화면 너비의 90% */
-        max-width: 450px; /* 최대 너비 */
-        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.4); /* 그림자 효과 */
+    .modal-content {
+        background: var(--modal-bg);
+        border-radius: 16px;
+        padding: 24px;
+        width: 90%;
+        max-width: 400px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
         position: relative;
-        color: #e0e0e0; /* 밝은 글자색 */
-        transform: translateY(-20px) scale(0.95); /* 초기 위치 및 크기 (애니메이션 적용) */
-        animation: slideInFadeIn 0.3s forwards; /* 슬라이드 및 페이드인 애니메이션 */
+        color: var(--text-primary);
         display: flex;
         flex-direction: column;
-        gap: 20px; /* 버튼 간격 */
-        border: 1px solid #444; /* 미묘한 테두리 */
+        gap: 16px;
+        border: 1px solid var(--modal-border);
     }
 
-    /* 모달 나타나는 애니메이션 */
-    @keyframes fadeIn {
-        from {
-            opacity: 0;
-        }
-        to {
-            opacity: 1;
-        }
+    .modal-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding-bottom: 16px;
+        border-bottom: 1px solid var(--modal-border);
     }
 
-    @keyframes slideInFadeIn {
-        from {
-            transform: translateY(-20px) scale(0.95);
-            opacity: 0;
-        }
-        to {
-            transform: translateY(0) scale(1);
-            opacity: 1;
-        }
+    .modal-header h2 {
+        font-size: 1.5em;
+        font-weight: 600;
+        margin: 0;
     }
 
-    /* 닫기 버튼 스타일 */
     .close-button {
-        position: absolute;
-        top: 15px;
-        right: 15px;
         background: none;
         border: none;
-        color: #bdbdbd; /* 회색 */
-        font-size: 2rem; /* 크게 */
+        color: var(--text-secondary);
+        font-size: 1.5rem;
         cursor: pointer;
-        line-height: 1; /* 높이 조정 */
-        padding: 5px;
-        transition:
-            color 0.3s ease,
-            transform 0.3s ease;
+        padding: 4px;
+        border-radius: 50%;
+        display: flex;
+        transition: all 0.2s ease;
     }
-
     .close-button:hover {
-        color: #ffffff; /* 호버 시 흰색 */
-        transform: rotate(90deg); /* 호버 시 회전 */
+        color: var(--text-primary);
+        background-color: var(--button-bg);
+        transform: rotate(90deg);
     }
 
-    /* 제목 스타일 */
-    h2 {
-        text-align: center;
-        color: #ffffff;
-        font-size: 1.8em;
-        margin-bottom: 25px;
-        border-bottom: 1px solid #555; /* 하단 구분선 */
-        padding-bottom: 10px;
-    }
-
-    /* 버튼 그룹 스타일 */
-    .button-group {
+    .settings-section {
         display: flex;
         flex-direction: column;
-        gap: 15px;
+        gap: 12px;
     }
 
-    /* 모든 액션 버튼 공통 스타일 */
-    .action-button {
-        background-color: #4a4a4a;
-        color: #ffffff;
-        border: none;
-        padding: 15px 20px;
-        border-radius: 8px;
+    .section-title {
+        display: flex;
+        align-items: center;
+        gap: 8px;
         font-size: 1.1em;
+        font-weight: 500;
+        color: var(--text-primary);
+    }
+
+    .section-description {
+        font-size: 0.8em;
+        color: var(--text-secondary);
+        line-height: 1.5;
+    }
+
+    .select-wrapper {
+        position: relative;
+    }
+
+    select {
+        width: 100%;
+        padding: 12px;
+        background-color: #333;
+        color: var(--text-primary);
+        border: 1px solid var(--modal-border);
+        border-radius: 8px;
+        font-size: 1em;
+        -webkit-appearance: none;
+        -moz-appearance: none;
+        appearance: none;
         cursor: pointer;
-        transition:
-            background-color 0.3s ease,
-            transform 0.2s ease,
-            box-shadow 0.3s ease;
-        width: 100%; /* 너비를 꽉 채움 */
-        font-weight: bold;
-        letter-spacing: 0.5px;
+    }
+    .select-arrow {
+        position: absolute;
+        right: 12px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: var(--text-secondary);
+        pointer-events: none;
     }
 
-    .action-button:hover {
-        background-color: #5e5e5e;
-        transform: translateY(-2px); /* 살짝 위로 이동 */
-        box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+    .button-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
     }
 
-    .action-button:active {
-        transform: translateY(0);
-        box-shadow: none;
+    .action-button {
+        background-color: var(--button-bg);
+        color: var(--text-primary);
+        border: none;
+        padding: 12px;
+        border-radius: 8px;
+        font-size: 0.95em;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        width: 100%;
     }
 
-    /* 각 버튼별 색상 (원하는 대로 조정) */
-    .action-button.reset {
-        background-color: #3f51b5; /* 파란색 계열 */
-    }
-    .action-button.reset:hover {
-        background-color: #303f9f;
+    .action-button:hover:not(:disabled) {
+        background-color: var(--button-hover);
+        transform: translateY(-2px);
     }
 
-    .action-button.delete {
-        background-color: #d32f2f; /* 붉은색 계열 */
-    }
-    .action-button.delete:hover {
-        background-color: #b71c1c;
+    .action-button:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
     }
 
-    .action-button.include-all {
-        background-color: #4caf50; /* 초록색 계열 */
+    .action-button.liked {
+        background-color: var(--primary-color);
+        color: white;
     }
-    .action-button.include-all:hover {
-        background-color: #388e3c;
+    .action-button.liked:hover:not(:disabled) {
+        background-color: var(--primary-hover);
     }
 
-    /* 안내 문구 스타일 */
-    .guidance-text {
-        font-size: 0.9em;
-        color: #999;
+    .action-button.destructive {
+        color: var(--destructive-color);
+        background-color: transparent;
+        border: 1px solid var(--destructive-color);
+    }
+    .action-button.destructive:hover:not(:disabled) {
+        background-color: var(--destructive-color);
+        color: white;
+    }
+
+    .action-button.confirm-delete {
+        grid-column: 1 / -1; /* 두 칸을 모두 차지 */
+        background-color: var(--destructive-color);
+        color: white;
+    }
+    .action-button.confirm-delete:hover:not(:disabled) {
+        background-color: var(--destructive-hover);
+    }
+
+    .modal-footer {
+        margin-top: 16px;
+        padding-top: 16px;
+        border-top: 1px solid var(--modal-border);
         text-align: center;
-        margin-top: 20px;
+        min-height: 20px;
     }
-
-    /* 모바일 반응형 조정 */
-    @media (max-width: 600px) {
-        .settings-modal-content {
-            padding: 20px;
-            max-width: 95%; /* 작은 화면에서는 거의 전체 너비 */
-            margin: 0 10px; /* 좌우 마진 */
-        }
-
-        h2 {
-            font-size: 1.5em;
-            margin-bottom: 15px;
-        }
-
-        .action-button {
-            padding: 12px 15px;
-            font-size: 1em;
-        }
-
-        .close-button {
-            font-size: 1.5rem;
-            top: 10px;
-            right: 10px;
-        }
+    .status-text {
+        font-size: 0.9em;
+        color: var(--text-secondary);
+        transition: opacity 0.3s ease;
     }
 </style>
