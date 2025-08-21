@@ -7,12 +7,10 @@
     } from "$lib/api/content";
     import type { PersonaDTO } from "$lib/types";
     import { onMount } from "svelte";
-    import { get, writable } from "svelte/store";
+    import { writable } from "svelte/store";
     import { t } from "svelte-i18n";
     import CharacterCard from "../card/CharacterCard.svelte";
     import Icon from "@iconify/svelte";
-    import { chatSessions } from "$lib/stores/chatSessions";
-    import { settings } from "$lib/stores/settings";
 
     // --- 상태 관리 ---
     let contents = writable<PersonaDTO[]>([]);
