@@ -9,10 +9,10 @@ export function handleSelect(id: string) {
                 goto(`/chat?c=${id}`);
                 break;
             case ChatSessionType.CHARACTER:
-                goto(`/2d?c=${id}`);
+                goto(`/2d?c=${id}&llmType=${session.llmType}`);
                 break;
             case ChatSessionType.CHARACTER3D:
-                goto(`/character?c=${id}`);
+                goto(`/character?c=${id}&llmType=${session.llmType}`);
                 break;
             case ChatSessionType.SYSTEM:
                 switch (session.id) {

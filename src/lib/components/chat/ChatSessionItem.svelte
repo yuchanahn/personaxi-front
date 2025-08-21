@@ -3,6 +3,7 @@
 
     export let session = { id: "", name: "", type: ChatSessionType.CHAT };
     export let onClick;
+    export let onDelete;
 </script>
 
 <div class="slot" class:space={session.type === ChatSessionType.SPACE}>

@@ -1,6 +1,6 @@
 import { goto } from "$app/navigation";
 import { impl_sendPromptStream } from "$lib/api/chat";
-import { loadCharacterSessions, loadChatSessions } from "$lib/api/sessions";
+import { loadCharacterSessions } from "$lib/api/sessions";
 import { messages } from "$lib/stores/messages";
 import type { Model } from "$lib/vrm/core/model";
 
@@ -76,7 +76,6 @@ export async function handleSendToCharacter(cid: string, prompt: string, model?:
             });
         },
         (cssid: string) => {
-            loadChatSessions();
             loadCharacterSessions();
             goto(`/character?c=${cssid}`);
         },

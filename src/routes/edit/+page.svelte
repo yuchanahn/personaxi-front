@@ -128,7 +128,7 @@
             load_persona(id);
         }
 
-        if (!api.isLoggedIn()) {
+        if (!(await api.isLoggedIn())) {
             goto("/login");
             return;
         }

@@ -12,7 +12,7 @@ export async function loadContent() {
 }
 
 export async function loadlikesdata() {
-    if (!api.isLoggedIn()) {
+    if (!(await api.isLoggedIn())) {
         return [];
     }
 

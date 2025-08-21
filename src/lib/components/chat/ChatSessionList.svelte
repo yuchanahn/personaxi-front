@@ -1,6 +1,8 @@
 <script lang="ts">
+  import { type ChatSession } from "$lib/stores/chatSessions";
   import ChatSessionItem from "./ChatSessionItem.svelte";
-  export let sessions = [] as { id: string; name: string }[];
+
+  export let sessions = [] as ChatSession[];
   export let onSelect = (id: string) => {};
   export let onDelete = (id: string) => {};
 </script>

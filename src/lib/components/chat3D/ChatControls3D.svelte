@@ -6,6 +6,7 @@
   export let cssid: string;
   export let showChat: boolean;
   export let persona: Persona; // persona prop 추가
+  export let llmType: string; // llmType prop 추가
 
   let isSettingsModalOpen = false;
 </script>
@@ -14,6 +15,7 @@
   <SettingsModal
     {persona}
     isOpen={isSettingsModalOpen}
+    {llmType}
     on:close={() => (isSettingsModalOpen = false)}
   />
 {/if}

@@ -1,7 +1,6 @@
 import { messages, type Message } from '$lib/stores/messages';
 import { tickSSEStream, extractCSSID, tickSSEStream2 } from '$lib/parser/sseParser';
-import { loadCharacterSessions, loadChatSessions } from './sessions';
-import { get, type Writable } from 'svelte/store';
+import { loadCharacterSessions } from './sessions';
 import { goto } from '$app/navigation';
 import { api } from '$lib/api';
 import { showNeedMoreNeuronsModal } from '$lib/stores/modal';
@@ -26,8 +25,8 @@ export async function resetChatHistory(sessionId: string) {
     const res = await api.get(`/api/chat/reset?CSSID=${sessionId}`);
     if (res.ok) {
         const r = await res.json();
+        console.log("Reset chat history response:", r);
         messages.set([]);
-        //messages.set(history.map((msg: any) => ({ role: msg.role, content: msg.content })));
     } else {
         messages.set([]);
     }
@@ -36,12 +35,14 @@ export async function resetChatHistory(sessionId: string) {
 export async function deleteChatHistory(sessionId: string) {
     const res = await api.get(`/api/chat/delete?CSSID=${sessionId}`);
     if (res.ok) {
-        const r = await res.json();
+        console.log("Deleting chat history for session:", sessionId);
 
+        const r = await res.json();
+        console.log("Delete chat history response:", r);
+        messages.set([]);
+        await loadCharacterSessions();
         goto(`/hub`);
 
-        loadChatSessions();
-        loadCharacterSessions();
         //messages.set(history.map((msg: any) => ({ role: msg.role, content: msg.content })));
     }
 }
@@ -70,7 +71,6 @@ export async function sendPromptStream(cid: string, prompt: string, type?: strin
         });
     }, (cssid) => {
         if (cssid) {
-            loadChatSessions();
             loadCharacterSessions();
             if (type == "character" || type == "2d" || type == "3d") {
                 goto(`/2d?c=${cssid}`);

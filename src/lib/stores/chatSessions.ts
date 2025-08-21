@@ -13,16 +13,18 @@ export type ChatSession = {
     name: string;
     createdAt: string;
     type: ChatSessionType;
+    llmType: string; // Optional field for LLM type
 };
 
 export const chatSessions = writable<ChatSession[]>([]);
 
-export const createNewSession = (id: string, name: string, type: ChatSessionType) => {
+export const createNewSession = (id: string, name: string, type: ChatSessionType, llmType: string) => {
     const newSession: ChatSession = {
         id: id,
         name: name,
         createdAt: new Date().toISOString(),
-        type: type
+        type: type,
+        llmType: llmType || 'Error',
     } as ChatSession;
 
     chatSessions.update((sessions) => {

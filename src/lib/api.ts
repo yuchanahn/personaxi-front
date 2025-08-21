@@ -92,6 +92,7 @@ async function fetchWithAuth(url: string, options: RequestInit = {}): Promise<Re
     return response;
 }
 
+
 export const api = {
     get: (url: string, options?: RequestInit) => fetchWithAuth(API_BASE_URL + url, { ...options, method: 'GET' }),
     get2: (url: string, options?: RequestInit) => fetch(API_BASE_URL + url, { ...options, method: 'GET', credentials: 'include' }),
@@ -135,8 +136,18 @@ export const api = {
 
         return socket;
     },
-    isLoggedIn: () => {
+    isLoggedIn: async () => {
         const token = get(accessToken);
-        return !!token;
+        if (token) {
+            return true;
+        }
+        await refreshAccessToken();
+        const newToken = get(accessToken);
+        if (newToken) {
+            return true;
+        } else {
+            return false;
+        }
     },
+
 };

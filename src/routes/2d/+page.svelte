@@ -13,6 +13,7 @@
 
   let lastSessionId: string | null = null;
   let persona: Persona | null = null;
+  let llmType: string = "Error"; // Default value
 
   const setupScene = () => {
     if (get(messages).length === 0) {
@@ -31,6 +32,7 @@
 
   onMount(() => {
     const sessionId = $page.url.searchParams.get("c");
+    llmType = $page.url.searchParams.get("llmType") || "Error";
     lastSessionId = sessionId;
     loadChatHistory(sessionId ?? "").then(() => {
       setupScene();
@@ -45,6 +47,7 @@
 
   $: {
     const sessionId = $page.url.searchParams.get("c");
+    llmType = $page.url.searchParams.get("llmType") || "Error";
     if (sessionId !== lastSessionId) {
       lastSessionId = sessionId;
       loadChatHistory(sessionId ?? "");
@@ -74,6 +77,7 @@
   <SettingsModal
     {persona}
     isOpen={isSettingsModalOpen}
+    {llmType}
     on:close={() => (isSettingsModalOpen = false)}
   />
 {/if}

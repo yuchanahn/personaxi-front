@@ -10,6 +10,9 @@
     import { LikeBtn, loadlikesdata } from "$lib/api/content";
     import { t } from "svelte-i18n";
     import { api } from "$lib/api";
+    import { settings } from "$lib/stores/settings";
+    import { get } from "svelte/store";
+    import { chatSessions } from "$lib/stores/chatSessions";
 
     // --- 상태 관리 ---
     let persona: Persona | null = null;
@@ -139,10 +142,21 @@
 
     // --- 나머지 핸들러 함수들 (handleLike, showPrevImage 등)은 이전과 동일 ---
     function handleStartChat() {
+        let llmType = get(settings).llmType || "gemini-flash-lite";
+        chatSessions.update((sessions) => {
+            const existingSession = sessions.find(
+                (session) => session.id === persona?.id,
+            );
+            if (existingSession) {
+                llmType = existingSession.llmType || llmType;
+            }
+            return sessions;
+        });
+
         if (persona?.personaType === "2D" || persona?.personaType === "2d") {
-            goto(`/2d?c=${persona.id}`);
+            goto(`/2d?c=${persona.id}&llmType=${llmType}`);
         } else if (persona?.personaType === "3D") {
-            goto(`/character?c=${persona.id}`);
+            goto(`/character?c=${persona.id}&llmType=${llmType}`);
         } else {
             alert(persona?.personaType);
         }

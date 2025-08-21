@@ -8,13 +8,16 @@
     import type { Persona } from "$lib/types";
     import { deleteChatHistory, resetChatHistory } from "$lib/api/chat";
     import { loadlikesdata } from "$lib/api/content";
-    import { settings } from "$lib/stores/settings";
+    import { page } from "$app/stores";
+    import { goto } from "$app/navigation";
     import { get } from "svelte/store";
+    import { chatSessions } from "$lib/stores/chatSessions";
     // import { userSettings, updateUserSettings } from '$lib/stores/user'; // 사용자 설정 스토어 (가정)
 
     /* -------------------- Props & Dispatcher -------------------- */
     export let isOpen: boolean = false;
     export let persona: Persona;
+    export let llmType: string = "Error"; // LLM 타입 (기본값 설정)
     const dispatch = createEventDispatcher();
 
     /* -------------------- State Management -------------------- */
@@ -24,30 +27,43 @@
 
     // [REFACTOR] $: 반응성 문법으로 prop 변경에 안전하게 대응
     $: isLiked = persona.is_liked || false;
-    $: selectedLLM = get(settings).llmType || "gemini-flash";
-
-    /**
-     const (
-	GeminiFlashLite LLMType = "gemini-flash-lite"
-	GeminiFlash     LLMType = "gemini-flash"
-	GeminiPro       LLMType = "gemini-pro"
-    )
-
-    */
 
     // 사용 가능한 LLM 목록
     const availableLLMs = [
-        { id: "gemini-flash", name: "Gemini Flash (균형)" },
-        { id: "gemini-flash-lite", name: "Gemini Flash Lite (속도)" },
-        { id: "gemini-pro", name: "Gemini Pro (품질)" },
+        { id: "gemini-flash", name: "Gemini Flash (균형)", cost: 3 },
+        { id: "gemini-flash-lite", name: "Gemini Flash Lite (속도)", cost: 1 },
+        { id: "gemini-pro", name: "Gemini Pro (품질)", cost: 5 },
     ];
+    $: selectedLLM =
+        availableLLMs.find((llm) => llm.id === llmType) || availableLLMs[0];
+
+    function changeLLMType(newType: string) {
+        llmType = newType; // LLM 타입 업데이트
+
+        chatSessions.update((sessions) => {
+            return sessions.map((session) => {
+                if (session.id === persona.id) {
+                    return { ...session, llmType: newType };
+                }
+                return session;
+            });
+        });
+
+        const currentPage = get(page);
+        const params = new URLSearchParams(currentPage.url.searchParams);
+
+        // 2. 나머지는 동일합니다.
+        params.set("llmType", newType);
+        goto(`?${params.toString()}`, {
+            replaceState: true,
+            noScroll: true,
+            keepFocus: true,
+        });
+    }
 
     onMount(async () => {
         const likes: string[] = await loadlikesdata();
         persona.is_liked = likes.includes(persona.id);
-
-        // 초기 설정 로드 (가정)
-        // selectedLLM = $userSettings.llmType; // 스토어에서 현재 설정값 가져오기 (가정)
     });
 
     /* -------------------- Event Handlers -------------------- */
@@ -88,9 +104,24 @@
         isLoading = true;
         showStatus("Saving...", 0);
         try {
-            settings.update((currentSettings) => {
-                return { ...currentSettings, llmType: selectedLLM };
-            });
+            api.post(`/api/chat/char/sessions/edit`, {
+                cssid: persona.id,
+                llmType: selectedLLM.id,
+            })
+                .then((res) => {
+                    if (!res.ok) {
+                        throw new Error("Failed to update LLM type");
+                    }
+                    return res.json();
+                })
+                .then(() => {
+                    changeLLMType(selectedLLM.id); // URL 업데이트
+                });
+
+            //settings.set({
+            //    ...get(settings),
+            //    llmType: selectedLLM.id,
+            //});
 
             showStatus("✅ Saved!");
         } catch (error) {
@@ -107,7 +138,6 @@
         showStatus("Resetting chat...", 0);
         try {
             await resetChatHistory(persona.id);
-            //dispatch("reset");
             showStatus("✅ Chat Reset!");
             setTimeout(() => dispatch("close"), 1000);
         } catch (error) {
@@ -123,7 +153,6 @@
         showStatus("Deleting chat...", 0);
         try {
             await deleteChatHistory(persona.id);
-            //dispatch("deleted");
             showStatus("✅ Chat Deleted!");
             setTimeout(() => dispatch("close"), 1000);
         } catch (error) {
@@ -189,7 +218,9 @@
                         disabled={isLoading}
                     >
                         {#each availableLLMs as llm}
-                            <option value={llm.id}>{llm.name}</option>
+                            <option value={llm}
+                                >{llm.name} - ⚡️{llm.cost}</option
+                            >
                         {/each}
                     </select>
                     <div class="select-arrow">
@@ -198,6 +229,9 @@
                 </div>
                 <p class="section-description">
                     {$t("settingModal.llmDescription")}
+                    <span class="cost-display">
+                        응답 당 ⚡️{selectedLLM.cost} 뉴런이 소모됩니다.
+                    </span>
                 </p>
             </div>
 

@@ -14,8 +14,8 @@
     import WelcomeModal from "$lib/components/modal/WelcomeModal.svelte";
 
     /* ────────────── API · 스토어 ────────────── */
-    import { loadCharacterSessions, loadChatSessions } from "$lib/api/sessions";
-    import { confirmConsent, getCurrentUser } from "$lib/api/auth";
+    import { loadCharacterSessions } from "$lib/api/sessions";
+    import { confirmConsent } from "$lib/api/auth";
     import { st_user } from "$lib/stores/user";
     import { needMoreNeuronsModal } from "$lib/stores/modal";
 
@@ -78,6 +78,16 @@
             }
         }
         accessToken.set(null);
+
+        if (await api.isLoggedIn()) {
+            const userRes = await api.get(`/api/user/me`);
+            if (userRes.ok) {
+                const user = await userRes.json();
+                st_user.set(user);
+            }
+        } else {
+            console.warn("로그인 정보가 없습니다. 로그인 페이지로 이동합니다.");
+        }
     });
 
     accessToken.subscribe(async (token) => {
@@ -86,7 +96,6 @@
             return;
         }
 
-        loadChatSessions();
         loadCharacterSessions();
     });
 
