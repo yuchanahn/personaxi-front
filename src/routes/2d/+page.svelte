@@ -5,7 +5,7 @@
   import ChatWindow from "$lib/components/chat/ChatWindow.svelte";
   import ChatInput from "$lib/components/chat/ChatInput.svelte";
   import SettingsButton from "$lib/components/common/SettingsButton.svelte";
-  import { loadPersona } from "$lib/api/edit_persona";
+  import { fetchAndSetAssetTypes, loadPersona } from "$lib/api/edit_persona";
   import type { Persona } from "$lib/types";
   import SettingsModal from "$lib/components/modal/SettingModal.svelte";
   import { get } from "svelte/store";
@@ -39,7 +39,11 @@
     });
     if (sessionId) {
       loadPersona(sessionId).then((p) => {
-        persona = p;
+        fetchAndSetAssetTypes(p.image_metadatas).then((imgs) => {
+          p.image_metadatas = imgs;
+          persona = p;
+        });
+
         setupScene();
       });
     }
@@ -52,7 +56,12 @@
       lastSessionId = sessionId;
       loadChatHistory(sessionId ?? "");
       if (sessionId) {
-        loadPersona(sessionId).then((p) => (persona = p));
+        loadPersona(sessionId).then((p) =>
+          fetchAndSetAssetTypes(p.image_metadatas).then((imgs) => {
+            p.image_metadatas = imgs;
+            persona = p;
+          }),
+        );
       } else {
         persona = null;
       }

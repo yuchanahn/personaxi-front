@@ -1,7 +1,7 @@
 <script lang="ts">
     import { goto } from "$app/navigation";
     import { onMount, onDestroy, tick } from "svelte";
-    import type { Persona } from "$lib/types";
+    import type { ImageMetadata, Persona } from "$lib/types";
     import { writable } from "svelte/store";
     import { t } from "svelte-i18n";
     import Icon from "@iconify/svelte";
@@ -9,6 +9,8 @@
     import { loadContent, loadlikesdata } from "$lib/api/content";
     import { type AuctionPersona } from "$lib/services/auction";
     import { api } from "$lib/api";
+    import { fetchAndSetAssetTypes } from "$lib/api/edit_persona";
+    import AssetPreview from "$lib/components/AssetPreview.svelte";
 
     //TODO: 사용자가 끝에 다다르면, 또 새로운 정보를 부르거나, 다시 처음부터 나오게 하기.
     //TODO: 나중에 처리 해주기!
@@ -35,17 +37,44 @@
         return `url(${imageUrl})`;
     };
 
+    $: getCurrentAsset = (content: Persona): ImageMetadata => {
+        let asset: ImageMetadata = {
+            url: `${PORTRAIT_URL}${content.owner_id[0]}/${content.id}.portrait`,
+            description: "portrait",
+            type: "image", // 포트레이트는 항상 이미지이므로 미리 타입을 지정
+        };
+        if (content.image_metadatas && content.image_metadatas.length > 0) {
+            const currentIndex = currentImageIndices.get(content.id) || 0;
+            if (content.image_metadatas[currentIndex]) {
+                asset = content.image_metadatas[currentIndex];
+            }
+        }
+        return asset;
+    };
+
     onMount(async () => {
+        // 1. 서버에서 컨텐츠 데이터 로드
         const data = await loadContent();
         const likes: string[] = await loadlikesdata();
-        data.forEach((p: Persona) => {
+
+        // 2. [핵심] 각 컨텐츠의 image_metadatas 타입을 확인하고 결과를 기다림
+        for (const p of data) {
             if (p.image_metadatas && p.image_metadatas.length > 0) {
-                currentImageIndices.set(p.id, 0);
+                // portrait 이미지를 맨 앞에 추가하고, 타입 확인
                 p.image_metadatas.unshift({
                     url: `${PORTRAIT_URL}${p.owner_id[0]}/${p.id}.portrait`,
-                    description: "",
+                    description: "portrait",
+                    type: "image", // 포트레이트는 항상 이미지이므로 미리 타입을 지정
                 });
+                // 나머지 에셋들의 타입 확인
+                const otherAssets = p.image_metadatas.slice(1);
+                const assetsWithType = await fetchAndSetAssetTypes(otherAssets);
+                p.image_metadatas = [p.image_metadatas[0], ...assetsWithType];
+
+                currentImageIndices.set(p.id, 0);
             }
+
+            // 좋아요 정보 처리 (기존과 동일)
             if (likes) {
                 likes.forEach((like) => {
                     if (like === p.id) {
@@ -53,36 +82,32 @@
                     }
                 });
             }
-        });
+        }
+
+        // 3. 모든 처리가 끝난 데이터를 스토어에 할당
         contents.set(data);
 
+        // Intersection Observer 등 나머지 로직은 기존과 동일하게 유지됩니다.
         await tick();
-
         const options = {
-            root: feedContainer, // 바인딩된 feedContainer를 root로 사용
+            root: feedContainer,
             threshold: 0.8,
         };
-
         observer = new IntersectionObserver((entries) => {
             entries.forEach((entry) => {
                 if (entry.isIntersecting) {
                     entry.target.classList.add("active");
                     activePersonaId = entry.target.id;
-
-                    console.log("CLASS : " + entry.target.classList);
                 } else {
                     entry.target.classList.remove("active");
                 }
             });
         }, options);
-
         const reels = feedContainer.querySelectorAll(".reel");
         reels.forEach((reel) => observer.observe(reel));
 
-        // 인터벌 로직은 동일
         imageInterval = setInterval(() => {
             if (!activePersonaId) return;
-
             const activePersona = $contents.find(
                 (p) => p.id === activePersonaId,
             );
@@ -95,9 +120,7 @@
                 const currentIndex = newIndices.get(activePersonaId) || 0;
                 const nextIndex =
                     (currentIndex + 1) % activePersona.image_metadatas.length;
-
                 newIndices.set(activePersonaId, nextIndex);
-
                 currentImageIndices = newIndices;
             }
         }, 5000);
@@ -191,11 +214,8 @@
 
 <div class="feed-container" bind:this={feedContainer}>
     {#each $contents as content (content.id)}
-        <section
-            id={content.id}
-            class="reel"
-            style="background-image: {getBackgroundImage(content)};"
-        >
+        <section id={content.id} class="reel">
+            <AssetPreview asset={getCurrentAsset(content)} />
             <div class="overlay">
                 <div class="info-box">
                     <div class="creator-line">

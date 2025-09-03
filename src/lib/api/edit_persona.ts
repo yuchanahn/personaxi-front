@@ -1,4 +1,4 @@
-import type { Persona } from "$lib/types";
+import type { ImageMetadata, Persona } from "$lib/types";
 import { api } from "$lib/api";
 
 
@@ -73,4 +73,43 @@ export async function loadPersona(id: string): Promise<Persona> {
         throw new Error("Failed to load persona");
     }
     return (await response.json()) as Persona;
+}
+
+
+export async function fetchAndSetAssetTypes(
+    metadatas: ImageMetadata[],
+): Promise<ImageMetadata[]> {
+    const promises = metadatas.map(
+        async (metadata: ImageMetadata): Promise<ImageMetadata> => {
+            try {
+                const response = await fetch(metadata.url, {
+                    method: "HEAD",
+                });
+
+                if (!response.ok) {
+                    return { ...metadata, type: "unknown" };
+                }
+
+                const contentType = response.headers.get("Content-Type");
+                let type: "image" | "video" | "unknown" = "unknown";
+
+                if (contentType?.startsWith("image/")) {
+                    type = "image";
+                } else if (contentType?.startsWith("video/")) {
+                    type = "video";
+                }
+
+                return { ...metadata, type: type };
+            } catch (error) {
+                console.error(
+                    "Error fetching metadata for:",
+                    metadata.url,
+                    error,
+                );
+                return { ...metadata, type: "unknown" };
+            }
+        },
+    );
+
+    return await Promise.all(promises);
 }

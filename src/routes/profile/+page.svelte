@@ -2,7 +2,7 @@
     import { onMount } from "svelte";
     import { page } from "$app/stores";
     import { goto } from "$app/navigation";
-    import { loadPersona } from "$lib/api/edit_persona";
+    import { fetchAndSetAssetTypes, loadPersona } from "$lib/api/edit_persona";
     // 🔽 types.ts에 정의된 실제 Comment 타입을 가져옵니다.
     import type { Persona, ImageMetadata, Comment } from "$lib/types";
     import { PORTRAIT_URL } from "$lib/constants";
@@ -13,6 +13,7 @@
     import { settings } from "$lib/stores/settings";
     import { get } from "svelte/store";
     import { chatSessions } from "$lib/stores/chatSessions";
+    import AssetPreview from "$lib/components/AssetPreview.svelte";
 
     // --- 상태 관리 ---
     let persona: Persona | null = null;
@@ -132,7 +133,10 @@
             if (persona.image_metadatas && persona.image_metadatas.length > 0) {
                 images = [...images, ...persona.image_metadatas];
             }
-            galleryImages = images;
+
+            fetchAndSetAssetTypes(images).then((imgs) => {
+                galleryImages = imgs;
+            });
         } catch (error) {
             console.error("Failed to load persona data:", error);
         } finally {
@@ -203,11 +207,8 @@
                 <div class="profile-main">
                     <div class="image-gallery-wrapper">
                         {#if galleryImages.length > 0}
-                            <img
-                                src={galleryImages[currentImageIndex].url}
-                                alt="{persona.name} 이미지 {currentImageIndex +
-                                    1}"
-                                class="profile-portrait-square"
+                            <AssetPreview
+                                asset={galleryImages[currentImageIndex]}
                             />
                             {#if galleryImages.length > 1}
                                 <div class="image-counter">

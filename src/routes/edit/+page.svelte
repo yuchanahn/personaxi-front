@@ -4,6 +4,7 @@
     import type { ImageMetadata, Persona, PersonaFeedback } from "$lib/types";
     import { page } from "$app/stores";
     import {
+        fetchAndSetAssetTypes,
         getUploadUrl,
         loadPersona,
         savePersona,
@@ -15,6 +16,7 @@
     import { st_user } from "$lib/stores/user";
     import { get } from "svelte/store";
     import { api } from "$lib/api";
+    import AssetPreview from "$lib/components/AssetPreview.svelte";
 
     let vrmFile: File | null = null;
 
@@ -63,12 +65,11 @@
         persona.voice_id = "";
     }
 
-    function load_persona(id: string) {
-        loadPersona(id).then((p) => {
-            persona = p;
+    async function load_persona(id: string) {
+        try {
+            const p = await loadPersona(id);
 
             singleInstruction = p.instructions[0] || "";
-
             if (p.instructions.length > 1 && p.instructions[1]) {
                 const templateIdentifier = p.instructions[1];
                 if (templateIdentifier === "conversation") {
@@ -79,17 +80,28 @@
                     selectedTemplate = "custom";
                 }
             } else {
-                // 식별자가 없으면 커스텀 프롬프트입니다.
                 selectedTemplate = "custom";
             }
-
-            if (p.voice_id !== "") {
+            if (p.voice_id) {
                 selectedVoiceId = p.voice_id;
             } else {
                 selectedVoiceId = "";
             }
             portraitPreview = p.portrait_url;
-        });
+
+            if (p.image_metadatas && p.image_metadatas.length > 0) {
+                const metadatasWithType = await fetchAndSetAssetTypes(
+                    p.image_metadatas,
+                );
+                p.image_metadatas = metadatasWithType;
+            } else {
+                p.image_metadatas = [];
+            }
+
+            persona = p;
+        } catch (err) {
+            console.error("페르소나를 불러오는 데 실패했습니다:", err);
+        }
     }
 
     $: {
@@ -616,7 +628,7 @@
                             <input
                                 id="portrait-file"
                                 type="file"
-                                accept="image/*"
+                                accept="image/*, video/*"
                                 on:change={handleProfileChange}
                                 class="file-input-hidden"
                             />
@@ -648,11 +660,7 @@
                                         <div class="asset-card">
                                             <div class="asset-image-uploader">
                                                 {#if asset.url !== ""}
-                                                    <img
-                                                        src={asset.url}
-                                                        alt="에셋 미리보기"
-                                                        class="asset-preview-image"
-                                                    />
+                                                    <AssetPreview {asset} />
                                                 {/if}
                                                 {#if assets_progress.has(index)}
                                                     <div
@@ -679,7 +687,7 @@
                                                 <input
                                                     id="asset-file-{index}"
                                                     type="file"
-                                                    accept="image/*"
+                                                    accept="image/*, video/*"
                                                     class="file-input-hidden"
                                                     on:change={(e) =>
                                                         handleAssetFileChange(
@@ -724,7 +732,7 @@
                                         id="multiple-asset-upload"
                                         type="file"
                                         multiple
-                                        accept="image/*"
+                                        accept="image/*, video/*"
                                         class="file-input-hidden"
                                         on:change={handleMultipleAssetFiles}
                                     />
@@ -968,6 +976,11 @@
 <FirstCreationRewardModal bind:isOpen={showRewardModal} />
 
 <style>
+    .gif-like-video {
+        /* 이 한 줄이 모든 마우스/터치 이벤트를 무시하게 만듭니다. */
+        pointer-events: none;
+    }
+
     /* === 기본 레이아웃 === */
     .container {
         height: 100%;

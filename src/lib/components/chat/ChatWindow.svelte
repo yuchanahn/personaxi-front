@@ -3,8 +3,8 @@
   import { onMount, tick } from "svelte";
   import { messages } from "$lib/stores/messages";
   import { t } from "svelte-i18n";
-  // [수정] derived는 더 이상 필요 없으므로 import에서 제거합니다.
-  import type { Persona } from "$lib/types";
+  import type { ImageMetadata, Persona } from "$lib/types";
+  import AssetPreview from "../AssetPreview.svelte";
 
   export let isLoading: boolean = false;
   export let cssid: string;
@@ -35,6 +35,7 @@
     url: string;
     alt: string;
     id: string;
+    metadata: ImageMetadata;
   }
   type ChatLogItem = NarrationBlock | DialogueBlock | UserBlock | ImageBlock;
 
@@ -72,7 +73,12 @@
             const imageUrl = currentPersona?.image_metadatas?.[imgIndex]?.url;
 
             if (imageUrl && !isNaN(imgIndex)) {
-              imagesOnThisLine.push({ type: "image", url: imageUrl, alt });
+              imagesOnThisLine.push({
+                type: "image",
+                url: imageUrl,
+                alt,
+                metadata: currentPersona.image_metadatas[imgIndex],
+              });
             }
           }
         } catch (error) {
@@ -207,7 +213,7 @@
       </div>
     {:else if item.type === "image"}
       <div class="image-block">
-        <img src={item.url} alt={item.alt} loading="lazy" />
+        <AssetPreview asset={item.metadata} />
       </div>
     {/if}
   {/each}
