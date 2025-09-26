@@ -303,7 +303,8 @@
     /* 전체 피드 컨테이너 */
     .feed-container {
         width: 100%;
-        height: 100dvh;
+        /* height: 100dvh; */
+        height: 100%;
         overflow-y: scroll;
         scroll-snap-type: y mandatory;
         background-color: #121212;
@@ -316,7 +317,7 @@
 
     .reel {
         width: 100%;
-        height: 96%;
+        height: 100%;
         scroll-snap-align: start;
         position: relative;
         background-size: cover;
@@ -447,5 +448,16 @@
     .action-label {
         font-size: 0.9rem;
         font-weight: 500;
+    }
+
+    @media (min-width: 768px) {
+        .feed-container {
+            max-width: 420px; /* 스마트폰과 유사한 너비 */
+            height: 90vh; /* 화면 높이의 90% */
+            margin: auto; /* 수직 및 수평 중앙 정렬 */
+            border-radius: 20px; /* 모서리를 둥글게 */
+            border: 1px solid #333; /* 테두리 추가 */
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5); /* 그림자 효과 */
+        }
     }
 </style>
