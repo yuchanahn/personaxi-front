@@ -88,6 +88,8 @@
 
 <div class="page-wrapper">
     {#if isSearchModalOpen}
+        <!-- svelte-ignore a11y_click_events_have_key_events -->
+        <!-- svelte-ignore a11y_no_static_element_interactions -->
         <div class="modal-overlay" on:click={() => (isSearchModalOpen = false)}>
             <div class="modal-content" on:click|stopPropagation>
                 <button
@@ -221,6 +223,7 @@
         min-width: 0; /* flex 아이템이 내용물 크기보다 작아질 수 있도록 허용 */
         overflow: hidden; /* 넘치는 부분 숨김 */
         width: calc(100% - 60px); /* 검색 버튼 공간 제외 */
+        margin-left: 2.5rem;
     }
 
     /* --- 카테고리 버블 --- */
@@ -409,6 +412,10 @@
             grid-template-columns: repeat(3, 1fr);
             gap: 0.5rem;
             padding: 0.5rem;
+        }
+
+        .bubbles-wrapper {
+            margin-left: 0rem;
         }
     }
 </style>

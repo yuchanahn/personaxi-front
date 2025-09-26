@@ -12,6 +12,11 @@
             label: $t("nav.feed"),
         },
         {
+            href: "/chat", // ✨ 추가된 채팅 페이지 링크
+            icon: "ph:chats-duotone",
+            label: $t("nav.chat"),
+        },
+        {
             href: "/edit",
             icon: "ph:plus-circle-duotone",
             label: $t("nav.create"),

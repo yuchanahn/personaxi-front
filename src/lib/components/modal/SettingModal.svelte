@@ -12,12 +12,15 @@
     import { goto } from "$app/navigation";
     import { get } from "svelte/store";
     import { chatSessions } from "$lib/stores/chatSessions";
+    import type { User } from "$lib/types";
+    import { getCurrentUser } from "$lib/api/auth";
     // import { userSettings, updateUserSettings } from '$lib/stores/user'; // 사용자 설정 스토어 (가정)
 
     /* -------------------- Props & Dispatcher -------------------- */
     export let isOpen: boolean = false;
     export let persona: Persona;
     export let llmType: string = "Error"; // LLM 타입 (기본값 설정)
+
     const dispatch = createEventDispatcher();
 
     /* -------------------- State Management -------------------- */
@@ -60,6 +63,8 @@
             keepFocus: true,
         });
     }
+
+    let user: User | null = null;
 
     onMount(async () => {
         const likes: string[] = await loadlikesdata();
@@ -181,6 +186,12 @@
     $: if (!isOpen) {
         isConfirmingDelete = false;
         statusMessage = "";
+        user = null;
+    } else {
+        // 모달이 열릴 때 사용자 정보 로드
+        (async () => {
+            user = await getCurrentUser();
+        })();
     }
 </script>
 
@@ -207,10 +218,15 @@
             </div>
 
             <div class="settings-section">
+                <span class="neuron-balance">
+                    현재 뉴런: {user?.credits} ⚡️
+                </span>
+
                 <h3 class="section-title">
                     <Icon icon="ph:robot-duotone" />
                     <span>{$t("settingModal.llmTitle")}</span>
                 </h3>
+
                 <div class="select-wrapper">
                     <select
                         bind:value={selectedLLM}
@@ -311,6 +327,15 @@
 {/if}
 
 <style>
+    .neuron-balance {
+        display: block;
+        margin: 4px auto 0;
+        color: var(--primary-light);
+        padding: 2px 6px;
+        background-color: #333;
+        border-radius: 4px;
+    }
+
     :root {
         --modal-bg: #2a2a2a;
         --modal-border: #444;

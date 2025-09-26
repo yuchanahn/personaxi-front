@@ -431,7 +431,7 @@
 
                 if (
                     persona.greeting.length > 200 ||
-                    persona.first_scene.length > 500
+                    persona.first_scene.length > 2500
                 ) {
                     error = $t("editPage.validation.charLimitExceeded");
                     return;
@@ -461,7 +461,7 @@
 
                 if (
                     persona.greeting.length > 200 ||
-                    persona.first_scene.length > 500
+                    persona.first_scene.length > 2500
                 ) {
                     error = "소개 또는 첫 장면의 글자 수를 초과했습니다.";
                     return;
@@ -827,14 +827,14 @@
                             bind:value={persona.first_scene}
                             placeholder={$t("editPage.firstScenePlaceholder")}
                             rows="5"
-                            maxlength="500"
+                            maxlength="2500"
                         ></textarea>
                         <div
                             class="char-counter"
-                            class:warning={persona.first_scene.length > 400}
-                            class:error={persona.first_scene.length >= 500}
+                            class:warning={persona.first_scene.length > 2400}
+                            class:error={persona.first_scene.length >= 2500}
                         >
-                            {persona.first_scene.length} / 500
+                            {persona.first_scene.length} / 2500
                         </div>
                     </div>
                     <div class="form-group">

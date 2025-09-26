@@ -15,7 +15,7 @@
 
     /* ────────────── API · 스토어 ────────────── */
     import { loadCharacterSessions } from "$lib/api/sessions";
-    import { confirmConsent } from "$lib/api/auth";
+    import { confirmConsent, getCurrentUser } from "$lib/api/auth";
     import { st_user } from "$lib/stores/user";
     import { needMoreNeuronsModal } from "$lib/stores/modal";
 
@@ -80,11 +80,7 @@
         accessToken.set(null);
 
         if (await api.isLoggedIn()) {
-            const userRes = await api.get(`/api/user/me`);
-            if (userRes.ok) {
-                const user = await userRes.json();
-                st_user.set(user);
-            }
+            await getCurrentUser();
         } else {
             console.warn("로그인 정보가 없습니다. 로그인 페이지로 이동합니다.");
         }
@@ -101,9 +97,9 @@
 
     settings.subscribe(async (settings) => {
         if (get(accessToken) === null) return;
-        const userRes = await api.get(`/api/user/me`);
-        if (userRes.ok) {
-            let user = await userRes.json();
+        const userRes = await getCurrentUser();
+        if (userRes) {
+            let user = userRes as User;
 
             if (!user.data) {
                 user.data = {
@@ -113,7 +109,7 @@
                     createdAt: "",
                     hasReceivedFirstCreationReward: false,
                     lastLoginIP: "",
-                    llmType: settings.llmType,
+                    //llmType: settings.llmType,
                 };
             }
 

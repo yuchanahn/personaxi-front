@@ -1,8 +1,18 @@
 <script lang="ts">
+    import { fetchAndSetAssetTypes } from "$lib/api/edit_persona";
     import type { ImageMetadata } from "$lib/types";
 
-    // 부모로부터 asset 객체를 props로 받습니다.
     export let asset: ImageMetadata;
+
+    $: if (asset && !asset.type) {
+        (async () => {
+            const assetsWithType = await fetchAndSetAssetTypes([asset]);
+
+            if (assetsWithType[0] && assetsWithType[0].type) {
+                asset.type = assetsWithType[0].type;
+            }
+        })();
+    }
 </script>
 
 {#if asset.type === "image"}

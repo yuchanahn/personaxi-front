@@ -67,9 +67,9 @@
                     type: "image", // 포트레이트는 항상 이미지이므로 미리 타입을 지정
                 });
                 // 나머지 에셋들의 타입 확인
-                const otherAssets = p.image_metadatas.slice(1);
-                const assetsWithType = await fetchAndSetAssetTypes(otherAssets);
-                p.image_metadatas = [p.image_metadatas[0], ...assetsWithType];
+                //const otherAssets = p.image_metadatas.slice(1);
+                //const assetsWithType = await fetchAndSetAssetTypes(otherAssets);
+                //p.image_metadatas = [p.image_metadatas[0], ...assetsWithType];
 
                 currentImageIndices.set(p.id, 0);
             }

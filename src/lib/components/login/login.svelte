@@ -12,8 +12,21 @@
     const toOptions = () => (mode = "options");
     const toEmailForm = () => (mode = "email");
 
-    const loginWithEmail = () => {
-        ownloginWithEmailPass(email, password);
+    let errorMessage: string = "";
+
+    const loginWithEmail = async () => {
+        try {
+            await ownloginWithEmailPass(email, password);
+            // 로그인 성공 시 에러 메시지 초기화
+            errorMessage = "";
+        } catch (e) {
+            // 수정: Error 객체의 'message' 속성만 사용
+            if (e instanceof Error) {
+                errorMessage = e.message;
+            } else {
+                errorMessage = "로그인에 실패했습니다. 다시 시도해 주세요.";
+            }
+        }
     };
 
     const onSignup = () => {
@@ -88,6 +101,9 @@
             </div>
         {:else}
             <form class="email-form" on:submit|preventDefault={loginWithEmail}>
+                {#if errorMessage}
+                    <div class="error-message">{errorMessage}</div>
+                {/if}
                 <div class="form-group">
                     <label for="email">Email</label>
                     <input
@@ -303,5 +319,16 @@
     }
     .legal-links span {
         margin: 0 0.5rem;
+    }
+
+    .error-message {
+        color: var(--color-error, #f44336);
+        background-color: var(--color-error-bg, #ffebee);
+        border: 1px solid var(--color-error, #f44336);
+        padding: 0.75rem 1rem;
+        border-radius: 8px;
+        font-size: 0.9rem;
+        text-align: center;
+        margin-bottom: 1rem; /* 폼과 분리 */
     }
 </style>

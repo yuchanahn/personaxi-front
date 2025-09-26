@@ -14,6 +14,7 @@
     import { get } from "svelte/store";
     import { chatSessions } from "$lib/stores/chatSessions";
     import AssetPreview from "$lib/components/AssetPreview.svelte";
+    import { st_user } from "$lib/stores/user";
 
     // --- 상태 관리 ---
     let persona: Persona | null = null;
@@ -133,10 +134,11 @@
             if (persona.image_metadatas && persona.image_metadatas.length > 0) {
                 images = [...images, ...persona.image_metadatas];
             }
+            galleryImages = images;
 
-            fetchAndSetAssetTypes(images).then((imgs) => {
-                galleryImages = imgs;
-            });
+            //fetchAndSetAssetTypes(images).then((imgs) => {
+            //    galleryImages = imgs;
+            //});
         } catch (error) {
             console.error("Failed to load persona data:", error);
         } finally {
@@ -195,6 +197,13 @@
     }
     function goToImage(index: number) {
         currentImageIndex = index;
+    }
+
+    function replaceNicknameInText(text: string): string {
+        if (!persona) return text;
+        return text
+            .replaceAll("{{user}}", get(st_user)?.data?.nickname || "User")
+            .replaceAll("{{char}}", persona.name || "Character");
     }
 </script>
 
@@ -286,7 +295,16 @@
                                 <Icon icon="ph:scroll-duotone" />
                                 <span>{$t("profilePage.firstSceneTitle")}</span>
                             </h3>
-                            <p class="scene-text">{persona.first_scene}</p>
+                            <p class="scene-text">
+                                {replaceNicknameInText(persona.first_scene)
+                                    .length > 500
+                                    ? replaceNicknameInText(
+                                          persona.first_scene,
+                                      ).slice(0, 500) + "..."
+                                    : replaceNicknameInText(
+                                          persona.first_scene,
+                                      )}
+                            </p>
                         </div>
                     {/if}
                     <div class="stats-container">

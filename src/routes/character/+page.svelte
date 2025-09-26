@@ -73,7 +73,12 @@
       bind:show={showChat}
     />
 
-    <ChatControls3D cssid={lastSessionId ?? ""} bind:showChat {persona} />
+    <ChatControls3D
+      cssid={lastSessionId ?? ""}
+      bind:showChat
+      {persona}
+      llmType={""}
+    />
   {/if}
 </main>
 

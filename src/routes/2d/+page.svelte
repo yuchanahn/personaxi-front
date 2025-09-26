@@ -1,5 +1,4 @@
 <script lang="ts">
-  import { onMount } from "svelte";
   import { page } from "$app/stores";
   import { loadChatHistory, sendPromptStream } from "$lib/api/chat";
   import ChatWindow from "$lib/components/chat/ChatWindow.svelte";
@@ -8,63 +7,69 @@
   import { fetchAndSetAssetTypes, loadPersona } from "$lib/api/edit_persona";
   import type { Persona } from "$lib/types";
   import SettingsModal from "$lib/components/modal/SettingModal.svelte";
-  import { get } from "svelte/store";
   import { messages } from "$lib/stores/messages";
+  import { get } from "svelte/store";
+  import { st_user } from "$lib/stores/user";
 
   let lastSessionId: string | null = null;
   let persona: Persona | null = null;
   let llmType: string = "Error"; // Default value
 
   const setupScene = () => {
-    if (get(messages).length === 0) {
-      if (persona?.first_scene) {
-        messages.set([
-          {
-            role: "assistant",
-            content:
-              `<img src="${persona.portrait_url}" alt="장면 삽화" class="inserted-image">` +
-              persona.first_scene,
-          },
-        ]);
-      }
+    if (persona?.first_scene) {
+      let first_scene = persona.first_scene;
+
+      first_scene = persona.first_scene.replaceAll(
+        "{{user}}",
+        get(st_user)?.data?.nickname || "User",
+      );
+
+      first_scene = first_scene.replaceAll(
+        "{{char}}",
+        persona.name || "Character",
+      );
+
+      messages.update((existingMessages) => [
+        {
+          role: "assistant",
+          content: first_scene,
+        },
+        ...existingMessages,
+      ]);
     }
   };
 
-  onMount(() => {
+  const loadChatData = () => {
     const sessionId = $page.url.searchParams.get("c");
     llmType = $page.url.searchParams.get("llmType") || "Error";
     lastSessionId = sessionId;
+
     loadChatHistory(sessionId ?? "").then(() => {
       setupScene();
+      console.log("Subscribed to messages store for scene setup.");
+
+      messages.subscribe(() => {
+        if (get(messages).length === 0) {
+          setupScene();
+          console.log("No messages found, setting up scene.");
+        }
+      });
     });
+
     if (sessionId) {
       loadPersona(sessionId).then((p) => {
         fetchAndSetAssetTypes(p.image_metadatas).then((imgs) => {
           p.image_metadatas = imgs;
           persona = p;
         });
-
-        setupScene();
       });
     }
-  });
+  };
 
   $: {
     const sessionId = $page.url.searchParams.get("c");
-    llmType = $page.url.searchParams.get("llmType") || "Error";
     if (sessionId !== lastSessionId) {
-      lastSessionId = sessionId;
-      loadChatHistory(sessionId ?? "");
-      if (sessionId) {
-        loadPersona(sessionId).then((p) =>
-          fetchAndSetAssetTypes(p.image_metadatas).then((imgs) => {
-            p.image_metadatas = imgs;
-            persona = p;
-          }),
-        );
-      } else {
-        persona = null;
-      }
+      loadChatData();
     }
   }
 

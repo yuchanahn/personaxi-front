@@ -3,7 +3,7 @@
     import { goto } from "$app/navigation";
     import { onMount } from "svelte";
     import type { Persona } from "$lib/types";
-    import { logout } from "$lib/api/auth";
+    import { getCurrentUser, logout } from "$lib/api/auth";
     import { fetchLivePersonas, setLiveStatus } from "$lib/services/live";
     import { locale, t } from "svelte-i18n";
     import AuctionModal from "$lib/components/modal/AuctionModal.svelte";
@@ -42,13 +42,13 @@
     let selectedPersona: Persona | null = null;
 
     let isEditingProfile = false;
-    let originalUser: User | null = null; // 취소 시 복원을 위한 원본 데이터
+    let originalUser: User | null = null;
 
     onMount(async () => {
         try {
-            const userRes = await api.get(`/api/user/me`);
-            if (userRes.ok) {
-                user = await userRes.json();
+            const userRes = await getCurrentUser();
+            if (userRes) {
+                user = userRes as User;
 
                 if (!user.data) {
                     user.data = {
@@ -59,11 +59,6 @@
                         hasReceivedFirstCreationReward: false,
                         lastLoginIP: "",
                     };
-                } else {
-                    //TODO:
-                    // if (user.data.language != "") {
-                    //     $locale = user.data.language;
-                    // }
                 }
             } else {
                 error = "Failed to load user : " + userRes.status;
@@ -97,8 +92,35 @@
             : [...liveIds, personaId];
     }
 
-    async function deletePersona(id: string) {
-        alert("지원하지 않는 기능입니다!");
+    // --- 🔽 페르소나 공개/비공개 상태 변경 함수 🔽 ---
+    async function toggleVisibility(persona: Persona) {
+        // 현재 상태의 반대 상태를 newVisibility로 설정
+        const newVisibility =
+            persona.visibility === "public" ? "private" : "public";
+
+        try {
+            const res = await api.post(`/api/persona/visibility`, {
+                personaId: persona.id,
+                visibility: newVisibility,
+            });
+
+            if (res.ok) {
+                // API 호출이 성공하면, 화면에 바로 반영
+                const updatedPersonas = personas.map((p) => {
+                    if (p.id === persona.id) {
+                        return { ...p, visibility: newVisibility };
+                    }
+                    return p;
+                });
+                personas = updatedPersonas;
+                error = "";
+            } else {
+                const errorText = await res.text();
+                error = `Failed to update visibility: ${errorText}`;
+            }
+        } catch (err) {
+            error = "Error updating visibility: " + err;
+        }
     }
 
     function openAuctionModal(p: Persona) {
@@ -110,12 +132,6 @@
 
     function handleModalClose() {
         paymentModalOpen = false;
-    }
-
-    function confirmDelete(id: string, name: string) {
-        if (confirm($t("settingPage.deleteConfirm", { values: { name } }))) {
-            deletePersona(id);
-        }
     }
 
     interface UserSettingRequest {
@@ -147,9 +163,8 @@
             const res = await api.post(`/api/user/edit`, settingRq);
 
             if (res.ok) {
-                //user = await res.json();
-                isEditingProfile = false; // 성공 시 수정 모드 종료
-                error = ""; // 에러 메시지 초기화
+                isEditingProfile = false;
+                error = "";
             } else {
                 const errorText = await res.text();
                 error = `Failed to update user settings: ${errorText}`;
@@ -235,7 +250,6 @@
             {:else}
                 <div class="profile-header-actions">
                     <button class="btn editing" on:click={cancelEditing}>
-                        <!-- {$t("settingPage.cancel")} -->
                         <Icon icon="ri:close-line" />
                     </button>
                     <button
@@ -243,7 +257,6 @@
                         on:click={saveProfileChanges}
                     >
                         <Icon icon="ri:check-line" />
-                        <!-- {$t("settingPage.save")} -->
                     </button>
                 </div>
             {/if}
@@ -285,16 +298,13 @@
             {#each personas as persona}
                 <div class="persona-card">
                     <div class="card-header">
-                        <Avatar.Root class="avatar-root">
-                            <Avatar.Image
-                                src={`${PORTRAIT_URL}${persona.owner_id[0]}/${persona.id}.portrait`}
-                                alt={persona.name}
-                                class="avatar-image"
-                            />
-                            <Avatar.Fallback class="avatar-fallback"
-                                >{persona.name.charAt(0)}</Avatar.Fallback
-                            >
-                        </Avatar.Root>
+                        <img
+                            src={`${PORTRAIT_URL}${persona.owner_id[0]}/${
+                                persona.id
+                            }.portrait`}
+                            alt={persona.name}
+                            class="avatar-image"
+                        />
                         {#if isLive(persona.id)}
                             <div class="live-indicator">LIVE</div>
                         {/if}
@@ -336,13 +346,20 @@
                             >
                                 <Icon icon="ri:edit-line" />
                             </button>
+                            <!-- --- 🔽 삭제 버튼을 공개/비공개 토글 버튼으로 변경 🔽 --- -->
                             <button
-                                class="btn btn-danger"
-                                on:click={() =>
-                                    confirmDelete(persona.id, persona.name)}
-                                aria-label={$t("settingPage.delete")}
+                                class="btn"
+                                class:public={persona.visibility === "public"}
+                                on:click={() => toggleVisibility(persona)}
+                                aria-label={persona.visibility === "public"
+                                    ? "캐릭터를 비공개로 전환"
+                                    : "캐릭터를 공개로 전환"}
                             >
-                                <Icon icon="ri:delete-bin-line" />
+                                {#if persona.visibility === "public"}
+                                    <Icon icon="ph:eye-bold" />
+                                {:else}
+                                    <Icon icon="ph:eye-slash-bold" />
+                                {/if}
                             </button>
                         </div>
                     </div>
@@ -376,13 +393,11 @@
         height: 100%;
         box-sizing: border-box;
     }
-
     .header {
         flex-shrink: 0;
         padding-top: 2rem;
         padding-bottom: 1rem;
     }
-
     .section-header {
         display: flex;
         justify-content: space-between;
@@ -394,7 +409,6 @@
         border-bottom: 1px solid var(--border);
         margin-bottom: 1rem;
     }
-
     .settings-button {
         background: none;
         border: none;
@@ -409,7 +423,6 @@
         background-color: var(--muted);
         transform: rotate(45deg);
     }
-
     .editing {
         width: 100%;
     }
@@ -419,26 +432,21 @@
         justify-content: center;
         padding: 0.1rem;
     }
-
     .personas-section::-webkit-scrollbar {
         width: 6px;
     }
-
     .personas-section::-webkit-scrollbar-track {
         background: transparent;
     }
-
     .personas-section::-webkit-scrollbar-thumb {
         background: var(--muted-foreground);
         border-radius: 3px;
         opacity: 0.5;
     }
-
     .personas-section::-webkit-scrollbar-thumb:hover {
         background: var(--foreground);
         opacity: 0.8;
     }
-
     .profile-header,
     .profile-details {
         display: flex;
@@ -447,22 +455,18 @@
         padding: 1rem;
         gap: 1rem;
     }
-
     h1 {
         font-size: 2.25rem;
         font-weight: bold;
     }
-
     h2 {
         font-size: 1.5rem;
         font-weight: 600;
     }
-
     h3 {
         font-size: 1.25rem;
         font-weight: 600;
     }
-
     .card {
         background-color: var(--card);
         border-radius: var(--radius-card);
@@ -474,7 +478,6 @@
         flex-shrink: 0;
         margin-bottom: 1rem;
     }
-
     .personas-section {
         display: flex;
         flex-direction: column;
@@ -484,7 +487,6 @@
         padding: 0.5rem;
         margin: 0 -0.5rem;
     }
-
     .profile-avatar {
         width: 80px;
         height: 80px;
@@ -492,7 +494,6 @@
         object-fit: cover;
         border: 3px solid var(--border);
     }
-
     .profile-avatar-placeholder {
         width: 80px;
         height: 80px;
@@ -505,39 +506,32 @@
         font-weight: bold;
         color: var(--foreground);
     }
-
     .profile-info {
         flex-grow: 1;
     }
-
     .profile-details {
         background-color: var(--secondary);
         padding: 1rem;
         border-radius: var(--radius-input);
         flex-wrap: wrap;
     }
-
     .profile-details > div {
         display: flex;
         flex-direction: column;
     }
-
     .profile-details .label {
         font-size: 0.8rem;
         color: var(--muted-foreground);
     }
-
     .profile-details .value {
         font-size: 1.1rem;
         font-weight: 600;
     }
-
     .persona-grid {
         display: grid;
         grid-template-columns: repeat(auto-fit, minmax(145px, 1fr));
         gap: 1rem;
     }
-
     .persona-card {
         position: relative;
         background: var(--card);
@@ -549,13 +543,11 @@
         transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         cursor: pointer;
     }
-
     .persona-card:hover {
         transform: translateY(-8px);
         box-shadow: var(--shadow-popover);
         border-color: var(--primary);
     }
-
     .card-header {
         aspect-ratio: 1 / 1;
         width: 100%;
@@ -564,6 +556,13 @@
         align-items: center;
         padding: 0;
         position: relative;
+    }
+    .card-header .avatar-image {
+        width: 100%;
+        height: 100%;
+        object-fit: cover; /* 비율 유지하면서 영역 채우기 */
+        object-position: center; /* 중앙 정렬 */
+        border-radius: 8px; /* 선택사항: 모서리 둥글게 */
     }
 
     .live-indicator {
@@ -578,17 +577,14 @@
         font-weight: bold;
         box-shadow: 0 2px 5px hsl(0 85% 52% / 0.5);
     }
-
     .card-body {
         text-align: center;
         padding: 1.5rem;
     }
-
     .card-body .persona-type {
         color: var(--muted-foreground);
         font-size: 0.9rem;
     }
-
     .card-footer {
         margin-top: auto;
         padding: 0 1.5rem 1.5rem 1.5rem;
@@ -596,47 +592,40 @@
         flex-direction: column;
         gap: 0.75rem;
     }
-
     .actions-group {
         display: flex;
         gap: 0.75rem;
         width: 100%;
     }
-
     .actions-group > .btn {
         flex-grow: 1;
     }
-
     .btn {
         padding: 0.6rem 1.2rem;
         font-size: 0.9rem;
         font-weight: 600;
         background: var(--secondary);
         color: var(--secondary-foreground);
-
         border-radius: var(--radius-button);
         cursor: pointer;
         transition: all 0.2s ease;
         text-align: center;
         position: relative;
         overflow: hidden;
+        border: 1px solid var(--border);
     }
-
     .btn:hover:not(:disabled) {
         transform: translateY(-1px);
         box-shadow: var(--shadow-mini);
     }
-
     .btn:active:not(:disabled) {
         transform: translateY(0);
     }
-
     .btn:disabled {
         opacity: 0.5;
         cursor: not-allowed;
         transform: none;
     }
-
     .btn-primary {
         background: var(--primary-gradient);
         background-size: 200% 200%;
@@ -645,60 +634,58 @@
         border-radius: 22px;
         color: var(--primary-foreground);
     }
-
     .btn-primary:hover {
         opacity: 0.9;
     }
-
+    .btn.public {
+        background: transparent;
+        color: hsl(142, 71%, 45%);
+        border-color: hsl(142, 71%, 45%);
+    }
+    .btn.public:hover {
+        background-color: hsl(142, 71%, 45%, 0.1);
+    }
     .btn-danger {
         background: transparent;
         border-color: var(--destructive);
         color: var(--destructive);
     }
-
     .btn-danger:hover {
         background: var(--destructive);
         color: var(--destructive-foreground);
     }
-
     .btn-toggle.active {
         background: var(--destructive);
         border-color: var(--destructive);
         color: var(--destructive-foreground);
     }
-
     .error {
         color: var(--destructive);
         background-color: hsl(0 85% 52% / 0.1);
         padding: 1rem;
         border-radius: var(--radius-input);
     }
-
     .creator-name {
         color: var(--muted-foreground);
         font-size: 0.75em;
         font-weight: bold;
         font-style: italic;
     }
-
     .btn-logout {
         background-color: transparent;
         color: var(--muted-foreground);
         border-color: var(--border);
     }
-
     .btn-logout:hover {
         background-color: hsl(0 85% 52% / 0.1);
         color: var(--destructive);
         border-color: var(--destructive);
     }
-
     .name-display-wrapper {
         display: flex;
         align-items: center;
         gap: 0.5rem;
     }
-
     .btn-icon-edit {
         background: none;
         border: none;
@@ -710,13 +697,11 @@
         align-items: center;
         border-radius: var(--radius-button);
     }
-
     .btn-icon-edit:hover {
         color: var(--foreground);
         background-color: var(--muted);
         transform: scale(1.05);
     }
-
     @media (max-width: 768px) {
         h1 {
             font-size: 1.75rem;
