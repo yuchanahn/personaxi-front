@@ -5,6 +5,8 @@
   import { t } from "svelte-i18n";
   import type { ImageMetadata, Persona } from "$lib/types";
   import AssetPreview from "../AssetPreview.svelte";
+  import { get } from "svelte/store";
+  import { st_user } from "$lib/stores/user";
 
   export let isLoading: boolean = false;
   export let cssid: string;
@@ -37,7 +39,19 @@
     id: string;
     metadata: ImageMetadata;
   }
-  type ChatLogItem = NarrationBlock | DialogueBlock | UserBlock | ImageBlock;
+
+  interface CodeBlock {
+    type: "code";
+    content: string;
+    language: string;
+    id: string;
+  }
+  type ChatLogItem =
+    | NarrationBlock
+    | DialogueBlock
+    | UserBlock
+    | ImageBlock
+    | CodeBlock;
 
   function applyInlineStyles(text: string): string {
     if (!text) return "";
@@ -51,90 +65,129 @@
   ): ChatLogItem[] {
     const SCRIPT_DIALOGUE_REGEX = /^([^:]+):\s*(.*)$/;
     const INLINE_NARRATION_REGEX = /\*([^*]+)\*/g;
-    const IMG_TAG_REGEX = /<img>(.*?)<\/img>/g;
+    const IMG_TAG_REGEX = /<img (\d+)>/g;
+    const FIRST_SCENE_TAG_REGEX = /<first_scene>/g;
+    const CODE_BLOCK_REGEX = /```(?<lang>\w*)\s*\n?(?<code>[\s\S]+?)\s*```/;
 
     const blocks: ChatLogItem[] = [];
-    const lines = content
+    let partIndex = 0;
+
+    const processedContent = content
       .replace(/<think>[\s\S]*?<\/think>/g, "")
-      .trim()
-      .split("\n");
-
-    lines.forEach((line, index) => {
-      const lineId = `${baseId}-line-${index}`;
-      let textPart = line;
-      const imagesOnThisLine: Omit<ImageBlock, "id">[] = [];
-
-      textPart = textPart.replace(IMG_TAG_REGEX, (match, capturedContent) => {
-        try {
-          const parts = capturedContent.split(",");
-          if (parts.length >= 2) {
-            const alt = parts[0]?.trim() || "scene image";
-            const imgIndex = parseInt(parts[1]?.trim(), 10);
-            const imageUrl = currentPersona?.image_metadatas?.[imgIndex]?.url;
-
-            if (imageUrl && !isNaN(imgIndex)) {
-              imagesOnThisLine.push({
-                type: "image",
-                url: imageUrl,
-                alt,
-                metadata: currentPersona.image_metadatas[imgIndex],
-              });
-            }
-          }
-        } catch (error) {
-          console.error("Error parsing img tag:", error);
+      .replace(FIRST_SCENE_TAG_REGEX, () => {
+        if (currentPersona?.first_scene) {
+          let first_scene = currentPersona.first_scene;
+          first_scene = first_scene.replaceAll(
+            "{{user}}",
+            get(st_user)?.data?.nickname || "User",
+          );
+          first_scene = first_scene.replaceAll(
+            "{{char}}",
+            currentPersona.name || "Character",
+          );
+          return first_scene;
         }
         return "";
-      });
+      })
+      .trim();
 
-      const trimmedText = textPart.trim();
+    const parts = processedContent.split(CODE_BLOCK_REGEX);
 
-      if (trimmedText) {
-        const dialogueMatch = trimmedText.match(SCRIPT_DIALOGUE_REGEX);
-        if (dialogueMatch) {
-          const speaker = dialogueMatch[1].trim();
-          const dialogueContent = dialogueMatch[2].trim();
-          const parts = dialogueContent.split(INLINE_NARRATION_REGEX);
+    parts.forEach((part, i) => {
+      if (!part) return;
 
-          parts.forEach((part, partIndex) => {
-            const content = part.trim();
-            if (!content) return;
-            if (partIndex % 2 === 1) {
-              blocks.push({
-                type: "narration",
-                content,
-                id: `${lineId}-d-n${partIndex}`,
+      const isCodeBlock = i % 3 === 2; // code is the second capture group
+
+      if (isCodeBlock) {
+        const lang = parts[i - 1] || ""; // lang is the first capture group
+        blocks.push({
+          type: "code",
+          language: lang,
+          content: part,
+          id: `${baseId}-code-${partIndex++}`,
+        });
+      } else if (part.trim()) {
+        // This is a normal text part, apply existing line-by-line logic
+        const lines = part.trim().split("\n");
+        lines.forEach((line, lineIndex) => {
+          const lineId = `${baseId}-part-${partIndex}-line-${lineIndex}`;
+          let textPart = line;
+          const imagesOnThisLine: Omit<ImageBlock, "id">[] = [];
+
+          textPart = textPart.replace(
+            IMG_TAG_REGEX,
+            (match, capturedNumber) => {
+              try {
+                const imgIndex = parseInt(capturedNumber, 10);
+                const imageMetadata =
+                  currentPersona?.image_metadatas?.[imgIndex];
+
+                if (imageMetadata?.url && !isNaN(imgIndex)) {
+                  imagesOnThisLine.push({
+                    type: "image",
+                    url: imageMetadata.url,
+                    alt: imageMetadata.description || "scene image",
+                    metadata: imageMetadata,
+                  });
+                }
+              } catch (error) {
+                console.error("Error parsing img tag:", error);
+              }
+              return "";
+            },
+          );
+
+          const trimmedText = textPart.trim();
+
+          if (trimmedText) {
+            const dialogueMatch = trimmedText.match(SCRIPT_DIALOGUE_REGEX);
+            if (dialogueMatch) {
+              const speaker = dialogueMatch[1].trim();
+              const dialogueContent = dialogueMatch[2].trim();
+              const dialogueParts = dialogueContent.split(
+                INLINE_NARRATION_REGEX,
+              );
+
+              dialogueParts.forEach((dPart, dPartIndex) => {
+                const dContent = dPart.trim();
+                if (!dContent) return;
+                if (dPartIndex % 2 === 1) {
+                  blocks.push({
+                    type: "narration",
+                    content: dContent,
+                    id: `${lineId}-d-n${dPartIndex}`,
+                  });
+                } else {
+                  blocks.push({
+                    type: "dialogue",
+                    speaker,
+                    content: dContent,
+                    id: `${lineId}-d-d${dPartIndex}`,
+                  });
+                }
               });
             } else {
               blocks.push({
-                type: "dialogue",
-                speaker,
-                content,
-                id: `${lineId}-d-d${partIndex}`,
+                type: "narration",
+                content: trimmedText,
+                id: `${lineId}-n`,
               });
             }
-          });
-        } else {
-          blocks.push({
-            type: "narration",
-            content: trimmedText,
-            id: `${lineId}-n`,
-          });
-        }
-      }
+          }
 
-      imagesOnThisLine.forEach((img, imgIdx) => {
-        blocks.push({ ...img, id: `${lineId}-img-${imgIdx}` });
-      });
+          imagesOnThisLine.forEach((img, imgIdx) => {
+            blocks.push({ ...img, id: `${lineId}-img-${imgIdx}` });
+          });
+        });
+        partIndex++;
+      }
     });
 
     return blocks;
   }
 
-  // --- [핵심 수정 1] derived store를 반응형 구문으로 교체 ---
   let chatLog: ChatLogItem[] = [];
   $: {
-    // 이 블록은 $messages 또는 persona가 변경될 때마다 자동으로 실행됩니다.
     chatLog = $messages.flatMap((msg, i) => {
       const messageId = `msg-${i}`;
       if (msg.role === "user") {
@@ -145,7 +198,6 @@
       return [];
     });
   }
-  // --- 끝 ---
 
   $: {
     const messagesArray = $messages;
@@ -215,6 +267,13 @@
       <div class="image-block">
         <AssetPreview asset={item.metadata} />
       </div>
+    {:else if item.type === "code"}
+      <div class="code-block">
+        {#if item.language}
+          <div class="language-tag">{item.language}</div>
+        {/if}
+        <pre><code>{item.content}</code></pre>
+      </div>
     {/if}
   {/each}
 
@@ -238,6 +297,42 @@
 </div>
 
 <style>
+  .code-block {
+    align-self: center;
+    width: 100%;
+    max-width: 90%;
+    background-color: var(--secondary);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    margin: 0.5rem 0;
+    position: relative;
+    font-size: 0.9em;
+  }
+  .code-block .language-tag {
+    position: absolute;
+    top: -0.75rem;
+    right: 1rem;
+    background-color: var(--muted);
+    color: var(--muted-foreground);
+    padding: 0.2rem 0.6rem;
+    border-radius: 6px;
+    font-size: 0.8em;
+    font-weight: bold;
+  }
+  .code-block pre {
+    margin: 0;
+    padding: 1rem;
+    overflow-x: auto;
+    white-space: pre-wrap; /* 줄 바꿈을 위해 pre-wrap 사용 */
+    word-wrap: break-word; /* 긴 단어가 영역을 벗어나지 않도록 함 */
+  }
+  .code-block pre code {
+    font-family: "Fira Code", "D2Coding", monospace;
+    background: none;
+    color: var(--secondary-foreground);
+    padding: 0;
+  }
+
   .chat-window {
     width: 100%;
     max-width: 800px;

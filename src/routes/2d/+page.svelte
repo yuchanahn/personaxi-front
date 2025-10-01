@@ -7,54 +7,17 @@
   import { fetchAndSetAssetTypes, loadPersona } from "$lib/api/edit_persona";
   import type { Persona } from "$lib/types";
   import SettingsModal from "$lib/components/modal/SettingModal.svelte";
-  import { messages } from "$lib/stores/messages";
-  import { get } from "svelte/store";
-  import { st_user } from "$lib/stores/user";
 
   let lastSessionId: string | null = null;
   let persona: Persona | null = null;
   let llmType: string = "Error"; // Default value
-
-  const setupScene = () => {
-    if (persona?.first_scene) {
-      let first_scene = persona.first_scene;
-
-      first_scene = persona.first_scene.replaceAll(
-        "{{user}}",
-        get(st_user)?.data?.nickname || "User",
-      );
-
-      first_scene = first_scene.replaceAll(
-        "{{char}}",
-        persona.name || "Character",
-      );
-
-      messages.update((existingMessages) => [
-        {
-          role: "assistant",
-          content: first_scene,
-        },
-        ...existingMessages,
-      ]);
-    }
-  };
 
   const loadChatData = () => {
     const sessionId = $page.url.searchParams.get("c");
     llmType = $page.url.searchParams.get("llmType") || "Error";
     lastSessionId = sessionId;
 
-    loadChatHistory(sessionId ?? "").then(() => {
-      setupScene();
-      console.log("Subscribed to messages store for scene setup.");
-
-      messages.subscribe(() => {
-        if (get(messages).length === 0) {
-          setupScene();
-          console.log("No messages found, setting up scene.");
-        }
-      });
-    });
+    loadChatHistory(sessionId ?? "");
 
     if (sessionId) {
       loadPersona(sessionId).then((p) => {
@@ -118,6 +81,7 @@
 
   .chat-container {
     flex: 1; /* 남은 공간 모두 차지 */
+    height: 100vh; /* 화면 높이의 40% 차지 (조절 가능) */
     display: flex;
     flex-direction: column;
     min-height: 0;

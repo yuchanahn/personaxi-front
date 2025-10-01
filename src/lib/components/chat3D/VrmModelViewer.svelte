@@ -52,12 +52,7 @@
             viewer = getViewer();
             isModelLoading = false;
             updateCameraPosition();
-
             if (model) model.cfg = cfg;
-
-            //console.log(
-            //  "############ \n\n\n\n model lodded! \n\n\n\n ##############",
-            //);
           })
           .catch((error) => {
             console.error("Error loading VRM:", error);

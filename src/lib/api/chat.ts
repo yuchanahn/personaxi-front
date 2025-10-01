@@ -10,14 +10,18 @@ export async function loadChatHistory(sessionId: string) {
     const res = await api.get(`/api/chat/history?CSSID=${sessionId}`);
     if (res.ok) {
         const history = await res.json();
+
         if (history === null) {
-            messages.set([]);
+
+            messages.set([{ role: "assistant", content: "<first_scene>" }]);
             console.warn("No chat history found for session:", sessionId);
             return;
         }
-        messages.set(history.map((msg: any) => ({ role: msg.role, content: msg.content })));
+        messages.set(
+            [{ role: "assistant", content: "<first_scene>" }, ...history.map((msg: any) => ({ role: msg.role, content: msg.content }))]
+        );
     } else {
-        messages.set([]);
+        messages.set([{ role: "assistant", content: "<first_scene>" }]);
     }
 }
 
@@ -26,9 +30,9 @@ export async function resetChatHistory(sessionId: string) {
     if (res.ok) {
         const r = await res.json();
         console.log("Reset chat history response:", r);
-        messages.set([]);
+        messages.set([{ role: "assistant", content: "<first_scene>" }]);
     } else {
-        messages.set([]);
+        messages.set([{ role: "assistant", content: "<first_scene>" }]);
     }
 }
 

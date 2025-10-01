@@ -7,7 +7,6 @@
     import { fetchLivePersonas, setLiveStatus } from "$lib/services/live";
     import { locale, t } from "svelte-i18n";
     import AuctionModal from "$lib/components/modal/AuctionModal.svelte";
-    import { Avatar } from "bits-ui";
     import NeedMoreNeuronsModal from "$lib/components/modal/NeedMoreNeuronsModal.svelte";
     import NeuronIcon from "$lib/components/icons/NeuronIcon.svelte";
     import { get } from "svelte/store";

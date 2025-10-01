@@ -212,6 +212,24 @@
     let hasReceivedFirstCreationReward =
         get(st_user)?.data.hasReceivedFirstCreationReward ?? false;
 
+    let copiedState = new Map<number, boolean>();
+
+    async function copyAssetTag(index: number) {
+        const tag = `<img ${index}>`;
+        try {
+            await navigator.clipboard.writeText(tag);
+            copiedState.set(index, true);
+            copiedState = copiedState;
+
+            setTimeout(() => {
+                copiedState.set(index, false);
+                copiedState = copiedState;
+            }, 2000);
+        } catch (err) {
+            console.error("클립보드 복사 실패:", err);
+        }
+    }
+
     function removeAssetByIndex(indexToRemove: number) {
         persona.image_metadatas = persona.image_metadatas.filter(
             (_, index) => index !== indexToRemove,
@@ -707,15 +725,34 @@
                                                         asset.description
                                                     }
                                                 ></textarea>
-                                                <button
-                                                    class="btn-remove asset-remove"
-                                                    on:click={() =>
-                                                        removeAssetByIndex(
-                                                            index,
-                                                        )}
-                                                >
-                                                    &times;
-                                                </button>
+
+                                                <div class="asset-card-actions">
+                                                    <button
+                                                        type="button"
+                                                        class="btn btn-secondary btn-copy"
+                                                        on:click={() =>
+                                                            copyAssetTag(index)}
+                                                    >
+                                                        {#if copiedState.get(index)}
+                                                            <span
+                                                                >복사 완료! ✅</span
+                                                            >
+                                                        {:else}
+                                                            <span
+                                                                >태그 복사</span
+                                                            >
+                                                        {/if}
+                                                    </button>
+                                                    <button
+                                                        class="btn-remove asset-remove"
+                                                        on:click={() =>
+                                                            removeAssetByIndex(
+                                                                index,
+                                                            )}
+                                                    >
+                                                        &times;
+                                                    </button>
+                                                </div>
                                             </div>
                                         </div>
                                     {/each}
@@ -1358,6 +1395,29 @@
         display: flex;
         flex-direction: column;
         position: relative;
+    }
+
+    .asset-card-actions {
+        display: flex;
+        justify-content: flex-end;
+        align-items: center;
+        gap: 0.5rem;
+        margin-top: 0.5rem;
+    }
+
+    .btn-copy {
+        padding: 0.4rem 0.8rem;
+        font-size: 0.8rem;
+        flex-grow: 1; /* 버튼이 남은 공간을 채우도록 설정 */
+    }
+
+    .asset-remove {
+        position: static; /* 기존 absolute 포지셔닝 제거 */
+        top: auto;
+        right: auto;
+        width: auto;
+        height: auto;
+        background-color: transparent;
     }
 
     .asset-description-input {
