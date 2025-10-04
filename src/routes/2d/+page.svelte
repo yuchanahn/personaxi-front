@@ -106,6 +106,7 @@
       flex: 1;
     }
   }
+
   .settings-button-2d {
     position: absolute;
     top: 10px;

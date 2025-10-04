@@ -426,19 +426,18 @@
     z-index: 1; /* 캔버스가 배경이 되도록 z-index 낮게 설정 */
   }
   .chat-container {
-    position: absolute; /* 캔버스 위에 겹쳐지도록 */
-    bottom: 0; /* 화면 아래에 붙도록 */
-    width: 100%; /* 전체 가로 폭 */
-    height: 100vh; /* 화면 높이의 40% 차지 (조절 가능) */
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+    height: 100vh;
 
     padding-bottom: env(safe-area-inset-bottom, 0px);
 
-    /* 배경색 투명하게 */
-    background-color: rgba(255, 255, 255, 0); /* 배경색을 반투명하게 설정 */
+    background-color: rgba(255, 255, 255, 0);
 
     display: flex;
     flex-direction: column;
-    z-index: 2; /* 캔버스보다 위에 오도록 z-index 높게 설정 */
+    z-index: 2;
   }
   .chat-content {
     position: relative;

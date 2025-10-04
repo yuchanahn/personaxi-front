@@ -345,7 +345,7 @@
                             >
                                 <Icon icon="ri:edit-line" />
                             </button>
-                            <!-- --- 🔽 삭제 버튼을 공개/비공개 토글 버튼으로 변경 🔽 --- -->
+
                             <button
                                 class="btn"
                                 class:public={persona.visibility === "public"}
