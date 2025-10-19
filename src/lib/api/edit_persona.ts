@@ -1,5 +1,7 @@
 import type { ImageMetadata, Persona } from "$lib/types";
 import { api } from "$lib/api";
+import { settings } from "$lib/stores/settings";
+import { get } from "svelte/store";
 
 
 export async function getUploadUrl(fileType: "vrm" | "portrait" | "asset"): Promise<Response> {
@@ -68,6 +70,14 @@ export async function savePersona(persona: Persona): Promise<string> {
 
 
 export async function loadPersona(id: string): Promise<Persona> {
+    const response = await api.get2(`/api/persona?id=${id}&locale=${get(settings).language}`);
+    if (!response.ok) {
+        throw new Error("Failed to load persona");
+    }
+    return (await response.json()) as Persona;
+}
+
+export async function loadPersonaOriginal(id: string): Promise<Persona> {
     const response = await api.get2(`/api/persona?id=${id}`);
     if (!response.ok) {
         throw new Error("Failed to load persona");

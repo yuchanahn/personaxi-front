@@ -311,6 +311,7 @@
     "termsOfServiceTitle": "Terms of Service"
   },
   "profilePage": {
+    "translating": "Translating content. You can see the results by refreshing the page shortly.",
     "commentPostFailed": "Failed to post comment. Please try again later.",
     "loadingPersona": "Loading character information...",
     "imageAlt": "{name} image {index}",

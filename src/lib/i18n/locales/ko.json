@@ -320,6 +320,7 @@
     "confirm": "확인"
   },
   "profilePage": {
+    "translating": "콘텐츠를 번역하고 있어요. 잠시 후 새로고침하면 확인하실 수 있습니다.",
     "loadingPersona": "캐릭터 정보를 불러오는 중...",
     "imageAlt": "{name} 이미지 {index}",
     "imageMoveLabel": "{index}번 이미지로 이동",

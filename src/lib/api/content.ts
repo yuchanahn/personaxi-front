@@ -1,9 +1,11 @@
 import { api } from "$lib/api";
+import { settings } from "$lib/stores/settings";
 import type { Persona } from '$lib/types';
+import { get } from "svelte/store";
 
 
 export async function loadContent() {
-    const res = await api.get2(`/api/contents`);
+    const res = await api.get2(`/api/contents?locale=${get(settings).language}`);
     if (res.ok) {
         const data = await res.json();
         return data;
@@ -42,7 +44,6 @@ export async function LikeBtn(persona: Persona, onOk: () => void, onError: (mess
     }
 }
 
-
 export async function loadContentWithTags(tags: string[]) {
     const res = await api.get2(`/api/contents/t?t=${tags.join(",")}`);
     if (res.ok) {
@@ -51,8 +52,6 @@ export async function loadContentWithTags(tags: string[]) {
     }
     return [];
 }
-
-
 
 export async function loadContentWithName(name: string) {
     const res = await api.get2(`/api/contents/s?q=${name}`);

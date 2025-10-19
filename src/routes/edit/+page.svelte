@@ -6,7 +6,7 @@
     import {
         fetchAndSetAssetTypes,
         getUploadUrl,
-        loadPersona,
+        loadPersonaOriginal,
         savePersona,
         uploadFileWithProgress,
     } from "$lib/api/edit_persona";
@@ -67,7 +67,7 @@
 
     async function load_persona(id: string) {
         try {
-            const p = await loadPersona(id);
+            const p = await loadPersonaOriginal(id);
 
             singleInstruction = p.instructions[0] || "";
             if (p.instructions.length > 1 && p.instructions[1]) {

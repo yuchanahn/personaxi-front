@@ -425,6 +425,7 @@
     height: 100%;
     z-index: 1; /* 캔버스가 배경이 되도록 z-index 낮게 설정 */
   }
+
   .chat-container {
     position: absolute;
     bottom: 0;

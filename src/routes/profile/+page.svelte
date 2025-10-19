@@ -3,7 +3,6 @@
     import { page } from "$app/stores";
     import { goto } from "$app/navigation";
     import { fetchAndSetAssetTypes, loadPersona } from "$lib/api/edit_persona";
-    // 🔽 types.ts에 정의된 실제 Comment 타입을 가져옵니다.
     import type { Persona, ImageMetadata, Comment } from "$lib/types";
     import { PORTRAIT_URL } from "$lib/constants";
     import Icon from "@iconify/svelte";
@@ -16,19 +15,14 @@
     import AssetPreview from "$lib/components/AssetPreview.svelte";
     import { st_user } from "$lib/stores/user";
 
-    // --- 상태 관리 ---
     let persona: Persona | null = null;
     let comments: Comment[] = [];
     let isLoading = true;
-    let newCommentText = ""; // 댓글 입력창과 바인딩될 변수
+    let newCommentText = "";
 
-    // --- 이미지 갤러리 상태 변수 ---
     let galleryImages: ImageMetadata[] = [];
     let currentImageIndex = 0;
 
-    // --- 🔽 실제 API 호출 함수들 🔽 ---
-
-    // 코멘트 목록을 불러오는 함수
     async function loadComments(personaId: string): Promise<Comment[]> {
         const response = await api.get2(`/api/comments?personaId=${personaId}`);
         if (!response.ok) {
@@ -38,7 +32,6 @@
         return await response.json();
     }
 
-    // 새 코멘트를 등록하는 함수
     async function handlePostComment() {
         if (!newCommentText.trim() || !persona) return;
 
@@ -55,7 +48,6 @@
 
             const newComment: Comment = await response.json();
 
-            // 성공 시, 화면에 즉시 새 댓글을 추가 (Optimistic Update)
             comments = [...comments, newComment];
             newCommentText = ""; // 입력창 초기화
         } catch (err) {
@@ -64,16 +56,13 @@
         }
     }
 
-    // 제작자 태그 클릭 핸들러
     function goToCreatorPage(event: MouseEvent) {
-        // 이벤트 버블링을 막아서 카드 전체의 클릭 이벤트가 실행되지 않도록 함
         event.stopPropagation();
         if (persona?.owner_id) {
             goto(`/creator?c=${persona.owner_id}`);
         }
     }
 
-    // --- 🔽 날짜 포맷팅 헬퍼 함수 🔽 ---
     function formatTimestamp(timestamp: string): string {
         const now = new Date();
         const date = new Date(timestamp);
@@ -97,7 +86,6 @@
         });
     }
 
-    // --- 페이지 로드 시 데이터 초기화 ---
     onMount(async () => {
         const personaId = $page.url.searchParams.get("c");
         if (!personaId) {
@@ -108,7 +96,7 @@
         try {
             const [p, c, likes] = await Promise.all([
                 loadPersona(personaId),
-                loadComments(personaId), // 실제 API 호출로 변경됨
+                loadComments(personaId),
                 loadlikesdata(),
             ]);
             persona = p;
@@ -146,7 +134,6 @@
         }
     });
 
-    // --- 나머지 핸들러 함수들 (handleLike, showPrevImage 등)은 이전과 동일 ---
     function handleStartChat() {
         let llmType = get(settings).llmType || "gemini-flash-lite";
         chatSessions.update((sessions) => {
@@ -279,7 +266,10 @@
                         </button>
                     {/if}
                     <p class="character-description">
-                        {persona.greeting || $t("profilePage.defaultGreeting")}
+                        {persona.greeting === "<tr>"
+                            ? $t("profilePage.translating")
+                            : persona.greeting ||
+                              $t("profilePage.defaultGreeting")}
                     </p>
                     <div class="tags-container">
                         {#if persona.tags && persona.tags.length > 0}
@@ -295,16 +285,22 @@
                                 <Icon icon="ph:scroll-duotone" />
                                 <span>{$t("profilePage.firstSceneTitle")}</span>
                             </h3>
-                            <p class="scene-text">
-                                {replaceNicknameInText(persona.first_scene)
-                                    .length > 500
-                                    ? replaceNicknameInText(
-                                          persona.first_scene,
-                                      ).slice(0, 500) + "..."
-                                    : replaceNicknameInText(
-                                          persona.first_scene,
-                                      )}
-                            </p>
+                            {#if persona.first_scene === "<tr>"}
+                                <p class="scene-text">
+                                    {$t("profilePage.translating")}
+                                </p>
+                            {:else}
+                                <p class="scene-text">
+                                    {replaceNicknameInText(persona.first_scene)
+                                        .length > 500
+                                        ? replaceNicknameInText(
+                                              persona.first_scene,
+                                          ).slice(0, 500) + "..."
+                                        : replaceNicknameInText(
+                                              persona.first_scene,
+                                          )}
+                                </p>
+                            {/if}
                         </div>
                     {/if}
                     <div class="stats-container">
