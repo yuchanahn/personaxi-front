@@ -17,6 +17,7 @@
     import { get } from "svelte/store";
     import { api } from "$lib/api";
     import AssetPreview from "$lib/components/AssetPreview.svelte";
+    import { allCategories } from "$lib/constants";
 
     let vrmFile: File | null = null;
 
@@ -51,7 +52,6 @@
     let singleInstruction = "";
     let selectedTemplate = "custom";
     let promptExample = "";
-    let tags = "";
     let error = "";
     let last_id: string | null = null;
 
@@ -97,7 +97,6 @@
             } else {
                 p.image_metadatas = [];
             }
-
             persona = p;
         } catch (err) {
             console.error("페르소나를 불러오는 데 실패했습니다:", err);
@@ -176,17 +175,7 @@
         }
     }
 
-    function addTag() {
-        const newTags = tags
-            .split(",")
-            .map((tag) => tag.trim())
-            .filter((tag) => tag !== "");
-
-        if (newTags.length > 0) {
-            persona.tags = [...persona.tags, ...newTags];
-            tags = "";
-        }
-    }
+    // addTag() 함수 삭제
 
     function removeInstruction(index: number) {
         persona.instructions = persona.instructions.filter(
@@ -200,9 +189,17 @@
         );
     }
 
-    function removeTag(index: number) {
-        persona.tags = persona.tags.filter((_, i) => i !== index);
+    // removeTag() 함수 삭제
+
+    // --- 새 태그 토글 함수 ---
+    function toggleTag(tagId: string) {
+        if (persona.tags.includes(tagId)) {
+            persona.tags = persona.tags.filter((id) => id !== tagId);
+        } else {
+            persona.tags = [...persona.tags, tagId];
+        }
     }
+    // ------------------------
 
     let loading = false;
     let showSuccess = false;
@@ -297,6 +294,7 @@
                 assets_progress = assets_progress;
                 persona.image_metadatas[assetId].url =
                     `${supabaseURL}${fileName}`;
+                persona.image_metadatas[assetId].type = undefined;
 
                 console.log(
                     `✅ ${file.name} uploaded successfully on attempt ${attempt}`,
@@ -440,8 +438,8 @@
                     !persona.greeting.trim() ||
                     !persona.first_scene.trim() ||
                     persona.instructions.length === 0 ||
-                    persona.promptExamples.length === 0 ||
-                    persona.tags.length === 0
+                    //persona.promptExamples.length === 0 ||
+                    persona.tags.length === 0 // 👈 이 검사는 number[]에도 유효합니다
                 ) {
                     error = $t("editPage.validation.allFieldsRequired");
                     return;
@@ -657,11 +655,14 @@
                             {/if}
                         </div>
                         {#if portraitPreview}
-                            <img
-                                src={portraitPreview}
-                                alt="Profile preview"
-                                class="preview-image"
-                            />
+                            <div class="portrait-preview">
+                                <AssetPreview
+                                    asset={{
+                                        url: portraitPreview,
+                                        description: "",
+                                    }}
+                                />
+                            </div>
                         {/if}
 
                         {#if persona.personaType == "2D"}
@@ -917,92 +918,32 @@
                         </div>
                     </div>
                     <div class="form-group">
-                        <label for="prompt-example-input"
-                            >{$t("editPage.promptExamplesLabel")}</label
-                        >
-                        <p class="description">
-                            {$t("editPage.promptExamplesDescription")}
-                        </p>
-                        <div class="input-group">
-                            <input
-                                id="prompt-example-input"
-                                bind:value={promptExample}
-                                placeholder={$t(
-                                    "editPage.promptExamplesPlaceholder",
-                                )}
-                                maxlength="200"
-                            />
-                            <button
-                                type="button"
-                                class="btn btn-secondary"
-                                on:click={addPromptExample}
-                                disabled={persona.promptExamples.length >= 10}
-                                >{$t("editPage.addButton")}</button
-                            >
-                        </div>
-                        <div
-                            class="char-counter"
-                            class:warning={promptExample.length > 160}
-                            class:error={promptExample.length >= 200}
-                        >
-                            {promptExample.length} / 200 | {persona
-                                .promptExamples.length} / 10
-                        </div>
-                        <ul class="item-list">
-                            {#each persona.promptExamples as prompt, i}
-                                <li class="item">
-                                    <span class="item-text">{prompt}</span>
-                                    <button
-                                        type="button"
-                                        class="btn-remove"
-                                        on:click={() => removePromptExample(i)}
-                                        >&times;</button
-                                    >
-                                </li>
-                            {/each}
-                        </ul>
-                    </div>
-                    <div class="form-group">
-                        <label for="tags-input"
+                        <label for="tags-container"
                             >{$t("editPage.tagsLabel")}</label
                         >
                         <p class="description">
-                            {$t("editPage.tagsDescription")}
+                            {$t("editPage.tagsDescriptionCategory", {
+                                default: "카테고리를 선택하세요.",
+                            })}
                         </p>
-                        <div class="input-group">
-                            <input
-                                id="tags-input"
-                                type="text"
-                                bind:value={tags}
-                                placeholder={$t("editPage.tagsPlaceholder")}
-                                on:keydown={(e) => {
-                                    if (e.key === "Enter") {
-                                        e.preventDefault();
-                                        addTag();
-                                    }
-                                }}
-                            />
-                            <button
-                                type="button"
-                                class="btn btn-secondary"
-                                class:btn-add-emphasis={tags.length > 0}
-                                on:click={addTag}
-                                >{$t("editPage.addButton")}</button
-                            >
-                        </div>
-                        <ul class="tag-list">
-                            {#each persona.tags as tag, i}
-                                <li class="tag-item">
-                                    {tag}
-                                    <button
-                                        type="button"
-                                        class="btn-remove"
-                                        on:click={() => removeTag(i)}
-                                        >&times;</button
-                                    >
-                                </li>
+                        <div
+                            class="category-button-container"
+                            id="tags-container"
+                        >
+                            {#each allCategories as category (category.id)}
+                                <button
+                                    type="button"
+                                    class="category-button"
+                                    class:active={persona.tags.includes(
+                                        category.id.toString(),
+                                    )}
+                                    on:click={() =>
+                                        toggleTag(category.id.toString())}
+                                >
+                                    {$t(category.nameKey)}
+                                </button>
                             {/each}
-                        </ul>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -1013,8 +954,17 @@
 <FirstCreationRewardModal bind:isOpen={showRewardModal} />
 
 <style>
+    .portrait-preview {
+        margin-top: 1rem;
+        width: 150px;
+        height: 150px;
+        border-radius: var(--radius-input);
+        object-fit: cover;
+        border: 1px solid var(--border);
+        overflow: hidden;
+    }
+
     .gif-like-video {
-        /* 이 한 줄이 모든 마우스/터치 이벤트를 무시하게 만듭니다. */
         pointer-events: none;
     }
 
@@ -1195,24 +1145,7 @@
         white-space: pre-wrap;
     }
 
-    .tag-list {
-        list-style: none;
-        padding: 0;
-        margin-top: 1rem;
-        display: flex;
-        flex-wrap: wrap;
-        gap: 0.5rem;
-    }
-    .tag-item {
-        background-color: var(--secondary);
-        color: var(--secondary-foreground);
-        padding: 0.3rem 0.8rem;
-        border-radius: 16px;
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-        font-size: 0.9rem;
-    }
+    /* .tag-list, .tag-item 삭제됨 */
 
     /* === 버튼 === */
     .btn {
@@ -1233,24 +1166,7 @@
         opacity: 0.9;
     }
 
-    .btn-add-emphasis {
-        animation: pulse 1.5s infinite;
-    }
-
-    @keyframes pulse {
-        0% {
-            box-shadow: 0 0 0 0 hsl(260 90% 68% / 0.7);
-            border-color: hsl(260 90% 68% / 0.8);
-        }
-        70% {
-            box-shadow: 0 0 0 8px hsl(260 90% 68% / 0);
-            border-color: hsl(260 90% 68% / 1);
-        }
-        100% {
-            box-shadow: 0 0 0 0 hsl(260 90% 68% / 0);
-            border-color: hsl(260 90% 68% / 0.8);
-        }
-    }
+    /* .btn-add-emphasis, @keyframes pulse 삭제됨 */
 
     .btn-remove {
         background: none;
@@ -1459,5 +1375,34 @@
         height: 5px;
         background-color: var(--primary);
         transition: width 0.2s ease-in-out;
+    }
+    /* --- 새 카테고리 버튼 스타일 --- */
+    .category-button-container {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.75rem;
+        padding-top: 0.25rem;
+    }
+    .category-button {
+        padding: 0.5rem 1rem;
+        border-radius: 999px; /* 타원형 모양 */
+        border: 1px solid var(--border);
+        background-color: var(--muted);
+        color: var(--muted-foreground);
+        font-size: 0.9rem;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s ease-in-out;
+    }
+    .category-button:not(.active):hover {
+        background-color: var(--secondary);
+        border-color: var(--border-hover);
+        transform: translateY(-1px);
+    }
+    .category-button.active {
+        background: var(--primary-gradient);
+        color: var(--primary-foreground);
+        border-color: transparent;
+        font-weight: 600;
     }
 </style>

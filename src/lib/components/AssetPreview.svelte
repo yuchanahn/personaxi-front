@@ -8,6 +8,8 @@
         (async () => {
             const assetsWithType = await fetchAndSetAssetTypes([asset]);
 
+            console.log("Fetched asset type:", assetsWithType);
+
             if (assetsWithType[0] && assetsWithType[0].type) {
                 asset.type = assetsWithType[0].type;
             }

@@ -438,5 +438,16 @@
     "minutesAgo": "{count}분 전",
     "hoursAgo": "{count}시간 전",
     "daysAgo": "{count}일 전"
+  },
+  "tags": {
+    "all": "전체",
+    "romance": "로맨스",
+    "fantasy": "판타지",
+    "scifi": "SF",
+    "horror": "호러",
+    "sliceOfLife": "일상",
+    "action": "액션",
+    "comedy": "코미디",
+    "drama": "드라마"
   }
 }

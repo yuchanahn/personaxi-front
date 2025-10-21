@@ -473,5 +473,16 @@
     "minutesAgo": "{count}m ago",
     "hoursAgo": "{count}h ago",
     "daysAgo": "{count}d ago"
+  },
+  "tags": {
+    "all": "All",
+    "romance": "Romance",
+    "fantasy": "Fantasy",
+    "scifi": "Sci-Fi",
+    "horror": "Horror",
+    "sliceOfLife": "Slice of Life",
+    "action": "Action",
+    "comedy": "Comedy",
+    "drama": "Drama"
   }
 }

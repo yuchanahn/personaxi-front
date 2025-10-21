@@ -11,6 +11,7 @@
     import { t } from "svelte-i18n";
     import CharacterCard from "../card/CharacterCard.svelte";
     import Icon from "@iconify/svelte";
+    import { allCategories } from "$lib/constants";
 
     // --- 상태 관리 ---
     let contents = writable<PersonaDTO[]>([]);
@@ -21,19 +22,6 @@
     let query = "";
     let searchType: "name" | "tags" = "name";
 
-    // 카테고리 필터 상태
-    const categories = [
-        "3D",
-        "판타지",
-        "로맨스",
-        "시뮬레이션",
-        "대화",
-        "일상",
-        "SF",
-        "미스터리",
-        "액션",
-        "코미디",
-    ];
     let selectedCategory: string | null = null; // null이면 '전체'
 
     // --- 데이터 로딩 및 필터링 ---
@@ -138,13 +126,13 @@
                 >
                     {$t("contentHub.all")}
                 </button>
-                {#each categories as category}
+                {#each allCategories as category (category.id)}
                     <button
                         class="bubble"
-                        class:active={selectedCategory === category}
-                        on:click={() => filterByCategory(category)}
+                        class:active={selectedCategory === category.nameKey}
+                        on:click={() => filterByCategory(category.nameKey)}
                     >
-                        {category}
+                        {$t(`${category.nameKey}`)}
                     </button>
                 {/each}
             </div>
