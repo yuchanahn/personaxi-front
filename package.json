@@ -19,6 +19,7 @@
 		"@sveltejs/adapter-static": "^3.0.8",
 		"@sveltejs/kit": "^2.21.2",
 		"@sveltejs/vite-plugin-svelte": "^5.1.0",
+		"@types/dom-speech-recognition": "^0.0.7",
 		"@types/three": "0.167.0",
 		"esbuild": "0.25.4",
 		"svelte": "^5.33.14",

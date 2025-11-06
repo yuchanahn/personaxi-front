@@ -2,11 +2,21 @@
   import { autoResize } from "$lib/hooks/autoResize";
   import Icon from "@iconify/svelte";
   import { t } from "svelte-i18n";
+  import SttComponent from "../stt/SttComponent.svelte";
 
-  export let onSend: (text: string) => void;
-  export let onChangeInput: (text: string) => void = (t: string) => {};
-  export let isDisabled = false;
-  let prompt = "";
+  let {
+    onSend,
+    onChangeInput = (t: string) => {},
+    isDisabled = false,
+    isListening = $bindable(false),
+  }: {
+    onSend: (text: string) => void;
+    onChangeInput?: (text: string) => void;
+    isDisabled?: boolean;
+    isListening?: boolean;
+  } = $props();
+
+  let prompt = $state("");
 
   function handleSubmit(e: KeyboardEvent) {
     if (isDisabled) return;
@@ -30,29 +40,37 @@
 </script>
 
 <div class="chat-input-wrapper">
-  <div class="input-container">
-    <textarea
-      bind:value={prompt}
-      placeholder={$t("chatInput.placeholder")}
-      class="chat-input focus-override"
-      rows="1"
-      use:autoResize={180}
-      on:keydown={handleSubmit}
-      on:input={() => onChangeInput(prompt)}
-    ></textarea>
-    <button
-      class="chat-send-button"
-      class:is-disabled={isDisabled}
-      on:click={() => {
-        if (prompt.trim() === "") return;
-        onSend(prompt);
-        prompt = "";
-      }}
-      title={$t("chatInput.sendButton")}
-      aria-label={$t("chatInput.sendButton")}
-    >
-      <Icon icon="ci:arrow-up-lg" width="24" height="24" />
-    </button>
+  <div class="input-container" class:listening={isListening}>
+    {#if !isListening}
+      <textarea
+        bind:value={prompt}
+        placeholder={$t("chatInput.placeholder")}
+        class="chat-input focus-override"
+        rows="1"
+        use:autoResize={180}
+        on:keydown={handleSubmit}
+        on:input={() => onChangeInput(prompt)}
+      ></textarea>
+    {/if}
+    {#if prompt.trim() === ""}
+      <div class="chat-send-button" title="음성 입력" aria-label="음성 입력">
+        <SttComponent bind:isListening onSpeechComplete={onSend} />
+      </div>
+    {:else}
+      <button
+        class="chat-send-button"
+        class:is-disabled={isDisabled}
+        on:click={() => {
+          if (prompt.trim() === "") return;
+          onSend(prompt);
+          prompt = "";
+        }}
+        title={$t("chatInput.sendButton")}
+        aria-label={$t("chatInput.sendButton")}
+      >
+        <Icon icon="ci:arrow-up-lg" width="24" height="24" />
+      </button>
+    {/if}
   </div>
 </div>
 
@@ -134,6 +152,16 @@
     background-color: var(--muted);
     color: var(--muted-foreground);
     cursor: not-allowed;
+  }
+
+  .listening .chat-send-button {
+    position: fixed;
+    bottom: 2rem;
+    left: 50%;
+    transform: translateX(-50%);
+
+    width: 60px;
+    height: 60px;
   }
 
   @media (max-width: 600px) {
