@@ -189,17 +189,17 @@
         );
     }
 
-    // removeTag() 함수 삭제
-
-    // --- 새 태그 토글 함수 ---
     function toggleTag(tagId: string) {
         if (persona.tags.includes(tagId)) {
             persona.tags = persona.tags.filter((id) => id !== tagId);
         } else {
-            persona.tags = [...persona.tags, tagId];
+            if (persona.tags.length < 3) {
+                persona.tags = [...persona.tags, tagId];
+            } else {
+                alert($t("최대 3개까지만 선택할 수 있습니다."));
+            }
         }
     }
-    // ------------------------
 
     let loading = false;
     let showSuccess = false;
@@ -937,6 +937,10 @@
                                     class:active={persona.tags.includes(
                                         category.id.toString(),
                                     )}
+                                    class:disabled={persona.tags.length >= 3 &&
+                                        !persona.tags.includes(
+                                            category.id.toString(),
+                                        )}
                                     on:click={() =>
                                         toggleTag(category.id.toString())}
                                 >
@@ -1077,6 +1081,11 @@
         outline: none;
         border-color: var(--primary);
         box-shadow: 0 0 0 2px var(--ring);
+    }
+
+    .category-button.disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
     }
 
     .input-group {

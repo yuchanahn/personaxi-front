@@ -49,7 +49,7 @@
             if (userRes) {
                 user = userRes as User;
 
-                if (!user.data) {
+                if (!user.data || user.data.language === "") {
                     user.data = {
                         nickname: user.name,
                         language: get(locale) || "",
@@ -58,6 +58,16 @@
                         hasReceivedFirstCreationReward: false,
                         lastLoginIP: "",
                     };
+
+                    console.log(
+                        "language data missing, set default:",
+                        user.data.language,
+                    );
+
+                    settings.update((s) => {
+                        s.language = (user.data.language as Language) || "en";
+                        return { ...s };
+                    });
                 }
             } else {
                 error = "Failed to load user : " + userRes.status;
@@ -174,6 +184,7 @@
     }
 
     import SettingsModal from "$lib/components/modal/UserSettingsModal.svelte";
+    import { settings, type Language } from "$lib/stores/settings";
 
     let showSettingsModal = false;
 </script>

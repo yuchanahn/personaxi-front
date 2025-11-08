@@ -7,7 +7,7 @@
     import Sidebar from "$lib/components/sidebar/Sidebar.svelte";
     import NavBottom from "$lib/components/Nav/NavBottom.svelte";
     import CheatConsole from "$lib/components/cheat/CheatConsole.svelte";
-    import { settings } from "$lib/stores/settings";
+    import { settings, type Language } from "$lib/stores/settings";
     /* ────────────── 모달들 ────────────── */
     import NeedMoreNeuronsModal from "$lib/components/modal/NeedMoreNeuronsModal.svelte";
     import ConsentModal from "$lib/components/modal/ConsentModal.svelte";
@@ -79,10 +79,12 @@
         }
         accessToken.set(null);
 
+        return;
+
         if (await api.isLoggedIn()) {
             await getCurrentUser();
         } else {
-            console.warn("로그인 정보가 없습니다. 로그인 페이지로 이동합니다.");
+            //console.warn("로그인 정보가 없습니다. 로그인 페이지로 이동합니다.");
         }
     });
 
@@ -91,7 +93,24 @@
         if (!token) {
             return;
         }
+        let user = await getCurrentUser();
+        if (user) {
+            if (user.state === "new") {
+                consentModal = true;
+            }
 
+            if (user.data.language === "") {
+                settings.update((s) => {
+                    s.language = (get(locale) as Language) || "en";
+                    return { ...s };
+                });
+            } else if (user.data.language !== get(locale)) {
+                settings.update((s) => {
+                    s.language = user.data.language as Language;
+                    return { ...s };
+                });
+            }
+        }
         loadCharacterSessions();
     });
 

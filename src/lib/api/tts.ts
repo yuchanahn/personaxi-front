@@ -1,10 +1,24 @@
 import { api } from '$lib/api';
-import { API_BASE_URL } from '$lib/constants';
 import { ttsState } from '$lib/stores/ttsStore';
 
 let socket: WebSocket | null = null;
 let audioContext: AudioContext | null = null;
 let heartbeatInterval: ReturnType<typeof setInterval> | null = null;
+let currentAudioSource: AudioBufferSourceNode | null = null;
+
+export function stopCurrentAudio() {
+    if (currentAudioSource) {
+        console.log("🛑 현재 오디오 재생을 중지합니다.");
+        currentAudioSource.onended = null;
+        try {
+            currentAudioSource.stop(0);
+        } catch (e) {
+            console.warn("오디오 중지 시도 중 오류:", e);
+        }
+        currentAudioSource.disconnect();
+        currentAudioSource = null;
+    }
+}
 
 function initializeAudioContext() {
     if (!audioContext) {
@@ -25,7 +39,6 @@ function startHeartbeat() {
     }
     heartbeatInterval = setInterval(() => {
         if (socket && socket.readyState === WebSocket.OPEN) {
-            console.log('❤️ Sending heartbeat ping');
             socket.send(JSON.stringify({ type: 'ping' }));
         }
     }, 30000); // 30초마다
@@ -63,13 +76,11 @@ export function connectTTSSocket(speek?: (audio: ArrayBuffer) => void): WebSocke
     };
 
     socket.onmessage = async (event) => {
-        // 하트비트 응답 처리
         if (typeof event.data === 'string') {
             try {
                 const message = JSON.parse(event.data);
                 if (message.type === 'pong') {
-                    console.log('❤️ Received heartbeat pong');
-                    return; // pong 메시지는 오디오 처리를 하지 않음
+                    return;
                 }
             } catch (e) {
                 // JSON 파싱 실패 시, 일반 텍스트 메시지로 간주 (필요 시 처리)
@@ -87,10 +98,8 @@ export function connectTTSSocket(speek?: (audio: ArrayBuffer) => void): WebSocke
         let audioData: ArrayBuffer;
         if (event.data instanceof Blob) {
             audioData = await event.data.arrayBuffer();
-            console.log("Blob 타입 오디오 데이터 수신. ArrayBuffer로 변환됨.");
         } else if (event.data instanceof ArrayBuffer) {
             audioData = event.data;
-            console.log("ArrayBuffer 타입 오디오 데이터 수신.");
         } else {
             console.error("❌ 알 수 없는 형식의 오디오 데이터:", typeof event.data, event.data);
             return;
@@ -98,37 +107,45 @@ export function connectTTSSocket(speek?: (audio: ArrayBuffer) => void): WebSocke
 
         try {
             if (speek) {
-                console.log("🎶 외부 함수 호출로 오디오 재생 시작");
-
+                stopCurrentAudio();
+                console.log("🎶 외부 함수 호출로 오디오 재생 시작 (자체 중단 로직 필요)");
                 speek(audioData);
                 return;
             }
 
-            const audioBuffer = await audioContext.decodeAudioData(audioData);
+            if (currentAudioSource) {
+                console.log("⏩ 새로운 오디오 수신. 이전 오디오를 중지합니다.");
+                stopCurrentAudio();
+            }
 
+            const audioBuffer = await audioContext.decodeAudioData(audioData);
             const source = audioContext.createBufferSource();
             source.buffer = audioBuffer;
             source.connect(audioContext.destination);
 
+            currentAudioSource = source;
+
             source.start(0);
-            console.log("🎶 오디오 재생 시작!");
 
             source.onended = () => {
-                console.log("🔇 오디오 재생 완료.");
                 source.disconnect();
+                if (currentAudioSource === source) {
+                    currentAudioSource = null;
+                }
             };
 
         } catch (e) {
             console.error("❌ 오디오 데이터 디코딩 또는 재생 실패:", e);
+            currentAudioSource = null;
         }
     };
 
     return socket;
 }
 
-//연결 해제
 export function disconnectTTSSocket() {
     stopHeartbeat();
+    stopCurrentAudio();
     if (socket) {
         socket.close();
         socket = null;

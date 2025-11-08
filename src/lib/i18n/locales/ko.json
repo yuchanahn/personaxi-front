@@ -58,7 +58,8 @@
     "explore": "탐색",
     "feed": "피드",
     "create": "생성",
-    "settings": "설정"
+    "settings": "설정",
+    "chat": "채팅"
   },
   "settingPage": {
     "title": "내 페이지",

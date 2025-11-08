@@ -446,7 +446,8 @@
     "explore": "Explore",
     "feed": "Reels",
     "create": "Create",
-    "settings": "Settings"
+    "settings": "Settings",
+    "chat": "Chat"
   },
   "settingPageModal": {
     "korean": "Korean",

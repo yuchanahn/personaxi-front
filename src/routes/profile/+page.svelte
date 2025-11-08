@@ -192,6 +192,35 @@
             .replaceAll("{{user}}", get(st_user)?.data?.nickname || "User")
             .replaceAll("{{char}}", persona.name || "Character");
     }
+
+    interface ThreeDSceneData {
+        mem_list?: string; // 기억/서사 (가장 중요)
+        current_emotion?: string; // 현재 감정
+        personality?: string; // 성격
+        core_desire?: string; // 핵심 욕구
+        contradiction?: string; // 모순
+        values?: string; // 가치관
+    }
+
+    function tryParse3DScene(jsonString: string): ThreeDSceneData | null {
+        try {
+            const parsed = JSON.parse(jsonString);
+            if (parsed && typeof parsed === "object") {
+                return parsed as ThreeDSceneData;
+            }
+            return null;
+        } catch (e) {
+            return null;
+        }
+    }
+
+    let threeDSceneData: ThreeDSceneData | null = null;
+
+    $: if (persona && persona.personaType === "3D" && persona.first_scene) {
+        threeDSceneData = tryParse3DScene(persona.first_scene);
+    } else {
+        threeDSceneData = null;
+    }
 </script>
 
 <div class="scroll-container select-none">
@@ -282,10 +311,70 @@
                     {#if persona.first_scene}
                         <div class="first-scene-container">
                             <h3 class="scene-title">
-                                <Icon icon="ph:scroll-duotone" />
-                                <span>{$t("profilePage.firstSceneTitle")}</span>
+                                <Icon
+                                    icon={threeDSceneData
+                                        ? "ph:cpu-duotone"
+                                        : "ph:scroll-duotone"}
+                                />
+                                <span>
+                                    {threeDSceneData
+                                        ? $t("profilePage.characterIntel")
+                                        : $t("profilePage.firstSceneTitle")}
+                                </span>
                             </h3>
-                            {#if persona.first_scene === "<tr>"}
+
+                            {#if threeDSceneData}
+                                <div class="threed-data-wrapper">
+                                    <div class="threed-chips">
+                                        {#if threeDSceneData.current_emotion}
+                                            <div class="data-chip emotion">
+                                                <span class="chip-label"
+                                                    ><Icon
+                                                        icon="ph:smiley-duotone"
+                                                    /> 감정</span
+                                                >
+                                                <span class="chip-value"
+                                                    >{threeDSceneData.current_emotion}</span
+                                                >
+                                            </div>
+                                        {/if}
+                                        {#if threeDSceneData.core_desire}
+                                            <div class="data-chip desire">
+                                                <span class="chip-label"
+                                                    ><Icon
+                                                        icon="ph:target-duotone"
+                                                    /> 욕구</span
+                                                >
+                                                <span class="chip-value"
+                                                    >{threeDSceneData.core_desire}</span
+                                                >
+                                            </div>
+                                        {/if}
+                                        {#if threeDSceneData.personality}
+                                            <div class="data-chip personality">
+                                                <span class="chip-label"
+                                                    ><Icon
+                                                        icon="ph:fingerprint-duotone"
+                                                    /> 성격</span
+                                                >
+                                                <span class="chip-value"
+                                                    >{threeDSceneData.personality}</span
+                                                >
+                                            </div>
+                                        {/if}
+                                    </div>
+
+                                    {#if threeDSceneData.mem_list}
+                                        <div class="threed-narrative">
+                                            <p class="scene-text">
+                                                {@html replaceNicknameInText(
+                                                    threeDSceneData.mem_list,
+                                                ).replaceAll("\n", "<br/>")}
+                                            </p>
+                                        </div>
+                                    {/if}
+                                </div>
+                            {:else if persona.first_scene === "<tr>"}
                                 <p class="scene-text">
                                     {$t("profilePage.translating")}
                                 </p>
@@ -784,6 +873,63 @@
     .comments-section {
         min-width: 0;
         word-break: break-word;
+    }
+    .threed-data-wrapper {
+        display: flex;
+        flex-direction: column;
+        gap: 1.2rem;
+    }
+
+    .threed-chips {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.8rem;
+    }
+
+    .data-chip {
+        display: flex;
+        flex-direction: column;
+        background: hsla(var(--dark), 0.3);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 0.6rem 0.8rem;
+        font-size: 0.9rem;
+        min-width: 120px;
+        flex: 1 1 auto;
+    }
+
+    .chip-label {
+        display: flex;
+        align-items: center;
+        gap: 0.3rem;
+        font-size: 0.75rem;
+        font-weight: 600;
+        color: var(--muted-foreground);
+        margin-bottom: 0.3rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
+
+    .chip-value {
+        color: var(--foreground);
+        font-weight: 500;
+    }
+
+    .data-chip.emotion {
+        border-left: 3px solid #ff79c6;
+    }
+    .data-chip.desire {
+        border-left: 3px solid #bd93f9;
+    }
+    .data-chip.personality {
+        border-left: 3px solid #50fa7b;
+    }
+
+    .threed-narrative {
+        background: hsla(var(--background), 0.5);
+        border-radius: 8px;
+        padding: 1rem;
+        border-left: 2px solid var(--primary); /* 강조 라인 */
     }
     @media (max-width: 992px) {
         .profile-container {

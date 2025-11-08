@@ -93,11 +93,11 @@
                         on:click={() => (searchType = "name")}
                         >{$t("contentHub.searchByName")}</button
                     >
-                    <button
+                    <!-- <button
                         class:active={searchType === "tags"}
                         on:click={() => (searchType = "tags")}
                         >{$t("contentHub.searchByTags")}</button
-                    >
+                    > -->
                 </div>
                 <div class="search-input-wrapper">
                     <input
