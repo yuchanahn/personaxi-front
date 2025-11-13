@@ -19,7 +19,6 @@
     "profileImageLabel": "Profile Image",
     "vrmFileLabel": "VRM File",
     "fileSelect": "Choose File",
-    "aiSettings": "AI Details",
     "instructionsLabel": "Instructions",
     "instructionsDescription": "Define the core identity of the AI, such as its role, personality, and tone.",
     "instructionsPlaceholder": "e.g., You are a friendly AI assistant.",
@@ -57,7 +56,35 @@
     "greetingDescription": "Greeting message the persona will use to start a conversation.",
     "greetingPlaceholder": "e.g., Hello! How can I help you?",
     "voiceLabel": "Voice",
-    "voiceDescription": "Select the persona's voice."
+    "voiceDescription": "Select the persona's voice.",
+    "aiSettings": {
+      "title": "AI Detail Settings",
+      "addDialogueTag": "Add Dialogue Tag",
+      "templateSelectLabel": "Select Prompt Template",
+      "templateCustom": "Custom Template",
+      "templateConversation": "Conversation Template",
+      "templateSimulation": "Simulation Template",
+      "templateKintsugi": "CSS Dialogue (Advanced)"
+    },
+    "kintsugi": {
+      "descriptionLabel": "Character Description",
+      "descriptionDesc": "Describe the character's background, appearance, and core settings.",
+      "descriptionPlaceholder": "e.g., Shuchiin Academy vice president. Cold on the outside, but warm on the inside.",
+      "personalityLabel": "Character Personality",
+      "personalityDesc": "Define the character's manner of speech, personality, and values.",
+      "personalityPlaceholder": "e.g., Seems very calculating and cold, but is actually naive and in love.",
+      "userPersonaLabel": "User Persona",
+      "userPersonaDesc": "Define how the AI will perceive you, the user.",
+      "userPersonaPlaceholder": "e.g., Shuchiin Academy president. Likes Kaguya but can't confess.",
+      "scenarioLabel": "Scenario Setup",
+      "scenarioDesc": "Describe the situation or background. (Works separately from the first scene)",
+      "scenarioPlaceholder": "e.g., Two people bump into each other in the student council room."
+    },
+    "assets": {
+      "copySuccess": "Copied! ✅",
+      "copy": "Copy Tag"
+    },
+    "tagsDescriptionCategory": "Select categories."
   },
   "settingPage": {
     "title": "My Page",
@@ -382,7 +409,10 @@
     "deleteChat": "Delete Chat",
     "confirmReset": "Are you sure you want to reset the chat history? This cannot be undone.",
     "confirmDelete": "Are you sure you want to permanently delete this chat session?",
-    "includeAllUtterances": "Include All Utterances"
+    "includeAllUtterances": "Include All Utterances",
+    "neuronsConsumed": "neurons consumed per response",
+    "costDisplay": "Cost:",
+    "neuronBalance": "Neuron Balance: "
   },
   "chatSession": {
     "system": {

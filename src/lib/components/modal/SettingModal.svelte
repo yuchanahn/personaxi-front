@@ -14,28 +14,23 @@
     import { chatSessions } from "$lib/stores/chatSessions";
     import type { User } from "$lib/types";
     import { getCurrentUser } from "$lib/api/auth";
-    // import { userSettings, updateUserSettings } from '$lib/stores/user'; // 사용자 설정 스토어 (가정)
 
-    /* -------------------- Props & Dispatcher -------------------- */
     export let isOpen: boolean = false;
     export let persona: Persona;
-    export let llmType: string = "Error"; // LLM 타입 (기본값 설정)
+    export let llmType: string = "Error";
 
     const dispatch = createEventDispatcher();
 
-    /* -------------------- State Management -------------------- */
     let isLoading = false;
-    let isConfirmingDelete = false; // 2단계 삭제 확인 상태
-    let statusMessage = ""; // 사용자 피드백 메시지
+    let isConfirmingDelete = false;
+    let statusMessage = "";
 
-    // [REFACTOR] $: 반응성 문법으로 prop 변경에 안전하게 대응
     $: isLiked = persona.is_liked || false;
 
-    // 사용 가능한 LLM 목록
     const availableLLMs = [
-        { id: "gemini-flash", name: "Gemini Flash (균형)", cost: 3 },
-        { id: "gemini-flash-lite", name: "Gemini Flash Lite (속도)", cost: 1 },
-        { id: "gemini-pro", name: "Gemini Pro (품질)", cost: 5 },
+        { id: "gemini-flash", name: "Gemini Flash", cost: 3 },
+        { id: "gemini-flash-lite", name: "Gemini Flash Lite", cost: 1 },
+        { id: "gemini-pro", name: "Gemini Pro", cost: 5 },
     ];
     $: selectedLLM =
         availableLLMs.find((llm) => llm.id === llmType) || availableLLMs[0];
@@ -219,7 +214,8 @@
 
             <div class="settings-section">
                 <span class="neuron-balance">
-                    현재 뉴런: {user?.credits} ⚡️
+                    {$t("settingModal.neuronBalance")}
+                    {user?.credits} ⚡️
                 </span>
 
                 <h3 class="section-title">
@@ -246,7 +242,8 @@
                 <p class="section-description">
                     {$t("settingModal.llmDescription")}
                     <span class="cost-display">
-                        응답 당 ⚡️{selectedLLM.cost} 뉴런이 소모됩니다.
+                        {$t("settingModal.costDisplay")} ⚡️{selectedLLM.cost}
+                        {$t("settingModal.neuronsConsumed")}
                     </span>
                 </p>
             </div>

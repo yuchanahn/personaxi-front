@@ -13,6 +13,10 @@
             if (assetsWithType[0] && assetsWithType[0].type) {
                 asset.type = assetsWithType[0].type;
             }
+
+            if (!asset.type) {
+                asset.type = "unknown";
+            }
         })();
     }
 </script>
@@ -28,11 +32,13 @@
         class="asset-preview-media gif-like-video"
     >
         <source src={asset.url} />
-        이 브라우저는 비디오 태그를 지원하지 않습니다.
+        this browser does not support the video tag.
     </video>
+{:else if asset.type === "unknown"}
+    <div class="fallback"></div>
 {:else}
     <div class="fallback">
-        <p>미리보기를<br />로드하는 중...</p>
+        <p>loading...</p>
     </div>
 {/if}
 

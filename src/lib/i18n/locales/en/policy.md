@@ -1,54 +1,82 @@
-## Privacy Policy (EN)
+# Privacy Policy
 
-Our PersonaXI values your personal information and complies with the 「Personal Information Protection Act」 and related laws and regulations. Through this Privacy Policy, we inform you about how the personal information you provide is used and what measures are being taken to protect your personal information.
+**Effective Date: November 13, 2025**
 
-### 1. Items of Personal Information Collected and Collection Methods
+PersonaXI ("we," "us," or "our") is committed to protecting your privacy. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you use our service personaxi (the "Service").
 
-We may collect the following personal information during member registration, service use, and consultation processes:
+By using the Service, you consent to the data practices described in this policy.
 
-*   Required items: Email, password, nickname
-*   Optional items: Profile image, social media ID (when linked)
+### 1. Information We Collect
 
-Personal information is collected through websites, mobile apps, written forms, phone calls, emails, event applications, etc.
+We collect the following types of information:
 
-### 2. Purpose of Collection and Use of Personal Information
+**A. Information You Provide Us**
+* **Account Information (via Google OAuth)**: When you create an Account, we require you to log in via Google. We automatically collect your **Email Address** and **Profile Name** from Google.
+* **Optional Information**: You may voluntarily provide additional information, such as **Gender**.
+* **Content You Create**: We collect the "Personas" you create and the "Chat Logs" (text inputs and AI outputs) you generate.
 
-Collected personal information is used only for the following purposes:
+**B. Information We Collect Automatically**
+* **Log and Usage Data**: Like most websites, we collect information that your browser sends when you use our Service. This may include your IP address, browser type, operating system, and service usage data.
+* **Cookies**: We use cookies to operate and provide the Service. A cookie is a small piece of data stored on your device. We use "session" cookies to keep you logged in while you use the Service. You can instruct your browser to refuse cookies, but you may not be able to use some portions of our Service.
 
-*   Fulfillment of contracts for service provision and settlement of fees for service provision
-*   Member management (identity verification, personal identification, prevention of unauthorized use, etc.)
-*   Service improvement and new service development
-*   Marketing and advertising (with consent)
+### 2. How We Use Your Information
 
-### 3. Retention and Use Period of Personal Information
+We use the information we collect for the following purposes:
+* **To Provide and Maintain the Service**: To authenticate you, provide access to your Personas, process your Credit purchases, and generate AI responses.
+* **To Communicate With You**: To send you service-related notices, security alerts, and support messages.
+* **To Improve the Service**: To understand how users interact with our Service and to train our AI models to be safer, more accurate, and more useful.
+* **To Enforce Terms and Prevent Fraud**: To protect the security and integrity of our Service and enforce our Terms of Service.
 
-In principle, your personal information will be destroyed without delay once the purpose of collection and use of personal information has been achieved. However, if it is necessary to preserve personal information in accordance with the provisions of relevant laws and regulations, it will be stored for the period specified by those laws.
+### 3. How We Share Your Information
 
-### 4. Procedures and Methods for Destroying Personal Information
+We do not sell or "share" (as defined by California law) your personal information. We only disclose your information in the following limited circumstances:
 
-After the purpose of use is achieved, your personal information is transferred to a separate DB (or a separate document box for paper documents), stored for a certain period in accordance with relevant laws, and then destroyed. Paper documents are shredded or incinerated, and electronic files are deleted using technical methods that prevent their recovery.
+* **Service Providers (Vendors)**: We share information with third-party vendors who help us operate the Service. These providers are contractually bound to protect your data.
+    * **Google, LLC (USA)**: To provide the Gemini LLM (AI model) service. We send your chat inputs and persona data to Google to generate AI responses.
+    * **Amazon Web Services, Inc. (USA)**: To host our application database (AWS RDS).
+    * **Supabase, Inc. (USA)**: To store files (images, VRM) you upload.
+    * **ElevenLabs, Inc. (USA)**: To provide Text-to-Speech (TTS) services.
+* **Legal Compliance**: We may disclose your information if required by law, subpoena, or other legal process.
+* **Business Transfers**: If we are involved in a merger, acquisition, or asset sale, your information may be transferred.
 
-### 5. Provision of Personal Information to Third Parties
+### 4. Data Retention
 
-In principle, we do not provide your personal information to external parties. However, exceptions are made in the following cases:
+We retain your personal information for as long as your Account is active. If you delete your Account, **we will immediately initiate the deletion of all your personal information**, including your Personas and Chat Logs, from our production systems.
 
-*   When users have given prior consent
-*   When required by law, or when investigative agencies request it in accordance with legal procedures and methods for investigation purposes
+### 5. Your Privacy Rights (CCPA)
 
-### 6. Rights of Users and Legal Representatives and How to Exercise Them
+If you are a **California resident**, you have specific rights regarding your personal information under the California Consumer Privacy Act (CCPA):
 
-Users can view or modify their registered personal information at any time, and can also request account termination. Rights can be exercised through [contact person's email address or inquiry channel].
+* **Right to Know**: You have the right to request what personal information we collect, use, disclose, and sell.
+* **Right to Delete**: You have the right to request the deletion of your personal information.
+* **Right to Opt-Out**: We do not "sell" or "share" your personal information, so there is no need to opt-out.
+* **Right to Non-Discrimination**: We will not discriminate against you for exercising any of your CCPA rights.
 
-### 7. Personal Information Protection Officer
+To exercise your Right to Know or Right to Delete, please contact us at **personaxi2025@gmail.com**. We will verify your request using the email address associated with your Account.
 
-We are responsible for overseeing personal information processing and have designated a Personal Information Protection Officer as follows to handle user complaints and provide remedies related to personal information processing:
+### 6. Children's Privacy (COPPA)
 
-*   Name: [Contact Person's Name]
-*   Department: [Department Name]
-*   Email: [Email Address]
+The Service is not intended for or directed to children under the age of 13. We do not knowingly collect personal information from children under 13. If you are a parent or guardian and believe your child has provided us with personal information, please contact us, and we will take steps to delete such information.
 
-### 8. Duty to Notify
+### 7. International Data Transfers
 
-This Privacy Policy may be added, deleted, or amended according to changes in government policies or security technologies. We will notify you through website announcements when the content changes.
+Our company, PersonaXI, is based in the **Republic of Korea (South Korea)**, and our primary service providers (Google, AWS, Supabase, ElevenLabs) are based in the **United States**.
 
-Last updated: June 7, 2025
+By using our Service, you consent to the transfer of your information to, and the processing of your information in, South Korea and the United States, which may have different data protection laws than your jurisdiction.
+
+### 8. Security
+
+We take reasonable measures, including administrative, technical, and physical safeguards, to protect your information from loss, theft, misuse, and unauthorized access or disclosure.
+
+### 9. Changes to this Privacy Policy
+
+We may update this Privacy Policy from time to time. We will notify you of any changes by posting the new Privacy Policy on this page and updating the "Effective Date" at the top.
+
+### 10. Contact Us
+
+If you have any questions about this Privacy Policy, please contact us:
+
+* **Company**: PersonaXI
+* **Data Protection Officer**: Yuchan Ahn
+* **Email**: personaxi2025@gmail.com
+* **Address**: 306-15 Beonyeong-ro, Seobuk-gu, Cheonan-si, Chungcheongnam-do, Republic of Korea

@@ -13,7 +13,34 @@
     "profileImageLabel": "프로필 이미지",
     "vrmFileLabel": "VRM 파일",
     "fileSelect": "파일 선택",
-    "aiSettings": "AI 상세 설정",
+    "aiSettings": {
+      "title": "AI 상세 설정",
+      "addDialogueTag": "대사 태그 추가",
+      "templateSelectLabel": "프롬프트 템플릿 선택",
+      "templateCustom": "커스텀 템플릿",
+      "templateConversation": "대화용 템플릿",
+      "templateSimulation": "시뮬레이션 템플릿",
+      "templateKintsugi": "CSS 발화 (고급)"
+    },
+    "kintsugi": {
+      "descriptionLabel": "캐릭터 상세 지침",
+      "descriptionDesc": "캐릭터의 배경, 외모, 핵심 설정 등을 상세히 기술합니다.",
+      "descriptionPlaceholder": "예: 슈치인 학원 부회장. 겉으로는 차갑지만 속은 따뜻하다.",
+      "personalityLabel": "캐릭터 성격",
+      "personalityDesc": "캐릭터의 말씨, 성격, 가치관 등을 구체적으로 정의합니다.",
+      "personalityPlaceholder": "예: 매우 계산적이고 냉정해 보이지만, 사실은 순진하고 사랑에 빠져있다.",
+      "userPersonaLabel": "사용자 페르소나",
+      "userPersonaDesc": "AI가 사용자를 어떤 사람으로 인식할지 정의합니다.",
+      "userPersonaPlaceholder": "예: 슈치인 학원 학생회장. 카구야를 좋아하지만 고백하지 못하고 있다.",
+      "scenarioLabel": "시나리오 설정",
+      "scenarioDesc": "대화가 진행되는 상황이나 배경을 설명합니다. (첫 장면과 별개로 작동)",
+      "scenarioPlaceholder": "예: 학생회실에서 우연히 마주친 두 사람."
+    },
+    "assets": {
+      "copySuccess": "복사 완료! ✅",
+      "copy": "태그 복사"
+    },
+    "tagsDescriptionCategory": "카테고리를 선택하세요.",
     "instructionsLabel": "지시사항",
     "instructionsDescription": "AI의 역할, 성격, 어조 등 핵심 정체성을 정의합니다.",
     "instructionsPlaceholder": "예: 당신은 친절한 AI 비서입니다.",
@@ -30,7 +57,13 @@
       "allFieldsRequired": "모든 필수 필드를 입력해주세요.",
       "charLimitExceeded": "글자 수 제한을 초과했습니다.",
       "instructionsLimitExceeded": "지시사항 글자 수 제한을 초과했습니다.",
-      "promptExamplesLimitExceeded": "프롬프트 예시 글자 수 제한을 초과했습니다."
+      "promptExamplesLimitExceeded": "프롬프트 예시 글자 수 제한을 초과했습니다.",
+      "maxTags": "최대 3개까지만 선택할 수 있습니다.",
+      "kintsugiDescLimit": "캐릭터 상세 지침은 1000자를 초과할 수 없습니다.",
+      "kintsugiPersLimit": "캐릭터 성격은 1000자를 초과할 수 없습니다.",
+      "kintsugiUserLimit": "사용자 페르소나는 800자를 초과할 수 없습니다.",
+      "kintsugiScenarioLimit": "시나리오 설정은 200자를 초과할 수 없습니다.",
+      "instructionLimit": "지침은 3000자를 초과할 수 없습니다."
     },
     "greetingLabel": "한줄 설명",
     "greetingLabelDefault": "기본 한줄 설명",
@@ -170,7 +203,10 @@
     "deleteChat": "대화 삭제",
     "confirmReset": "대화 기록을 정말 초기화하시겠습니까? 이 작업은 되돌릴 수 없습니다.",
     "confirmDelete": "이 채팅 세션을 영구적으로 삭제하시겠습니까?",
-    "includeAllUtterances": "모든 발화 포함"
+    "includeAllUtterances": "모든 발화 포함",
+    "neuronsConsumed": "뉴런이 소모 됩니다.",
+    "costDisplay": "응답 당 :",
+    "neuronBalance": "현재 뉴런: "
   },
   "contentHub": {
     "searchTitle": "페르소나 검색",

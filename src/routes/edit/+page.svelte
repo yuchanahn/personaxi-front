@@ -1,6 +1,6 @@
 <script lang="ts">
     import { goto } from "$app/navigation";
-    import { onMount } from "svelte";
+    import { onMount, tick } from "svelte";
     import type { ImageMetadata, Persona, PersonaFeedback } from "$lib/types";
     import { page } from "$app/stores";
     import {
@@ -18,6 +18,7 @@
     import { api } from "$lib/api";
     import AssetPreview from "$lib/components/AssetPreview.svelte";
     import { allCategories } from "$lib/constants";
+    import { Toggle } from "bits-ui";
 
     let vrmFile: File | null = null;
 
@@ -55,6 +56,14 @@
     let error = "";
     let last_id: string | null = null;
 
+    // --- [Kintsugi 템플릿 변수] ---
+    const kintsugiTemplateId = "kintsugi_v1";
+    let k_description = "";
+    let k_personality = "";
+    let k_userPersona = "";
+    let k_scenario = "";
+    // ---------------------------------
+
     let allVoices: any[] = []; // ElevenLabs에서 받아온 전체 목소리 목록
     let selectedVoiceId = ""; // 사용자가 선택한 voice_id
 
@@ -65,23 +74,67 @@
         persona.voice_id = "";
     }
 
+    let firstSceneTextarea: HTMLTextAreaElement;
+
+    let toggleDialogueTag = false;
+
+    function insertDialogueTag() {
+        if (!firstSceneTextarea) return;
+
+        const target = toggleDialogueTag ? "{{user}}" : "{{char}}";
+        const snippet = `<dialogue speaker="${target}"></dialogue>`;
+
+        const pos = firstSceneTextarea.selectionStart;
+        const currentVal = persona.first_scene;
+
+        persona.first_scene =
+            currentVal.substring(0, pos) + snippet + currentVal.substring(pos);
+
+        const newPos = pos + `<dialogue speaker="${target}">`.length;
+
+        tick().then(() => {
+            firstSceneTextarea.focus();
+            firstSceneTextarea.selectionStart = newPos;
+            firstSceneTextarea.selectionEnd = newPos;
+        });
+    }
+
     async function load_persona(id: string) {
         try {
             const p = await loadPersonaOriginal(id);
 
-            singleInstruction = p.instructions[0] || "";
             if (p.instructions.length > 1 && p.instructions[1]) {
                 const templateIdentifier = p.instructions[1];
                 if (templateIdentifier === "conversation") {
                     selectedTemplate = "conversation";
+                    singleInstruction = p.instructions[0] || "";
                 } else if (templateIdentifier === "simulation") {
                     selectedTemplate = "simulation";
+                    singleInstruction = p.instructions[0] || "";
+                } else if (templateIdentifier === kintsugiTemplateId) {
+                    // Kintsugi 템플릿 감지
+                    selectedTemplate = kintsugiTemplateId;
+                    try {
+                        // 저장된 JSON 문자열을 파싱하여 각 필드에 채움
+                        const data = JSON.parse(p.instructions[0] || "{}");
+                        k_description = data.description || "";
+                        k_personality = data.personality || "";
+                        k_userPersona = data.userPersona || "";
+                        k_scenario = data.scenario || "";
+                    } catch (e) {
+                        console.error("Kintsugi JSON 파싱 실패", e);
+                        k_description = p.instructions[0] || "";
+                    }
                 } else {
                     selectedTemplate = "custom";
+                    singleInstruction = p.instructions[0] || "";
                 }
             } else {
                 selectedTemplate = "custom";
+                singleInstruction = p.instructions[0] || "";
             }
+            // -----------------------------------------
+
             if (p.voice_id) {
                 selectedVoiceId = p.voice_id;
             } else {
@@ -196,7 +249,7 @@
             if (persona.tags.length < 3) {
                 persona.tags = [...persona.tags, tagId];
             } else {
-                alert($t("최대 3개까지만 선택할 수 있습니다."));
+                alert($t("editPage.validation.maxTags"));
             }
         }
     }
@@ -418,28 +471,74 @@
 
                 error = "";
 
-                let finalInstructions = [singleInstruction];
+                // --- [수정] Kintsugi 저장 로직 및 유효성 검사 ---
+                let finalInstructions = [];
 
-                // 2. '커스텀'이 아닌 다른 템플릿이 선택되었다면, 식별자를 두 번째 요소로 추가합니다.
+                if (selectedTemplate === kintsugiTemplateId) {
+                    // [신규] Kintsugi 필드 개별 글자 수 검사
+                    if (k_description.length > 1000) {
+                        error = $t("editPage.validation.kintsugiDescLimit");
+                        return;
+                    }
+                    if (k_personality.length > 1000) {
+                        error = $t(
+                            "editPage.validation.kintsugiPersonalityLimit",
+                        );
+                        return;
+                    }
+                    if (k_userPersona.length > 800) {
+                        error = $t(
+                            "editPage.validation.kintsugiUserPersonaLimit",
+                        );
+                        return;
+                    }
+                    if (k_scenario.length > 200) {
+                        error = $t("editPage.validation.kintsugiScenarioLimit");
+                        return;
+                    }
+
+                    const kintsugiJson = JSON.stringify({
+                        description: k_description,
+                        personality: k_personality,
+                        userPersona: k_userPersona,
+                        scenario: k_scenario,
+                    });
+                    finalInstructions.push(kintsugiJson);
+                } else {
+                    finalInstructions.push(singleInstruction);
+
+                    if (singleInstruction.length > 3000) {
+                        error = $t(
+                            "editPage.validation.instructionsLimitExceeded",
+                        );
+                        return;
+                    }
+                    if (!singleInstruction.trim()) {
+                        error = $t("editPage.validation.allFieldsRequired");
+                        return;
+                    }
+                }
+
+                // 템플릿 식별자 추가
                 if (selectedTemplate === "conversation") {
                     finalInstructions.push("conversation");
                 } else if (selectedTemplate === "simulation") {
                     finalInstructions.push("simulation");
+                } else if (selectedTemplate === kintsugiTemplateId) {
+                    finalInstructions.push(kintsugiTemplateId); // 신규 템플릿 ID
                 } else {
                     finalInstructions.push("custom");
                 }
 
-                // 3. 최종적으로 만들어진 배열을 페르소나 객체에 할당합니다.
                 persona.instructions = finalInstructions;
+                // ----------------------------------------------
 
                 if (
                     !persona.name.trim() ||
                     !persona.personaType.trim() ||
                     !persona.greeting.trim() ||
                     !persona.first_scene.trim() ||
-                    persona.instructions.length === 0 ||
-                    //persona.promptExamples.length === 0 ||
-                    persona.tags.length === 0 // 👈 이 검사는 number[]에도 유효합니다
+                    persona.tags.length === 0
                 ) {
                     error = $t("editPage.validation.allFieldsRequired");
                     return;
@@ -450,44 +549,6 @@
                     persona.first_scene.length > 2500
                 ) {
                     error = $t("editPage.validation.charLimitExceeded");
-                    return;
-                }
-
-                if (persona.instructions[0].length > 3000) {
-                    error = "지침은 3000자를 초과할 수 없습니다.";
-                    return;
-                }
-                if (
-                    persona.instructions.length === 0 ||
-                    !persona.instructions[0].trim()
-                ) {
-                    error = $t("editPage.validation.allFieldsRequired");
-                    return;
-                }
-
-                if (
-                    persona.promptExamples.some((ex) => ex.length > 200) ||
-                    persona.promptExamples.length > 10
-                ) {
-                    error = $t(
-                        "editPage.validation.promptExamplesLimitExceeded",
-                    );
-                    return;
-                }
-
-                if (
-                    persona.greeting.length > 200 ||
-                    persona.first_scene.length > 2500
-                ) {
-                    error = "소개 또는 첫 장면의 글자 수를 초과했습니다.";
-                    return;
-                }
-
-                if (
-                    persona.instructions.some((inst) => inst.length > 3000) ||
-                    persona.instructions.length > 10
-                ) {
-                    error = "지침의 글자 수를 초과했거나 10개를 초과했습니다.";
                     return;
                 }
 
@@ -736,11 +797,15 @@
                                                     >
                                                         {#if copiedState.get(index)}
                                                             <span
-                                                                >복사 완료! ✅</span
+                                                                >{$t(
+                                                                    "editPage.assets.copySuccess",
+                                                                )}</span
                                                             >
                                                         {:else}
                                                             <span
-                                                                >태그 복사</span
+                                                                >{$t(
+                                                                    "editPage.assets.copy",
+                                                                )}</span
                                                             >
                                                         {/if}
                                                     </button>
@@ -852,16 +917,40 @@
 
             <div class="form-column">
                 <div class="form-section-card">
-                    <h2>{$t("editPage.aiSettings")}</h2>
+                    <h2>{$t("editPage.aiSettings.title")}</h2>
                     <div class="form-group">
                         <label for="first_scene"
                             >{$t("editPage.firstSceneLabel")}</label
                         >
+                        <div class="toggle-container">
+                            <span class:active={!toggleDialogueTag}
+                                >{"{{char}}"}</span
+                            >
+                            <label class="toggle-switch">
+                                <input
+                                    type="checkbox"
+                                    bind:checked={toggleDialogueTag}
+                                />
+                                <span class="slider"></span>
+                            </label>
+                            <span class:active={toggleDialogueTag}
+                                >{"{{user}}"}</span
+                            >
+                        </div>
+                        <button
+                            type="button"
+                            class="btn-util"
+                            on:click={insertDialogueTag}
+                        >
+                            {$t("editPage.aiSettings.addDialogueTag")}
+                        </button>
+
                         <p class="description">
                             {$t("editPage.firstSceneDescription")}
                         </p>
                         <textarea
                             id="first_scene"
+                            bind:this={firstSceneTextarea}
                             bind:value={persona.first_scene}
                             placeholder={$t("editPage.firstScenePlaceholder")}
                             rows="5"
@@ -879,43 +968,183 @@
                         {#if persona.personaType !== "3D"}
                             <div class="form-group">
                                 <label for="prompt-template"
-                                    >프롬프트 템플릿 선택</label
+                                    >{$t(
+                                        "editPage.aiSettings.templateSelectLabel",
+                                    )}</label
                                 >
                                 <select
                                     id="prompt-template"
                                     bind:value={selectedTemplate}
                                 >
-                                    <option value="custom">커스텀 템플릿</option
+                                    <option value="custom"
+                                        >{$t(
+                                            "editPage.aiSettings.templateCustom",
+                                        )}</option
                                     >
                                     <option value="conversation"
-                                        >대화용 템플릿</option
+                                        >{$t(
+                                            "editPage.aiSettings.templateConversation",
+                                        )}</option
                                     >
                                     <option value="simulation"
-                                        >시뮬레이션 템플릿</option
+                                        >{$t(
+                                            "editPage.aiSettings.templateSimulation",
+                                        )}</option
+                                    >
+                                    <option value={kintsugiTemplateId}
+                                        >{$t(
+                                            "editPage.aiSettings.templateKintsugi",
+                                        )}</option
                                     >
                                 </select>
                             </div>
                         {/if}
-                        <label for="instruction-input"
-                            >{$t("editPage.instructionsLabel")}</label
-                        >
-                        <p class="description">
-                            {$t("editPage.instructionsDescription")}
-                        </p>
-                        <textarea
-                            id="instruction-input"
-                            bind:value={singleInstruction}
-                            placeholder={$t("editPage.instructionsPlaceholder")}
-                            rows="10"
-                            maxlength="3000"
-                        ></textarea>
-                        <div
-                            class="char-counter"
-                            class:warning={singleInstruction.length > 2500}
-                            class:error={singleInstruction.length >= 3000}
-                        >
-                            {singleInstruction.length} / 3000
-                        </div>
+
+                        {#if selectedTemplate !== kintsugiTemplateId}
+                            <div class="form-group">
+                                <label for="instruction-input"
+                                    >{$t("editPage.instructionsLabel")}</label
+                                >
+                                <p class="description">
+                                    {$t("editPage.instructionsDescription")}
+                                </p>
+                                <textarea
+                                    id="instruction-input"
+                                    bind:value={singleInstruction}
+                                    placeholder={$t(
+                                        "editPage.instructionsPlaceholder",
+                                    )}
+                                    rows="10"
+                                    maxlength="3000"
+                                ></textarea>
+                                <div
+                                    class="char-counter"
+                                    class:warning={singleInstruction.length >
+                                        2500}
+                                    class:error={singleInstruction.length >=
+                                        3000}
+                                >
+                                    {singleInstruction.length} / 3000
+                                </div>
+                            </div>
+                        {:else}
+                            <div class="kintsugi-fields">
+                                <div class="form-group">
+                                    <label for="k-description"
+                                        >{$t(
+                                            "editPage.kintsugi.descriptionLabel",
+                                        )}</label
+                                    >
+                                    <p class="description">
+                                        {$t(
+                                            "editPage.kintsugi.descriptionDesc",
+                                        )}
+                                    </p>
+                                    <textarea
+                                        id="k-description"
+                                        bind:value={k_description}
+                                        placeholder={$t(
+                                            "editPage.kintsugi.descriptionPlaceholder",
+                                        )}
+                                        rows="5"
+                                        maxlength="1000"
+                                    ></textarea>
+                                    <div
+                                        class="char-counter"
+                                        class:warning={k_description.length >
+                                            900}
+                                        class:error={k_description.length >=
+                                            1000}
+                                    >
+                                        {k_description.length} / 1000
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label for="k-personality"
+                                        >{$t(
+                                            "editPage.kintsugi.personalityLabel",
+                                        )}</label
+                                    >
+                                    <p class="description">
+                                        {$t(
+                                            "editPage.kintsugi.personalityDesc",
+                                        )}
+                                    </p>
+                                    <textarea
+                                        id="k-personality"
+                                        bind:value={k_personality}
+                                        placeholder={$t(
+                                            "editPage.kintsugi.personalityPlaceholder",
+                                        )}
+                                        rows="5"
+                                        maxlength="1000"
+                                    ></textarea>
+                                    <div
+                                        class="char-counter"
+                                        class:warning={k_personality.length >
+                                            900}
+                                        class:error={k_personality.length >=
+                                            1000}
+                                    >
+                                        {k_personality.length} / 1000
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label for="k-userPersona"
+                                        >{$t(
+                                            "editPage.kintsugi.userPersonaLabel",
+                                        )}</label
+                                    >
+                                    <p class="description">
+                                        {$t(
+                                            "editPage.kintsugi.userPersonaDesc",
+                                        )}
+                                    </p>
+                                    <textarea
+                                        id="k-userPersona"
+                                        bind:value={k_userPersona}
+                                        placeholder={$t(
+                                            "editPage.kintsugi.userPersonaPlaceholder",
+                                        )}
+                                        rows="5"
+                                        maxlength="800"
+                                    ></textarea>
+                                    <div
+                                        class="char-counter"
+                                        class:warning={k_userPersona.length >
+                                            700}
+                                        class:error={k_userPersona.length >=
+                                            800}
+                                    >
+                                        {k_userPersona.length} / 800
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label for="k-scenario">
+                                        {$t("editPage.kintsugi.scenarioLabel")}
+                                    </label>
+                                    <p class="description">
+                                        {$t("editPage.kintsugi.scenarioDesc")}
+                                    </p>
+                                    <textarea
+                                        id="k-scenario"
+                                        bind:value={k_scenario}
+                                        placeholder={$t(
+                                            "editPage.kintsugi.scenarioPlaceholder",
+                                        )}
+                                        rows="2"
+                                        maxlength="200"
+                                    ></textarea>
+                                    <div
+                                        class="char-counter"
+                                        class:warning={k_scenario.length > 180}
+                                        class:error={k_scenario.length >= 200}
+                                    >
+                                        {k_scenario.length} / 200
+                                    </div>
+                                </div>
+                            </div>
+                        {/if}
                     </div>
                     <div class="form-group">
                         <label for="tags-container"
@@ -958,6 +1187,25 @@
 <FirstCreationRewardModal bind:isOpen={showRewardModal} />
 
 <style>
+    /* --- [신규] Kintsugi 입력창 스타일 --- */
+    .kintsugi-fields {
+        border-top: 1px solid var(--border);
+        padding-top: 1.5rem;
+    }
+    .kintsugi-fields .form-group:last-child {
+        margin-bottom: 0;
+    }
+    .kintsugi-fields label {
+        font-weight: 600;
+    }
+    .kintsugi-fields p.description {
+        font-size: 0.85rem;
+        color: var(--muted-foreground);
+        margin-top: -0.25rem;
+        margin-bottom: 0.75rem;
+    }
+    /* ----------------------------------- */
+
     .portrait-preview {
         margin-top: 1rem;
         width: 150px;
@@ -1413,5 +1661,83 @@
         color: var(--primary-foreground);
         border-color: transparent;
         font-weight: 600;
+    }
+
+    .label-with-button {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 0.5rem;
+    }
+    .label-with-button label {
+        margin-bottom: 0; /* label의 기본 마진 제거 */
+    }
+    .btn-util {
+        padding: 0.25rem 0.75rem;
+        font-size: 0.8rem;
+        font-weight: 600;
+        border: 1px solid var(--border);
+        border-radius: var(--radius-button);
+        background: var(--secondary);
+        color: var(--secondary-foreground);
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+    .btn-util:hover {
+        opacity: 0.9;
+    }
+    .toggle-container {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-family: monospace; /* {{ }}가 잘 보이도록 */
+        font-size: 0.9em;
+    }
+    .toggle-container span {
+        color: var(--muted-foreground);
+        transition: color 0.2s;
+    }
+    .toggle-container span.active {
+        color: var(--primary);
+        font-weight: bold;
+    }
+    .toggle-switch {
+        position: relative;
+        display: inline-block;
+        width: 34px;
+        height: 20px;
+    }
+    .toggle-switch input {
+        opacity: 0;
+        width: 0;
+        height: 0;
+    }
+    .slider {
+        position: absolute;
+        cursor: pointer;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: var(--muted);
+        transition: 0.4s;
+        border-radius: 20px;
+    }
+    .slider:before {
+        position: absolute;
+        content: "";
+        height: 14px;
+        width: 14px;
+        left: 3px;
+        bottom: 3px;
+        background-color: white;
+        transition: 0.4s;
+        border-radius: 50%;
+    }
+    input:checked + .slider {
+        background-color: var(--primary);
+    }
+    input:checked + .slider:before {
+        transform: translateX(14px);
     }
 </style>

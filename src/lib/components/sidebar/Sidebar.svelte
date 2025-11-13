@@ -7,12 +7,11 @@
     export let showSidebar: boolean = true;
     let isMobile: boolean = false;
 
-    // ★★★ 1. 법률 관련 링크 데이터를 이쪽으로 가져왔어! ★★★
     const legalLinks = [
         { href: "/policy", label: "legal.privacyPolicy" },
         { href: "/terms", label: "legal.termsOfService" },
-        { href: "/licenses", label: "legal.licensesAndCredits" },
-        { href: "/privacy-chat-logs", label: "legal.chatLogConsent" },
+        //{ href: "/licenses", label: "legal.licensesAndCredits" },
+        //{ href: "/privacy-chat-logs", label: "legal.chatLogConsent" },
     ];
 
     onMount(() => {
@@ -114,15 +113,6 @@
 
     <div class="sidebar-footer">
         <a
-            href="https://wind-chance-11f.notion.site/personaxi-com-228d058c022e80a1ae4ddf99878f5fbc?source=copy_link"
-            target="_blank"
-            rel="noopener noreferrer"
-            class="sidebar-link"
-        >
-            <Icon icon="ph:book-open-duotone" width="24" height="24" />
-            <span>{$t("sidebar.tutorial")}</span>
-        </a>
-        <a
             href="https://discord.gg/pyPb9Pp6"
             target="_blank"
             rel="noopener noreferrer"
@@ -145,7 +135,7 @@
         --sidebar-width: 250px;
         --sidebar-transition-duration: 0.3s;
         --sidebar-header-height: 230px; /* 이건 헤더 높이 */
-        --sidebar-footer-height: 170px; /* 푸터 높이를 늘려서 새 링크 공간 확보! */
+        --sidebar-footer-height: 100px; /* 푸터 높이를 늘려서 새 링크 공간 확보! */
     }
 
     /* 사이드바 본체 스타일 */

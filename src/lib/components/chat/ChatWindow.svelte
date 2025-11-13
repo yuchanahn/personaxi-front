@@ -7,6 +7,7 @@
   import AssetPreview from "../AssetPreview.svelte";
   import { get } from "svelte/store";
   import { st_user } from "$lib/stores/user";
+  import HtmlRenderer from "./HtmlRenderer.svelte";
 
   export let isLoading: boolean = false;
   export let cssid: string;
@@ -58,7 +59,7 @@
     return text.replace(/\*(.*?)\*/g, '<i class="custom-italic">$1</i>');
   }
 
-  function parseAssistantContent(
+  function parseAssistantContent2(
     content: string,
     baseId: string,
     currentPersona: Persona | null,
@@ -186,6 +187,127 @@
     return blocks;
   }
 
+  function parseAssistantContent(
+    content: string,
+    baseId: string,
+    currentPersona: Persona | null,
+  ): ChatLogItem[] {
+    const IMG_TAG_REGEX = /<img (\d+)>/g;
+    const FIRST_SCENE_TAG_REGEX = /<first_scene>/g;
+    const CODE_BLOCK_REGEX = /```(?<lang>\w*)\s*\n?(?<code>[\s\S]+?)\s*```/;
+
+    // [신규] Kintsugi가 생성할 <dialogue> 태그를 찾는 정규식
+    const DIALOGUE_TAG_REGEX =
+      /<dialogue speaker="([^"]+)">([\s\S]*?)<\/dialogue>/g;
+
+    const blocks: ChatLogItem[] = [];
+    let partIndex = 0;
+
+    const processedContent = content
+      .replace(/<think>[\s\S]*?<\/think>/g, "")
+      .replace(FIRST_SCENE_TAG_REGEX, () => {
+        if (currentPersona?.first_scene) {
+          let first_scene = currentPersona.first_scene;
+          first_scene = first_scene.replaceAll(
+            "{{user}}",
+            get(st_user)?.data?.nickname || "User",
+          );
+          first_scene = first_scene.replaceAll(
+            "{{char}}",
+            currentPersona.name || "Character",
+          );
+          return first_scene;
+        }
+        return "";
+      })
+      .trim();
+
+    // 1. 코드 블록(```...```)을 기준으로 텍스트를 분리합니다.
+    const parts = processedContent.split(CODE_BLOCK_REGEX);
+
+    parts.forEach((part, i) => {
+      if (!part) return;
+
+      const isCodeBlock = i % 3 === 2; // code는 두 번째 캡처 그룹입니다.
+
+      if (isCodeBlock) {
+        // 2. 코드 블록인 경우, 기존 로직을 그대로 사용합니다.
+        const lang = parts[i - 1] || ""; // lang은 첫 번째 캡처 그룹입니다.
+        blocks.push({
+          type: "code",
+          language: lang,
+          content: part,
+          id: `${baseId}-code-${partIndex++}`,
+        });
+      } else if (part.trim()) {
+        // -----------------------------------------------------------------
+        // 3. [수정됨] 코드 블록이 아닌 경우 (Narration, Dialogue, Image 파싱)
+        // -----------------------------------------------------------------
+        let textPart = part;
+        const imagesOnThisBlock: Omit<ImageBlock, "id">[] = [];
+        const partId = `${baseId}-part-${partIndex}`;
+        let subPartIndex = 0;
+
+        // 3-1. 이미지 태그(<img \d+>)를 먼저 추출하고 텍스트에서 제거합니다.
+        textPart = textPart.replace(IMG_TAG_REGEX, (match, capturedNumber) => {
+          try {
+            const imgIndex = parseInt(capturedNumber, 10);
+            const imageMetadata = currentPersona?.image_metadatas?.[imgIndex];
+
+            if (imageMetadata?.url && !isNaN(imgIndex)) {
+              imagesOnThisBlock.push({
+                type: "image",
+                url: imageMetadata.url,
+                alt: imageMetadata.description || "scene image",
+                metadata: imageMetadata,
+              });
+            }
+          } catch (error) {
+            console.error("Error parsing img tag:", error);
+          }
+          return ""; // 텍스트에서 이미지 태그를 제거합니다.
+        });
+
+        // 3-2. 이미지가 제거된 텍스트를 <dialogue> 태그 기준으로 다시 분리합니다.
+        const dialogueParts = textPart.split(DIALOGUE_TAG_REGEX);
+
+        dialogueParts.forEach((dPart, j) => {
+          if (!dPart.trim()) return;
+
+          const isNarration = j % 3 === 0;
+          const isDialogueContent = j % 3 === 2;
+
+          if (isNarration) {
+            // <dialogue> 태그 '바깥'의 텍스트는 narration입니다.
+            blocks.push({
+              type: "narration",
+              content: dPart.trim(), // HTML 태그(스타일 등)가 포함될 수 있음
+              id: `${partId}-n-${subPartIndex++}`,
+            });
+          } else if (isDialogueContent) {
+            // <dialogue> 태그 '안'의 텍스트는 dialogue입니다.
+            const speaker = dialogueParts[j - 1]; // 앞쪽 캡처 그룹(speaker)
+            blocks.push({
+              type: "dialogue",
+              speaker: speaker,
+              content: dPart.trim(),
+              id: `${partId}-d-${subPartIndex++}`,
+            });
+          }
+        });
+
+        // 3-3. 추출해 뒀던 이미지를 블록으로 추가합니다.
+        imagesOnThisBlock.forEach((img, imgIdx) => {
+          blocks.push({ ...img, id: `${partId}-img-${imgIdx}` });
+        });
+
+        partIndex++;
+      }
+    });
+
+    return blocks;
+  }
+
   let chatLog: ChatLogItem[] = [];
   $: {
     chatLog = $messages.flatMap((msg, i) => {
@@ -252,7 +374,7 @@
       <div class="message user">
         {item.content}
       </div>
-    {:else if item.type === "narration"}
+      <!-- {:else if item.type === "narration"}
       <div class="narration-block">
         {@html applyInlineStyles(item.content.replace(/\n/g, "<br>"))}
       </div>
@@ -261,6 +383,18 @@
         <div class="speaker-name">{item.speaker}</div>
         <div class="dialogue-bubble">
           {@html applyInlineStyles(item.content)}
+        </div>
+      </div> -->
+    {:else if item.type === "narration"}
+      <HtmlRenderer content={item.content} />
+    {:else if item.type === "dialogue"}
+      <div class="message assistant">
+        <div class="speaker-name">{item.speaker}</div>
+        <div class="dialogue-bubble">
+          {@html item.content.replace(
+            /\*(.*?)\*/g,
+            '<i class="custom-italic">$1</i>',
+          )}
         </div>
       </div>
     {:else if item.type === "image"}
