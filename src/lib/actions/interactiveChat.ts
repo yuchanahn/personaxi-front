@@ -14,15 +14,17 @@ export function interactiveChat(node: HTMLElement, callback: (payload: string) =
         const target = event.target as HTMLElement;
 
         const choiceButton = target.closest(".game-choice:not(.used)") as HTMLElement;
-
-        const inputField = getLastActiveElement(".game-input") as HTMLInputElement;
         const inputEnd = getLastActiveElement(".game-input-end") as HTMLElement;
 
         if (inputEnd && target === inputEnd) {
-            if (inputField && inputField.value.trim() !== "") {
-                const userInput = inputField.value.trim();
-                queue.push("inputField: " + userInput);
-            }
+            const allInputFields = node.querySelectorAll(".game-input:not(.used)") as NodeListOf<HTMLInputElement>;
+
+            allInputFields.forEach((field) => {
+                if (field.value.trim() !== "") {
+                    const fieldId = field.dataset.id || "UNNAMED";
+                    queue.push(`inputField [ID: ${fieldId}]: ${field.value.trim()}`);
+                }
+            });
             callback("PlayerINPUT: " + queue.join("\n"));
 
             queue = [];
@@ -124,10 +126,17 @@ export function interactiveChat(node: HTMLElement, callback: (payload: string) =
         if (currentPoints === 0 && !anyActiveEndBtn) {
             console.log("No Active End button found ANYWHERE & points are 0. Auto-firing!");
 
+            const allInputFields = node.querySelectorAll(".game-input:not(.used)") as NodeListOf<HTMLInputElement>;
+            allInputFields.forEach((field) => {
+                if (field.value.trim() !== "") {
+                    const fieldId = field.dataset.id || "UNNAMED";
+                    queue.push(`inputField [ID: ${fieldId}]: ${field.value.trim()}`);
+                }
+            });
+
             callback("PlayerINPUT: " + queue.join("\n"));
             queue = [];
 
-            // 3. '방금 쓴' UI를 100% '비활성화'한다!
             choiceCounter.classList.add("used");
 
             const counterParent = choiceCounter.closest("div, p");
