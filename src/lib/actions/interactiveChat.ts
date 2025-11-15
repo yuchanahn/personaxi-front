@@ -99,7 +99,20 @@ export function interactiveChat(node: HTMLElement, callback: (payload: string) =
             const randomValue = Math.floor(Math.random() * (max - min + 1)) + min;
             payload = `[Button Clicked [ID: ${id}] : RAND = ${randomValue}]`;
 
-        } else if (action === "select-option" && value) {
+        } else if (action === "random2") {
+            let min = 1;
+            let max = 100;
+            if (randomMin) {
+                min = parseInt(randomMin, 10);
+            }
+            if (randomMax) {
+                max = parseInt(randomMax, 10);
+            }
+            const randomValue = Math.floor(Math.random() * (max - min + 1)) + min;
+            const finalValue = (Math.random() < 0.5 ? -1 : 1) * randomValue;
+            payload = `[Button Clicked [ID: ${id}] : RAND = ${finalValue}]`;
+        }
+        else if (action === "select-option" && value) {
             payload = `[Button Clicked [ID: ${id}] : ${value}]`;
         } else {
             payload = choiceButton.textContent?.trim() || "Button Clicked";

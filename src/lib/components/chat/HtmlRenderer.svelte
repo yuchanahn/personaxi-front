@@ -14,6 +14,10 @@
             return "";
         });
 
+        htmlContent = htmlContent
+            .replace(/\*(.*?)\*/g, '<i class="custom-italic">$1</i>')
+            .replace(/\*\*(.?)\*\*/g, '<b class="custom-bold">$1</b>');
+
         styleContent = styles;
     }
 </script>
@@ -29,5 +33,8 @@
 <style>
     :global(.custom-italic) {
         font-style: italic;
+    }
+    :global(.custom-bold) {
+        font-weight: bold;
     }
 </style>
