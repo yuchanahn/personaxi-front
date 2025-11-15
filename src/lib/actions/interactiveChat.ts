@@ -57,26 +57,28 @@ export function interactiveChat(node: HTMLElement, callback: (payload: string) =
 
         const choiceCounter = getLastActiveElement(".game-choice-counter") as HTMLElement;
 
-        if (!choiceCounter) {
-            return;
-        }
+        let currentPoints = 1;
 
-        const textContent = choiceCounter.textContent || "0";
-        const match = textContent.match(/\d+/);
+        if (choiceCounter) {
+            const textContent = choiceCounter.textContent || "0";
+            const match = textContent.match(/\d+/);
 
-        let originalNumberString = "1"
-        if (match) {
-            originalNumberString = match[0];
-        }
+            let originalNumberString = "1"
+            if (match) {
+                originalNumberString = match[0];
+            }
 
-        let currentPoints = parseInt(originalNumberString, 10);
+            currentPoints = parseInt(originalNumberString, 10);
 
-        if (currentPoints >= 1) {
-            currentPoints--;
-            choiceCounter.textContent = textContent.replace(originalNumberString, currentPoints.toString());
+            if (currentPoints >= 1) {
+                currentPoints--;
+                choiceCounter.textContent = textContent.replace(originalNumberString, currentPoints.toString());
+            } else {
+                console.log("포인트가 부족합니다.");
+                return;
+            }
         } else {
-            console.log("포인트가 부족합니다.");
-            return;
+            currentPoints = 0;
         }
 
         event.preventDefault();
