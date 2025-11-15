@@ -10,6 +10,14 @@ export function interactiveChat(node: HTMLElement, callback: (payload: string) =
         return allActiveElements[allActiveElements.length - 1] as HTMLElement;
     }
 
+    function getLastActiveElements(selector: string): NodeListOf<HTMLInputElement> | null {
+        const allActiveElements = node.querySelectorAll(selector + ":not(.used)") as NodeListOf<HTMLInputElement>;
+        if (allActiveElements.length === 0) {
+            return null;
+        }
+        return allActiveElements;
+    }
+
     const handleClick = (event: MouseEvent) => {
         const target = event.target as HTMLElement;
 
@@ -32,8 +40,13 @@ export function interactiveChat(node: HTMLElement, callback: (payload: string) =
             const counter = getLastActiveElement(".game-choice-counter");
             if (counter) counter.classList.add("used");
 
-            const input = getLastActiveElement(".game-input");
-            if (input) input.classList.add("used");
+            const input = getLastActiveElements(".game-input");
+            if (input) {
+                input.forEach((field) => {
+                    field.classList.add("used");
+                });
+            }
+
 
             const endBtn = getLastActiveElement(".game-input-end");
             if (endBtn) endBtn.classList.add("used");
@@ -134,6 +147,7 @@ export function interactiveChat(node: HTMLElement, callback: (payload: string) =
                     const fieldId = field.dataset.id || "UNNAMED";
                     queue.push(`inputField [ID: ${fieldId}]: ${field.value.trim()}`);
                 }
+                field.classList.add("used");
             });
 
             callback("PlayerINPUT: " + queue.join("\n"));
