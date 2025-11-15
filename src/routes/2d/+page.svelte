@@ -64,7 +64,12 @@
   </div>
 
   <div class="chat-container">
-    <ChatWindow cssid={lastSessionId ?? ""} {isLoading} {persona} />
+    <ChatWindow
+      cssid={lastSessionId ?? ""}
+      {isLoading}
+      {persona}
+      SendMessage={send}
+    />
     <ChatInput onSend={send} {isDisabled} />
   </div>
 </main>
