@@ -65,7 +65,6 @@ export function interactiveChat(node: HTMLElement, callback: (payload: string) =
         let originalNumberString = "1"
         if (match) {
             originalNumberString = match[0];
-            return;
         }
 
         let currentPoints = parseInt(originalNumberString, 10);
