@@ -19,6 +19,8 @@
     export let persona: Persona;
     export let llmType: string = "Error";
 
+    let change_llm_type = "";
+
     const dispatch = createEventDispatcher();
 
     let isLoading = false;
@@ -32,16 +34,13 @@
         { id: "gemini-flash-lite", name: "Gemini Flash Lite", cost: 1 },
         { id: "gemini-pro", name: "Gemini Pro", cost: 5 },
     ];
-    // $: selectedLLM =
-    //     availableLLMs.find((llm) => llm.id === llmType) || availableLLMs[0];
-
     let selectedLLM =
         availableLLMs.find((llm) => llm.id === llmType) || availableLLMs[0];
 
     function changeLLMType(newType: string) {
-        //llmType = newType; // LLM 타입 업데이트
         selectedLLM =
             availableLLMs.find((llm) => llm.id === newType) || availableLLMs[0];
+
         chatSessions.update((sessions) => {
             return sessions.map((session) => {
                 if (session.id === persona.id) {

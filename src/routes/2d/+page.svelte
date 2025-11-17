@@ -10,11 +10,11 @@
 
   let lastSessionId: string | null = null;
   let persona: Persona | null = null;
-  let llmType: string = "Error"; // Default value
+
+  $: llmType = $page.url.searchParams.get("llmType") || "Error";
 
   const loadChatData = () => {
     const sessionId = $page.url.searchParams.get("c");
-    llmType = $page.url.searchParams.get("llmType") || "Error";
     lastSessionId = sessionId;
 
     loadChatHistory(sessionId ?? "");
