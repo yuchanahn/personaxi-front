@@ -221,6 +221,30 @@
     } else {
         threeDSceneData = null;
     }
+
+    function formatSceneText(text: string): string {
+        if (!text) return "";
+
+        let formatted = text;
+        formatted = formatted.replace(/<style[^>]*>[\s\S]*?<\/style>/gi, "");
+
+        if (persona) {
+            formatted = formatted
+                .replaceAll("{{user}}", get(st_user)?.data?.nickname || "User")
+                .replaceAll("{{char}}", persona.name || "Character");
+        }
+
+        formatted = formatted.replace(
+            /<dialogue[^>]*>(.*?)<\/dialogue>/gs,
+            '"$1"',
+        );
+
+        formatted = formatted.replace(/<br\s*\/?>/gi, "\n");
+
+        formatted = formatted.replace(/<[^>]+>/g, "");
+
+        return formatted.trim();
+    }
 </script>
 
 <div class="scroll-container select-none">
@@ -380,13 +404,18 @@
                                 </p>
                             {:else}
                                 <p class="scene-text">
-                                    {replaceNicknameInText(persona.first_scene)
-                                        .length > 500
+                                    {replaceNicknameInText(
+                                        formatSceneText(persona.first_scene),
+                                    ).length > 500
                                         ? replaceNicknameInText(
-                                              persona.first_scene,
+                                              formatSceneText(
+                                                  persona.first_scene,
+                                              ),
                                           ).slice(0, 500) + "..."
                                         : replaceNicknameInText(
-                                              persona.first_scene,
+                                              formatSceneText(
+                                                  persona.first_scene,
+                                              ),
                                           )}
                                 </p>
                             {/if}

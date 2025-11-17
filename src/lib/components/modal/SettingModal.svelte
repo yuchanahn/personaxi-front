@@ -32,12 +32,16 @@
         { id: "gemini-flash-lite", name: "Gemini Flash Lite", cost: 1 },
         { id: "gemini-pro", name: "Gemini Pro", cost: 5 },
     ];
-    $: selectedLLM =
+    // $: selectedLLM =
+    //     availableLLMs.find((llm) => llm.id === llmType) || availableLLMs[0];
+
+    let selectedLLM =
         availableLLMs.find((llm) => llm.id === llmType) || availableLLMs[0];
 
     function changeLLMType(newType: string) {
-        llmType = newType; // LLM 타입 업데이트
-
+        //llmType = newType; // LLM 타입 업데이트
+        selectedLLM =
+            availableLLMs.find((llm) => llm.id === newType) || availableLLMs[0];
         chatSessions.update((sessions) => {
             return sessions.map((session) => {
                 if (session.id === persona.id) {
@@ -49,8 +53,6 @@
 
         const currentPage = get(page);
         const params = new URLSearchParams(currentPage.url.searchParams);
-
-        // 2. 나머지는 동일합니다.
         params.set("llmType", newType);
         goto(`?${params.toString()}`, {
             replaceState: true,

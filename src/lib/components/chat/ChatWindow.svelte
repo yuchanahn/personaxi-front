@@ -209,7 +209,11 @@
     chatLog = $messages.flatMap((msg, i) => {
       const messageId = `msg-${i}`;
       if (msg.role === "user") {
-        return { type: "user", content: msg.content, id: messageId };
+        if (msg.role === "user") {
+          const tagRegex = /<system-input>[\s\S]*?<\/system-input>/g;
+          const sanitizedContent = msg.content.replace(tagRegex, "[상호작용]");
+          return { type: "user", content: sanitizedContent, id: messageId };
+        }
       } else if (msg.role === "assistant") {
         return parseAssistantContent(msg.content, messageId, persona);
       }

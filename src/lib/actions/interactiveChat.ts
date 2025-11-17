@@ -1,3 +1,5 @@
+import { generateSajuAnalysisPrompt } from "$lib/components/saju/SajuTest";
+
 export function interactiveChat(node: HTMLElement, callback: (payload: string) => void) {
 
     let queue: string[] = [];
@@ -24,16 +26,46 @@ export function interactiveChat(node: HTMLElement, callback: (payload: string) =
         const choiceButton = target.closest(".game-choice:not(.used)") as HTMLElement;
         const inputEnd = getLastActiveElement(".game-input-end") as HTMLElement;
 
+        let birthDate: Date | null = null;
+        let birthHour: number | null = null;
+        let birthMinute: number | null = null;
+        let gender: "남" | "여" = "남";
+        let push = false;
+
+        const setSaju = (fieldId: string, field: HTMLInputElement) => {
+            if (fieldId === "saju_date") {
+                birthDate = new Date(field.value.trim());
+            }
+            if (fieldId === "saju_time") {
+                const timeParts = field.value.trim().split(":");
+                birthHour = parseInt(timeParts[0], 10);
+                birthMinute = parseInt(timeParts[1], 10);
+            }
+            if (fieldId === "saju_gender") {
+                gender = field.value.trim() as "남" | "여";
+            }
+
+            if (!push && birthDate && birthHour !== null && birthMinute !== null) {
+                const prompt = generateSajuAnalysisPrompt(birthDate, birthHour, birthMinute, gender);
+                queue.push("\n계산: " + prompt);
+                push = true;
+            }
+        }
+
         if (inputEnd && target === inputEnd) {
             const allInputFields = node.querySelectorAll(".game-input:not(.used)") as NodeListOf<HTMLInputElement>;
+
+
 
             allInputFields.forEach((field) => {
                 if (field.value.trim() !== "") {
                     const fieldId = field.dataset.id || "UNNAMED";
                     queue.push(`inputField [ID: ${fieldId}]: ${field.value.trim()}`);
+
+                    setSaju(fieldId, field);
                 }
             });
-            callback("PlayerINPUT: " + queue.join("\n"));
+            callback("<system-input>" + queue.join("\n") + "</system-input>");
 
             queue = [];
 
@@ -146,11 +178,12 @@ export function interactiveChat(node: HTMLElement, callback: (payload: string) =
                 if (field.value.trim() !== "") {
                     const fieldId = field.dataset.id || "UNNAMED";
                     queue.push(`inputField [ID: ${fieldId}]: ${field.value.trim()}`);
+                    setSaju(fieldId, field);
                 }
                 field.classList.add("used");
             });
 
-            callback("PlayerINPUT: " + queue.join("\n"));
+            callback("<system-input>" + queue.join("\n") + "</system-input>");
             queue = [];
 
             choiceCounter.classList.add("used");
