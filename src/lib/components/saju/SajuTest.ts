@@ -86,10 +86,10 @@ function getSolarTerm(year: number, month: number): LoadedSolarTerm {
   }
 
   const preciseDataFix = loadedTerms[year.toString()].find(
-    st => st.Year === year && st.Month === month + 1
+    st => st.Year === year && st.Month === month
   );
   if (preciseDataFix) {
-    return { ...preciseDataFix, Month: preciseDataFix.Month - 1 };
+    return { ...preciseDataFix, Month: preciseDataFix.Month };
   }
 
   return { Name: "", Year: year, Month: month, Day: approxDay, Hour: 12, Minute: 0 };

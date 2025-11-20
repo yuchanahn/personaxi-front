@@ -73,6 +73,7 @@
     <ChatInput onSend={send} {isDisabled} />
   </div>
 </main>
+```
 
 <style>
   .chat-layout {

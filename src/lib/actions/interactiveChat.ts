@@ -46,16 +46,22 @@ export function interactiveChat(node: HTMLElement, callback: (payload: string) =
             }
 
             if (!push && birthDate && birthHour !== null && birthMinute !== null) {
-                const prompt = generateSajuAnalysisPrompt(birthDate, birthHour, birthMinute, gender);
-                queue.push("\n계산: " + prompt);
+
+                let prompt = "";
+
+                try {
+                    prompt = generateSajuAnalysisPrompt(birthDate, birthHour, birthMinute, gender);
+                } catch (error) {
+                    prompt = "함수실패"
+                }
+
+                queue.push("\n- 만세력\n" + prompt);
                 push = true;
             }
         }
 
         if (inputEnd && target === inputEnd) {
             const allInputFields = node.querySelectorAll(".game-input:not(.used)") as NodeListOf<HTMLInputElement>;
-
-
 
             allInputFields.forEach((field) => {
                 if (field.value.trim() !== "") {
@@ -169,6 +175,10 @@ export function interactiveChat(node: HTMLElement, callback: (payload: string) =
         queue.push(payload);
 
         const anyActiveEndBtn = getLastActiveElement(".game-input-end");
+
+        if (currentPoints === 0) {
+            console.log("모든 선택 종료! : ", anyActiveEndBtn);
+        }
 
         if (currentPoints === 0 && !anyActiveEndBtn) {
             console.log("No Active End button found ANYWHERE & points are 0. Auto-firing!");

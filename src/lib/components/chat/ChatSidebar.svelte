@@ -2,7 +2,9 @@
   import ChatSessionList from "./ChatSessionList.svelte";
   import { chatSessions } from "$lib/stores/chatSessions";
 
-  import { handleSelect, handleDelete } from "$lib/services/sessionManager";
+  import { handleSelect } from "$lib/services/sessionManager";
+
+  const handleDelete = () => {};
 </script>
 
 <ChatSessionList

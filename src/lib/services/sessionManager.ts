@@ -14,6 +14,9 @@ export function handleSelect(id: string) {
             case ChatSessionType.CHARACTER3D:
                 goto(`/character?c=${id}&llmType=${session.llmType}`);
                 break;
+            case ChatSessionType.LIVE2D:
+                goto(`/live2d?c=${id}&llmType=${session.llmType}`);
+                break;
             case ChatSessionType.SYSTEM:
                 switch (session.id) {
                     case "2": goto(`/hub`); break;
@@ -30,9 +33,4 @@ export function handleSelect(id: string) {
     } else {
         console.error('Session not found:', id);
     }
-
-}
-
-export function handleDelete(id: string) {
-    console.log('Deleted session:', id);
 }
