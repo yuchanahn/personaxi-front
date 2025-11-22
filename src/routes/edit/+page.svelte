@@ -9,6 +9,7 @@
         loadPersonaOriginal,
         savePersona,
         uploadFileWithProgress,
+        uploadLive2DZip,
     } from "$lib/api/edit_persona";
     import LoadingAnimation from "$lib/components/utils/LoadingAnimation.svelte";
     import { number, t } from "svelte-i18n";
@@ -16,11 +17,18 @@
     import { st_user } from "$lib/stores/user";
     import { get } from "svelte/store";
     import { api } from "$lib/api";
+    import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
+    import { VRMLoaderPlugin } from "@pixiv/three-vrm";
+    import * as THREE from "three";
     import AssetPreview from "$lib/components/AssetPreview.svelte";
     import { allCategories } from "$lib/constants";
     import { Toggle } from "bits-ui";
+    import Icon from "@iconify/svelte";
+    import FirstSceneBuilder from "$lib/components/FirstSceneBuilder.svelte";
 
     let vrmFile: File | null = null;
+    let live2dFile: File | null = null;
+    let live2d_progress = 0;
 
     let persona: Persona = {
         id: "",
@@ -63,6 +71,11 @@
     let k_userPersona = "";
     let k_scenario = "";
     // ---------------------------------
+
+    // --- [JSON Builder 변수] ---
+    let instructionJson = "";
+    let firstSceneJson = "";
+    // ---------------------------
 
     let allVoices: any[] = []; // ElevenLabs에서 받아온 전체 목소리 목록
     let selectedVoiceId = ""; // 사용자가 선택한 voice_id
@@ -142,6 +155,11 @@
             }
             portraitPreview = p.portrait_url;
 
+            // Initialize firstSceneJson for 3D personas
+            if (p.personaType === "3D" && p.first_scene) {
+                firstSceneJson = p.first_scene;
+            }
+
             if (p.image_metadatas && p.image_metadatas.length > 0) {
                 const metadatasWithType = await fetchAndSetAssetTypes(
                     p.image_metadatas,
@@ -164,10 +182,18 @@
         }
     }
 
-    function handleFileChange(event: Event) {
+    async function handleFileChange(event: Event) {
         const input = event.target as HTMLInputElement;
         if (input.files && input.files.length > 0) {
             vrmFile = input.files[0];
+
+            const isValid = await validateVRMLicense(vrmFile);
+            if (!isValid) {
+                alert($t("editPage.vrmLicenseError"));
+                input.value = ""; // Clear input
+                vrmFile = null;
+                return;
+            }
 
             uploadVrmFile();
         }
@@ -240,6 +266,90 @@
         persona.promptExamples = persona.promptExamples.filter(
             (_, i) => i !== index,
         );
+    }
+
+    let vrmInput: HTMLInputElement;
+
+    async function validateVRMLicense(file: File): Promise<boolean> {
+        return new Promise((resolve, reject) => {
+            const url = URL.createObjectURL(file);
+            const loader = new GLTFLoader();
+            loader.register((parser) => {
+                return new VRMLoaderPlugin(parser);
+            });
+
+            loader.load(
+                url,
+                (gltf) => {
+                    URL.revokeObjectURL(url);
+                    const vrm = gltf.userData.vrm;
+                    const meta = vrm?.meta || gltf.userData.vrmMeta; // Support both VRM 0.0 and 1.0 (via plugin)
+
+                    if (!meta) {
+                        console.warn("No VRM meta found");
+                        resolve(false);
+                        return;
+                    }
+
+                    console.log("VRM Meta:", meta);
+                    console.log("Checking license fields...");
+                    console.log("otherPermissionUrl:", meta.otherPermissionUrl);
+                    console.log("licenseName:", meta.licenseName);
+                    console.log("reference:", meta.reference);
+
+                    // Check for 'personaxi' in license fields
+                    const otherLicenseUrl = (
+                        meta.otherLicenseUrl ||
+                        meta.licenseUrl ||
+                        ""
+                    )
+                        .toString()
+                        .toLowerCase();
+                    const authors = meta.authors || [];
+                    const authorMatch =
+                        Array.isArray(authors) &&
+                        authors.some((a) => {
+                            if (typeof a === "string") {
+                                return a.toLowerCase().includes("personaxi");
+                            } else if (a && typeof a === "object") {
+                                // Check common fields like name or authorName
+                                const nameField = a.name || a.authorName || "";
+                                return (
+                                    typeof nameField === "string" &&
+                                    nameField
+                                        .toLowerCase()
+                                        .includes("personaxi")
+                                );
+                            }
+                            return false;
+                        });
+                    if (otherLicenseUrl.includes("personaxi") || authorMatch) {
+                        console.log("License validation PASSED");
+                        resolve(true);
+                    } else {
+                        console.log("License validation FAILED");
+                        resolve(false);
+                    }
+                },
+                (progress) => {
+                    console.log(
+                        "Loading VRM for validation...",
+                        (progress.loaded / progress.total) * 100 + "%",
+                    );
+                },
+                (error) => {
+                    URL.revokeObjectURL(url);
+                    console.error("Failed to load VRM for validation:", error);
+                    resolve(false); // Fail safe
+                },
+            );
+        });
+    }
+
+    function handleVRMUploadClick() {
+        if (confirm($t("editPage.vrmLicenseWarning"))) {
+            vrmInput.click();
+        }
     }
 
     function toggleTag(tagId: string) {
@@ -318,6 +428,29 @@
 
     const supabaseURL =
         "https://uohepkqmwbstbmnkoqju.supabase.co/storage/v1/object/public/personaxi-assets/";
+
+    async function handleLive2DUpload(event: Event) {
+        const input = event.target as HTMLInputElement;
+        if (!input.files || input.files.length === 0) return;
+
+        const file = input.files[0];
+        live2dFile = file;
+        live2d_progress = 0;
+        error = "";
+
+        try {
+            const result = await uploadLive2DZip(file, (percent) => {
+                live2d_progress = Math.round(percent);
+            });
+
+            persona.live2d_model_url = result.model3_json_url;
+            console.log("Live2D Upload Success:", result);
+        } catch (e: any) {
+            console.error("Live2D Upload Error:", e);
+            error = `Live2D upload failed: ${e.message}`;
+            live2dFile = null;
+        }
+    }
 
     async function uploadAssetFile(assetId: number, file: File) {
         const MAX_RETRIES = 3;
@@ -670,6 +803,7 @@
                             >
                             <option value="3D">3D</option>
                             <option value="2D">2D</option>
+                            <option value="2.5D">2.5D (Live2D)</option>
                         </select>
                     </div>
 
@@ -723,6 +857,58 @@
                                         description: "",
                                     }}
                                 />
+                            </div>
+                        {/if}
+
+                        {#if persona.personaType == "2.5D"}
+                            <div class="form-group asset-section">
+                                <h3 class="asset-title">Live2D Model Upload</h3>
+                                <p class="description">
+                                    Upload your Live2D model ZIP file (must
+                                    contain model3.json).
+                                </p>
+
+                                <div class="file-input-container">
+                                    <label
+                                        for="live2d-file"
+                                        class="file-input-label"
+                                    >
+                                        <span>{$t("editPage.fileSelect")}</span>
+                                    </label>
+                                    <input
+                                        id="live2d-file"
+                                        type="file"
+                                        accept=".zip"
+                                        on:change={handleLive2DUpload}
+                                        class="file-input-hidden"
+                                    />
+                                    {#if live2dFile}
+                                        <span class="file-name"
+                                            >{live2dFile.name}</span
+                                        >
+                                    {/if}
+                                </div>
+
+                                {#if live2d_progress > 0 && live2d_progress < 100}
+                                    <div
+                                        class="progress-bar-container"
+                                        style="margin-top: 10px; height: 5px; background: #eee; border-radius: 3px; overflow: hidden;"
+                                    >
+                                        <div
+                                            class="progress-bar"
+                                            style="width: {live2d_progress}%; height: 100%; background: var(--primary);"
+                                        ></div>
+                                    </div>
+                                {/if}
+
+                                {#if persona.live2d_model_url}
+                                    <div
+                                        class="success-message"
+                                        style="margin-top: 10px; color: green;"
+                                    >
+                                        ✅ Live2D Model Uploaded!
+                                    </div>
+                                {/if}
                             </div>
                         {/if}
 
@@ -850,15 +1036,20 @@
                                 >{$t("editPage.vrmFileLabel")}</label
                             >
                             <div class="file-input-container">
-                                <label for="vrm-file" class="file-input-label">
+                                <button
+                                    type="button"
+                                    class="btn btn-secondary file-input-label"
+                                    on:click={handleVRMUploadClick}
+                                >
                                     <span>{$t("editPage.fileSelect")}</span>
-                                </label>
+                                </button>
                                 <input
                                     id="vrm-file"
                                     type="file"
                                     accept=".vrm"
                                     on:change={handleFileChange}
                                     class="file-input-hidden"
+                                    bind:this={vrmInput}
                                 />
                                 {#if vrmFile}
                                     <span class="file-name">{vrmFile.name}</span
@@ -869,7 +1060,9 @@
                                 {/if}
                             </div>
                         </div>
+                    {/if}
 
+                    {#if persona.personaType == "3D" || persona.personaType == "2.5D"}
                         <div class="form-group">
                             <label for="voice-select"
                                 >{$t("editPage.voiceLabel")}</label
@@ -920,52 +1113,87 @@
                     <h2>{$t("editPage.aiSettings.title")}</h2>
                     <div class="form-group">
                         <label for="first_scene"
-                            >{$t("editPage.firstSceneLabel")}</label
+                            >{persona.personaType === "3D" ||
+                            persona.personaType === "2.5D"
+                                ? $t("editPage.characterSettings.title")
+                                : $t("editPage.firstSceneLabel")}</label
                         >
-                        <div class="toggle-container">
-                            <span class:active={!toggleDialogueTag}
-                                >{"{{char}}"}</span
+                        {#if persona.personaType === "3D" || persona.personaType === "2.5D"}
+                            <!-- FirstSceneBuilder for 3D & 2.5D -->
+                            <FirstSceneBuilder
+                                initialData={persona.first_scene}
+                                onChange={(json) => {
+                                    firstSceneJson = json;
+                                    persona.first_scene = json;
+                                }}
+                            />
+                        {:else}
+                            <!-- Original textarea for non-3D -->
+                            <div class="toggle-container">
+                                <span class:active={!toggleDialogueTag}
+                                    >{"{{char}}"}</span
+                                >
+                                <label class="toggle-switch">
+                                    <input
+                                        type="checkbox"
+                                        bind:checked={toggleDialogueTag}
+                                    />
+                                    <span class="slider"></span>
+                                </label>
+                                <span class:active={toggleDialogueTag}
+                                    >{"{{user}}"}</span
+                                >
+                                <div class="tooltip-icon">
+                                    <Icon icon="ph:question-bold" />
+                                    <div class="tooltip-text">
+                                        <p>
+                                            <strong>{"{{char}}"}</strong>: {$t(
+                                                "editPage.tooltip.char",
+                                                { default: "캐릭터 이름" },
+                                            )}
+                                        </p>
+                                        <p>
+                                            <strong>{"{{user}}"}</strong>: {$t(
+                                                "editPage.tooltip.user",
+                                                { default: "사용자 이름" },
+                                            )}
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                            <button
+                                type="button"
+                                class="btn-util"
+                                on:click={insertDialogueTag}
                             >
-                            <label class="toggle-switch">
-                                <input
-                                    type="checkbox"
-                                    bind:checked={toggleDialogueTag}
-                                />
-                                <span class="slider"></span>
-                            </label>
-                            <span class:active={toggleDialogueTag}
-                                >{"{{user}}"}</span
-                            >
-                        </div>
-                        <button
-                            type="button"
-                            class="btn-util"
-                            on:click={insertDialogueTag}
-                        >
-                            {$t("editPage.aiSettings.addDialogueTag")}
-                        </button>
+                                {$t("editPage.aiSettings.addDialogueTag")}
+                            </button>
 
-                        <p class="description">
-                            {$t("editPage.firstSceneDescription")}
-                        </p>
-                        <textarea
-                            id="first_scene"
-                            bind:this={firstSceneTextarea}
-                            bind:value={persona.first_scene}
-                            placeholder={$t("editPage.firstScenePlaceholder")}
-                            rows="5"
-                            maxlength="2500"
-                        ></textarea>
-                        <div
-                            class="char-counter"
-                            class:warning={persona.first_scene.length > 2400}
-                            class:error={persona.first_scene.length >= 2500}
-                        >
-                            {persona.first_scene.length} / 2500
-                        </div>
+                            <p class="description">
+                                {$t("editPage.firstSceneDescription")}
+                            </p>
+                            <textarea
+                                id="first_scene"
+                                bind:this={firstSceneTextarea}
+                                bind:value={persona.first_scene}
+                                placeholder={$t(
+                                    "editPage.firstScenePlaceholder",
+                                )}
+                                rows="5"
+                                maxlength="2500"
+                            ></textarea>
+                            <div
+                                class="char-counter"
+                                class:warning={persona.first_scene.length >
+                                    2400}
+                                class:error={persona.first_scene.length >= 2500}
+                            >
+                                {persona.first_scene.length} / 2500
+                            </div>
+                        {/if}
                     </div>
                     <div class="form-group">
-                        {#if persona.personaType !== "3D"}
+                        {#if persona.personaType !== "3D" && persona.personaType !== "2.5D"}
                             <div class="form-group">
                                 <label for="prompt-template"
                                     >{$t(
@@ -1159,7 +1387,7 @@
                             class="category-button-container"
                             id="tags-container"
                         >
-                            {#each allCategories as category (category.id)}
+                            {#each allCategories.filter((category) => category.id < 1000) as category (category.id)}
                                 <button
                                     type="button"
                                     class="category-button"
@@ -1596,6 +1824,45 @@
     .asset-description-input {
         flex-grow: 1;
         resize: vertical;
+    }
+
+    /* Tooltip Styles */
+    .tooltip-icon {
+        position: relative;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        margin-left: 0.5rem;
+        cursor: help;
+        color: var(--muted-foreground);
+    }
+    .tooltip-text {
+        visibility: hidden;
+        width: max-content;
+        min-width: 150px;
+        background-color: var(--popover);
+        color: var(--popover-foreground);
+        text-align: left;
+        border-radius: 6px;
+        padding: 0.8rem;
+        position: absolute;
+        z-index: 10;
+        bottom: 130%;
+        left: 50%;
+        transform: translateX(-50%);
+        opacity: 0;
+        transition: opacity 0.2s;
+        box-shadow: var(--shadow-popover);
+        border: 1px solid var(--border);
+        font-size: 0.85rem;
+        pointer-events: none;
+    }
+    .tooltip-text p {
+        margin: 0.2rem 0;
+    }
+    .tooltip-icon:hover .tooltip-text {
+        visibility: visible;
+        opacity: 1;
     }
 
     .asset-remove {

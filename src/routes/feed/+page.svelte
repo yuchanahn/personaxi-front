@@ -156,6 +156,9 @@
             case "2D":
                 goto(`/2d?c=${content.id}`);
                 break;
+            case "2.5D":
+                goto(`/live2d?c=${content.id}`);
+                break;
             case "text":
                 goto(`/chat`);
                 break;

@@ -19,6 +19,9 @@
     "profileImageLabel": "Profile Image",
     "vrmFileLabel": "VRM File",
     "fileSelect": "Choose File",
+    "vrmLicenseWarning": "Please ensure the VRM model's license is set to 'personaxi'.\nService usage may be restricted otherwise.\nContinue?",
+    "vrmLicenseError": "Could not find 'personaxi' in the VRM model's license.\nUpload rejected.",
+    "vrmRequired": "VRM file upload is required for 3D characters.",
     "instructionsLabel": "Instructions",
     "instructionsDescription": "Define the core identity of the AI, such as its role, personality, and tone.",
     "instructionsPlaceholder": "e.g., You are a friendly AI assistant.",
@@ -84,7 +87,44 @@
       "copySuccess": "Copied! ✅",
       "copy": "Copy Tag"
     },
-    "tagsDescriptionCategory": "Select categories."
+    "tagsDescriptionCategory": "Select categories.",
+    "characterSettings": {
+      "title": "Character Settings",
+      "bodyDesc": "Body Description",
+      "bodyDescHint": "Physical appearance",
+      "bodyDescPlaceholder": "Describe the character's physical appearance...",
+      "animList": "Animation List",
+      "animListHint": "Available animations",
+      "animListPlaceholder": "List available animations...",
+      "coreDesire": "Core Desire",
+      "coreDesireHint": "Main motivation",
+      "coreDesirePlaceholder": "What drives this character?",
+      "contradiction": "Contradiction",
+      "contradictionHint": "Internal conflict",
+      "contradictionPlaceholder": "Conflicting traits or beliefs...",
+      "personality": "Personality",
+      "personalityHint": "Character traits",
+      "personalityPlaceholder": "How does this character behave?",
+      "values": "Values",
+      "valuesHint": "Core beliefs",
+      "valuesPlaceholder": "What does this character value most?",
+      "memList": "Memory List",
+      "memListHint": "Past experiences",
+      "memListPlaceholder": "Key memories and experiences...",
+      "emotionTriggers": "Emotion Triggers",
+      "emotionTriggersHint": "What evokes emotions",
+      "emotionTriggersPlaceholder": "What triggers emotional responses?",
+      "shortTermMemory": "Short Term Memory",
+      "shortTermMemoryHint": "Recent events",
+      "shortTermMemoryPlaceholder": "Recent events and conversations...",
+      "internalMonologue": "Internal Monologue",
+      "internalMonologueHint": "Inner thoughts",
+      "internalMonologuePlaceholder": "What's going on in their head?",
+      "currentEmotion": "Current Emotion",
+      "currentEmotionHint": "Emotional state",
+      "currentEmotionPlaceholder": "Current emotional state...",
+      "reset": "Reset"
+    }
   },
   "settingPage": {
     "title": "My Page",
@@ -412,7 +452,9 @@
     "includeAllUtterances": "Include All Utterances",
     "neuronsConsumed": "neurons consumed per response",
     "costDisplay": "Cost:",
-    "neuronBalance": "Neuron Balance: "
+    "neuronBalance": "Neuron Balance: ",
+    "showImage": "Show",
+    "hideImage": "Hide"
   },
   "chatSession": {
     "system": {
@@ -514,6 +556,8 @@
     "sliceOfLife": "Slice of Life",
     "action": "Action",
     "comedy": "Comedy",
-    "drama": "Drama"
+    "drama": "Drama",
+    "vrm": "VRM",
+    "live2d": "Live2D"
   }
 }

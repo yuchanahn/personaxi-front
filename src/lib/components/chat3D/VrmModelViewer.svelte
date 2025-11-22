@@ -109,7 +109,12 @@
   }
 
   $: if (persona?.id) {
-    tick().then(loadVrm);
+    isModelLoading = true;
+    // Use setTimeout to ensure loading UI is rendered before heavy VRM parsing starts
+    // This gives the browser time to paint the loading screen (50-100ms is sufficient)
+    setTimeout(() => {
+      loadVrm();
+    }, 100);
   }
 
   let isLoading = false;
@@ -222,7 +227,13 @@
   <canvas bind:this={canvas} class="vrm-canvas"></canvas>
   {#if isModelLoading}
     <div class="model-loader">
-      <Icon icon="line-md:loading-twotone-loop" width="64" height="64" />
+      <div class="loader-content">
+        <Icon icon="line-md:loading-twotone-loop" width="64" height="64" />
+        <span class="loading-text">VRM 모델 로딩 중...</span>
+        <small class="loading-hint"
+          >잠시 화면이 멈출 수 있습니다 (정상 동작)</small
+        >
+      </div>
     </div>
   {/if}
 
@@ -527,11 +538,44 @@
 
   .model-loader {
     position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    z-index: 5;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: rgba(0, 0, 0, 0.85);
+    backdrop-filter: blur(8px);
+    z-index: 1000;
+    /* GPU acceleration */
+    transform: translateZ(0);
+    will-change: opacity;
+  }
+
+  .loader-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+    /* GPU acceleration for smooth rendering */
+    transform: translateZ(0);
+    backface-visibility: hidden;
+  }
+
+  .loading-text {
     color: white;
+    font-size: 1.2rem;
+    font-weight: 500;
+    text-align: center;
+  }
+
+  .loading-hint {
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 0.875rem;
+    text-align: center;
+    max-width: 300px;
+    line-height: 1.4;
   }
 
   .spark {

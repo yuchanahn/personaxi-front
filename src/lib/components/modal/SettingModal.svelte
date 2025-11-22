@@ -18,6 +18,8 @@
     export let isOpen: boolean = false;
     export let persona: Persona;
     export let llmType: string = "Error";
+    export let mode: "2d" | "3d" = "3d";
+    export let showImage: boolean = true;
 
     let change_llm_type = "";
 
@@ -63,8 +65,14 @@
     let user: User | null = null;
 
     onMount(async () => {
-        const likes: string[] = await loadlikesdata();
-        persona.is_liked = likes.includes(persona.id);
+        try {
+            const likes: string[] = await loadlikesdata();
+            if (persona) {
+                persona.is_liked = likes.includes(persona.id);
+            }
+        } catch (e) {
+            console.error("Failed to load likes:", e);
+        }
     });
 
     /* -------------------- Event Handlers -------------------- */
@@ -287,6 +295,28 @@
                     <span>{$t("settingModal.chatManagement")}</span>
                 </h3>
                 <div class="button-grid">
+                    {#if mode === "2d"}
+                        <button
+                            class="action-button"
+                            on:click={() => (showImage = !showImage)}
+                        >
+                            <Icon
+                                icon={showImage
+                                    ? "ph:image-bold"
+                                    : "ph:image-square-bold"}
+                            />
+                            <span
+                                >{showImage
+                                    ? $t("settingModal.hideImage") ||
+                                      "Hide Image"
+                                    : $t("settingModal.showImage") ||
+                                      "Show Image"}</span
+                            >
+                            <div class="toggle-switch" class:on={showImage}>
+                                <div class="toggle-knob"></div>
+                            </div>
+                        </button>
+                    {/if}
                     <button
                         class="action-button"
                         on:click={handleResetChat}
@@ -518,6 +548,33 @@
         text-align: center;
         min-height: 20px;
     }
+    .toggle-switch {
+        width: 36px;
+        height: 20px;
+        background-color: #555;
+        border-radius: 10px;
+        position: relative;
+        transition: background-color 0.2s;
+        margin-left: auto; /* Push to right */
+    }
+    .toggle-switch.on {
+        background-color: var(--primary-light, #fff);
+    }
+    .toggle-knob {
+        width: 16px;
+        height: 16px;
+        background-color: white;
+        border-radius: 50%;
+        position: absolute;
+        top: 2px;
+        left: 2px;
+        transition: transform 0.2s;
+    }
+    .toggle-switch.on .toggle-knob {
+        transform: translateX(16px);
+        background-color: var(--primary-color);
+    }
+
     .status-text {
         font-size: 0.9em;
         color: var(--text-secondary);

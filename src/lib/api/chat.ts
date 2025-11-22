@@ -6,6 +6,31 @@ import { api } from '$lib/api';
 import { showNeedMoreNeuronsModal } from '$lib/stores/modal';
 
 
+/**
+ * Parse ESFPrompt JSON response to extract character's thoughts and speech
+ * Used for 3D/Live2D chat sessions where responses are stored as JSON
+ */
+function parseESFResponse(content: string): string {
+    try {
+        const json = JSON.parse(content);
+
+        console.log("ESFPrompt JSON:", json);
+
+        // Check if it's ESFPrompt JSON (has internal_monologue or speech_text)
+        if (json.internal_monologue || json.speech_text) {
+            const thoughts = json.internal_monologue ? `(${json.internal_monologue})\n` : '';
+            const speech = json.speech_text ? `<dialogue speaker="${json.speaker || 'Character'}">${json.speech_text}</dialogue>` : '';
+            return thoughts + speech;
+        }
+
+        // If it's not ESFPrompt format, return original content
+        return content;
+    } catch (e) {
+        // Not JSON or parsing failed, return original content
+        return content;
+    }
+}
+
 export async function loadChatHistory(sessionId: string) {
     const res = await api.get(`/api/chat/history?CSSID=${sessionId}`);
     if (res.ok) {
@@ -18,7 +43,13 @@ export async function loadChatHistory(sessionId: string) {
             return;
         }
         messages.set(
-            [{ role: "assistant", content: "<first_scene>" }, ...history.map((msg: any) => ({ role: msg.role, content: msg.content }))]
+            [
+                { role: "assistant", content: "<first_scene>" },
+                ...history.map((msg: any) => ({
+                    role: msg.role,
+                    content: msg.role === 'assistant' ? parseESFResponse(msg.content) : msg.content
+                }))
+            ]
         );
     } else {
         messages.set([{ role: "assistant", content: "<first_scene>" }]);

@@ -4,7 +4,7 @@ import { get } from 'svelte/store';
 import { getCurrentUser } from './api/auth';
 import { settings } from './stores/settings';
 
-const API_BASE_URL = dev ? '' : "https://api.personaxi.com";
+export const API_BASE_URL = dev ? '' : "https://api.personaxi.com";
 
 let refreshTokenPromise: Promise<Response> | null = null;
 

@@ -18,6 +18,8 @@
             .replace(/\*(.*?)\*/g, '<i class="custom-italic">$1</i>')
             .replace(/\*\*(.?)\*\*/g, '<b class="custom-bold">$1</b>');
 
+        //htmlContent = htmlContent.replace(/\n/g, "<br>");
+
         styleContent = styles;
     }
 </script>

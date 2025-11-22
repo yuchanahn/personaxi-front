@@ -1,6 +1,7 @@
 <script lang="ts">
     import { onMount, onDestroy } from "svelte";
     import { loadLive2DScripts } from "$lib/utils/live2dLoader";
+    import Icon from "@iconify/svelte";
 
     export let modelUrl: string;
     export let scale: number = 0.3;
@@ -153,79 +154,84 @@
     }
 
     onMount(async () => {
-        try {
-            await loadLive2DScripts();
+        // Use setTimeout to ensure loading UI is rendered before Live2D initialization
+        // This prevents UI freeze during model loading and script parsing
+        setTimeout(async () => {
+            try {
+                await loadLive2DScripts();
 
-            const PIXI = (window as any).PIXI;
+                const PIXI = (window as any).PIXI;
 
-            app = new PIXI.Application({
-                view: canvasElement,
-                autoStart: true,
-                backgroundAlpha: 0,
-                resizeTo: canvasElement.parentElement,
-            });
+                app = new PIXI.Application({
+                    view: canvasElement,
+                    autoStart: true,
+                    backgroundAlpha: 0,
+                    resizeTo: canvasElement.parentElement,
+                });
 
-            const model = await PIXI.live2d.Live2DModel.from(modelUrl, {
-                autoInteract: true,
-            });
+                const model = await PIXI.live2d.Live2DModel.from(modelUrl, {
+                    autoInteract: true,
+                });
 
-            model.scale.set(scale);
-            model.x = x;
-            model.y = y;
+                model.scale.set(scale);
+                model.x = x;
+                model.y = y;
 
-            if (x === 0 && y === 0) {
-                model.anchor.set(0.5, 0.5);
-                model.x = app.screen.width / 2;
-                model.y = app.screen.height / 2 + 100;
-            }
-
-            app.stage.addChild(model);
-            currentModel = model;
-            isLoaded = true;
-
-            // Update Debug Info
-            debugInfo.modelUrl = modelUrl;
-            debugInfo.availableExpressions = model.expressions || [];
-            if (model.internalModel && model.internalModel.motionManager) {
-                debugInfo.availableMotionGroups = Object.keys(
-                    model.internalModel.motionManager.definitions,
-                );
-            }
-            debugInfo = debugInfo;
-
-            console.log("Live2D Model Loaded");
-            console.log("Expressions:", model.expressions);
-            if (model.internalModel && model.internalModel.motionManager) {
-                console.log(
-                    "Motions:",
-                    model.internalModel.motionManager.definitions,
-                );
-            }
-
-            // Random Idle Behavior
-            idleInterval = setInterval(() => {
-                if (
-                    !currentModel ||
-                    !currentModel.internalModel ||
-                    !currentModel.internalModel.motionManager
-                )
-                    return;
-
-                if (Math.random() > 0.5) {
-                    const motionManager =
-                        currentModel.internalModel.motionManager;
-                    if (motionManager.definitions["Idle"]) {
-                        currentModel.motion("Idle");
-                        debugInfo.lastMotion = "Idle (Random)";
-                        debugInfo = debugInfo;
-                    }
+                if (x === 0 && y === 0) {
+                    model.anchor.set(0.5, 0.5);
+                    model.x = app.screen.width / 2;
+                    model.y = app.screen.height / 2 + 100;
                 }
-            }, 8000);
 
-            window.addEventListener("resize", onResize);
-        } catch (e) {
-            console.error("Failed to initialize Live2D:", e);
-        }
+                app.stage.addChild(model);
+                currentModel = model;
+                isLoaded = true;
+
+                // Update Debug Info
+                debugInfo.modelUrl = modelUrl;
+                debugInfo.availableExpressions = model.expressions || [];
+                if (model.internalModel && model.internalModel.motionManager) {
+                    debugInfo.availableMotionGroups = Object.keys(
+                        model.internalModel.motionManager.definitions,
+                    );
+                }
+                debugInfo = debugInfo;
+
+                console.log("Live2D Model Loaded");
+                console.log("Expressions:", model.expressions);
+                if (model.internalModel && model.internalModel.motionManager) {
+                    console.log(
+                        "Motions:",
+                        model.internalModel.motionManager.definitions,
+                    );
+                }
+
+                // Random Idle Behavior
+                idleInterval = setInterval(() => {
+                    if (
+                        !currentModel ||
+                        !currentModel.internalModel ||
+                        !currentModel.internalModel.motionManager
+                    )
+                        return;
+
+                    if (Math.random() > 0.5) {
+                        const motionManager =
+                            currentModel.internalModel.motionManager;
+                        if (motionManager.definitions["Idle"]) {
+                            currentModel.motion("Idle");
+                            debugInfo.lastMotion = "Idle (Random)";
+                            debugInfo = debugInfo;
+                        }
+                    }
+                }, 8000);
+
+                window.addEventListener("resize", onResize);
+            } catch (e) {
+                console.error("Failed to initialize Live2D:", e);
+                isLoaded = true; // Hide loading indicator even on error
+            }
+        }, 100);
     });
 
     function onResize() {
@@ -244,14 +250,24 @@
     });
 </script>
 
-<!-- Debug UI -->
-<div class="debug-toggle">
-    <button on:click={() => (showDebug = !showDebug)}>
-        {showDebug ? "🔍 Hide" : "🔍 Debug"}
-    </button>
-</div>
 <div class="live2d-container">
     <canvas bind:this={canvasElement} class="live2d-canvas"></canvas>
+
+    {#if !isLoaded}
+        <div class="model-loader">
+            <div class="loader-content">
+                <Icon
+                    icon="line-md:loading-twotone-loop"
+                    width="64"
+                    height="64"
+                />
+                <span class="loading-text">Live2D 모델 로딩 중...</span>
+                <small class="loading-hint"
+                    >잠시 화면이 멈출 수 있습니다 (정상 동작)</small
+                >
+            </div>
+        </div>
+    {/if}
 
     {#if showDebug}
         <div class="debug-panel">
@@ -317,30 +333,47 @@
         pointer-events: none; /* Allow clicks to pass through canvas */
     }
 
-    .debug-toggle {
-        position: fixed;
-        bottom: 80px;
-        right: 20px;
-        z-index: 9999;
-        pointer-events: auto;
+    .model-loader {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background-color: rgba(0, 0, 0, 0.85);
+        backdrop-filter: blur(8px);
+        z-index: 1000;
+        pointer-events: none;
+        /* GPU acceleration */
+        transform: translateZ(0);
+        will-change: opacity;
     }
 
-    .debug-toggle button {
-        background: rgba(0, 0, 0, 0.8);
-        color: #0f0;
-        border: 1px solid #0f0;
-        padding: 8px 12px;
-        border-radius: 4px;
-        cursor: pointer;
-        font-size: 12px;
-        font-weight: bold;
-        transition: all 0.2s;
-        pointer-events: auto;
+    .loader-content {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 1rem;
+        color: white;
+        /* GPU acceleration */
+        transform: translateZ(0);
+        backface-visibility: hidden;
     }
 
-    .debug-toggle button:hover {
-        background: rgba(0, 255, 0, 0.2);
-        box-shadow: 0 0 10px rgba(0, 255, 0, 0.3);
+    .loading-text {
+        font-size: 1.2rem;
+        font-weight: 500;
+        text-align: center;
+    }
+
+    .loading-hint {
+        color: rgba(255, 255, 255, 0.7);
+        font-size: 0.875rem;
+        text-align: center;
+        max-width: 300px;
+        line-height: 1.4;
     }
 
     .debug-panel {

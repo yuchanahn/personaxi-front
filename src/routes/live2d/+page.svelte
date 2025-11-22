@@ -19,8 +19,7 @@
     let isLoading = false;
 
     // Hardcoded model for testing if not present in persona
-    const TEST_MODEL_URL =
-        "https://cdn.jsdelivr.net/gh/guansss/pixi-live2d-display/test/assets/shizuku/shizuku.model.json";
+    const TEST_MODEL_URL = "/live2d/huohuo/huohuo.model3.json";
 
     onMount(() => {
         const sessionId = $page.url.searchParams.get("c");
@@ -29,10 +28,10 @@
             persona = null;
             loadChatHistory(sessionId);
             loadPersona(sessionId).then((p) => {
-                // Fallback to test model if live2d_url is missing
-                if (!p.live2d_url) {
+                // Fallback to test model if live2d_model_url is missing
+                if (!p.live2d_model_url) {
                     console.warn("No Live2D URL found, using test model.");
-                    p.live2d_url = TEST_MODEL_URL;
+                    p.live2d_model_url = TEST_MODEL_URL;
                 }
                 persona = p;
             });
@@ -57,8 +56,8 @@
                 persona = null;
                 loadChatHistory(sessionId);
                 loadPersona(sessionId).then((p) => {
-                    if (!p.live2d_url) {
-                        p.live2d_url = TEST_MODEL_URL;
+                    if (!p.live2d_model_url) {
+                        p.live2d_model_url = TEST_MODEL_URL;
                     }
                     persona = p;
                 });
@@ -113,11 +112,11 @@
         />
 
         <div class="live2d-wrapper">
-            {#if persona.live2d_url}
+            {#if persona.live2d_model_url}
                 <Live2DViewer
                     bind:this={Viewer}
-                    modelUrl={persona.live2d_url}
-                    scale={0.3}
+                    modelUrl={persona.live2d_model_url}
+                    scale={0.2}
                 />
             {:else}
                 <div class="error-message">No Model URL</div>

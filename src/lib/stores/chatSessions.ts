@@ -6,7 +6,7 @@ export enum ChatSessionType {
     CHARACTER3D = '3D',
     SYSTEM = 'system',
     SPACE = 'space',
-    LIVE2D = 'Live2D',
+    LIVE2D = '2.5D',
 }
 
 export type ChatSession = {

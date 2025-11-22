@@ -13,6 +13,9 @@
     "profileImageLabel": "프로필 이미지",
     "vrmFileLabel": "VRM 파일",
     "fileSelect": "파일 선택",
+    "vrmLicenseWarning": "VRM 모델의 라이선스가 'personaxi'로 설정되어 있는지 확인해주세요.\n다른 라이선스일 경우 서비스 이용이 제한될 수 있습니다.\n계속하시겠습니까?",
+    "vrmLicenseError": "VRM 모델의 라이선스에서 'personaxi'를 찾을 수 없습니다.\n업로드가 거부되었습니다.",
+    "vrmRequired": "3D 캐릭터는 VRM 파일 업로드가 필수입니다.",
     "aiSettings": {
       "title": "AI 상세 설정",
       "addDialogueTag": "대사 태그 추가",
@@ -41,6 +44,43 @@
       "copy": "태그 복사"
     },
     "tagsDescriptionCategory": "카테고리를 선택하세요.",
+    "characterSettings": {
+      "title": "캐릭터 설정",
+      "bodyDesc": "외모 묘사",
+      "bodyDescHint": "신체적 특징",
+      "bodyDescPlaceholder": "캐릭터의 신체적 외모를 설명하세요...",
+      "animList": "애니메이션 목록",
+      "animListHint": "사용 가능한 애니메이션",
+      "animListPlaceholder": "사용 가능한 애니메이션을 나열하세요...",
+      "coreDesire": "핵심 욕구",
+      "coreDesireHint": "주요 동기",
+      "coreDesirePlaceholder": "이 캐릭터를 움직이는 것은 무엇인가요?",
+      "contradiction": "모순",
+      "contradictionHint": "내적 갈등",
+      "contradictionPlaceholder": "상충하는 특성이나 신념...",
+      "personality": "성격",
+      "personalityHint": "성격적 특성",
+      "personalityPlaceholder": "이 캐릭터는 어떻게 행동하나요?",
+      "values": "가치관",
+      "valuesHint": "핵심 신념",
+      "valuesPlaceholder": "이 캐릭터가 가장 중요하게 여기는 것은?",
+      "memList": "기억 목록",
+      "memListHint": "과거 경험",
+      "memListPlaceholder": "주요 기억과 경험들...",
+      "emotionTriggers": "감정 트리거",
+      "emotionTriggersHint": "감정을 유발하는 것",
+      "emotionTriggersPlaceholder": "어떤 것이 감정적 반응을 불러일으키나요?",
+      "shortTermMemory": "단기 기억",
+      "shortTermMemoryHint": "최근 사건",
+      "shortTermMemoryPlaceholder": "최근 사건과 대화들...",
+      "internalMonologue": "내적 독백",
+      "internalMonologueHint": "내면의 생각",
+      "internalMonologuePlaceholder": "그들의 머릿속에서 무슨 일이 일어나고 있나요?",
+      "currentEmotion": "현재 감정",
+      "currentEmotionHint": "감정 상태",
+      "currentEmotionPlaceholder": "현재 감정 상태...",
+      "reset": "초기화"
+    },
     "instructionsLabel": "지시사항",
     "instructionsDescription": "AI의 역할, 성격, 어조 등 핵심 정체성을 정의합니다.",
     "instructionsPlaceholder": "예: 당신은 친절한 AI 비서입니다.",
@@ -85,7 +125,11 @@
     "voiceLoading": "목소리 로딩 중...",
     "firstSceneLabel": "첫 장면",
     "firstSceneDescription": "페르소나와 처음 만났을 때의 배경 설명을 정의합니다.",
-    "firstScenePlaceholder": "예: 당신은 고요한 숲속에서 길을 잃은 여행자입니다."
+    "firstScenePlaceholder": "예: 당신은 고요한 숲속에서 길을 잃은 여행자입니다.",
+    "tooltip": {
+      "char": "{{char}}는 AI 캐릭터의 이름으로 자동 치환됩니다.",
+      "user": "{{user}}는 사용자의 이름으로 자동 치환됩니다."
+    }
   },
   "nav": {
     "explore": "탐색",
@@ -206,7 +250,9 @@
     "includeAllUtterances": "모든 발화 포함",
     "neuronsConsumed": "뉴런이 소모 됩니다.",
     "costDisplay": "응답 당 :",
-    "neuronBalance": "현재 뉴런: "
+    "neuronBalance": "현재 뉴런: ",
+    "showImage": "보기",
+    "hideImage": "숨기기"
   },
   "contentHub": {
     "searchTitle": "페르소나 검색",
@@ -386,19 +432,8 @@
       "timestamp3": "2일 전"
     },
     "defaultProfile": "기본 프로필",
-    "creatorInfo": "제작: @{creatorName}",
-    "dummyComments": {
-      "author1": "스토리 탐험가",
-      "text1": "이 캐릭터 설정 너무 좋아요! 배경 이야기가 더 궁금해지네요.",
-      "timestamp1": "3시간 전",
-      "author2": "AI 친구",
-      "text2": "대화 나눠봤는데 정말 똑똑하고 재밌어요. 강추!",
-      "timestamp2": "1일 전",
-      "author3": "지나가는 행인",
-      "text3": "일러스트가 정말 아름답네요...✨",
-      "timestamp3": "2일 전"
-    },
-    "likeFailed": "좋아요 처리에 실패했습니다: {message}"
+    "spoilerWarning": "스포일러 주의! 첫 장면을 보시겠습니까?",
+    "characterIntel": "캐릭터 정보"
   },
   "verifyPage": {
     "invalidAccess": "유효하지 않은 접근입니다.",
@@ -461,7 +496,9 @@
     }
   },
   "common": {
-    "back": "뒤로가기"
+    "back": "뒤로가기",
+    "hide": "숨기기",
+    "show": "보기"
   },
   "creatorPage": {
     "personas": "개의 AI 페르소나",
@@ -485,6 +522,8 @@
     "sliceOfLife": "일상",
     "action": "액션",
     "comedy": "코미디",
-    "drama": "드라마"
+    "drama": "드라마",
+    "vrm": "VRM",
+    "live2d": "Live2D"
   }
 }

@@ -57,6 +57,20 @@
             <Icon icon="mdi:heart" />
             {content.likes_count}
         </div>
+
+        {#if content.tags && content.tags.includes("1001")}
+            <div class="badge-vrm">
+                <Icon icon="ph:cube-transparent-duotone" />
+                <span>VRM</span>
+            </div>
+        {/if}
+
+        {#if content.tags && content.tags.includes("1002")}
+            <div class="badge-live2d">
+                <Icon icon="ph:star-four-duotone" />
+                <span>Live2D</span>
+            </div>
+        {/if}
     </div>
 
     <div class="tile-info">
@@ -213,6 +227,7 @@
         }
         .tags-line {
             font-size: 0.6rem;
+            padding: 0.15rem 0.3rem;
         }
         .overlay-stats .stat,
         .like-overlay {
@@ -220,5 +235,50 @@
             padding: 0.15rem 0.3rem;
             gap: 0.2rem;
         }
+        .badge-vrm,
+        .badge-live2d {
+            font-size: 0.6rem;
+            padding: 0.15rem 0.4rem;
+        }
+    }
+
+    .badge-vrm {
+        position: absolute;
+        top: 0.5rem;
+        left: 0.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.3rem;
+        font-size: 0.75rem;
+        font-weight: 700;
+        color: white;
+        background: linear-gradient(135deg, #6366f1, #8b5cf6);
+        padding: 0.25rem 0.6rem;
+        border-radius: 12px;
+        box-shadow: 0 2px 8px rgba(99, 102, 241, 0.4);
+        z-index: 3;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        backdrop-filter: blur(4px);
+        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+    }
+
+    .badge-live2d {
+        position: absolute;
+        top: 0.5rem;
+        left: 0.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.3rem;
+        font-size: 0.75rem;
+        font-weight: 700;
+        color: white;
+        background: linear-gradient(135deg, #ec4899, #f43f5e);
+        padding: 0.25rem 0.6rem;
+        border-radius: 12px;
+        box-shadow: 0 2px 8px rgba(236, 72, 153, 0.4);
+        z-index: 3;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        backdrop-filter: blur(4px);
+        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
     }
 </style>

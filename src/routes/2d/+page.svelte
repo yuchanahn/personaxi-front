@@ -48,6 +48,7 @@
   };
 
   let isSettingsModalOpen = false;
+  let showImage = true; // 기본값: 이미지 보이기
 </script>
 
 {#if isSettingsModalOpen && persona}
@@ -55,9 +56,12 @@
     {persona}
     isOpen={isSettingsModalOpen}
     {llmType}
+    mode="2d"
+    bind:showImage
     on:close={() => (isSettingsModalOpen = false)}
   />
 {/if}
+
 <main class="chat-layout">
   <div class="settings-button-2d">
     <SettingsButton onClick={() => (isSettingsModalOpen = true)} />
@@ -68,14 +72,46 @@
       cssid={lastSessionId ?? ""}
       {isLoading}
       {persona}
+      {showImage}
       SendMessage={send}
     />
     <ChatInput onSend={send} {isDisabled} />
   </div>
 </main>
-```
 
 <style>
+  .character-background {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 0;
+    overflow: hidden;
+    pointer-events: none; /* 클릭 방해 금지 */
+  }
+
+  .character-background img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    opacity: 0.6; /* 배경으로 은은하게 깔기 */
+    filter: blur(5px); /* 약간 흐리게 처리 (선택사항) */
+  }
+
+  .gradient-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(
+      to bottom,
+      rgba(0, 0, 0, 0.3),
+      rgba(0, 0, 0, 0.8)
+    );
+  }
+
   .chat-layout {
     display: flex;
     height: 100%;
@@ -83,6 +119,8 @@
     overflow: hidden;
     /* 모바일 기본: 세로 배치 */
     flex-direction: column;
+    position: relative; /* 배경 이미지 위치 기준 */
+    background-color: #1a1a1a;
   }
 
   .chat-container {
@@ -91,6 +129,9 @@
     display: flex;
     flex-direction: column;
     min-height: 0;
+    position: relative; /* z-index 적용을 위해 */
+    z-index: 1; /* 배경 위에 표시 */
+    background: transparent; /* 배경 투명 */
   }
 
   :global(.chat-window) {
@@ -110,6 +151,12 @@
     .chat-container {
       /* 오른쪽 영역이 남은 공간 모두 차지 */
       flex: 1;
+    }
+
+    /* PC에서는 이미지를 오른쪽이나 중앙에 배치하는 스타일 변경 가능 */
+    .character-background img {
+      filter: blur(0); /* PC에서는 선명하게? */
+      opacity: 0.3;
     }
   }
 

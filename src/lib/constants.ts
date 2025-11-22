@@ -9,10 +9,9 @@ export const ASSET_URL = "https://uohepkqmwbstbmnkoqju.supabase.co/storage/v1/ob
 /*host === "localhost" || host === "127.0.0.1"
     ? "http://localhost:8080"
     : "https://api.personaxi.com";
-//: "https://7a87-175-115-55-94.ngrok-free.app";*/
+*/
 
 
-// --- 새 카테고리 목록 (예시) ---
 export const allCategories = [
     { id: 1, nameKey: "tags.romance" },
     { id: 2, nameKey: "tags.fantasy" },
@@ -22,5 +21,9 @@ export const allCategories = [
     { id: 6, nameKey: "tags.action" },
     { id: 7, nameKey: "tags.comedy" },
     { id: 8, nameKey: "tags.drama" },
+
+    // ---------------------------------
+
+    { id: 1001, nameKey: "tags.vrm" },
+    { id: 1002, nameKey: "tags.live2d" },
 ];
-// ------------------------------

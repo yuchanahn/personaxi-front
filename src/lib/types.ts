@@ -19,7 +19,7 @@ export interface Persona {
     feedback: PersonaFeedback;
     voice_id: string;
     vrm_url: string; // Add this
-    live2d_url?: string; // Add this
+    live2d_model_url?: string; // Live2D model3.json URL
     portrait_url: string; // Add this
     image_metadatas: ImageMetadata[];
     visibility: string; // e.g., "public", "private"

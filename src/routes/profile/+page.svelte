@@ -13,12 +13,14 @@
     import { get } from "svelte/store";
     import { chatSessions } from "$lib/stores/chatSessions";
     import AssetPreview from "$lib/components/AssetPreview.svelte";
+    import { slide } from "svelte/transition";
     import { st_user } from "$lib/stores/user";
 
     let persona: Persona | null = null;
     let comments: Comment[] = [];
     let isLoading = true;
     let newCommentText = "";
+    let showFirstScene = false;
 
     let galleryImages: ImageMetadata[] = [];
     let currentImageIndex = 0;
@@ -150,6 +152,8 @@
             goto(`/2d?c=${persona.id}&llmType=${llmType}`);
         } else if (persona?.personaType === "3D") {
             goto(`/character?c=${persona.id}&llmType=${llmType}`);
+        } else if (persona?.personaType === "2.5D") {
+            goto(`/live2d?c=${persona.id}&llmType=${llmType}`);
         } else {
             alert(persona?.personaType);
         }
@@ -347,77 +351,114 @@
                                 </span>
                             </h3>
 
-                            {#if threeDSceneData}
-                                <div class="threed-data-wrapper">
-                                    <div class="threed-chips">
-                                        {#if threeDSceneData.current_emotion}
-                                            <div class="data-chip emotion">
-                                                <span class="chip-label"
-                                                    ><Icon
-                                                        icon="ph:smiley-duotone"
-                                                    /> 감정</span
-                                                >
-                                                <span class="chip-value"
-                                                    >{threeDSceneData.current_emotion}</span
-                                                >
+                            {#if showFirstScene}
+                                <div
+                                    transition:slide={{
+                                        duration: 300,
+                                        axis: "y",
+                                    }}
+                                >
+                                    {#if threeDSceneData}
+                                        <div class="threed-data-wrapper">
+                                            <div class="threed-chips">
+                                                {#if threeDSceneData.current_emotion}
+                                                    <div
+                                                        class="data-chip emotion"
+                                                    >
+                                                        <span class="chip-label"
+                                                            ><Icon
+                                                                icon="ph:smiley-duotone"
+                                                            /> 감정</span
+                                                        >
+                                                        <span class="chip-value"
+                                                            >{threeDSceneData.current_emotion}</span
+                                                        >
+                                                    </div>
+                                                {/if}
+                                                {#if threeDSceneData.core_desire}
+                                                    <div
+                                                        class="data-chip desire"
+                                                    >
+                                                        <span class="chip-label"
+                                                            ><Icon
+                                                                icon="ph:target-duotone"
+                                                            /> 욕구</span
+                                                        >
+                                                        <span class="chip-value"
+                                                            >{threeDSceneData.core_desire}</span
+                                                        >
+                                                    </div>
+                                                {/if}
+                                                {#if threeDSceneData.personality}
+                                                    <div
+                                                        class="data-chip personality"
+                                                    >
+                                                        <span class="chip-label"
+                                                            ><Icon
+                                                                icon="ph:fingerprint-duotone"
+                                                            /> 성격</span
+                                                        >
+                                                        <span class="chip-value"
+                                                            >{threeDSceneData.personality}</span
+                                                        >
+                                                    </div>
+                                                {/if}
                                             </div>
-                                        {/if}
-                                        {#if threeDSceneData.core_desire}
-                                            <div class="data-chip desire">
-                                                <span class="chip-label"
-                                                    ><Icon
-                                                        icon="ph:target-duotone"
-                                                    /> 욕구</span
-                                                >
-                                                <span class="chip-value"
-                                                    >{threeDSceneData.core_desire}</span
-                                                >
-                                            </div>
-                                        {/if}
-                                        {#if threeDSceneData.personality}
-                                            <div class="data-chip personality">
-                                                <span class="chip-label"
-                                                    ><Icon
-                                                        icon="ph:fingerprint-duotone"
-                                                    /> 성격</span
-                                                >
-                                                <span class="chip-value"
-                                                    >{threeDSceneData.personality}</span
-                                                >
-                                            </div>
-                                        {/if}
-                                    </div>
 
-                                    {#if threeDSceneData.mem_list}
-                                        <div class="threed-narrative">
-                                            <p class="scene-text">
-                                                {@html replaceNicknameInText(
-                                                    threeDSceneData.mem_list,
-                                                ).replaceAll("\n", "<br/>")}
-                                            </p>
+                                            {#if threeDSceneData.mem_list}
+                                                <div class="threed-narrative">
+                                                    <p class="scene-text">
+                                                        {@html replaceNicknameInText(
+                                                            threeDSceneData.mem_list,
+                                                        ).replaceAll(
+                                                            "\n",
+                                                            "<br/>",
+                                                        )}
+                                                    </p>
+                                                </div>
+                                            {/if}
                                         </div>
+                                    {:else if persona.first_scene === "<tr>"}
+                                        <p class="scene-text">
+                                            {$t("profilePage.translating")}
+                                        </p>
+                                    {:else}
+                                        <p class="scene-text">
+                                            {replaceNicknameInText(
+                                                formatSceneText(
+                                                    persona.first_scene,
+                                                ),
+                                            )}
+                                        </p>
                                     {/if}
                                 </div>
-                            {:else if persona.first_scene === "<tr>"}
-                                <p class="scene-text">
-                                    {$t("profilePage.translating")}
-                                </p>
+                                <button
+                                    class="spoiler-toggle-btn hide"
+                                    on:click={() => (showFirstScene = false)}
+                                >
+                                    <Icon icon="ph:eye-slash-bold" />
+                                    <span>{$t("common.hide")}</span>
+                                </button>
                             {:else}
-                                <p class="scene-text">
-                                    {replaceNicknameInText(
-                                        formatSceneText(persona.first_scene),
-                                    ).length > 500
-                                        ? replaceNicknameInText(
-                                              formatSceneText(
-                                                  persona.first_scene,
-                                              ),
-                                          ).slice(0, 500) + "..."
-                                        : replaceNicknameInText(
-                                              formatSceneText(
-                                                  persona.first_scene,
-                                              ),
-                                          )}
-                                </p>
+                                <div class="spoiler-overlay">
+                                    <p class="spoiler-warning">
+                                        <Icon
+                                            icon="ph:warning-circle-duotone"
+                                        />
+                                        <span
+                                            >{$t(
+                                                "profilePage.spoilerWarning",
+                                            )}</span
+                                        >
+                                    </p>
+                                    <button
+                                        class="spoiler-toggle-btn show"
+                                        on:click={() => (showFirstScene = true)}
+                                    >
+                                        <Icon icon="ph:eye-bold" />
+                                        <span>{$t("common.show")}</span>
+                                    </button>
+                                </div>
                             {/if}
                         </div>
                     {/if}
@@ -805,9 +846,63 @@
     }
     .comments-title {
         font-size: 1.5rem;
+        font-weight: bold;
+        color: var(--foreground);
         margin-bottom: 1.5rem;
-        padding-bottom: 1rem;
-        border-bottom: 1px solid var(--border);
+    }
+    .spoiler-overlay {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 1rem;
+        padding: 2rem;
+        background: rgba(0, 0, 0, 0.3);
+        border-radius: 8px;
+        text-align: center;
+    }
+    .spoiler-warning {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        color: #ffb86c; /* Warning color */
+        font-weight: bold;
+        font-size: 1.1rem;
+    }
+    .spoiler-toggle-btn {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.6rem 1.2rem;
+        border-radius: 8px;
+        border: 1px solid var(--border);
+        background: var(--card);
+        color: var(--foreground);
+        cursor: pointer;
+        font-weight: 600;
+        transition: all 0.2s;
+    }
+    .spoiler-toggle-btn:hover {
+        background: var(--muted);
+        transform: translateY(-2px);
+    }
+    .spoiler-toggle-btn.show {
+        background: var(--primary);
+        color: var(--primary-foreground);
+        border: none;
+    }
+    .spoiler-toggle-btn.hide {
+        margin-top: 1rem;
+        width: 100%;
+        justify-content: center;
+        background: transparent;
+        border: 1px dashed var(--border);
+        color: var(--muted-foreground);
+    }
+    .spoiler-toggle-btn.hide:hover {
+        background: rgba(255, 0, 0, 0.1);
+        color: #ff5555;
+        border-color: #ff5555;
     }
     .comments-list {
         flex-grow: 1;

@@ -14,6 +14,8 @@
   export let cssid: string;
   export let showChat: boolean = true;
   export let persona: Persona | null = null;
+  export let showImage: boolean = true;
+
   export let SendMessage: (msg: string) => void = (msg: string) => {
     console.log("SendMessage not implemented:", msg);
   };
@@ -300,7 +302,7 @@
           )}
         </div>
       </div>
-    {:else if item.type === "image"}
+    {:else if item.type === "image" && showImage}
       <div class="image-block">
         <AssetPreview asset={item.metadata} />
       </div>
@@ -315,11 +317,12 @@
   {/each}
 
   {#if isLoading}
-    <div
-      class="loading-dots assistant-placeholder"
-      role="status"
-      aria-label="메시지 로딩 중"
-    ></div>
+    <div class="message assistant">
+      <div class="speaker-name">{persona?.name}</div>
+      <div class="dialogue-bubble">
+        <div class="loading-dots">{persona?.name}가 메시지 작성중...</div>
+      </div>
+    </div>
   {/if}
 
   {#if isThink}
@@ -441,7 +444,23 @@
   :global(.custom-italic) {
     font-style: italic;
   }
-  .loading-dots,
+  .loading-dots {
+    animation: loading-dots 1s infinite;
+    animation-timing-function: ease-in-out;
+    animation-iteration-count: infinite;
+    animation-fill-mode: both;
+  }
+  @keyframes loading-dots {
+    0% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0.5;
+    }
+    100% {
+      opacity: 1;
+    }
+  }
   .empty-message {
     align-self: center;
     color: var(--muted-foreground);
