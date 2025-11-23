@@ -13,6 +13,7 @@
   ![TypeScript](https://img.shields.io/badge/typescript-%23007ACC.svg?style=for-the-badge&logo=typescript&logoColor=white)
   ![TailwindCSS](https://img.shields.io/badge/tailwindcss-%2338B2AC.svg?style=for-the-badge&logo=tailwind-css&logoColor=white)
   ![Three.js](https://img.shields.io/badge/threejs-black?style=for-the-badge&logo=three.js&logoColor=white)
+  ![Live2D](https://img.shields.io/badge/Live2D-FF5050?style=for-the-badge&logo=live2d&logoColor=white)
   ![Supabase](https://img.shields.io/badge/Supabase-3ECF8E?style=for-the-badge&logo=supabase&logoColor=white)
 
 </div>
@@ -25,7 +26,7 @@ Whether you're a creator designing the ultimate virtual companion or a user look
 
 ## ✨ Key Features
 
--   **🎨 Diverse Persona Creation**: Support for both **Live2D** and **3D VRM** models.
+-   **🎨 Diverse Persona Creation**: Full support for both **3D VRM** models and **✨ NEW: Live2D** characters!
 -   **🧠 Advanced AI Brain**: Powered by state-of-the-art LLMs for realistic and engaging conversations.
 -   **🏆 Creator Competition**: A unique system where creators compete for popularity and rewards.
 -   **💬 Real-time Interaction**: Seamless chat interface with support for TTS (Text-to-Speech) and STT (Speech-to-Text).
