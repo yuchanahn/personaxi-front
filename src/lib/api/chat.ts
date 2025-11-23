@@ -8,7 +8,7 @@ import { showNeedMoreNeuronsModal } from '$lib/stores/modal';
 
 /**
  * Parse ESFPrompt JSON response to extract character's thoughts and speech
- * Used for 3D/Live2D chat sessions where responses are stored as JSON
+ * Supports both NEW 3-stage format and OLD format for backward compatibility
  */
 function parseESFResponse(content: string): string {
     try {
@@ -16,7 +16,24 @@ function parseESFResponse(content: string): string {
 
         console.log("ESFPrompt JSON:", json);
 
-        // Check if it's ESFPrompt JSON (has internal_monologue or speech_text)
+        // NEW 3-Stage Format (perception → speech → reflection)
+        if (json.perception_analysis || json.internal_monologue_reflection) {
+            const analysis = json.perception_analysis
+                ? `*(분석: ${json.perception_analysis})*\n`
+                : '';
+
+            const speech = json.speech_text
+                ? `<dialogue speaker="${json.speaker || 'Character'}">${json.speech_text}</dialogue>\n`
+                : '';
+
+            const reflection = json.internal_monologue_reflection
+                ? `*(${json.internal_monologue_reflection})*`
+                : '';
+
+            return analysis + speech + reflection;
+        }
+
+        // OLD Format (backward compatibility)
         if (json.internal_monologue || json.speech_text) {
             const thoughts = json.internal_monologue ? `(${json.internal_monologue})\n` : '';
             const speech = json.speech_text ? `<dialogue speaker="${json.speaker || 'Character'}">${json.speech_text}</dialogue>` : '';

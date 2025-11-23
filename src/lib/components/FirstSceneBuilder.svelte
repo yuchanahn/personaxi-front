@@ -17,6 +17,8 @@
     let last_atmosphere = "";
     let current_emotion = "";
 
+    let initialized = false;
+
     function generateJson() {
         const obj = {
             body_desc,
@@ -51,9 +53,19 @@
         generateJson();
     }
 
-    $: {
-        if (body_desc !== undefined) generateJson();
-    }
+    // Only trigger onChange after initialization complete
+    $: body_desc,
+        anim_list,
+        core_desire,
+        contradiction,
+        personality,
+        values,
+        mem_list,
+        emotion_triggers,
+        short_term_memory,
+        last_atmosphere,
+        current_emotion,
+        initialized && generateJson();
 
     onMount(() => {
         if (initialData) {
@@ -70,9 +82,16 @@
                 short_term_memory = data.short_term_memory ?? "";
                 last_atmosphere = data.last_atmosphere ?? "";
                 current_emotion = data.current_emotion ?? "";
+
+                // Mark initialized and trigger onChange
+                initialized = true;
             } catch (e) {
                 console.error("FirstSceneBuilder: initialData parse error", e);
+                initialized = true;
             }
+        } else {
+            // No initial data, allow editing from scratch
+            initialized = true;
         }
     });
 </script>

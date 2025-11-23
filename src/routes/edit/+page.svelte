@@ -19,10 +19,8 @@
     import { api } from "$lib/api";
     import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
     import { VRMLoaderPlugin } from "@pixiv/three-vrm";
-    import * as THREE from "three";
     import AssetPreview from "$lib/components/AssetPreview.svelte";
     import { allCategories } from "$lib/constants";
-    import { Toggle } from "bits-ui";
     import Icon from "@iconify/svelte";
     import FirstSceneBuilder from "$lib/components/FirstSceneBuilder.svelte";
 
@@ -233,40 +231,6 @@
             console.error("Failed to load voices.json", e);
         }
     });
-
-    function addInstruction() {
-        if (instruction.trim() !== "") {
-            persona.instructions = [
-                ...persona.instructions,
-                "\n" + instruction,
-            ];
-            instruction = "";
-        }
-    }
-
-    function addPromptExample() {
-        if (promptExample.trim()) {
-            persona.promptExamples = [
-                ...persona.promptExamples,
-                promptExample.trim(),
-            ];
-            promptExample = "";
-        }
-    }
-
-    // addTag() 함수 삭제
-
-    function removeInstruction(index: number) {
-        persona.instructions = persona.instructions.filter(
-            (_, i) => i !== index,
-        );
-    }
-
-    function removePromptExample(index: number) {
-        persona.promptExamples = persona.promptExamples.filter(
-            (_, i) => i !== index,
-        );
-    }
 
     let vrmInput: HTMLInputElement;
 
@@ -1125,6 +1089,8 @@
                                 onChange={(json) => {
                                     firstSceneJson = json;
                                     persona.first_scene = json;
+
+                                    console.log(persona.first_scene);
                                 }}
                             />
                         {:else}
