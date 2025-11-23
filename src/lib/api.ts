@@ -1,29 +1,9 @@
 import { browser, dev } from '$app/environment';
-import { accessToken } from '$lib/stores/auth';
+import { supabase } from '$lib/supabase';
 import { get } from 'svelte/store';
-import { getCurrentUser } from './api/auth';
-import { settings } from './stores/settings';
+import { accessToken } from '$lib/stores/auth';
 
 export const API_BASE_URL = dev ? '' : "https://api.personaxi.com";
-
-let refreshTokenPromise: Promise<Response> | null = null;
-
-async function refreshAccessToken() {
-    if (!refreshTokenPromise) {
-        refreshTokenPromise = fetch(API_BASE_URL + '/api/auth/refresh-token', {
-            method: 'POST',
-            credentials: 'include'
-        });
-    }
-
-    const refreshResponse = await refreshTokenPromise;
-    refreshTokenPromise = null;
-
-    if (refreshResponse.ok) {
-        const { access_token: newAccessToken } = await refreshResponse.clone().json();
-        accessToken.set(newAccessToken);
-    }
-}
 
 async function fetchWithAuth(url: string, options: RequestInit = {}): Promise<Response> {
     if (!browser) {
@@ -32,29 +12,19 @@ async function fetchWithAuth(url: string, options: RequestInit = {}): Promise<Re
 
     options.credentials = 'include';
     const headers = new Headers(options.headers);
-    const token = get(accessToken);
+
+    // Supabase에서 현재 세션 가져오기
+    const { data: { session } } = await supabase.auth.getSession();
+    const token = session?.access_token;
 
     if (token) {
         headers.set('Authorization', `Bearer ${token}`);
     } else {
-        await refreshAccessToken();
-        const newToken = get(accessToken);
-        if (newToken) {
-            headers.set('Authorization', `Bearer ${newToken}`);
-
-            let user = await getCurrentUser();
-            if (user.data.language == "") {
-                settings.update((s) => {
-                    console.log("Setting Update!!")
-                    return s;
-                });
-            }
-
-        } else {
-            window.location.href = '/login';
-            throw new Error('Session expired');
-        }
+        // 토큰이 없으면 로그인 페이지로 이동
+        window.location.href = '/login';
+        throw new Error('No session');
     }
+
     if (options.body) {
         headers.set('Content-Type', 'application/json');
     }
@@ -62,31 +32,10 @@ async function fetchWithAuth(url: string, options: RequestInit = {}): Promise<Re
 
     let response = await fetch(url, options);
 
-    try {
-        if (response.status === 401) {
-            if (!refreshTokenPromise) {
-                refreshTokenPromise = fetch(API_BASE_URL + '/api/auth/refresh-token', {
-                    method: 'POST',
-                    credentials: 'include'
-                });
-            }
-
-            const refreshResponse = await refreshTokenPromise;
-            refreshTokenPromise = null;
-            if (refreshResponse.ok) {
-                const { access_token: newAccessToken } = await refreshResponse.clone().json();
-                accessToken.set(newAccessToken);
-
-                headers.set('Authorization', `Bearer ${newAccessToken}`);
-                options.headers = headers;
-                return fetch(url, options);
-            } else {
-                window.location.href = '/login';
-                throw new Error('Session expired');
-            }
-        }
-    } catch (error) {
-        console.error(error);
+    if (response.status === 401) {
+        // 401 에러(인증 실패) 시 로그인 페이지로 이동
+        window.location.href = '/login';
+        throw new Error('Unauthorized');
     }
 
     return response;
@@ -137,17 +86,8 @@ export const api = {
         return socket;
     },
     isLoggedIn: async () => {
-        const token = get(accessToken);
-        if (token) {
-            return true;
-        }
-        await refreshAccessToken();
-        const newToken = get(accessToken);
-        if (newToken) {
-            return true;
-        } else {
-            return false;
-        }
+        const { data: { session } } = await supabase.auth.getSession();
+        return !!session;
     },
 
 };

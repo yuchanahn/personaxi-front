@@ -1,8 +1,7 @@
 <script lang="ts">
     import { goto } from "$app/navigation";
-    import { getBaseUrl, ownloginWithEmailPass } from "$lib/api/auth";
-    import { API_BASE_URL } from "$lib/constants";
     import { t } from "svelte-i18n";
+    import { supabase } from "$lib/supabase";
 
     let mode: "options" | "email" | "register" = "options";
 
@@ -16,11 +15,17 @@
 
     const loginWithEmail = async () => {
         try {
-            await ownloginWithEmailPass(email, password);
-            // 로그인 성공 시 에러 메시지 초기화
+            const { data, error } = await supabase.auth.signInWithPassword({
+                email,
+                password,
+            });
+
+            if (error) throw error;
+
+            // 로그인 성공 시 에러 메시지 초기화 및 이동 (onAuthStateChange가 처리하겠지만 명시적으로 이동)
             errorMessage = "";
+            goto("/hub");
         } catch (e) {
-            // 수정: Error 객체의 'message' 속성만 사용
             if (e instanceof Error) {
                 errorMessage = e.message;
             } else {
@@ -43,9 +48,14 @@
         {
             name: "Google",
             icon: "/icons/google.svg",
-            handler: () => {
-                console.log("STATE : " + getBaseUrl());
-                window.location.href = `${API_BASE_URL}/auth/google/login?state=${getBaseUrl()}`;
+            handler: async () => {
+                const { data, error } = await supabase.auth.signInWithOAuth({
+                    provider: "google",
+                    options: {
+                        redirectTo: `${window.location.origin}/hub`,
+                    },
+                });
+                if (error) alert(error.message);
             },
         },
         {

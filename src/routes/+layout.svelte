@@ -32,6 +32,8 @@
     import { api } from "$lib/api";
     import type { User } from "$lib/types";
 
+    import { supabase } from "$lib/supabase";
+
     /* ────────────── PWA: Service Worker ────────────── */
     if ("serviceWorker" in navigator) {
         window.addEventListener("load", () => {
@@ -58,34 +60,34 @@
     /* ────────────── 인증 확인 ────────────── */
     onMount(async () => {
         if (!browser) return;
-        if (["/login"].includes($page.url.pathname)) {
-            return;
-        }
 
-        const hash = window.location.hash;
-        if (hash.includes("access_token=")) {
-            const token = new URLSearchParams(hash.substring(1)).get(
-                "access_token",
-            );
-            if (token) {
-                accessToken.set(token);
-                window.history.replaceState(
-                    null,
-                    "",
-                    window.location.pathname + window.location.search,
-                );
-                return;
-            }
-        }
-        accessToken.set(null);
-
-        return;
-
-        if (await api.isLoggedIn()) {
-            await getCurrentUser();
+        // 1. 초기 세션 로드
+        const {
+            data: { session },
+        } = await supabase.auth.getSession();
+        if (session) {
+            accessToken.set(session.access_token);
         } else {
-            //console.warn("로그인 정보가 없습니다. 로그인 페이지로 이동합니다.");
+            accessToken.set(null);
         }
+
+        // 2. Auth 상태 변경 감지
+        const {
+            data: { subscription },
+        } = supabase.auth.onAuthStateChange((_event, session) => {
+            if (session) {
+                accessToken.set(session.access_token);
+            } else {
+                accessToken.set(null);
+                // 로그아웃 상태에서 보호된 라우트 접근 시 로그인 페이지로 이동
+                const publicRoutes = ["/login", "/signup", "/", "/test"];
+                if (!publicRoutes.includes($page.url.pathname)) {
+                    goto("/login");
+                }
+            }
+        });
+
+        return () => subscription.unsubscribe();
     });
 
     accessToken.subscribe(async (token) => {

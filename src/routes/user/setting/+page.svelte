@@ -3,7 +3,8 @@
     import { goto } from "$app/navigation";
     import { onMount } from "svelte";
     import type { Persona } from "$lib/types";
-    import { getCurrentUser, logout } from "$lib/api/auth";
+    import { getCurrentUser } from "$lib/api/auth";
+    import { logout } from "$lib/stores/auth";
     import { fetchLivePersonas, setLiveStatus } from "$lib/services/live";
     import { locale, t } from "svelte-i18n";
     import AuctionModal from "$lib/components/modal/AuctionModal.svelte";
@@ -70,7 +71,8 @@
                     });
                 }
             } else {
-                error = "Failed to load user : " + userRes.status;
+                error = "Failed to load user";
+                goto("/login");
             }
 
             const personasRes = await api.get(`/api/persona/user`);

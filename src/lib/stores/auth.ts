@@ -1,5 +1,5 @@
 import { writable, derived } from 'svelte/store';
-import { api } from '$lib/api';
+import { supabase } from '$lib/supabase';
 
 export const accessToken = writable<string | null>(null);
 
@@ -9,8 +9,7 @@ export const isAuthenticated = derived(
 );
 
 export async function logout() {
-    await api.post('/api/logout', {});
-
+    await supabase.auth.signOut();
     accessToken.set(null);
     window.location.href = '/login';
 }
