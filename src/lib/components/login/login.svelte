@@ -2,6 +2,7 @@
     import { goto } from "$app/navigation";
     import { t } from "svelte-i18n";
     import { supabase } from "$lib/supabase";
+    import Icon from "@iconify/svelte";
 
     let mode: "options" | "email" | "register" = "options";
 
@@ -59,10 +60,16 @@
             },
         },
         {
-            name: "GitHub",
-            icon: "/icons/github.svg",
-            handler: () => {
-                alert($t("login.githubSoon"));
+            name: "Kakao",
+            icon: "ri:kakao-talk-fill",
+            handler: async () => {
+                const { data, error } = await supabase.auth.signInWithOAuth({
+                    provider: "kakao",
+                    options: {
+                        redirectTo: `${window.location.origin}/hub`,
+                    },
+                });
+                if (error) alert(error.message);
             },
         },
         {
@@ -90,11 +97,15 @@
             <div class="button-group">
                 {#each loginOptions as option}
                     <button class="login-button" on:click={option.handler}>
-                        <img
-                            class="login-icon"
-                            src={option.icon}
-                            alt={`${option.name} icon`}
-                        />
+                        {#if option.icon.startsWith("/")}
+                            <img
+                                class="login-icon"
+                                src={option.icon}
+                                alt={`${option.name} icon`}
+                            />
+                        {:else}
+                            <Icon icon={option.icon} width="24" height="24" />
+                        {/if}
                         <span>
                             {$t("login.loginWith", {
                                 values: { provider: option.name },
