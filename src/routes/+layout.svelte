@@ -58,18 +58,17 @@
     let welcomeModal = false;
 
     /* ────────────── 인증 확인 ────────────── */
-    onMount(async () => {
+    onMount(() => {
         if (!browser) return;
 
         // 1. 초기 세션 로드
-        const {
-            data: { session },
-        } = await supabase.auth.getSession();
-        if (session) {
-            accessToken.set(session.access_token);
-        } else {
-            accessToken.set(null);
-        }
+        supabase.auth.getSession().then(({ data: { session } }) => {
+            if (session) {
+                accessToken.set(session.access_token);
+            } else {
+                accessToken.set(null);
+            }
+        });
 
         // 2. Auth 상태 변경 감지
         const {
