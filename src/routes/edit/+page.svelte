@@ -1805,6 +1805,7 @@
     .tooltip-text {
         visibility: hidden;
         width: max-content;
+        max-width: 250px;
         min-width: 150px;
         background-color: var(--popover);
         color: var(--popover-foreground);
@@ -1822,6 +1823,8 @@
         border: 1px solid var(--border);
         font-size: 0.85rem;
         pointer-events: none;
+        word-wrap: break-word;
+        white-space: normal;
     }
     .tooltip-text p {
         margin: 0.2rem 0;

@@ -134,6 +134,7 @@
     position: relative; /* z-index 적용을 위해 */
     z-index: 1; /* 배경 위에 표시 */
     background: transparent; /* 배경 투명 */
+    padding-bottom: env(safe-area-inset-bottom, 0px);
   }
 
   :global(.chat-window) {
