@@ -113,13 +113,15 @@
   }
 
   .chat-layout {
+    position: fixed;
+    top: 0;
+    left: 0;
     display: flex;
-    height: 100%;
+    height: 100vh;
     width: 100vw;
     overflow: hidden;
     /* 모바일 기본: 세로 배치 */
     flex-direction: column;
-    position: relative; /* 배경 이미지 위치 기준 */
     background-color: #1a1a1a;
   }
 
