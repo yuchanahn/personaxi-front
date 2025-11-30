@@ -40,7 +40,7 @@ export default defineConfig({
         agent: new https.Agent({ keepAlive: true }),
       },
       '/ws': {
-        target: 'wss://api.personaxi.com',
+        target: 'https://api.personaxi.com',
         ws: true,
         secure: false,
         changeOrigin: true,

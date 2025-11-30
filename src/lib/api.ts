@@ -50,7 +50,7 @@ export const api = {
     post2: (url: string, data: any, options?: RequestInit) =>
         fetch(API_BASE_URL + url, { ...options, method: 'POST', credentials: 'include', body: JSON.stringify(data) }),
 
-    ws: (
+    ws: async (
         path: string, // 예: '/ws' 또는 '/ws/tts'
         handlers: {
             onOpen?: (event: Event) => void;
@@ -58,23 +58,37 @@ export const api = {
             onClose?: (event: CloseEvent) => void;
             onError?: (event: Event) => void;
         }
-    ): WebSocket => {
+    ): Promise<WebSocket> => {
         if (!browser) {
             // 서버사이드에서는 WebSocket을 생성할 수 없으므로 에러를 던지거나 더미 객체를 반환
             throw new Error("WebSocket can only be created in the browser.");
         }
 
+        // Get Supabase access token
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session) {
+            throw new Error("No active session. Please login first.");
+        }
+
+        const token = session.access_token;
+
         let wsURL: string;
         const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
 
+        // Add token as query parameter
+        const separator = path.includes('?') ? '&' : '?';
+        const pathWithToken = `${path}${separator}token=${encodeURIComponent(token)}`;
+
         if (dev) {
             // 개발 환경: 프록시를 사용하기 위해 현재 주소를 기반으로 URL 생성
-            wsURL = `${wsProtocol}//${window.location.host}${path}`;
+            wsURL = `${wsProtocol}//${window.location.host}${pathWithToken}`;
         } else {
             // 프로덕션 환경: API_BASE_URL에서 호스트(hostname) 부분만 추출하여 wss 주소 생성
             const apiUrl = new URL(API_BASE_URL);
-            wsURL = `${wsProtocol}//${apiUrl.host}${path}`;
+            wsURL = `${wsProtocol}//${apiUrl.host}${pathWithToken}`;
         }
+
+        console.log("🔗 WebSocket 연결 시도:", wsURL.replace(/token=[^&]+/, 'token=***'));
 
         const socket = new WebSocket(wsURL);
 

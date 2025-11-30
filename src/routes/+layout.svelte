@@ -155,7 +155,9 @@
         isMobile &&
         !["/test", "/2d", "/character", "/"].includes($page.url.pathname);
 
-    $: isChatPage = ["/2d", "/character"].includes($page.url.pathname);
+    $: isChatPage = ["/2d", "/character", "/live2d"].includes(
+        $page.url.pathname,
+    );
 </script>
 
 <!-- ────────────── 레이아웃 ────────────── -->

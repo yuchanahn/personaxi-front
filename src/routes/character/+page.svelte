@@ -15,14 +15,14 @@
   let Viewer: VrmModelViewer;
   let showChat: boolean = false;
 
-  onMount(() => {
+  onMount(async () => {
     const sessionId = $page.url.searchParams.get("c");
     lastSessionId = sessionId;
     if (sessionId) {
       persona = null;
       loadChatHistory(sessionId);
       loadPersona(sessionId).then((p) => (persona = p));
-      connectTTSSocket((audio: ArrayBuffer) => {
+      await connectTTSSocket((audio: ArrayBuffer) => {
         if (Viewer && Viewer.speek) {
           Viewer.speek(audio);
         } else {
@@ -52,8 +52,8 @@
 <main>
   {#if persona}
     <TtsStatusModal
-      impl_connectTTS={() => {
-        connectTTSSocket((audio: ArrayBuffer) => {
+      impl_connectTTS={async () => {
+        await connectTTSSocket((audio: ArrayBuffer) => {
           if (Viewer && Viewer.speek) {
             Viewer.speek(audio);
           } else {
@@ -84,9 +84,11 @@
 
 <style>
   main {
-    position: relative;
+    position: fixed;
+    top: 0;
+    left: 0;
     width: 100vw;
-    height: 100%;
+    height: 100vh;
     overflow: hidden;
   }
 </style>

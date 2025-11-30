@@ -21,7 +21,7 @@
     // Hardcoded model for testing if not present in persona
     const TEST_MODEL_URL = "/live2d/huohuo/huohuo.model3.json";
 
-    onMount(() => {
+    onMount(async () => {
         const sessionId = $page.url.searchParams.get("c");
         lastSessionId = sessionId;
         if (sessionId) {
@@ -36,7 +36,7 @@
                 persona = p;
             });
 
-            connectTTSSocket((audio: ArrayBuffer) => {
+            await connectTTSSocket((audio: ArrayBuffer) => {
                 if (Viewer && Viewer.speak) {
                     const blob = new Blob([audio], { type: "audio/mp3" });
                     const url = URL.createObjectURL(blob);
@@ -72,7 +72,7 @@
         await sendPromptStream(
             lastSessionId,
             prompt,
-            "3d",
+            "live2d",
             () => {
                 isLoading = false;
             },
@@ -97,8 +97,8 @@
 <main>
     {#if persona}
         <TtsStatusModal
-            impl_connectTTS={() => {
-                connectTTSSocket((audio: ArrayBuffer) => {
+            impl_connectTTS={async () => {
+                await connectTTSSocket((audio: ArrayBuffer) => {
                     if (Viewer && Viewer.speak) {
                         const blob = new Blob([audio], { type: "audio/mp3" });
                         const url = URL.createObjectURL(blob);
@@ -129,7 +129,6 @@
                     cssid={lastSessionId ?? ""}
                     {showChat}
                     {isLoading}
-                    {persona}
                 />
                 <ChatInput onSend={send} onChangeInput={handleInputChange} />
             </div>

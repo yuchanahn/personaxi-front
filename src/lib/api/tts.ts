@@ -51,13 +51,15 @@ function stopHeartbeat() {
     }
 }
 
-export function connectTTSSocket(speek?: (audio: ArrayBuffer) => void): WebSocket {
-    socket = api.ws('/ws/tts', {})
-
-
-    if (!socket) {
-        console.error("❌ WebSocket 연결 실패");
+export async function connectTTSSocket(speek?: (audio: ArrayBuffer) => void): Promise<WebSocket> {
+    try {
+        // api.ws() returns a Promise<WebSocket>, so we await it
+        const newSocket = await api.ws('/ws/tts', {});
+        socket = newSocket;
+    } catch (error) {
+        console.error("❌ WebSocket 연결 실패:", error);
         ttsState.set('disconnected');
+        throw error;
     }
 
     console.log("🔗 tts WebSocket 연결 시도...");
@@ -147,7 +149,11 @@ export function disconnectTTSSocket() {
     stopHeartbeat();
     stopCurrentAudio();
     if (socket) {
-        socket.close();
+        try {
+            socket.close();
+        } catch (e) {
+            console.warn("WebSocket 닫기 실패:", e);
+        }
         socket = null;
         console.log("✅ tts WebSocket 연결 해제됨");
     } else {

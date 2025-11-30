@@ -32,6 +32,13 @@
         }
 
         try {
+            // Stop previous audio using the library's built-in method
+            if (currentModel.stopSpeaking) {
+                console.log("🛑 Stopping previous Live2D audio");
+                currentModel.stopSpeaking();
+            }
+
+            // Start new speech
             await currentModel.speak(audioUrl, {
                 volume: 1,
                 expression: 4,
@@ -45,7 +52,7 @@
 
     export function toggleDebug() {
         showDebug = !showDebug;
-        console.log("Debug toggled:", showDebug);
+        //console.log("Debug toggled:", showDebug);
     }
 
     export function setExpression(emotion: string) {
@@ -170,17 +177,40 @@
                 });
 
                 const model = await PIXI.live2d.Live2DModel.from(modelUrl, {
-                    autoInteract: true,
+                    autoInteract: false,
                 });
 
-                model.scale.set(scale);
+                // Auto-scale model to fit canvas
+                // First, set a temporary scale to get accurate bounds
+                model.scale.set(1);
+
+                // Get model bounds
+                const bounds = model.getBounds();
+                const modelWidth = bounds.width;
+                const modelHeight = bounds.height;
+
+                // Calculate scale to fit canvas with some padding (90% of canvas)
+                const canvasWidth = app.screen.width;
+                const canvasHeight = app.screen.height;
+                const paddingFactor = 0.9; // Use 90% of canvas to leave some margin
+
+                const scaleX = (canvasWidth * paddingFactor) / modelWidth;
+                const scaleY = (canvasHeight * paddingFactor) / modelHeight;
+
+                // Use the smaller scale to ensure model fits in both dimensions
+                const autoScale = Math.min(scaleX, scaleY);
+
+                // Apply the calculated scale (or use provided scale if not auto)
+                const finalScale = x === 0 && y === 0 ? autoScale : scale;
+                model.scale.set(finalScale);
+
                 model.x = x;
                 model.y = y;
 
                 if (x === 0 && y === 0) {
                     model.anchor.set(0.5, 0.5);
                     model.x = app.screen.width / 2;
-                    model.y = app.screen.height / 2 + 100;
+                    model.y = app.screen.height / 2 + 50;
                 }
 
                 app.stage.addChild(model);
@@ -236,6 +266,20 @@
 
     function onResize() {
         if (app && currentModel && x === 0 && y === 0) {
+            // Recalculate scale to fit new canvas size
+            const bounds = currentModel.getBounds();
+            const modelWidth = bounds.width / currentModel.scale.x; // Get original size
+            const modelHeight = bounds.height / currentModel.scale.y;
+
+            const canvasWidth = app.screen.width;
+            const canvasHeight = app.screen.height;
+            const paddingFactor = 0.9;
+
+            const scaleX = (canvasWidth * paddingFactor) / modelWidth;
+            const scaleY = (canvasHeight * paddingFactor) / modelHeight;
+            const autoScale = Math.min(scaleX, scaleY);
+
+            currentModel.scale.set(autoScale);
             currentModel.x = app.screen.width / 2;
             currentModel.y = app.screen.height / 2 + 100;
         }

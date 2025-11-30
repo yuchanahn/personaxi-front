@@ -33,15 +33,10 @@ function parseESFResponse(content: string): string {
             return analysis + speech + reflection;
         }
 
-        // OLD Format (backward compatibility)
-        if (json.internal_monologue || json.speech_text) {
-            const thoughts = json.internal_monologue ? `(${json.internal_monologue})\n` : '';
-            const speech = json.speech_text ? `<dialogue speaker="${json.speaker || 'Character'}">${json.speech_text}</dialogue>` : '';
-            return thoughts + speech;
-        }
+        const thoughts = json.internal_monologue ? `(${json.internal_monologue})\n` : '';
+        const speech = json.speech_text ? `<dialogue speaker="${json.speaker || 'Character'}">${json.speech_text}</dialogue>` : '';
+        return thoughts + speech;
 
-        // If it's not ESFPrompt format, return original content
-        return content;
     } catch (e) {
         // Not JSON or parsing failed, return original content
         return content;
@@ -152,7 +147,11 @@ export async function sendPromptStream(cid: string, prompt: string, type?: strin
             loadCharacterSessions();
             if (type == "character" || type == "2d" || type == "3d") {
                 goto(`/2d?c=${cssid}`);
-            } else {
+            }
+            else if (type == "live2d") {
+                goto(`/live2d?c=${cssid}`);
+            }
+            else {
                 goto(`/chat?c=${cssid}`);
             }
         }
