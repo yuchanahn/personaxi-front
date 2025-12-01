@@ -154,9 +154,14 @@
           ] = match;
 
           if (tagDia === "dialogue") {
+            // Parse speaker placeholders
+            let parsedSpeaker = speaker
+              .replaceAll("{{char}}", currentPersona?.name || "Character")
+              .replaceAll("{{user}}", get(st_user)?.data?.nickname || "User");
+
             blocks.push({
               type: "dialogue",
-              speaker: speaker,
+              speaker: parsedSpeaker,
               content: diaContent.trim(),
               id: `${partId}-d-${subPartIndex++}`,
             });
