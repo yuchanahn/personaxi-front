@@ -187,6 +187,7 @@
 
     import SettingsModal from "$lib/components/modal/UserSettingsModal.svelte";
     import { settings, type Language } from "$lib/stores/settings";
+    import AssetPreview from "$lib/components/AssetPreview.svelte";
 
     let showSettingsModal = false;
 </script>
@@ -310,13 +311,21 @@
             {#each personas as persona}
                 <div class="persona-card">
                     <div class="card-header">
-                        <img
+                        <!-- <img
                             src={`${PORTRAIT_URL}${persona.owner_id[0]}/${
                                 persona.id
                             }.portrait`}
                             alt={persona.name}
                             class="avatar-image"
+                        /> -->
+
+                        <AssetPreview
+                            asset={{
+                                url: persona.portrait_url,
+                                description: "",
+                            }}
                         />
+
                         {#if isLive(persona.id)}
                             <div class="live-indicator">LIVE</div>
                         {/if}

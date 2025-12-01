@@ -37,11 +37,11 @@
         { id: "gemini-pro", name: "Gemini Pro", cost: 5 },
     ];
     let selectedLLM =
-        availableLLMs.find((llm) => llm.id === llmType) || availableLLMs[0];
+        availableLLMs.find((llm) => llm.id === llmType) || availableLLMs[1]; // Default to Flash-Lite
 
     function changeLLMType(newType: string) {
         selectedLLM =
-            availableLLMs.find((llm) => llm.id === newType) || availableLLMs[0];
+            availableLLMs.find((llm) => llm.id === newType) || availableLLMs[1]; // Default to Flash-Lite
 
         chatSessions.update((sessions) => {
             return sessions.map((session) => {
@@ -236,7 +236,7 @@
                     <select
                         bind:value={selectedLLM}
                         on:change={handleLLMChange}
-                        disabled={isLoading}
+                        disabled={isLoading || mode === "3d"}
                     >
                         {#each availableLLMs as llm}
                             <option value={llm}
@@ -248,13 +248,19 @@
                         <Icon icon="ph:caret-down-bold" />
                     </div>
                 </div>
-                <p class="section-description">
-                    {$t("settingModal.llmDescription")}
-                    <span class="cost-display">
-                        {$t("settingModal.costDisplay")} ⚡️{selectedLLM.cost}
-                        {$t("settingModal.neuronsConsumed")}
-                    </span>
-                </p>
+                {#if mode === "3d"}
+                    <p class="model-locked-notice">
+                        ⚠️ 3D/Live2D 모드는 Flash-Lite 모델만 사용 가능합니다.
+                    </p>
+                {:else}
+                    <p class="section-description">
+                        {$t("settingModal.llmDescription")}
+                        <span class="cost-display">
+                            {$t("settingModal.costDisplay")} ⚡️{selectedLLM.cost}
+                            {$t("settingModal.neuronsConsumed")}
+                        </span>
+                    </p>
+                {/if}
             </div>
 
             <div class="settings-section">
@@ -452,6 +458,16 @@
     .section-description {
         font-size: 0.8em;
         color: var(--text-secondary);
+        line-height: 1.5;
+    }
+
+    .model-locked-notice {
+        font-size: 0.85em;
+        color: #ffa726;
+        background-color: rgba(255, 167, 38, 0.1);
+        padding: 8px 12px;
+        border-radius: 6px;
+        border-left: 3px solid #ffa726;
         line-height: 1.5;
     }
 

@@ -137,16 +137,24 @@
     });
 
     function handleStartChat() {
-        let llmType = get(settings).llmType || "gemini-flash-lite";
+        // Default to Flash-Lite
+        let llmType = "gemini-flash-lite";
+
+        // Check if user has a saved preference for this session
         chatSessions.update((sessions) => {
             const existingSession = sessions.find(
                 (session) => session.id === persona?.id,
             );
-            if (existingSession) {
-                llmType = existingSession.llmType || llmType;
+            if (existingSession && existingSession.llmType) {
+                llmType = existingSession.llmType;
             }
             return sessions;
         });
+
+        // Force Flash-Lite for 3D/Live2D modes (override saved preference)
+        if (persona?.personaType === "3D" || persona?.personaType === "2.5D") {
+            llmType = "gemini-flash-lite";
+        }
 
         if (persona?.personaType === "2D" || persona?.personaType === "2d") {
             goto(`/2d?c=${persona.id}&llmType=${llmType}`);
