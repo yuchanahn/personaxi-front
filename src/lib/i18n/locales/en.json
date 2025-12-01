@@ -353,6 +353,13 @@
     "message3": "Now, use these neurons to have deeper conversations with your own 'digital life form'.",
     "confirm": "Confirm"
   },
+  "firstCreationRewardModal": {
+    "title": "🎉 First Persona Created!",
+    "message1": "To celebrate your first step,",
+    "message2": "as a gift!",
+    "message3": "Now, use these neurons to have deeper conversations with your own 'digital life form'.",
+    "confirm": "Confirm"
+  },
   "notEnoughNeuronsModal": {
     "title": "Not Enough Neurons!",
     "description": "Please recharge your neurons to continue the conversation.",
