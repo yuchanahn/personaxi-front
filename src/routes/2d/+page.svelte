@@ -167,14 +167,14 @@
     position: absolute;
     top: 10px;
     right: 10px;
-    z-index: 10;
+    z-index: 1000;
     display: flex;
     flex-direction: column; /* NEW: 세로 정렬 */
     gap: 10px; /* 버튼 사이 간격 */
-    background-color: rgba(0, 0, 0, 0.5); /* 반투명 배경 */
-    padding: 8px 12px;
-    border-radius: 8px;
+    background-color: rgba(0, 0, 0, 0.3); /* 반투명 배경 */
+    padding: 6px;
+    border-radius: 6px;
     backdrop-filter: blur(5px); /* 블러 효과 */
-    border: 1px solid rgba(255, 255, 255, 0.2); /* 테두리 */
+    border: 0.5px solid rgba(255, 255, 255, 0.15); /* 테두리 */
   }
 </style>
