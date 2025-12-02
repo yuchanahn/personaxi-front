@@ -16,6 +16,7 @@
     let short_term_memory = "";
     let last_atmosphere = "";
     let current_emotion = "";
+    let internal_monologue = "";
 
     let initialized = false;
 
@@ -32,6 +33,7 @@
             short_term_memory,
             last_atmosphere,
             current_emotion,
+            internal_monologue,
         };
         const jsonStr = JSON.stringify(obj, null, 2);
         onChange(jsonStr);
@@ -50,6 +52,7 @@
         short_term_memory = "";
         last_atmosphere = "";
         current_emotion = "";
+        internal_monologue = "";
         generateJson();
     }
 
@@ -65,12 +68,24 @@
         short_term_memory,
         last_atmosphere,
         current_emotion,
+        internal_monologue,
         initialized && generateJson();
 
     onMount(() => {
         if (initialData) {
             try {
-                const data = JSON.parse(initialData);
+                // Handle both object and string types
+                let data;
+                if (typeof initialData === "object") {
+                    // Already an object, use directly
+                    data = initialData;
+                } else if (typeof initialData === "string") {
+                    // Parse JSON string
+                    data = JSON.parse(initialData);
+                } else {
+                    throw new Error("Invalid initialData type");
+                }
+
                 body_desc = data.body_desc ?? "";
                 anim_list = data.anim_list ?? "";
                 core_desire = data.core_desire ?? "";
@@ -82,11 +97,47 @@
                 short_term_memory = data.short_term_memory ?? "";
                 last_atmosphere = data.last_atmosphere ?? "";
                 current_emotion = data.current_emotion ?? "";
+                internal_monologue = data.internal_monologue ?? "";
 
                 // Mark initialized and trigger onChange
                 initialized = true;
             } catch (e) {
                 console.error("FirstSceneBuilder: initialData parse error", e);
+                console.warn(
+                    "FirstSceneBuilder: Attempting fallback regex parsing...",
+                );
+
+                // Fallback: Try to extract fields using Regex
+                // This handles cases where JSON might have unescaped newlines or minor syntax errors
+                const extract = (key: string) => {
+                    const regex = new RegExp(
+                        `"${key}"\\s*:\\s*"((?:[^"\\\\]|\\\\.)*)"`,
+                    );
+                    const match = initialData!.match(regex);
+                    if (match && match[1]) {
+                        // Unescape common sequences
+                        return match[1]
+                            .replace(/\\n/g, "\n")
+                            .replace(/\\"/g, '"')
+                            .replace(/\\\\/g, "\\");
+                    }
+                    return "";
+                };
+
+                body_desc = extract("body_desc");
+                anim_list = extract("anim_list");
+                core_desire = extract("core_desire");
+                contradiction = extract("contradiction");
+                personality = extract("personality");
+                values = extract("values");
+                mem_list = extract("mem_list");
+                emotion_triggers = extract("emotion_triggers");
+                short_term_memory = extract("short_term_memory");
+                last_atmosphere = extract("last_atmosphere");
+                current_emotion = extract("current_emotion");
+                internal_monologue = extract("internal_monologue");
+
+                console.log("FirstSceneBuilder: Fallback parsing completed");
                 initialized = true;
             }
         } else {
