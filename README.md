@@ -1,87 +1,100 @@
 <div align="center">
-  <img src="static/logo.png" alt="PersonaXi Logo" width="120" height="120" />
+  <img src="static/logo.png" alt="PersonaXi" width="120" height="120" />
   
   # PersonaXi
   
-  **Create, Compete, and Connect with AI Personas**
+  **AI 페르소나 생성 & 크리에이터 경쟁 플랫폼**
   
-  [Visit Website](https://personaxi.com)
+  [웹사이트 방문](https://personaxi.com)
   
   ---
 
   ![Svelte](https://img.shields.io/badge/Svelte-4A4A55?style=for-the-badge&logo=svelte&logoColor=FF3E00)
   ![TypeScript](https://img.shields.io/badge/typescript-%23007ACC.svg?style=for-the-badge&logo=typescript&logoColor=white)
-  ![TailwindCSS](https://img.shields.io/badge/tailwindcss-%2338B2AC.svg?style=for-the-badge&logo=tailwind-css&logoColor=white)
   ![Three.js](https://img.shields.io/badge/threejs-black?style=for-the-badge&logo=three.js&logoColor=white)
   ![Live2D](https://img.shields.io/badge/Live2D-FF5050?style=for-the-badge&logo=live2d&logoColor=white)
-  ![Supabase](https://img.shields.io/badge/Supabase-3ECF8E?style=for-the-badge&logo=supabase&logoColor=white)
 
 </div>
 
-## 🌟 Introduction
+## 뭐하는 곳?
 
-**PersonaXi** is a next-generation AI persona platform where creativity meets competition. Users can create highly detailed 2D and 3D AI characters, engage in deep conversations, and participate in a unique "Creator Competition System".
+나만의 AI 캐릭터를 만들고, 대화하고, 다른 크리에이터들과 경쟁하는 플랫폼입니다.
+2D/3D 캐릭터 모두 지원하고, 실시간 음성 대화도 가능해요.
 
-Whether you're a creator designing the ultimate virtual companion or a user looking for immersive roleplay, PersonaXi offers a premium experience powered by advanced LLMs and real-time interaction technologies.
+## 주요 기능
 
-## ✨ Key Features
+- **3D VRM & Live2D 지원** - 3D 모델이든 2D 모델이든 다 됨
+- **고급 AI 대화** - Gemini 2.5 기반으로 자연스러운 대화
+- **크리에이터 경쟁 시스템** - 좋은 캐릭터 만들면 보상 받음
+- **실시간 음성** - TTS로 캐릭터가 직접 말함
+- **다국어 지원** - 한국어/영어 지원
 
--   **🎨 Diverse Persona Creation**: Full support for both **3D VRM** models and **✨ NEW: Live2D** characters!
--   **🧠 Advanced AI Brain**: Powered by state-of-the-art LLMs for realistic and engaging conversations.
--   **🏆 Creator Competition**: A unique system where creators compete for popularity and rewards.
--   **💬 Real-time Interaction**: Seamless chat interface with support for TTS (Text-to-Speech) and STT (Speech-to-Text).
--   **🌍 Multi-language Support**: Built-in i18n support for a global audience.
--   **📱 Responsive Design**: A premium, app-like experience on both desktop and mobile.
+## 기술 스택
 
-## 🛠️ Tech Stack
+- **SvelteKit** - 프레임워크
+- **TypeScript** - 타입 안전성
+- **Three.js** - 3D 렌더링 (VRM)
+- **pixi-live2d-display** - Live2D 렌더링
+- **Supabase** - 인증 & 스토리지
 
--   **Framework**: [SvelteKit](https://kit.svelte.dev/)
--   **Language**: [TypeScript](https://www.typescriptlang.org/)
--   **Styling**: [TailwindCSS](https://tailwindcss.com/)
--   **3D Rendering**: [Three.js](https://threejs.org/) & [three-vrm](https://github.com/pixiv/three-vrm)
--   **Authentication**: [Supabase Auth](https://supabase.com/auth)
--   **State Management**: Svelte Stores
+## 로컬 실행
 
-## 🚀 Getting Started
+```bash
+# 클론
+git clone https://github.com/your-username/personaxi-front.git
+cd personaxi-front
 
-To run this project locally:
+# 의존성 설치
+pnpm install
 
-1.  **Clone the repository**
-    ```bash
-    git clone https://github.com/your-username/personaxi-front.git
-    cd personaxi-front
-    ```
+# 개발 서버 실행
+pnpm run dev
+```
 
-2.  **Install dependencies**
-    ```bash
-    pnpm install
-    ```
+브라우저에서 `http://localhost:5173` 열기
 
-3.  **Set up Environment Variables**
-    Create a `.env` file in the root directory and add your Supabase and API keys:
-    ```env
-    PUBLIC_SUPABASE_URL=your_supabase_url
-    PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
-    ```
+## 환경 변수
 
-4.  **Run the development server**
-    ```bash
-    pnpm run dev
-    ```
+`.env` 파일 생성:
+```env
+PUBLIC_SUPABASE_URL=your_supabase_url
+PUBLIC_SUPABASE_ANON_KEY=your_anon_key
+PUBLIC_API_URL=http://localhost:8080
+```
 
-5.  **Open in Browser**
-    Visit `http://localhost:5173` to see the app in action.
+## 프로젝트 구조
 
-## 🤝 Contributing
+```
+src/
+├── routes/              # 페이지 (SvelteKit 라우팅)
+│   ├── 2d/             # 2D 채팅
+│   ├── character/      # 3D VRM 채팅
+│   ├── live2d/         # Live2D 채팅
+│   ├── edit/           # 캐릭터 생성/수정
+│   └── profile/        # 캐릭터 프로필
+│
+├── lib/
+│   ├── components/     # 재사용 컴포넌트
+│   ├── stores/         # Svelte 스토어
+│   ├── api/            # API 클라이언트
+│   └── vrm/            # VRM 관련 유틸
+│
+└── static/             # 정적 파일
+```
 
-We welcome contributions! Please feel free to submit a Pull Request.
+## 빌드
 
-## 📄 License
+```bash
+pnpm run build
+pnpm run preview  # 빌드 결과 미리보기
+```
 
-This project is licensed under the MIT License.
+## 라이선스
+
+MIT
 
 ---
 
 <div align="center">
-  Developed with ❤️ by the PersonaXi Team
+  만든 사람: YuChan
 </div>
