@@ -333,6 +333,7 @@
     let uploadProgress = 0;
 
     let showRewardModal = false;
+    let previousPersonaType = persona.personaType;
     let hasReceivedFirstCreationReward =
         get(st_user)?.data.hasReceivedFirstCreationReward ?? false;
 
@@ -760,6 +761,17 @@
                         <select
                             id="personaType"
                             bind:value={persona.personaType}
+                            on:change={() => {
+                                // Reset first_scene when switching from 3D/2.5D to 2D
+                                if (
+                                    (previousPersonaType === "3D" ||
+                                        previousPersonaType === "2.5D") &&
+                                    persona.personaType === "2D"
+                                ) {
+                                    persona.first_scene = "";
+                                }
+                                previousPersonaType = persona.personaType;
+                            }}
                             required
                         >
                             <option value="" disabled
@@ -1377,6 +1389,32 @@
         </div>
     </div>
 </div>
+
+<!-- Mobile-only save button -->
+<button
+    class="mobile-save-button"
+    type="button"
+    disabled={loading || showSuccess}
+    on:click={() => {
+        const btn = document.querySelector(
+            ".header .save-button",
+        ) as HTMLButtonElement;
+        btn?.click();
+    }}
+>
+    {#if loading}
+        <span
+            >{$t("editPage.saveButtonLoading")} ({Math.round(
+                uploadProgress,
+            )}%)</span
+        >
+    {:else if showSuccess}
+        <span>{$t("editPage.saveButtonSuccess")}</span>
+    {:else}
+        <span>{$t("editPage.saveButton")}</span>
+    {/if}
+</button>
+
 <LoadingAnimation isOpen={loading} />
 <FirstCreationRewardModal bind:isOpen={showRewardModal} />
 
@@ -1652,6 +1690,59 @@
     }
     .save-button:hover:not(:disabled) {
         opacity: 0.9;
+    }
+
+    /* Mobile: Hide header button, show fixed button at bottom */
+    @media (max-width: 768px) {
+        .header .save-button {
+            display: none; /* Hide button in header on mobile */
+        }
+
+        .container {
+            padding-bottom: 80px; /* Space for fixed button */
+        }
+    }
+
+    /* Mobile-only fixed save button */
+    @media (max-width: 768px) {
+        .mobile-save-button {
+            display: block;
+            position: fixed;
+            bottom: 70px; /* Above navigation bar */
+            left: 0;
+            right: 0;
+            width: 100%;
+            padding: 1rem;
+            font-size: 1rem;
+            font-weight: 600;
+            border-radius: 0;
+            cursor: pointer;
+            transition: all 0.2s;
+            background: var(--primary-gradient);
+            border: none;
+            border-top: 1px solid var(--border);
+            color: var(--primary-foreground);
+            z-index: 9998; /* Below nav bar (9999) */
+            box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.3);
+            background-size: 200% 200%;
+            animation: gradient-animation 3s ease infinite;
+        }
+
+        .mobile-save-button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .container {
+            padding-bottom: 150px; /* Space for nav bar + save button */
+        }
+    }
+
+    /* Hide mobile button on desktop */
+    @media (min-width: 769px) {
+        .mobile-save-button {
+            display: none;
+        }
     }
 
     .error {
