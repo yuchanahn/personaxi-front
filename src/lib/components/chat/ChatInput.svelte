@@ -17,9 +17,12 @@
   } = $props();
 
   let prompt = $state("");
+  const MAX_CHARS = 1000;
+  const charCount = $derived(prompt.length);
+  const isOverLimit = $derived(charCount > MAX_CHARS);
 
   function handleSubmit(e: KeyboardEvent) {
-    if (isDisabled) return;
+    if (isDisabled || isOverLimit) return;
 
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
@@ -40,13 +43,24 @@
 </script>
 
 <div class="chat-input-wrapper">
+  {#if !isListening && charCount > 0}
+    <div
+      class="char-counter"
+      class:warning={charCount > MAX_CHARS * 0.9}
+      class:error={isOverLimit}
+    >
+      {charCount}/{MAX_CHARS}
+    </div>
+  {/if}
   <div class="input-container" class:listening={isListening}>
     {#if !isListening}
       <textarea
         bind:value={prompt}
         placeholder={$t("chatInput.placeholder")}
         class="chat-input focus-override"
+        class:over-limit={isOverLimit}
         rows="1"
+        maxlength={MAX_CHARS}
         use:autoResize={180}
         on:keydown={handleSubmit}
         on:input={() => onChangeInput(prompt)}
@@ -59,9 +73,10 @@
     {:else}
       <button
         class="chat-send-button"
-        class:is-disabled={isDisabled}
+        class:is-disabled={isDisabled || isOverLimit}
+        disabled={isOverLimit}
         on:click={() => {
-          if (prompt.trim() === "") return;
+          if (prompt.trim() === "" || isOverLimit) return;
           onSend(prompt);
           prompt = "";
         }}
@@ -123,6 +138,29 @@
   .chat-input:focus {
     border-color: var(--ring);
     box-shadow: 0 0 0 3px hsl(from var(--ring) h s l / 0.3);
+  }
+
+  .chat-input.over-limit {
+    border-color: #ef4444;
+  }
+
+  .char-counter {
+    position: absolute;
+    bottom: 10px;
+    left: 12px;
+    font-size: 0.75rem;
+    color: var(--muted-foreground);
+    pointer-events: none;
+    z-index: 5;
+  }
+
+  .char-counter.warning {
+    color: #f59e0b;
+  }
+
+  .char-counter.error {
+    color: #ef4444;
+    font-weight: 600;
   }
 
   .chat-send-button {
