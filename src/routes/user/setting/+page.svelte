@@ -49,6 +49,7 @@
             const userRes = await getCurrentUser();
             if (userRes) {
                 user = userRes as User;
+                notificationStore.init(user.id);
 
                 if (!user.data || user.data.language === "") {
                     user.data = {
@@ -188,8 +189,16 @@
     import SettingsModal from "$lib/components/modal/UserSettingsModal.svelte";
     import { settings, type Language } from "$lib/stores/settings";
     import AssetPreview from "$lib/components/AssetPreview.svelte";
+    import NotificationDrawer from "$lib/components/notification/NotificationDrawer.svelte";
+    import { notificationStore } from "$lib/stores/notification";
 
     let showSettingsModal = false;
+    let isNotificationDrawerOpen = false;
+    const { unreadCount } = notificationStore;
+
+    // ... inside onMount ...
+    // I need to be careful with replace_file_content.
+    // I'll do imports first, then markup.
 </script>
 
 <div class="page-container">
@@ -199,14 +208,27 @@
         <div class="header">
             <h1>{$t("settingPage.title")}</h1>
         </div>
-        {#if $locale}
+        <div class="flex items-center gap-2">
             <button
-                class="btn-icon settings-button"
-                on:click={() => (showSettingsModal = true)}
+                class="btn-icon settings-button relative"
+                on:click={() => (isNotificationDrawerOpen = true)}
             >
-                <Icon icon="ph:gear-six-bold" width="32" height="32" />
+                <Icon icon="lucide:bell" width="28" height="28" />
+                {#if $unreadCount > 0}
+                    <span
+                        class="absolute top-1 right-1 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-white dark:border-gray-900"
+                    ></span>
+                {/if}
             </button>
-        {/if}
+            {#if $locale}
+                <button
+                    class="btn-icon settings-button"
+                    on:click={() => (showSettingsModal = true)}
+                >
+                    <Icon icon="ph:gear-six-bold" width="32" height="32" />
+                </button>
+            {/if}
+        </div>
     </div>
 
     {#if error}
@@ -399,6 +421,10 @@
         bind:isOpen={paymentModalOpen}
         on:close={handleModalClose}
         isNeedNeurons={false}
+    />
+    <NotificationDrawer
+        bind:isOpen={isNotificationDrawerOpen}
+        on:close={() => (isNotificationDrawerOpen = false)}
     />
     <SettingsModal bind:isOpen={showSettingsModal} />
 </div>

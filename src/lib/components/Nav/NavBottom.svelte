@@ -3,6 +3,9 @@
     import { page } from "$app/stores";
 
     import { t } from "svelte-i18n";
+    import { notificationStore } from "$lib/stores/notification";
+
+    const { unreadCount } = notificationStore;
 
     $: items = [
         { href: "/hub", icon: "ph:compass-duotone", label: $t("nav.explore") },
@@ -40,7 +43,14 @@
                 (href !== "/" && currentPath.startsWith(href))}
             {href}
         >
-            <Icon {icon} width="24" height="24" />
+            <div class="relative">
+                <Icon {icon} width="24" height="24" />
+                {#if href === "/user/setting" && $unreadCount > 0}
+                    <span
+                        class="absolute -top-1 -right-1 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-white dark:border-gray-900"
+                    ></span>
+                {/if}
+            </div>
             <span class="nav-label">{label}</span>
         </a>
     {/each}

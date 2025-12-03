@@ -566,5 +566,12 @@
     "drama": "Drama",
     "vrm": "VRM",
     "live2d": "Live2D"
+  },
+  "notifications": {
+    "title": "Notifications",
+    "empty": "No notifications yet",
+    "loadMore": "Load More",
+    "loading": "Loading...",
+    "markAllRead": "Mark all as read"
   }
 }

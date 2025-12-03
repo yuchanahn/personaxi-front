@@ -3,6 +3,9 @@
     import Icon from "@iconify/svelte";
     import { onMount } from "svelte";
     import { t } from "svelte-i18n";
+    import { notificationStore } from "$lib/stores/notification";
+
+    const { unreadCount } = notificationStore;
 
     export let showSidebar: boolean = true;
     let isMobile: boolean = false;
@@ -101,9 +104,14 @@
             <Icon icon="ph:plus-circle-duotone" width="24" height="24" />
             <span>{$t("chatSession.system.create")}</span>
         </a>
-        <a href="/user/setting" class="sidebar-link">
+        <a href="/user/setting" class="sidebar-link relative">
             <Icon icon="ph:gear-duotone" width="24" height="24" />
             <span>{$t("chatSession.system.user")}</span>
+            {#if $unreadCount > 0}
+                <span
+                    class="absolute top-2 left-6 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-white dark:border-gray-900"
+                ></span>
+            {/if}
         </a>
     </div>
 

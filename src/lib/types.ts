@@ -88,3 +88,30 @@ export interface Comment {
     author_name: string;         // 작성자 이름
     author_avatar_url: string;   // 작성자 프로필 사진 URL
 }
+
+export type NotificationType = 'comment' | 'like' | 'follow' | 'auction_bid' | 'auction_win' | 'system';
+
+export interface Notification {
+    id: string;
+    userId: string;
+    actorId?: string;
+    type: NotificationType;
+    resourceId?: string;
+    resourceType?: string;
+    title?: string; // For announcements
+    content: string;
+    isRead: boolean;
+    createdAt: string;
+
+    // Optional joined fields (if backend provides them)
+    actorName?: string;
+    actorAvatarUrl?: string;
+}
+
+export interface UserDevice {
+    id: string;
+    userId: string;
+    fcmToken: string;
+    deviceType: string;
+    lastActiveAt: string;
+}
