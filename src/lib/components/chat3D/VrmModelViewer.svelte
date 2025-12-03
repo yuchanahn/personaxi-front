@@ -12,6 +12,9 @@
   import * as THREE from "three/webgpu";
   import { sparks } from "$lib/vrm/stores";
 
+  import ThoughtBubble from "$lib/components/chat/ThoughtBubble.svelte";
+  import { messages } from "$lib/stores/messages";
+
   export let persona: Persona | null;
   export let cssid: string | null = null;
   export let show: boolean = true;
@@ -25,6 +28,45 @@
   let viewer: Viewer | null = null;
 
   let isModelLoading = true;
+
+  // Thought Bubble State
+  let thought1 = "";
+  let thought2 = "";
+  let showThought1 = false;
+  let showThought2 = false;
+  let isSpeaking = false;
+
+  // Parse thoughts from the last message
+  $: if ($messages.length > 0) {
+    const lastMsg = $messages[$messages.length - 1];
+    if (lastMsg.role === "assistant") {
+      const text = lastMsg.content;
+
+      // Extract Thought 1: Starts with ( and ends with ) before any newline or speech
+      const t1Match = text.match(/^\s*\((.*?)\)/);
+      if (t1Match) {
+        if (thought1 !== t1Match[1]) {
+          console.log("VRM Thought 1 detected:", t1Match[1]);
+          thought1 = t1Match[1];
+          // Only show thought1 if we haven't started speaking yet
+          if (!isSpeaking && !showThought2) {
+            console.log("VRM Showing Thought 1");
+            showThought1 = true;
+          }
+        }
+      }
+
+      // Extract Thought 2: Ends with (thought)
+      const t2Match = text.match(/\((.*?)\)\s*$/);
+      if (t2Match) {
+        if (text.trim() !== t2Match[0].trim()) {
+          if (thought2 !== t2Match[1]) {
+            thought2 = t2Match[1];
+          }
+        }
+      }
+    }
+  }
 
   let cfg = {
     rotImpulseHead: 30,
@@ -126,6 +168,12 @@
     model.stateManager?.setListening(false);
     //model.doGesture('Listening Intro.fbx');
 
+    // Reset thoughts
+    thought1 = "";
+    thought2 = "";
+    showThought1 = false;
+    showThought2 = false;
+
     try {
       isLoading = true;
       //cameraDistanceOffset -= 0.5;
@@ -144,13 +192,32 @@
   export function speek(audio: ArrayBuffer) {
     if (model) {
       model.stateManager?.setSpeaking(true);
+
+      isSpeaking = true;
+      // Keep thought1 visible for a bit longer into speech, then fade
+      // setTimeout(() => {
+      //   showThought1 = false;
+      // }, 2000); // 2 seconds overlap
+
+      showThought2 = false;
+
       model
         .speak(audio)
         .then(() => {
           model!.stateManager?.setSpeaking(false);
+          isSpeaking = false;
+          showThought1 = false; // Ensure thought1 is gone
+
+          if (thought2) {
+            showThought2 = true;
+            setTimeout(() => {
+              showThought2 = false;
+            }, 8000);
+          }
         })
         .catch((error) => {
           console.error("Error speaking:", error);
+          isSpeaking = false;
         });
     } else {
       console.warn("Model not loaded yet, cannot speak.");
@@ -225,6 +292,11 @@
   on:mousemove={handleMouseMove}
 >
   <canvas bind:this={canvas} class="vrm-canvas"></canvas>
+
+  <!-- Thought Bubbles -->
+  <ThoughtBubble text={thought1} type="thought1" visible={showThought1} />
+  <ThoughtBubble text={thought2} type="thought2" visible={showThought2} />
+
   {#if isModelLoading}
     <div class="model-loader">
       <div class="loader-content">

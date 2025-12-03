@@ -11,6 +11,9 @@
     import { connectTTSSocket, disconnectTTSSocket } from "$lib/api/tts";
     import TtsStatusModal from "$lib/components/modal/TTSStatusModal.svelte";
 
+    import ThoughtBubble from "$lib/components/chat/ThoughtBubble.svelte";
+    import { messages } from "$lib/stores/messages";
+
     let lastSessionId: string | null = null;
     let persona: Persona | null = null;
 
@@ -18,8 +21,51 @@
     let showChat: boolean = true;
     let isLoading = false;
 
+    // Thought Bubble State
+    let thought1 = "";
+    let thought2 = "";
+    let showThought1 = false;
+    let showThought2 = false;
+    let isSpeaking = false;
+
     // Hardcoded model for testing if not present in persona
     const TEST_MODEL_URL = "/live2d/huohuo/huohuo.model3.json";
+
+    // Parse thoughts from the last message
+    $: if ($messages.length > 0) {
+        const lastMsg = $messages[$messages.length - 1];
+        if (lastMsg.role === "assistant") {
+            const text = lastMsg.content;
+
+            // Extract Thought 1: Starts with ( and ends with ) before any newline or speech
+            const t1Match = text.match(/^\s*\((.*?)\)/);
+            if (t1Match) {
+                // Only update if changed to avoid re-triggering
+                if (thought1 !== t1Match[1]) {
+                    console.log("Thought 1 detected:", t1Match[1]);
+                    thought1 = t1Match[1];
+                    // Only show thought1 if we haven't started speaking yet AND haven't shown it for this turn
+                    if (!isSpeaking && !showThought2) {
+                        console.log("Showing Thought 1");
+                        showThought1 = true;
+                    }
+                }
+            }
+
+            // Extract Thought 2: Ends with (thought)
+            // We look for a pattern where the text ends with (content)
+            // and ensure it's distinct from thought 1 (check index or length)
+            const t2Match = text.match(/\((.*?)\)\s*$/);
+            if (t2Match) {
+                // Ensure this isn't just thought 1 (e.g. if text is ONLY "(thought)")
+                // If text is just "(thought)", it's thought 1.
+                // If text is "(thought1) speech (thought2)", then t2Match is thought 2.
+                if (text.trim() !== t2Match[0].trim()) {
+                    thought2 = t2Match[1];
+                }
+            }
+        }
+    }
 
     onMount(async () => {
         const sessionId = $page.url.searchParams.get("c");
@@ -36,11 +82,45 @@
                 persona = p;
             });
 
-            await connectTTSSocket((audio: ArrayBuffer) => {
+            await connectTTSSocket(async (audio: ArrayBuffer) => {
                 if (Viewer && Viewer.speak) {
                     const blob = new Blob([audio], { type: "audio/mp3" });
                     const url = URL.createObjectURL(blob);
+
+                    // Calculate duration
+                    const tempAudio = new Audio(url);
+                    await new Promise((resolve) => {
+                        tempAudio.onloadedmetadata = () => resolve(true);
+                        // Fallback if metadata fails
+                        setTimeout(() => resolve(true), 1000);
+                    });
+                    const durationMs = tempAudio.duration * 1000 || 3000; // Default to 3s if unknown
+                    console.log(`Audio Duration: ${durationMs}ms`);
+
+                    // Audio Start
+                    console.log("Audio Start: Resetting thoughts");
+                    isSpeaking = true;
+                    showThought2 = false;
+                    showThought1 = false;
+
+                    // Start speaking (don't await if it resolves early, we use duration)
                     Viewer.speak(url);
+
+                    // Wait for audio to finish
+                    setTimeout(() => {
+                        // Audio End
+                        console.log("Audio End: Showing Thought 2");
+                        isSpeaking = false;
+                        showThought1 = false; // Ensure thought1 is gone
+
+                        if (thought2) {
+                            showThought2 = true; // Show thought 2
+                            // Hide thought 2 after 8 seconds
+                            setTimeout(() => {
+                                showThought2 = false;
+                            }, 8000);
+                        }
+                    }, durationMs);
                 } else {
                     console.warn("Viewer not ready for TTS audio.");
                 }
@@ -68,6 +148,13 @@
     const send = async (prompt: string) => {
         if (!persona || !lastSessionId) return;
         isLoading = true;
+
+        // Reset thoughts for new turn
+        thought1 = "";
+        thought2 = "";
+        showThought1 = false;
+        showThought2 = false;
+
         // Use "3d" type to leverage existing 3D backend logic (TTS, Emotion, etc.)
         await sendPromptStream(
             lastSessionId,
@@ -98,11 +185,41 @@
     {#if persona}
         <TtsStatusModal
             impl_connectTTS={async () => {
-                await connectTTSSocket((audio: ArrayBuffer) => {
+                await connectTTSSocket(async (audio: ArrayBuffer) => {
                     if (Viewer && Viewer.speak) {
                         const blob = new Blob([audio], { type: "audio/mp3" });
                         const url = URL.createObjectURL(blob);
+
+                        // Calculate duration
+                        const tempAudio = new Audio(url);
+                        await new Promise((resolve) => {
+                            tempAudio.onloadedmetadata = () => resolve(true);
+                            setTimeout(() => resolve(true), 1000);
+                        });
+                        const durationMs = tempAudio.duration * 1000 || 3000;
+
+                        // Audio Start
+                        console.log("Audio Start (Modal): Resetting thoughts");
+                        isSpeaking = true;
+                        showThought2 = false;
+
                         Viewer.speak(url);
+                        showThought1 = false;
+
+                        // Wait for audio to finish
+                        setTimeout(() => {
+                            // Audio End
+                            console.log("Audio End (Modal): Showing Thought 2");
+                            isSpeaking = false;
+                            showThought1 = false;
+
+                            if (thought2) {
+                                showThought2 = true;
+                                setTimeout(() => {
+                                    showThought2 = false;
+                                }, 8000);
+                            }
+                        }, durationMs);
                     }
                 });
             }}
@@ -141,8 +258,21 @@
             llmType={"3d"}
         />
 
+        <ThoughtBubble
+            text={thought1}
+            visible={showThought1}
+            type="thought1"
+            customStyle="top: 10%; left: 50%; transform: translateX(-50%);"
+        />
+        <ThoughtBubble
+            text={thought2}
+            visible={showThought2}
+            type="thought2"
+            customStyle="top: 10%; left: 50%; transform: translateX(-50%);"
+        />
+
         <!-- Debug UI - At top level to avoid pointer-events issues -->
-        <div class="debug-controls">
+        <!-- <div class="debug-controls">
             <button
                 class="debug-btn"
                 on:click={() => {
@@ -153,7 +283,7 @@
             >
                 🔍 Debug
             </button>
-        </div>
+        </div> -->
     {/if}
 </main>
 
