@@ -228,8 +228,13 @@
 
     let threeDSceneData: ThreeDSceneData | null = null;
 
-    $: if (persona && persona.personaType === "3D" && persona.first_scene) {
+    $: if (
+        persona &&
+        (persona.personaType === "3D" || persona.personaType === "2.5D") &&
+        persona.first_scene
+    ) {
         threeDSceneData = tryParse3DScene(persona.first_scene);
+        showFirstScene = true; // 3D/2.5D는 바로 보여줌
     } else {
         threeDSceneData = null;
     }
@@ -333,8 +338,10 @@
                     <p class="character-description">
                         {persona.greeting === "<tr>"
                             ? $t("profilePage.translating")
-                            : persona.greeting ||
-                              $t("profilePage.defaultGreeting")}
+                            : replaceNicknameInText(
+                                  persona.greeting ||
+                                      $t("profilePage.defaultGreeting"),
+                              )}
                     </p>
                     <div class="tags-container">
                         {#if persona.tags && persona.tags.length > 0}
@@ -440,13 +447,16 @@
                                         </p>
                                     {/if}
                                 </div>
-                                <button
-                                    class="spoiler-toggle-btn hide"
-                                    on:click={() => (showFirstScene = false)}
-                                >
-                                    <Icon icon="ph:eye-slash-bold" />
-                                    <span>{$t("common.hide")}</span>
-                                </button>
+                                {#if !(persona.personaType === "3D" || persona.personaType === "2.5D")}
+                                    <button
+                                        class="spoiler-toggle-btn hide"
+                                        on:click={() =>
+                                            (showFirstScene = false)}
+                                    >
+                                        <Icon icon="ph:eye-slash-bold" />
+                                        <span>{$t("common.hide")}</span>
+                                    </button>
+                                {/if}
                             {:else}
                                 <div class="spoiler-overlay">
                                     <p class="spoiler-warning">
