@@ -62,6 +62,14 @@ function createNotificationStore() {
         const token = get(accessToken);
         if (!token) return;
 
+        // Check if it was unread BEFORE updating the list
+        const currentList = get({ subscribe });
+        const item = currentList.find(i => i.id === id);
+
+        if (item && !item.isRead) {
+            unreadCount.update(c => Math.max(0, c - 1));
+        }
+
         // Optimistic update
         update(n => n.map(item => {
             if (item.id === id) {
@@ -69,17 +77,6 @@ function createNotificationStore() {
             }
             return item;
         }));
-
-        // Decrease unread count if it was unread
-        // We can't easily know if it was unread from the list if the list is partial, 
-        // but usually we click on an unread item.
-        // For accuracy, we might want to re-fetch count or decrement if we know it was unread.
-        // Let's decrement for now if we find it in the list and it was unread.
-        const currentList = get({ subscribe });
-        const item = currentList.find(i => i.id === id);
-        if (item && !item.isRead) {
-            unreadCount.update(c => Math.max(0, c - 1));
-        }
 
         try {
             await fetch(`/api/notifications/${id}/read`, {

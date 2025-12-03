@@ -4,27 +4,24 @@
     import { notificationStore } from "$lib/stores/notification";
     import { createEventDispatcher } from "svelte";
     import { t } from "svelte-i18n";
-    import { get } from "svelte/store";
 
     export let notification: Notification;
 
     const dispatch = createEventDispatcher();
 
-    function timeAgo(dateString: string) {
+    function timeAgo(dateString: string, $t: any) {
         const date = new Date(dateString);
         const now = new Date();
         const seconds = Math.floor((now.getTime() - date.getTime()) / 1000);
 
-        // Use get(t) to access the translation function inside a helper
-        const $t = get(t);
-
         if (seconds < 60) return $t("time.now");
         const minutes = Math.floor(seconds / 60);
-        if (minutes < 60) return $t("time.minutesAgo", { count: minutes });
+        if (minutes < 60)
+            return $t("time.minutesAgo").replace("{count}", minutes);
         const hours = Math.floor(minutes / 60);
-        if (hours < 24) return $t("time.hoursAgo", { count: hours });
+        if (hours < 24) return $t("time.hoursAgo").replace("{count}", hours);
         const days = Math.floor(hours / 24);
-        if (days < 7) return $t("time.daysAgo", { count: days });
+        if (days < 7) return $t("time.daysAgo").replace("{count}", days);
         return date.toLocaleDateString();
     }
 
@@ -117,7 +114,7 @@
             class="text-xs mt-1.5 block"
             style="color: var(--muted-foreground); opacity: 0.7;"
         >
-            {timeAgo(notification.createdAt)}
+            {timeAgo(notification.createdAt, $t)}
         </span>
     </div>
 
