@@ -1,0 +1,1 @@
+import{k as d,u,l as n,m as c,s as p}from"./Dd_erFBS.js";function l(f,o,r){d(()=>{var a=u(()=>o(f,r?.())||{});if(r&&a?.update){var t=!1,s={};n(()=>{var e=r();c(e),t&&p(s,e)&&(s=e,a.update(e))}),t=!0}if(a?.destroy)return()=>a.destroy()})}export{l as a};
