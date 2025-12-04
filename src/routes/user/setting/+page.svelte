@@ -14,6 +14,13 @@
     import type { User } from "$lib/types";
     import Icon from "@iconify/svelte";
     import { api } from "$lib/api";
+    import {
+        getUploadUrl,
+        uploadFileWithProgress,
+    } from "$lib/api/edit_persona";
+
+    const supabaseURL =
+        "https://uohepkqmwbstbmnkoqju.supabase.co/storage/v1/object/public/personaxi-assets/";
 
     let user = {
         id: "",
@@ -150,6 +157,7 @@
         name: string;
         nickname: string;
         language: string;
+        profile: string;
     }
 
     function startEditing() {
@@ -164,11 +172,35 @@
         isEditingProfile = false;
     }
 
+    async function handleProfileUpload(event: Event) {
+        const input = event.target as HTMLInputElement;
+        if (!input.files || input.files.length === 0) return;
+
+        const file = input.files[0];
+        try {
+            // 1. Get Upload URL
+            const response = await getUploadUrl("user_profile");
+            const { signedURL, fileName } = await response.json();
+
+            // 2. Upload File
+            await uploadFileWithProgress(signedURL, file, (percent) => {
+                console.log(`Upload progress: ${percent}%`);
+            });
+
+            // 3. Update User State (Preview)
+            user.profile = `${supabaseURL}${fileName}`;
+        } catch (err) {
+            console.error("Failed to upload profile image:", err);
+            error = "Failed to upload profile image";
+        }
+    }
+
     async function saveProfileChanges() {
         const settingRq: UserSettingRequest = {
             name: user.name,
             nickname: user.data.nickname || "",
             language: get(locale) || "en",
+            profile: user.profile,
         };
 
         try {
@@ -297,12 +329,57 @@
     <div class="profile-section card">
         <div class="profile-header">
             {#if user.profile}
-                <img src={user.profile} alt="Profile" class="profile-avatar" />
+                <div class="profile-avatar-wrapper">
+                    <img
+                        src={user.profile}
+                        alt="Profile"
+                        class="profile-avatar"
+                    />
+                    {#if isEditingProfile}
+                        <button
+                            class="edit-avatar-overlay"
+                            on:click={() =>
+                                document
+                                    .getElementById("profile-upload")
+                                    ?.click()}
+                        >
+                            <Icon
+                                icon="ph:camera-plus-bold"
+                                width="24"
+                                height="24"
+                            />
+                        </button>
+                    {/if}
+                </div>
             {:else}
-                <div class="profile-avatar-placeholder">
-                    {user.name.charAt(0)}
+                <div class="profile-avatar-wrapper">
+                    <div class="profile-avatar-placeholder">
+                        {user.name.charAt(0)}
+                    </div>
+                    {#if isEditingProfile}
+                        <button
+                            class="edit-avatar-overlay"
+                            on:click={() =>
+                                document
+                                    .getElementById("profile-upload")
+                                    ?.click()}
+                        >
+                            <Icon
+                                icon="ph:camera-plus-bold"
+                                width="24"
+                                height="24"
+                            />
+                        </button>
+                    {/if}
                 </div>
             {/if}
+            <input
+                type="file"
+                id="profile-upload"
+                accept="image/*"
+                style="display: none;"
+                on:change={handleProfileUpload}
+            />
 
             <div class="profile-info">
                 {#if !isEditingProfile}
@@ -672,6 +749,31 @@
         font-size: 2.5rem;
         font-weight: bold;
         color: var(--foreground);
+    }
+    .profile-avatar-wrapper {
+        position: relative;
+        width: 80px;
+        height: 80px;
+    }
+    .edit-avatar-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        border-radius: 50%;
+        background-color: rgba(0, 0, 0, 0.5);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        cursor: pointer;
+        border: none;
+        opacity: 0;
+        transition: opacity 0.2s;
+    }
+    .profile-avatar-wrapper:hover .edit-avatar-overlay {
+        opacity: 1;
     }
     .profile-info {
         flex-grow: 1;

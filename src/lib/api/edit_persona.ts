@@ -6,7 +6,7 @@ import { accessToken } from "$lib/stores/auth";
 import { get } from "svelte/store";
 
 
-export async function getUploadUrl(fileType: "vrm" | "portrait" | "asset"): Promise<Response> {
+export async function getUploadUrl(fileType: "vrm" | "portrait" | "asset" | "user_profile"): Promise<Response> {
     const res = await api.get(`/api/upload-url?type=${fileType}`);
     if (!res.ok) {
         throw new Error("Failed to get upload URL");
