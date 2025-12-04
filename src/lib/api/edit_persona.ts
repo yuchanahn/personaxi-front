@@ -115,7 +115,17 @@ export async function uploadLive2DZip(
         const ext = relativePath.split('.').pop()?.toLowerCase();
         if (!['json', 'moc3', 'png', 'jpg', 'jpeg'].includes(ext || '')) continue;
 
-        const blob = await zipEntry.async('blob');
+        let blob = await zipEntry.async('blob');
+
+        // Resize images if needed (Max 2048px for mobile safety)
+        if (['png', 'jpg', 'jpeg'].includes(ext || '')) {
+            try {
+                blob = await resizeImageBlob(blob, 2048);
+            } catch (e) {
+                console.warn(`Failed to resize ${relativePath}, using original.`, e);
+            }
+        }
+
         filesToUpload.push({ name: relativePath, data: blob });
         totalSize += blob.size;
 
@@ -226,4 +236,71 @@ export async function fetchAndSetAssetTypes(
     );
 
     return await Promise.all(promises);
+}
+
+/**
+ * Resize image blob if it exceeds max dimension
+ */
+async function resizeImageBlob(blob: Blob, maxDimension: number = 2048): Promise<Blob> {
+    return new Promise((resolve, reject) => {
+        const img = new Image();
+        const url = URL.createObjectURL(blob);
+
+        img.onload = () => {
+            URL.revokeObjectURL(url);
+
+            // Check if resize is needed
+            if (img.width <= maxDimension && img.height <= maxDimension) {
+                resolve(blob);
+                return;
+            }
+
+            // Calculate new dimensions
+            let width = img.width;
+            let height = img.height;
+
+            if (width > height) {
+                if (width > maxDimension) {
+                    height = Math.round(height * (maxDimension / width));
+                    width = maxDimension;
+                }
+            } else {
+                if (height > maxDimension) {
+                    width = Math.round(width * (maxDimension / height));
+                    height = maxDimension;
+                }
+            }
+
+            console.log(`Resizing image from ${img.width}x${img.height} to ${width}x${height}`);
+
+            // Draw to canvas
+            const canvas = document.createElement('canvas');
+            canvas.width = width;
+            canvas.height = height;
+            const ctx = canvas.getContext('2d');
+
+            if (!ctx) {
+                reject(new Error("Failed to get canvas context"));
+                return;
+            }
+
+            ctx.drawImage(img, 0, 0, width, height);
+
+            // Convert back to blob
+            canvas.toBlob((newBlob) => {
+                if (newBlob) {
+                    resolve(newBlob);
+                } else {
+                    reject(new Error("Failed to create blob from canvas"));
+                }
+            }, blob.type, 0.9); // 90% quality
+        };
+
+        img.onerror = () => {
+            URL.revokeObjectURL(url);
+            reject(new Error("Failed to load image for resizing"));
+        };
+
+        img.src = url;
+    });
 }

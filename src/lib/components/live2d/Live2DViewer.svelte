@@ -15,13 +15,12 @@
     let idleInterval: any;
 
     // Debug State
-    let showDebug = true;
+    let showDebug = false;
     let debugInfo = {
         modelUrl: "",
         currentEmotion: "None",
         currentExpression: "None",
         lastMotion: "None",
-        availableExpressions: [] as string[],
         availableExpressions: [] as string[],
         availableMotionGroups: [] as string[],
         error: "",
@@ -171,11 +170,17 @@
 
                 const PIXI = (window as any).PIXI;
 
+                // Prevent high-DPI scaling issues on mobile (memory crash)
+                const pixelRatio = Math.min(window.devicePixelRatio || 1, 2);
+
                 app = new PIXI.Application({
                     view: canvasElement,
                     autoStart: true,
                     backgroundAlpha: 0,
                     resizeTo: canvasElement.parentElement,
+                    resolution: pixelRatio, // Cap resolution
+                    autoDensity: true,
+                    antialias: false, // Disable antialias for performance/memory
                 });
 
                 const model = await PIXI.live2d.Live2DModel.from(modelUrl, {
@@ -290,10 +295,29 @@
 
     onDestroy(() => {
         if (idleInterval) clearInterval(idleInterval);
-        if (app) {
-            app.destroy(true, { children: true });
-        }
+
+        // Remove resize listener
         window.removeEventListener("resize", onResize);
+
+        if (currentModel) {
+            try {
+                currentModel.destroy();
+            } catch (e) {
+                console.warn("Error destroying model:", e);
+            }
+        }
+
+        if (app) {
+            try {
+                app.destroy(true, {
+                    children: true,
+                    texture: true,
+                    baseTexture: true,
+                });
+            } catch (e) {
+                console.warn("Error destroying PIXI app:", e);
+            }
+        }
     });
 </script>
 
