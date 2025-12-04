@@ -22,7 +22,9 @@
         currentExpression: "None",
         lastMotion: "None",
         availableExpressions: [] as string[],
+        availableExpressions: [] as string[],
         availableMotionGroups: [] as string[],
+        error: "",
     };
 
     export async function speak(audioUrl: string) {
@@ -257,9 +259,10 @@
                 }, 8000);
 
                 window.addEventListener("resize", onResize);
-            } catch (e) {
+            } catch (e: any) {
                 console.error("Failed to initialize Live2D:", e);
-                isLoaded = true; // Hide loading indicator even on error
+                debugInfo.error = e.message || e.toString(); // Capture error
+                isLoaded = true;
             }
         }, 100);
     });
@@ -464,6 +467,14 @@
     .break-all {
         word-break: break-all;
         color: #ccc;
+    }
+
+    .error-msg {
+        color: #ff4444;
+        border: 1px solid #ff4444;
+        padding: 5px;
+        background: rgba(255, 0, 0, 0.1);
+        border-radius: 4px;
     }
 
     .info-section {

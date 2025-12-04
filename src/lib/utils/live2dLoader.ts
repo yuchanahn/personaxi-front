@@ -2,7 +2,7 @@ export const LIVE2D_SCRIPTS = [
     "https://cubism.live2d.com/sdk-web/cubismcore/live2dcubismcore.min.js",
     "https://cdn.jsdelivr.net/gh/dylanNew/live2d/webgl/Live2D/lib/live2d.min.js",
     "https://cdn.jsdelivr.net/npm/pixi.js@7/dist/pixi.min.js",
-    "https://cdn.jsdelivr.net/npm/pixi-live2d-display/dist/index.min.js",
+    // "https://cdn.jsdelivr.net/npm/pixi-live2d-display/dist/index.min.js", // Duplicate removed
     "https://cdn.jsdelivr.net/gh/RaSan147/pixi-live2d-display@v0.5.0-ls-8/dist/index.min.js"
 ];
 
