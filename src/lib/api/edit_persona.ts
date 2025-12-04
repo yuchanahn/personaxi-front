@@ -24,7 +24,7 @@ export async function getUploadUrl(fileType: "vrm" | "portrait" | "asset" | "use
  */
 export function uploadFileWithProgress(
     signedURL: string,
-    file: File,
+    file: File | Blob,
     onProgress: (percent: number) => void
 ): Promise<void> {
     return new Promise((resolve, reject) => {
@@ -32,10 +32,24 @@ export function uploadFileWithProgress(
         xhr.open('PUT', signedURL);
 
         // Supabase Signed URL은 Content-Type 헤더가 필요할 수 있음
-        xhr.setRequestHeader('Content-Type', file.type);
+        xhr.setRequestHeader('Content-Type', file.type || 'application/octet-stream');
+
+        // 타임아웃 설정 (30초)
+        xhr.timeout = 30000;
+
+        let hasStarted = false;
+        const STALL_TIMEOUT = 5000; // 5초 동안 시작 안하면 실패 처리
+
+        const stallTimer = setTimeout(() => {
+            if (!hasStarted) {
+                xhr.abort();
+                reject(new Error("Upload stalled: No data transferred within 5 seconds"));
+            }
+        }, STALL_TIMEOUT);
 
         // 업로드 진행률 이벤트 리스너
         xhr.upload.onprogress = (event) => {
+            hasStarted = true;
             if (event.lengthComputable) {
                 const percentComplete = (event.loaded / event.total) * 100;
                 onProgress(percentComplete);
@@ -43,6 +57,7 @@ export function uploadFileWithProgress(
         };
 
         xhr.onload = () => {
+            clearTimeout(stallTimer);
             if (xhr.status >= 200 && xhr.status < 300) {
                 onProgress(100); // 완료 시 100% 보장
                 resolve();
@@ -52,7 +67,13 @@ export function uploadFileWithProgress(
         };
 
         xhr.onerror = () => {
+            clearTimeout(stallTimer);
             reject(new Error('File upload failed due to a network error.'));
+        };
+
+        xhr.ontimeout = () => {
+            clearTimeout(stallTimer);
+            reject(new Error('File upload timed out (30s limit).'));
         };
 
         xhr.send(file);
@@ -145,7 +166,7 @@ export async function uploadLive2DZip(
     if (!response.ok) throw new Error("Failed to get signed URLs");
     const { base_folder, urls } = await response.json();
 
-    // 4. Upload files directly to CDN (Parallel)
+    // 4. Upload files directly to CDN (Parallel with Retries)
     const progressMap = new Map<string, number>();
     const updateProgress = () => {
         let loaded = 0;
@@ -159,31 +180,30 @@ export async function uploadLive2DZip(
         const signedUrl = urls[file.name];
         if (!signedUrl) throw new Error(`No signed URL for ${file.name}`);
 
-        await new Promise<void>((resolve, reject) => {
-            const xhr = new XMLHttpRequest();
-            xhr.open('PUT', signedUrl);
-            xhr.setRequestHeader('Content-Type', file.data.type || 'application/octet-stream');
+        const MAX_RETRIES = 3;
+        let lastError;
 
-            xhr.upload.onprogress = (e) => {
-                if (e.lengthComputable) {
-                    progressMap.set(file.name, e.loaded);
+        for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
+            try {
+                await uploadFileWithProgress(signedUrl, file.data, (percent) => {
+                    // Convert percent back to bytes for total progress calculation
+                    const bytesLoaded = (percent / 100) * file.data.size;
+                    progressMap.set(file.name, bytesLoaded);
                     updateProgress();
+                });
+                // Success
+                progressMap.set(file.name, file.data.size);
+                updateProgress();
+                return;
+            } catch (e) {
+                console.warn(`Upload failed for ${file.name} (Attempt ${attempt}/${MAX_RETRIES}):`, e);
+                lastError = e;
+                if (attempt < MAX_RETRIES) {
+                    await new Promise(r => setTimeout(r, 1000 * attempt)); // Exponential backoff
                 }
-            };
-
-            xhr.onload = () => {
-                if (xhr.status >= 200 && xhr.status < 300) {
-                    progressMap.set(file.name, file.data.size); // Ensure 100% for this file
-                    updateProgress();
-                    resolve();
-                } else {
-                    reject(new Error(`Upload failed for ${file.name}: ${xhr.statusText}`));
-                }
-            };
-
-            xhr.onerror = () => reject(new Error(`Network error uploading ${file.name}`));
-            xhr.send(file.data);
-        });
+            }
+        }
+        throw new Error(`Failed to upload ${file.name} after ${MAX_RETRIES} attempts: ${lastError}`);
     });
 
     await Promise.all(uploadPromises);
