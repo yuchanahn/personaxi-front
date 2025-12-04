@@ -131,6 +131,10 @@
       const mouseX = (x / rect.width) * 2 - 1;
       const mouseY = -(y / rect.height) * 2 + 1;
 
+      // 하단 영역(다리 쪽) 클릭 무시 (채팅 입력 오작동 방지)
+      // -1이 바닥, 1이 천장. -0.3 이하면 하단 35% 정도
+      if (mouseY < -0.7) return;
+
       model.hitByMouse(mouseX, mouseY);
     }
   }

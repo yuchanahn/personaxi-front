@@ -196,10 +196,10 @@
                 const modelWidth = bounds.width;
                 const modelHeight = bounds.height;
 
-                // Calculate scale to fit canvas with some padding (90% of canvas)
+                // Calculate scale to fit canvas with some padding (130% of canvas for fuller look)
                 const canvasWidth = app.screen.width;
                 const canvasHeight = app.screen.height;
-                const paddingFactor = 0.9; // Use 90% of canvas to leave some margin
+                const paddingFactor = 1.3; // Increased from 0.9 to 1.3
 
                 const scaleX = (canvasWidth * paddingFactor) / modelWidth;
                 const scaleY = (canvasHeight * paddingFactor) / modelHeight;
@@ -217,7 +217,7 @@
                 if (x === 0 && y === 0) {
                     model.anchor.set(0.5, 0.5);
                     model.x = app.screen.width / 2;
-                    model.y = app.screen.height / 2 + 50;
+                    model.y = app.screen.height / 2 + 150; // Shift down slightly to keep head in view
                 }
 
                 app.stage.addChild(model);
@@ -281,7 +281,7 @@
 
             const canvasWidth = app.screen.width;
             const canvasHeight = app.screen.height;
-            const paddingFactor = 0.9;
+            const paddingFactor = 1.3; // Match onMount
 
             const scaleX = (canvasWidth * paddingFactor) / modelWidth;
             const scaleY = (canvasHeight * paddingFactor) / modelHeight;
@@ -289,7 +289,7 @@
 
             currentModel.scale.set(autoScale);
             currentModel.x = app.screen.width / 2;
-            currentModel.y = app.screen.height / 2 + 100;
+            currentModel.y = app.screen.height / 2 + 150; // Match onMount
         }
     }
 
