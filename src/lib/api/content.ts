@@ -68,3 +68,12 @@ export async function loadContentWithName(name: string) {
     }
     return [];
 }
+
+export async function loadFollowedContent() {
+    const res = await api.get(`/api/contents/followed?locale=${get(settings).language}`);
+    if (res.ok) {
+        const data = await res.json();
+        return data;
+    }
+    return [];
+}

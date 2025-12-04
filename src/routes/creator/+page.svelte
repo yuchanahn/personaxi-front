@@ -24,43 +24,61 @@
     type SortOption = "likes" | "name" | "chats";
     let sortOrder = writable<SortOption>("likes");
 
-    onMount(async () => {
-        const creatorId = $page.url.searchParams.get("c");
+    let creatorId: string | null = null;
 
-        if (!creatorId) {
-            error.set("Creator ID not found in URL.");
-            isLoading.set(false);
-            return;
-        }
+    $: creatorId = $page.url.searchParams.get("c");
 
-        try {
-            const response = await api.get2(
-                `/api/creator/info?id=${creatorId}`,
-            );
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(
-                    errorData.error || "Failed to load creator profile.",
-                );
-            }
-            const data: CreatorProfileDTO = await response.json();
-            profile.set(data);
+    // Fetch Creator Profile
+    $: if (creatorId) {
+        isLoading.set(true);
+        error.set(null);
+        api.get2(`/api/creator/info?id=${creatorId}`)
+            .then(async (res) => {
+                if (!res.ok) {
+                    const errorData = await res.json();
+                    throw new Error(
+                        errorData.error || "Failed to load creator profile.",
+                    );
+                }
+                return res.json();
+            })
+            .then((data: CreatorProfileDTO) => {
+                profile.set(data);
+                // Fetch follower count
+                return getFollowers(creatorId!);
+            })
+            .then((followers) => {
+                followerCount.set(followers.length);
+            })
+            .catch((e) => {
+                error.set(e.message);
+            })
+            .finally(() => {
+                isLoading.set(false);
+            });
+    }
 
-            // Check follow status if logged in
-            if ($st_user) {
-                const status = await checkFollowStatus(creatorId);
-                isFollowing.set(status);
-            }
-
-            // Get follower count
-            const followers = await getFollowers(creatorId);
-            followerCount.set(followers.length);
-        } catch (e: any) {
-            error.set(e.message);
-        } finally {
-            isLoading.set(false);
-        }
-    });
+    // Check Follow Status (Reactive to user login state)
+    $: if (creatorId && $st_user) {
+        console.log(
+            "Checking follow status for:",
+            creatorId,
+            "User:",
+            $st_user,
+        );
+        checkFollowStatus(creatorId).then((status) => {
+            console.log("Follow status result:", status);
+            isFollowing.set(status);
+        });
+    } else {
+        console.log(
+            "Skipping follow check. CreatorId:",
+            creatorId,
+            "User:",
+            $st_user,
+        );
+        isFollowing.set(false);
+    }
 
     async function toggleFollow() {
         if (!$st_user) {
@@ -68,7 +86,6 @@
             return;
         }
 
-        const creatorId = $page.url.searchParams.get("c");
         if (!creatorId) return;
 
         try {
@@ -94,7 +111,7 @@
     $: sortedPersonas = (() => {
         if (!$profile) return [];
 
-        const personas = [...$profile.personas];
+        const personas = [...($profile.personas || [])];
         const order = $sortOrder; // 스토어 값을 직접 참조
 
         return personas.sort((a, b) => {
@@ -136,7 +153,7 @@
                     <h1 class="creator-name">{$profile.creator.name}</h1>
                     <div class="stats-row">
                         <p class="creator-persona-count">
-                            {$profile.personas.length}
+                            {$profile.personas?.length || 0}
                             {$t("creatorPage.personas")}
                         </p>
                         <span class="divider">•</span>

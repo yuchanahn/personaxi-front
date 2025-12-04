@@ -1,6 +1,7 @@
 <script lang="ts">
     import { createEventDispatcher, onMount } from "svelte";
     import { fade, scale } from "svelte/transition";
+    import { goto } from "$app/navigation";
     import Icon from "@iconify/svelte";
     import { t } from "svelte-i18n";
     import {
@@ -166,7 +167,15 @@
                     <div class="user-list">
                         {#each users as user (user.id)}
                             <div class="user-item">
-                                <div class="user-info">
+                                <!-- svelte-ignore a11y_click_events_have_key_events -->
+                                <!-- svelte-ignore a11y_no_static_element_interactions -->
+                                <div
+                                    class="user-info"
+                                    on:click={() => {
+                                        goto(`/creator?c=${user.id}`);
+                                        close();
+                                    }}
+                                >
                                     <img
                                         src={user.portrait_url ||
                                             `https://placehold.co/40x40/1a1a1a/ffffff?text=${user.name.charAt(0)}`}
@@ -311,6 +320,7 @@
         display: flex;
         align-items: center;
         gap: 0.75rem;
+        cursor: pointer;
     }
 
     .avatar {

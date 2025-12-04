@@ -11,7 +11,7 @@ export async function unfollowUser(targetId: string): Promise<boolean> {
 }
 
 export async function checkFollowStatus(targetId: string): Promise<boolean> {
-    const res = await api.get2(`/api/user/is-following?targetId=${targetId}`);
+    const res = await api.get(`/api/user/is-following?targetId=${targetId}`);
     if (res.ok) {
         const data = await res.json();
         return data.isFollowing;
