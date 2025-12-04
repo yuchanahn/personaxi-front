@@ -7,10 +7,19 @@
     import { t } from "svelte-i18n";
     import { api } from "$lib/api";
     import { goto } from "$app/navigation";
+    import {
+        followUser,
+        unfollowUser,
+        checkFollowStatus,
+        getFollowers,
+    } from "$lib/api/user";
+    import { st_user } from "$lib/stores/user";
 
     let profile = writable<CreatorProfileDTO | null>(null);
     let isLoading = writable(true);
     let error = writable<string | null>(null);
+    let isFollowing = writable(false);
+    let followerCount = writable(0);
 
     type SortOption = "likes" | "name" | "chats";
     let sortOrder = writable<SortOption>("likes");
@@ -36,12 +45,51 @@
             }
             const data: CreatorProfileDTO = await response.json();
             profile.set(data);
+
+            // Check follow status if logged in
+            if ($st_user) {
+                const status = await checkFollowStatus(creatorId);
+                isFollowing.set(status);
+            }
+
+            // Get follower count
+            const followers = await getFollowers(creatorId);
+            followerCount.set(followers.length);
         } catch (e: any) {
             error.set(e.message);
         } finally {
             isLoading.set(false);
         }
     });
+
+    async function toggleFollow() {
+        if (!$st_user) {
+            alert($t("common.loginRequired"));
+            return;
+        }
+
+        const creatorId = $page.url.searchParams.get("c");
+        if (!creatorId) return;
+
+        try {
+            if ($isFollowing) {
+                const success = await unfollowUser(creatorId);
+                if (success) {
+                    isFollowing.set(false);
+                    followerCount.update((n) => Math.max(0, n - 1));
+                }
+            } else {
+                const success = await followUser(creatorId);
+                if (success) {
+                    isFollowing.set(true);
+                    followerCount.update((n) => n + 1);
+                }
+            }
+        } catch (err) {
+            console.error("Follow toggle failed", err);
+            alert("Failed to update follow status");
+        }
+    }
 
     $: sortedPersonas = (() => {
         if (!$profile) return [];
@@ -86,13 +134,25 @@
                 />
                 <div class="creator-details">
                     <h1 class="creator-name">{$profile.creator.name}</h1>
-                    <p class="creator-persona-count">
-                        {$profile.personas.length}
-                        {$t("creatorPage.personas")}
-                    </p>
+                    <div class="stats-row">
+                        <p class="creator-persona-count">
+                            {$profile.personas.length}
+                            {$t("creatorPage.personas")}
+                        </p>
+                        <span class="divider">•</span>
+                        <p class="creator-follower-count">
+                            {$followerCount} Followers
+                        </p>
+                    </div>
                 </div>
             </div>
-            <button class="follow-button">{$t("creatorPage.follow")}</button>
+            <button
+                class="follow-button"
+                class:following={$isFollowing}
+                on:click={toggleFollow}
+            >
+                {$isFollowing ? "Unfollow" : $t("creatorPage.follow")}
+            </button>
         </div>
 
         <div class="hub-container">
@@ -116,13 +176,12 @@
                     {$t("creatorPage.sortByName")}
                 </button>
             </div>
-
+            <!-- isLive={() => false}
+                        isAuctioning={() => false} -->
             <div class="content-grid">
                 {#each sortedPersonas as content (content.id)}
                     <CharacterCard
                         {content}
-                        isLive={() => false}
-                        isAuctioning={() => false}
                         on:click={() => handleCardClick(content)}
                     />
                 {/each}
@@ -172,15 +231,25 @@
         object-fit: cover;
         border: 2px solid var(--border);
     }
+    .creator-details {
+        display: flex;
+        flex-direction: column;
+        gap: 0.25rem;
+    }
     .creator-name {
         font-size: 2rem;
         font-weight: 700;
         margin: 0;
     }
-    .creator-persona-count {
+    .stats-row {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
         font-size: 1rem;
         color: var(--muted-foreground);
-        margin-top: 0.25rem;
+    }
+    .divider {
+        color: var(--border);
     }
     .follow-button {
         background-color: var(--primary);
@@ -191,10 +260,21 @@
         font-weight: 600;
         border-radius: var(--radius-button);
         cursor: pointer;
-        transition: background-color 0.2s;
+        transition: all 0.2s;
+        min-width: 100px;
     }
     .follow-button:hover {
         background-color: var(--primary-hover);
+    }
+    .follow-button.following {
+        background-color: var(--muted);
+        color: var(--foreground);
+        border: 1px solid var(--border);
+    }
+    .follow-button.following:hover {
+        background-color: var(--destructive);
+        color: var(--destructive-foreground);
+        border-color: var(--destructive);
     }
 
     /* Content Area */

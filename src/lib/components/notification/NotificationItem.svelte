@@ -5,6 +5,8 @@
     import { createEventDispatcher } from "svelte";
     import { t } from "svelte-i18n";
 
+    import { goto } from "$app/navigation";
+
     export let notification: Notification;
 
     const dispatch = createEventDispatcher();
@@ -107,6 +109,11 @@
             class="text-sm break-words leading-relaxed"
             style="color: var(--muted-foreground);"
         >
+            {#if notification.actorName}
+                <span class="font-semibold text-foreground"
+                    >{notification.actorName}</span
+                >
+            {/if}
             {notification.content}
         </p>
 

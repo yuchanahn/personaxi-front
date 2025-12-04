@@ -191,14 +191,73 @@
     import AssetPreview from "$lib/components/AssetPreview.svelte";
     import NotificationDrawer from "$lib/components/notification/NotificationDrawer.svelte";
     import { notificationStore } from "$lib/stores/notification";
+    import UserListModal from "$lib/components/modal/UserListModal.svelte";
+    import { getFollowers, getFollowing } from "$lib/api/user";
 
     let showSettingsModal = false;
     let isNotificationDrawerOpen = false;
     const { unreadCount } = notificationStore;
 
-    // ... inside onMount ...
-    // I need to be careful with replace_file_content.
-    // I'll do imports first, then markup.
+    let showUserListModal = false;
+    let userListTab: "followers" | "following" = "followers";
+    let followerCount = 0;
+    let followingCount = 0;
+
+    onMount(async () => {
+        try {
+            const userRes = await getCurrentUser();
+            if (userRes) {
+                user = userRes as User;
+                notificationStore.init(user.id);
+
+                // Load follow stats
+                getFollowers(user.id).then(
+                    (ids) => (followerCount = ids.length),
+                );
+                getFollowing(user.id).then(
+                    (ids) => (followingCount = ids.length),
+                );
+
+                if (!user.data || user.data.language === "") {
+                    // ... existing logic ...
+                    user.data = {
+                        nickname: user.name,
+                        language: get(locale) || "",
+                        lastLoginAt: "",
+                        createdAt: "",
+                        hasReceivedFirstCreationReward: false,
+                        lastLoginIP: "",
+                    };
+                    // ...
+                    settings.update((s) => {
+                        s.language = (user.data.language as Language) || "en";
+                        return { ...s };
+                    });
+                }
+            } else {
+                error = "Failed to load user";
+                goto("/login");
+            }
+
+            // ... existing logic ...
+            const personasRes = await api.get(`/api/persona/user`);
+            if (personasRes.ok) {
+                personas = await personasRes.json();
+            } else {
+                error = "Failed to load personas";
+            }
+
+            const liveRes = await fetchLivePersonas();
+            liveIds = liveRes.map((x) => x);
+        } catch (err) {
+            error = "Error: " + err;
+        }
+    });
+
+    function openUserList(tab: "followers" | "following") {
+        userListTab = tab;
+        showUserListModal = true;
+    }
 </script>
 
 <div class="page-container">
@@ -320,6 +379,25 @@
                 >{$t("settingPage.charge")}</button
             >
         </div>
+
+        <!-- Follow Stats -->
+        <div class="follow-stats">
+            <button
+                class="stat-item"
+                on:click={() => openUserList("followers")}
+            >
+                <span class="stat-value">{followerCount}</span>
+                <span class="stat-label">Followers</span>
+            </button>
+            <div class="stat-divider"></div>
+            <button
+                class="stat-item"
+                on:click={() => openUserList("following")}
+            >
+                <span class="stat-value">{followingCount}</span>
+                <span class="stat-label">Following</span>
+            </button>
+        </div>
     </div>
 
     <div class="section-header">
@@ -427,9 +505,51 @@
         on:close={() => (isNotificationDrawerOpen = false)}
     />
     <SettingsModal bind:isOpen={showSettingsModal} />
+    <UserListModal
+        bind:isOpen={showUserListModal}
+        initialTab={userListTab}
+        userId={user.id}
+        on:close={() => (showUserListModal = false)}
+    />
 </div>
 
 <style>
+    /* ... existing styles ... */
+    .follow-stats {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 1rem;
+        border-top: 1px solid var(--border-card);
+        gap: 2rem;
+    }
+    .stat-item {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        background: none;
+        border: none;
+        cursor: pointer;
+        transition: transform 0.2s;
+    }
+    .stat-item:hover {
+        transform: scale(1.05);
+    }
+    .stat-value {
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: var(--foreground);
+    }
+    .stat-label {
+        font-size: 0.85rem;
+        color: var(--muted-foreground);
+    }
+    .stat-divider {
+        width: 1px;
+        height: 30px;
+        background-color: var(--border);
+    }
+
     .page-container {
         display: flex;
         flex-direction: column;
