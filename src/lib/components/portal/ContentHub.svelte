@@ -134,7 +134,7 @@
                     class:active={selectedCategory === "following"}
                     on:click={() => filterByCategory("following")}
                 >
-                    Following
+                    {$t("contentHub.following")}
                 </button>
                 {#each allCategories as category (category.id)}
                     <button

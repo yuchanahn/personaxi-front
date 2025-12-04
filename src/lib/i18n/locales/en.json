@@ -253,7 +253,8 @@
     "searchByName": "Search by Name",
     "searchByTags": "Search by Tags",
     "searchNamePlaceholder": "Enter a persona's name...",
-    "searchTagsPlaceholder": "Enter tags, separated by commas..."
+    "searchTagsPlaceholder": "Enter tags, separated by commas...",
+    "following": "Following"
   },
   "hub": {
     "feedbackButtonLabel": "Send Feedback",

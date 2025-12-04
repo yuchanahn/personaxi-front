@@ -262,6 +262,7 @@
     "searchByTags": "태그로 검색",
     "searchNamePlaceholder": "페르소나의 이름을 입력하세요...",
     "searchTagsPlaceholder": "태그를 쉼표(,)로 구분하여 입력...",
+    "following": "팔로잉",
     "auctionInProgress": "경매 중"
   },
   "auctionPage": {
