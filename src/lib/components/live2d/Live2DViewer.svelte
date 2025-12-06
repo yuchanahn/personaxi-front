@@ -7,6 +7,7 @@
     export let scale: number = 0.3;
     export let x: number = 0;
     export let y: number = 0;
+    export let expressionMap: Record<string, string> = {};
 
     let canvasElement: HTMLCanvasElement;
     let app: any;
@@ -23,6 +24,7 @@
         lastMotion: "None",
         availableExpressions: [] as string[],
         availableMotionGroups: [] as string[],
+        fileMotions: [] as string[],
         error: "",
     };
 
@@ -33,19 +35,12 @@
         }
 
         try {
-            // Stop previous audio using the library's built-in method
             if (currentModel.stopSpeaking) {
                 console.log("🛑 Stopping previous Live2D audio");
                 currentModel.stopSpeaking();
             }
-
-            // Start new speech
-            await currentModel.speak(audioUrl, {
-                volume: 1,
-                expression: 4,
-                resetExpression: true,
-                crossOrigin: "anonymous",
-            });
+            resetToDefault();
+            await currentModel.speak(audioUrl);
         } catch (e) {
             console.error("Live2D speak failed:", e);
         }
@@ -53,42 +48,134 @@
 
     export function toggleDebug() {
         showDebug = !showDebug;
-        //console.log("Debug toggled:", showDebug);
+    }
+    export function resetToDefault() {
+        if (!currentModel || !currentModel.internalModel) return;
+
+        console.log("Debug: 🧹 Performing Hard Reset to Default");
+
+        const internal = currentModel.internalModel;
+        const mgr = internal.motionManager;
+
+        // 1. 모션 정지 (안전하게 수정됨)
+        if (mgr) {
+            // A. stopAll이 함수로 존재하면 실행
+            if (typeof mgr.stopAll === "function") {
+                mgr.stopAll();
+            }
+            // B. 없다면 stop 함수 실행 (일반적인 경우)
+            else if (typeof mgr.stop === "function") {
+                mgr.stop();
+            }
+
+            // C. 혹시 몰라 대기열(Queue) 강제 초기화
+            if (mgr.queue) {
+                mgr.queue = [];
+            }
+
+            // 2. 표정(Expression) 강제 초기화
+            if (mgr.expressionManager) {
+                console.log("Debug: Stopping all expressions");
+                // 여기도 혹시 모르니 체크
+                if (
+                    typeof mgr.expressionManager.stopAllExpressions ===
+                    "function"
+                ) {
+                    mgr.expressionManager.stopAllExpressions();
+                } else if (
+                    typeof mgr.expressionManager.restore === "function"
+                ) {
+                    // 일부 버전에선 restore()가 초기화임
+                    mgr.expressionManager.restore();
+                }
+            }
+        }
+
+        // 3. 파라미터 "진짜" 초기화 (모델 기본값으로 덮어쓰기)
+        const core = internal.coreModel;
+        if (core) {
+            const paramCount = core.getParameterCount();
+            for (let i = 0; i < paramCount; i++) {
+                const defaultValue = core.getParameterDefaultValue(i);
+                core.setParameterValueByIndex(i, defaultValue);
+            }
+        }
+
+        // 4. 디버그 정보 초기화
+        debugInfo.currentEmotion = "None";
+        debugInfo.currentExpression = "None";
+        debugInfo.lastMotion = "Reset (Hard)";
+        debugInfo = debugInfo;
+
+        // 5. Idle 모션 다시 재생 (약간의 딜레이)
+        setTimeout(() => {
+            const idleGroups = [
+                "Idle",
+                "idle",
+                "Stand",
+                "stand",
+                "Wait",
+                "wait",
+            ];
+            const defs = internal.motionManager?.definitions;
+            if (defs) {
+                for (const grp of idleGroups) {
+                    if (defs[grp]) {
+                        // 우선순위 3(Force)으로 강제 재생
+                        currentModel.motion(grp, 0, 3);
+                        console.log(`Debug: Triggering idle motion: ${grp}`);
+                        break;
+                    }
+                }
+            }
+        }, 50);
+    }
+
+    export function triggerMotion(fileName: string) {
+        if (
+            !currentModel ||
+            !currentModel.internalModel ||
+            !currentModel.internalModel.motionManager
+        )
+            return;
+
+        console.log(`Debug: Triggering motion by filename: ${fileName}`);
+        const mgr = currentModel.internalModel.motionManager;
+        const definitions = mgr.definitions;
+
+        for (const [group, motions] of Object.entries(definitions)) {
+            if (Array.isArray(motions)) {
+                for (let i = 0; i < motions.length; i++) {
+                    const m = motions[i];
+                    // Check if file matches (handle paths)
+                    if (
+                        m.File &&
+                        (m.File === fileName ||
+                            m.File.endsWith("/" + fileName) ||
+                            m.File.endsWith("\\" + fileName))
+                    ) {
+                        console.log(
+                            `Debug: Found motion in group ${group} at index ${i}`,
+                        );
+                        currentModel.motion(group, i);
+                        debugInfo.lastMotion = `${group} (${i}): ${fileName}`;
+                        return;
+                    }
+                }
+            }
+        }
+        console.warn(`Debug: Motion file not found: ${fileName}`);
     }
 
     export function setExpression(emotion: string) {
         if (!currentModel) return;
 
+        console.log(`Debug: setExpression called with: ${emotion}`);
         debugInfo.currentEmotion = emotion;
-        debugInfo = debugInfo;
 
         const emotionLower = emotion.toLowerCase();
-
-        // 1. Smart Matching
-        if (currentModel.expressions) {
-            const availableExpressions = currentModel.expressions;
-            let match = availableExpressions.find(
-                (name: string) => name.toLowerCase() === emotionLower,
-            );
-
-            if (!match) {
-                match = availableExpressions.find((name: string) =>
-                    name.toLowerCase().includes(emotionLower),
-                );
-            }
-
-            if (match) {
-                console.log(
-                    `Smart matched expression: ${match} for emotion: ${emotion}`,
-                );
-                currentModel.expression(match);
-                debugInfo.currentExpression = match;
-                return;
-            }
-        }
-
-        // 2. Fallback to Group Mapping
         let expressionIndex = 0;
+        let category = "neutral";
 
         switch (emotionLower) {
             case "joy":
@@ -104,41 +191,64 @@
             case "approval":
             case "caring":
             case "relief":
+            case "fun":
                 expressionIndex = 1;
+                category = "joy";
                 break;
-
             case "anger":
             case "annoyance":
             case "disapproval":
             case "disgust":
                 expressionIndex = 2;
+                category = "anger";
                 break;
-
             case "sadness":
             case "grief":
             case "disappointment":
             case "remorse":
             case "embarrassment":
+            case "sorrow":
                 expressionIndex = 3;
+                category = "sorrow";
                 break;
-
             case "surprise":
             case "realization":
             case "confusion":
             case "curiosity":
                 expressionIndex = 4;
+                category = "surprise";
                 break;
-
             case "fear":
             case "nervousness":
                 expressionIndex = 5;
+                category = "fear";
                 break;
-
             case "neutral":
-            default:
+                category = "neutral";
                 expressionIndex = 0;
                 break;
+            default:
+                console.log(`Debug: Unmapped emotion '${emotion}', ignoring.`);
+                return;
         }
+
+        // 1. Check Expression Map (Custom File)
+        if (expressionMap && expressionMap[category]) {
+            const mappedName = expressionMap[category];
+            console.log(
+                `Debug: Found custom mapping for category '${category}' -> '${mappedName}'`,
+            );
+            currentModel.expression(mappedName);
+            debugInfo.currentExpression = mappedName;
+            return;
+        }
+
+        return;
+
+        // 2. Fallback to Index / Default system
+        console.log(
+            `Debug: No custom mapping for '${category}', using index ${expressionIndex}`,
+        );
 
         try {
             const definitions =
@@ -149,11 +259,9 @@
                 currentModel.expression(name);
                 debugInfo.currentExpression = `${name} (Index: ${expressionIndex})`;
             } else {
-                const fallbackName = `f0${expressionIndex + 1}`;
-                currentModel.expression(expressionIndex).catch(() => {
-                    currentModel.expression(fallbackName).catch(() => {});
-                });
-                debugInfo.currentExpression = `Index: ${expressionIndex} / ${fallbackName}`;
+                console.log(
+                    `Debug: No expression definition found for index ${expressionIndex}, skipping.`,
+                );
             }
         } catch (e) {
             console.warn("Error setting expression:", e);
@@ -162,15 +270,10 @@
     }
 
     onMount(async () => {
-        // Use setTimeout to ensure loading UI is rendered before Live2D initialization
-        // This prevents UI freeze during model loading and script parsing
         setTimeout(async () => {
             try {
                 await loadLive2DScripts();
-
                 const PIXI = (window as any).PIXI;
-
-                // Prevent high-DPI scaling issues on mobile (memory crash)
                 const pixelRatio = Math.min(window.devicePixelRatio || 1, 2);
 
                 app = new PIXI.Application({
@@ -178,36 +281,23 @@
                     autoStart: true,
                     backgroundAlpha: 0,
                     resizeTo: canvasElement.parentElement,
-                    resolution: pixelRatio, // Cap resolution
+                    resolution: pixelRatio,
                     autoDensity: true,
-                    antialias: false, // Disable antialias for performance/memory
+                    antialias: false,
                 });
 
                 const model = await PIXI.live2d.Live2DModel.from(modelUrl, {
                     autoInteract: false,
                 });
 
-                // Auto-scale model to fit canvas
-                // First, set a temporary scale to get accurate bounds
                 model.scale.set(1);
-
-                // Get model bounds
                 const bounds = model.getBounds();
-                const modelWidth = bounds.width;
-                const modelHeight = bounds.height;
-
-                // Calculate scale to fit canvas with some padding (130% of canvas for fuller look)
-                const canvasWidth = app.screen.width;
-                const canvasHeight = app.screen.height;
-                const paddingFactor = 1.3; // Increased from 0.9 to 1.3
-
-                const scaleX = (canvasWidth * paddingFactor) / modelWidth;
-                const scaleY = (canvasHeight * paddingFactor) / modelHeight;
-
-                // Use the smaller scale to ensure model fits in both dimensions
+                const paddingFactor = 1.3;
+                const scaleX =
+                    (app.screen.width * paddingFactor) / bounds.width;
+                const scaleY =
+                    (app.screen.height * paddingFactor) / bounds.height;
                 const autoScale = Math.min(scaleX, scaleY);
-
-                // Apply the calculated scale (or use provided scale if not auto)
                 const finalScale = x === 0 && y === 0 ? autoScale : scale;
                 model.scale.set(finalScale);
 
@@ -217,41 +307,85 @@
                 if (x === 0 && y === 0) {
                     model.anchor.set(0.5, 0.5);
                     model.x = app.screen.width / 2;
-                    model.y = app.screen.height / 2 + 150; // Shift down slightly to keep head in view
+                    model.y = app.screen.height / 2 + 150;
                 }
 
                 app.stage.addChild(model);
                 currentModel = model;
                 isLoaded = true;
-
-                // Update Debug Info
                 debugInfo.modelUrl = modelUrl;
-                debugInfo.availableExpressions = model.expressions || [];
-                if (model.internalModel && model.internalModel.motionManager) {
-                    debugInfo.availableMotionGroups = Object.keys(
-                        model.internalModel.motionManager.definitions,
+
+                console.log("Debug: Model loaded", model);
+                console.log("Debug: Internal Model", model.internalModel);
+                console.log("Debug: Settings", model.internalModel?.settings);
+
+                // Discovery
+                const foundExpressions = new Set<string>();
+                if (model.expressions) {
+                    console.log(
+                        "Debug: model.expressions found:",
+                        model.expressions,
+                    );
+                    model.expressions.forEach((e: string) =>
+                        foundExpressions.add(e),
                     );
                 }
+
+                try {
+                    const settings = model.internalModel?.settings;
+                    if (settings) {
+                        // Check specifically for FileReferences (Cubism 3+)
+                        if (settings.FileReferences?.Expressions) {
+                            console.log(
+                                "Debug: Found FileReferences.Expressions",
+                                settings.FileReferences.Expressions,
+                            );
+                            const exprs = settings.FileReferences.Expressions;
+                            if (Array.isArray(exprs)) {
+                                exprs.forEach((e: any) => {
+                                    if (e.Name) foundExpressions.add(e.Name);
+                                    else if (e.File)
+                                        foundExpressions.add(
+                                            e.File.split("/")
+                                                .pop()
+                                                .replace(".exp3.json", ""),
+                                        );
+                                });
+                            }
+                        }
+                        // Fallback check for other structures
+                        else if (settings.expressions) {
+                            console.log(
+                                "Debug: Found settings.expressions",
+                                settings.expressions,
+                            );
+                            settings.expressions.forEach((e: any) => {
+                                if (e.name) foundExpressions.add(e.name);
+                                else if (e.Name) foundExpressions.add(e.Name);
+                            });
+                        }
+                    }
+                } catch (e) {
+                    console.error("Debug: Expression discovery error", e);
+                }
+                debugInfo.availableExpressions = Array.from(foundExpressions);
+                console.log(
+                    "Debug: Final available expressions:",
+                    debugInfo.availableExpressions,
+                );
+                debugInfo.availableExpressions = Array.from(foundExpressions);
+
+                const foundMotionGroups = new Set<string>();
+                if (model.internalModel?.motionManager?.definitions) {
+                    Object.keys(
+                        model.internalModel.motionManager.definitions,
+                    ).forEach((k) => foundMotionGroups.add(k));
+                }
+                debugInfo.availableMotionGroups = Array.from(foundMotionGroups);
                 debugInfo = debugInfo;
 
-                console.log("Live2D Model Loaded");
-                console.log("Expressions:", model.expressions);
-                if (model.internalModel && model.internalModel.motionManager) {
-                    console.log(
-                        "Motions:",
-                        model.internalModel.motionManager.definitions,
-                    );
-                }
-
-                // Random Idle Behavior
                 idleInterval = setInterval(() => {
-                    if (
-                        !currentModel ||
-                        !currentModel.internalModel ||
-                        !currentModel.internalModel.motionManager
-                    )
-                        return;
-
+                    if (!currentModel?.internalModel?.motionManager) return;
                     if (Math.random() > 0.5) {
                         const motionManager =
                             currentModel.internalModel.motionManager;
@@ -266,7 +400,7 @@
                 window.addEventListener("resize", onResize);
             } catch (e: any) {
                 console.error("Failed to initialize Live2D:", e);
-                debugInfo.error = e.message || e.toString(); // Capture error
+                debugInfo.error = e.message || e.toString();
                 isLoaded = true;
             }
         }, 100);
@@ -274,50 +408,34 @@
 
     function onResize() {
         if (app && currentModel && x === 0 && y === 0) {
-            // Recalculate scale to fit new canvas size
             const bounds = currentModel.getBounds();
-            const modelWidth = bounds.width / currentModel.scale.x; // Get original size
+            const modelWidth = bounds.width / currentModel.scale.x;
             const modelHeight = bounds.height / currentModel.scale.y;
-
-            const canvasWidth = app.screen.width;
-            const canvasHeight = app.screen.height;
-            const paddingFactor = 1.3; // Match onMount
-
-            const scaleX = (canvasWidth * paddingFactor) / modelWidth;
-            const scaleY = (canvasHeight * paddingFactor) / modelHeight;
+            const paddingFactor = 1.3;
+            const scaleX = (app.screen.width * paddingFactor) / modelWidth;
+            const scaleY = (app.screen.height * paddingFactor) / modelHeight;
             const autoScale = Math.min(scaleX, scaleY);
-
             currentModel.scale.set(autoScale);
             currentModel.x = app.screen.width / 2;
-            currentModel.y = app.screen.height / 2 + 150; // Match onMount
+            currentModel.y = app.screen.height / 2 + 150;
         }
     }
 
     onDestroy(() => {
         if (idleInterval) clearInterval(idleInterval);
-
-        // Remove resize listener
         window.removeEventListener("resize", onResize);
-
-        if (currentModel) {
+        if (currentModel)
             try {
                 currentModel.destroy();
-            } catch (e) {
-                console.warn("Error destroying model:", e);
-            }
-        }
-
-        if (app) {
+            } catch (e) {}
+        if (app)
             try {
                 app.destroy(true, {
                     children: true,
                     texture: true,
                     baseTexture: true,
                 });
-            } catch (e) {
-                console.warn("Error destroying PIXI app:", e);
-            }
-        }
+            } catch (e) {}
     });
 </script>
 
@@ -343,6 +461,12 @@
     {#if showDebug}
         <div class="debug-panel">
             <h3>🎭 Live2D Debug</h3>
+
+            <div class="controls-row">
+                <button class="stop-btn reset-btn" on:click={resetToDefault}
+                    >🔄 Reset Model</button
+                >
+            </div>
 
             <div class="info-item">
                 <strong>Model:</strong>
@@ -373,7 +497,19 @@
                 >
                 <div class="scroll-list">
                     {#each debugInfo.availableExpressions as expr}
-                        <div class="list-item">{expr}</div>
+                        <button
+                            class="list-item clickable"
+                            on:click={() => {
+                                console.log(
+                                    "Debug: Triggering expression",
+                                    expr,
+                                );
+                                currentModel.expression(expr);
+                                debugInfo.currentExpression = expr;
+                            }}
+                        >
+                            {expr}
+                        </button>
                     {/each}
                 </div>
             </div>
@@ -382,10 +518,76 @@
                 <strong>Motion Groups:</strong>
                 <div class="scroll-list">
                     {#each debugInfo.availableMotionGroups as group}
-                        <div class="list-item">{group}</div>
+                        <div class="group-container">
+                            <!-- Group Header / Main Trigger -->
+                            <button
+                                class="group-header clickable"
+                                title="Play Random {group} Motion"
+                                on:click={() => {
+                                    console.log(
+                                        "Debug: Triggering motion group",
+                                        group,
+                                    );
+                                    currentModel.motion(group);
+                                    debugInfo.lastMotion = `${group} (Group Trigger)`;
+                                }}
+                            >
+                                <span class="group-name">{group}</span>
+                                <span class="play-icon">▶</span>
+                            </button>
+
+                            <!-- Individual File List -->
+                            {#if currentModel && currentModel.internalModel && currentModel.internalModel.motionManager && currentModel.internalModel.motionManager.definitions[group]}
+                                {#each currentModel.internalModel.motionManager.definitions[group] as def, i}
+                                    <button
+                                        class="list-item sub-item clickable"
+                                        on:click={() => {
+                                            console.log(
+                                                `Debug: Triggering ${group} index ${i}`,
+                                                def.File,
+                                            );
+                                            currentModel.motion(group, i);
+                                            debugInfo.lastMotion = `${group} (${i}): ${def.File}`;
+                                        }}
+                                    >
+                                        <span class="motion-index">[{i}]</span>
+                                        <span class="motion-name"
+                                            >{def.File
+                                                ? def.File.split("/").pop()
+                                                : "Unknown"}</span
+                                        >
+                                    </button>
+                                {/each}
+                            {/if}
+                        </div>
                     {/each}
                 </div>
             </div>
+
+            <!-- Found Files Section -->
+            {#if debugInfo.fileMotions && debugInfo.fileMotions.length > 0}
+                <div class="info-section">
+                    <strong
+                        >📂 Found Files ({debugInfo.fileMotions
+                            .length}):</strong
+                    >
+                    <div class="scroll-list">
+                        {#each debugInfo.fileMotions as file, i}
+                            <button
+                                class="list-item clickable"
+                                on:click={() => {
+                                    console.log("Debug: Playing file", file);
+                                    // Play from the __debug__ group we created
+                                    currentModel.motion("__debug__", i);
+                                    debugInfo.lastMotion = file;
+                                }}
+                            >
+                                {file}
+                            </button>
+                        {/each}
+                    </div>
+                </div>
+            {/if}
         </div>
     {/if}
 </div>
@@ -395,13 +597,14 @@
         position: relative;
         width: 100%;
         height: 100%;
+        pointer-events: none; /* Let clicks pass through container */
     }
 
     .live2d-canvas {
         width: 100%;
         height: 100%;
         display: block;
-        pointer-events: none; /* Allow clicks to pass through canvas */
+        pointer-events: auto; /* Re-enable canvas interaction if model needs it, or 'none' if strictly background */
     }
 
     .model-loader {
@@ -453,17 +656,18 @@
         right: 20px;
         width: 320px;
         max-height: 80%;
-        background: rgba(0, 0, 0, 0.9);
+        background: rgba(0, 0, 0, 0.95); /* Slightly more opaque */
         color: #0f0;
         padding: 15px;
         border-radius: 8px;
         border: 2px solid #0f0;
         font-family: "Courier New", monospace;
         font-size: 11px;
-        z-index: 100;
+        z-index: 99999 !important; /* Force on top */
         overflow-y: auto;
-        pointer-events: auto;
+        pointer-events: auto !important; /* Force clickable */
         box-shadow: 0 0 20px rgba(0, 255, 0, 0.3);
+        touch-action: pan-y; /* Improve scrolling on touch devices */
     }
 
     .debug-panel h3 {
@@ -512,19 +716,38 @@
     }
 
     .scroll-list {
-        max-height: 120px;
+        max-height: 200px; /* Increased height */
         overflow-y: auto;
         background: rgba(0, 255, 0, 0.05);
         padding: 5px;
         margin-top: 5px;
         border-radius: 4px;
         border: 1px solid #333;
+        pointer-events: auto; /* Explicitly enable pointer events */
     }
 
     .list-item {
+        display: block;
+        width: 100%;
+        text-align: left;
+        background: none;
+        border: none;
         padding: 3px 5px;
         border-bottom: 1px solid rgba(0, 255, 0, 0.1);
         color: #0f0;
+        font-family: inherit;
+        font-size: inherit;
+        cursor: default;
+    }
+
+    .list-item.clickable {
+        cursor: pointer;
+        transition: background-color 0.2s;
+    }
+
+    .list-item.clickable:hover {
+        background-color: rgba(0, 255, 0, 0.2);
+        color: #fff;
     }
 
     .list-item:last-child {
@@ -543,5 +766,89 @@
     .scroll-list::-webkit-scrollbar-thumb {
         background: rgba(0, 255, 0, 0.5);
         border-radius: 4px;
+    }
+
+    .group-container {
+        margin-bottom: 5px;
+        border-bottom: 1px dashed rgba(0, 255, 0, 0.3);
+    }
+
+    .group-header {
+        font-weight: bold;
+        color: #0ff;
+        padding: 4px 8px; /* Larger click area */
+        background: rgba(0, 255, 0, 0.1);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border: none;
+        width: 100%;
+        text-align: left;
+        cursor: pointer;
+        transition: background 0.2s;
+    }
+
+    .group-header:hover {
+        background: rgba(0, 255, 0, 0.3);
+        color: #fff;
+    }
+
+    .play-icon {
+        font-size: 0.8em;
+        opacity: 0.7;
+    }
+
+    .list-item.sub-item {
+        padding-left: 15px;
+        font-size: 0.9em;
+        display: flex;
+        gap: 5px;
+    }
+
+    .motion-index {
+        color: #aaa;
+        min-width: 20px;
+    }
+
+    .motion-name {
+        color: #fff;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .controls-row {
+        margin-bottom: 10px;
+        display: flex;
+        justify-content: center;
+        gap: 10px; /* Add gap */
+    }
+
+    .stop-btn {
+        background: rgba(255, 0, 0, 0.2);
+        border: 1px solid #f00;
+        color: #f00;
+        padding: 5px 15px;
+        border-radius: 4px;
+        cursor: pointer;
+        font-weight: bold;
+        transition: all 0.2s;
+        flex: 1; /* Match width */
+    }
+
+    .reset-btn {
+        background: rgba(0, 255, 255, 0.2); /* Cyan background */
+        border: 1px solid #0ff;
+        color: #0ff;
+    }
+
+    .reset-btn:hover {
+        background: rgba(0, 255, 255, 0.4);
+        color: #fff;
+    }
+
+    .stop-btn:hover {
+        background: rgba(255, 0, 0, 0.4);
+        color: #fff;
     }
 </style>

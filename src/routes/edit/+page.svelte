@@ -61,6 +61,8 @@
     let promptExample = "";
     let error = "";
     let last_id: string | null = null;
+    let availableExpressions: string[] = [];
+    let availableMotions: string[] = [];
 
     // --- [Kintsugi 템플릿 변수] ---
     const kintsugiTemplateId = "kintsugi_v1";
@@ -108,6 +110,92 @@
             firstSceneTextarea.selectionStart = newPos;
             firstSceneTextarea.selectionEnd = newPos;
         });
+    }
+
+    async function loadLive2DMetadata(url: string) {
+        if (!url) return;
+        try {
+            console.log("Fetching Live2D metadata from:", url);
+            const response = await fetch(url);
+            if (!response.ok) throw new Error("Failed to fetch model3.json");
+            const data = await response.json();
+
+            // Parse Expressions
+            if (data.FileReferences?.Expressions) {
+                const exprs = data.FileReferences.Expressions;
+                if (Array.isArray(exprs)) {
+                    availableExpressions = exprs
+                        .map(
+                            (e: any) =>
+                                e.Name || e.File.replace(".exp3.json", ""),
+                        )
+                        .filter((n: string) => n);
+                }
+            }
+
+            // Parse Motions
+            if (data.FileReferences?.Motions) {
+                const motions = data.FileReferences.Motions;
+                const files: string[] = [];
+                Object.values(motions).forEach((group: any) => {
+                    if (Array.isArray(group)) {
+                        group.forEach((m: any) => {
+                            if (m.File) files.push(m.File);
+                        });
+                    }
+                });
+                availableMotions = files;
+            }
+            console.log("Loaded Live2D Metadata:", {
+                availableExpressions,
+                availableMotions,
+            });
+        } catch (e) {
+            console.warn("Failed to load Live2D metadata for UI:", e);
+        }
+    }
+
+    async function loadLive2DMetadata2(url: string) {
+        if (!url) return;
+        try {
+            console.log("Fetching Live2D metadata from:", url);
+            const response = await fetch(url);
+            if (!response.ok) throw new Error("Failed to fetch model3.json");
+            const data = await response.json();
+
+            // Parse Expressions
+            if (data.FileReferences?.Expressions) {
+                const exprs = data.FileReferences.Expressions;
+                if (Array.isArray(exprs)) {
+                    availableExpressions = exprs
+                        .map(
+                            (e: any) =>
+                                e.Name || e.File.replace(".exp3.json", ""),
+                        )
+                        .filter((n: string) => n);
+                }
+            }
+
+            // Parse Motions
+            if (data.FileReferences?.Motions) {
+                const motions = data.FileReferences.Motions;
+                const files: string[] = [];
+                Object.values(motions).forEach((group: any) => {
+                    if (Array.isArray(group)) {
+                        group.forEach((m: any) => {
+                            if (m.File) files.push(m.File);
+                        });
+                    }
+                });
+                availableMotions = files;
+            }
+            console.log("Loaded Live2D Metadata:", {
+                availableExpressions,
+                availableMotions,
+            });
+        } catch (e) {
+            console.warn("Failed to load Live2D metadata for UI:", e);
+        }
     }
 
     async function load_persona(id: string) {
@@ -167,6 +255,18 @@
                 p.image_metadatas = [];
             }
             persona = p;
+            firstSceneJson = p.first_scene;
+
+            // Load Metadata if Live2D
+            if (
+                persona.live2d_model_url &&
+                (persona.personaType === "2.5D" || persona.personaType === "2D")
+            ) {
+                loadLive2DMetadata(persona.live2d_model_url);
+            }
+
+            console.log("Loaded persona:", persona);
+            return p;
         } catch (err) {
             console.error("페르소나를 불러오는 데 실패했습니다:", err);
         }
@@ -409,6 +509,8 @@
             });
 
             persona.live2d_model_url = result.model3_json_url;
+            availableExpressions = result.expressions;
+            availableMotions = result.motions;
             console.log("Live2D Upload Success:", result);
         } catch (e: any) {
             console.error("Live2D Upload Error:", e);
@@ -1098,6 +1200,8 @@
                             <!-- FirstSceneBuilder for 3D & 2.5D -->
                             <FirstSceneBuilder
                                 initialData={persona.first_scene}
+                                {availableExpressions}
+                                {availableMotions}
                                 onChange={(json) => {
                                     firstSceneJson = json;
                                     persona.first_scene = json;

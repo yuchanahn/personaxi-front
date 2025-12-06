@@ -5,8 +5,11 @@
     export let initialData: string | null = null;
     export let onChange: (jsonStr: string) => void = () => {};
 
+    export let availableExpressions: string[] = [];
+    export let availableMotions: string[] = [];
+
     let body_desc = "";
-    let anim_list = "";
+    let anim_list = ""; // Legacy string field, kept for compatibility if needed, or we might auto-generate it.
     let core_desire = "";
     let contradiction = "";
     let personality = "";
@@ -18,12 +21,32 @@
     let current_emotion = "";
     let internal_monologue = "";
 
+    // Live2D Mappings
+    let expression_map: Record<string, string> = {
+        joy: "",
+        anger: "",
+        sorrow: "",
+        fun: "",
+        surprise: "",
+    };
+    let motion_list: { name: string; file: string; desc: string }[] = [];
+
     let initialized = false;
 
     function generateJson() {
+        // Auto-generate human-readable anim_list string from struct
+        let generatedAnimList = "";
+        if (motion_list.length > 0) {
+            generatedAnimList = motion_list
+                .map((m) => `[${m.name}: ${m.desc}]`)
+                .join("\n");
+        } else {
+            generatedAnimList = anim_list; // Fallback to manual input if list is empty
+        }
+
         const obj = {
             body_desc,
-            anim_list,
+            anim_list: generatedAnimList, // Use generated list
             core_desire,
             contradiction,
             personality,
@@ -34,6 +57,9 @@
             last_atmosphere,
             current_emotion,
             internal_monologue,
+            // New Fields
+            live2d_expression_map: expression_map,
+            live2d_motion_list: motion_list,
         };
         const jsonStr = JSON.stringify(obj, null, 2);
         onChange(jsonStr);
@@ -53,6 +79,16 @@
         last_atmosphere = "";
         current_emotion = "";
         internal_monologue = "";
+
+        expression_map = {
+            joy: "",
+            anger: "",
+            sorrow: "",
+            fun: "",
+            surprise: "",
+        };
+        motion_list = [];
+
         generateJson();
     }
 
@@ -69,13 +105,15 @@
         last_atmosphere,
         current_emotion,
         internal_monologue,
+        expression_map,
+        motion_list,
         initialized && generateJson();
 
     onMount(() => {
         if (initialData) {
             try {
                 // Handle both object and string types
-                let data;
+                let data: any;
                 if (typeof initialData === "object") {
                     // Already an object, use directly
                     data = initialData;
@@ -98,6 +136,23 @@
                 last_atmosphere = data.last_atmosphere ?? "";
                 current_emotion = data.current_emotion ?? "";
                 internal_monologue = data.internal_monologue ?? "";
+
+                // Parse New Fields
+                if (data.live2d_expression_map) {
+                    expression_map = {
+                        ...expression_map,
+                        ...data.live2d_expression_map,
+                    };
+                }
+                if (Array.isArray(data.live2d_motion_list)) {
+                    motion_list = data.live2d_motion_list;
+                } else if (
+                    anim_list &&
+                    (!motion_list || motion_list.length === 0)
+                ) {
+                    // Optional: Try to reverse-parse anim_list if motion_list is missing?
+                    // For now, let's keep it simple. Only load if structured data exists.
+                }
 
                 // Mark initialized and trigger onChange
                 initialized = true;
@@ -145,6 +200,17 @@
             initialized = true;
         }
     });
+
+    function addMotion() {
+        motion_list = [
+            ...motion_list,
+            { name: "", file: availableMotions[0] || "", desc: "" },
+        ];
+    }
+
+    function removeMotion(index: number) {
+        motion_list = motion_list.filter((_, i) => i !== index);
+    }
 </script>
 
 <div class="first-scene-builder">
@@ -183,6 +249,78 @@
         </div>
     </div>
 
+    <!-- Expression Mapping Section -->
+    {#if availableExpressions.length > 0}
+        <div class="form-section">
+            <h3 class="section-title">🎭 Expression Mapping</h3>
+            <p class="section-desc">
+                Map standard emotions to your model's expression files.
+            </p>
+            <div class="expression-grid">
+                {#each Object.keys(expression_map) as emotion}
+                    <div class="expression-item">
+                        <label for="expr-{emotion}"
+                            >{emotion.charAt(0).toUpperCase() +
+                                emotion.slice(1)}</label
+                        >
+                        <select
+                            id="expr-{emotion}"
+                            bind:value={expression_map[emotion]}
+                        >
+                            <option value="">(None)</option>
+                            {#each availableExpressions as expr}
+                                <option value={expr}>{expr}</option>
+                            {/each}
+                        </select>
+                    </div>
+                {/each}
+            </div>
+        </div>
+    {/if}
+
+    <!-- Animation List Builder Section -->
+    {#if availableMotions.length > 0}
+        <div class="form-section">
+            <h3 class="section-title">🎬 Animation List</h3>
+            <p class="section-desc">
+                Create logical animations for the AI to use.
+            </p>
+
+            <div class="motion-list">
+                {#each motion_list as motion, i}
+                    <div class="motion-item">
+                        <div class="motion-inputs">
+                            <input
+                                class="input-name"
+                                placeholder="Name (e.g. Laugh)"
+                                bind:value={motion.name}
+                            />
+                            <select class="input-file" bind:value={motion.file}>
+                                {#each availableMotions as mFile}
+                                    <option value={mFile}
+                                        >{mFile.split("/").pop()}</option
+                                    >
+                                {/each}
+                            </select>
+                        </div>
+                        <input
+                            class="input-desc"
+                            placeholder="Description (e.g. Laughs out loud)"
+                            bind:value={motion.desc}
+                        />
+                        <button
+                            class="btn-remove"
+                            on:click={() => removeMotion(i)}>&times;</button
+                        >
+                    </div>
+                {/each}
+            </div>
+
+            <button class="btn-add" on:click={addMotion}>+ Add Animation</button
+            >
+        </div>
+    {/if}
+
     <div class="form-group">
         <div class="field-label">
             <span class="label-text"
@@ -195,15 +333,18 @@
         <textarea
             bind:value={anim_list}
             rows="2"
-            maxlength="500"
+            maxlength="2000"
             placeholder={$t("editPage.characterSettings.animListPlaceholder")}
+            readonly={motion_list.length > 0}
+            class:readonly={motion_list.length > 0}
         ></textarea>
+        <!-- ... existing counter ... -->
         <div
             class="char-counter"
             class:warning={anim_list.length > 400}
-            class:error={anim_list.length >= 500}
+            class:error={anim_list.length >= 2000}
         >
-            {anim_list.length} / 500
+            {anim_list.length} / 2000
         </div>
     </div>
 
@@ -545,5 +686,128 @@
     .btn-util:hover {
         opacity: 0.85;
         transform: translateY(-1px);
+    }
+
+    /* New Styles */
+    .form-section {
+        border-bottom: 1px solid var(--border);
+        padding-bottom: 1rem;
+        margin-bottom: 1rem;
+    }
+    .section-title {
+        font-size: 0.95rem;
+        font-weight: 600;
+        margin: 0 0 0.25rem 0;
+        color: var(--primary);
+    }
+    .section-desc {
+        font-size: 0.8rem;
+        color: var(--muted-foreground);
+        margin: 0 0 0.75rem 0;
+    }
+
+    .expression-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+        gap: 0.75rem;
+    }
+    .expression-item {
+        display: flex;
+        flex-direction: column;
+        gap: 0.25rem;
+    }
+    .expression-item label {
+        font-size: 0.8rem;
+        font-weight: 600;
+    }
+    .expression-item select {
+        padding: 0.4rem;
+        font-size: 0.85rem;
+        background-color: var(--background);
+        color: var(--foreground);
+        border: 1px solid var(--border);
+        border-radius: 4px;
+    }
+
+    .motion-list {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+        margin-bottom: 0.5rem;
+    }
+    .motion-item {
+        background: var(--muted);
+        padding: 0.5rem;
+        border-radius: 4px;
+        border: 1px solid var(--border);
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+        position: relative;
+    }
+    .motion-inputs {
+        display: flex;
+        gap: 0.5rem;
+    }
+    .input-name {
+        flex: 1;
+        padding: 0.4rem;
+        font-size: 0.85rem;
+        background-color: var(--background);
+        color: var(--foreground);
+        border: 1px solid var(--border);
+        border-radius: 4px;
+    }
+    .input-file {
+        flex: 1;
+        padding: 0.4rem;
+        font-size: 0.85rem;
+        max-width: 50%;
+        background-color: var(--background);
+        color: var(--foreground);
+        border: 1px solid var(--border);
+        border-radius: 4px;
+    }
+    .input-desc {
+        padding: 0.4rem;
+        font-size: 0.85rem;
+        width: 100%;
+        background-color: var(--background);
+        color: var(--foreground);
+        border: 1px solid var(--border);
+        border-radius: 4px;
+    }
+    .btn-add {
+        width: 100%;
+        padding: 0.5rem;
+        background: var(--secondary);
+        border: 1px dashed var(--border);
+        color: var(--secondary-foreground);
+        font-size: 0.85rem;
+        cursor: pointer;
+        transition: background 0.2s;
+    }
+    .btn-add:hover {
+        background: var(--muted);
+    }
+    .btn-remove {
+        position: absolute;
+        top: 2px;
+        right: 2px;
+        background: none;
+        border: none;
+        color: var(--muted-foreground);
+        cursor: pointer;
+        font-size: 1.2rem;
+        line-height: 1;
+    }
+    .btn-remove:hover {
+        color: var(--destructive);
+    }
+
+    textarea.readonly {
+        background-color: var(--muted);
+        opacity: 0.7;
+        pointer-events: none;
     }
 </style>

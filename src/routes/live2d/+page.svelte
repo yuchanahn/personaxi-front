@@ -128,19 +128,114 @@
         }
     });
 
+    let motionMap: Record<string, string> = {};
+    let expressionMap: Record<string, string> = {};
+    let lastTriggeredAction: string = "";
+
     $: {
         const sessionId = $page.url.searchParams.get("c");
         if (sessionId !== lastSessionId) {
             lastSessionId = sessionId;
             if (sessionId) {
                 persona = null;
+                motionMap = {}; // Reset map
+                expressionMap = {}; // Reset map
                 loadChatHistory(sessionId);
                 loadPersona(sessionId).then((p) => {
                     if (!p.live2d_model_url) {
                         p.live2d_model_url = TEST_MODEL_URL;
                     }
+
+                    // Parse first_scene for mappings
+                    try {
+                        if (p.first_scene) {
+                            const fs = JSON.parse(p.first_scene);
+
+                            // Parse Motions
+                            if (
+                                fs.live2d_motion_list &&
+                                Array.isArray(fs.live2d_motion_list)
+                            ) {
+                                fs.live2d_motion_list.forEach((m: any) => {
+                                    if (m.name && m.file) {
+                                        motionMap[m.name] = m.file;
+                                    }
+                                });
+                                console.log("Parsed Motion Map:", motionMap);
+                            }
+
+                            // Parse Expressions
+                            if (fs.live2d_expression_map) {
+                                expressionMap = fs.live2d_expression_map;
+                                console.log(
+                                    "Parsed Expression Map:",
+                                    expressionMap,
+                                );
+                            }
+                        }
+                    } catch (e) {
+                        console.error(
+                            "Failed to parse first_scene for mappings:",
+                            e,
+                        );
+                    }
+
                     persona = p;
                 });
+            }
+        }
+    }
+
+    // Action Tag Parsing
+    $: if ($messages.length > 0) {
+        const lastMsg = $messages[$messages.length - 1];
+        if (lastMsg.role === "assistant") {
+            const text = lastMsg.content;
+
+            console.log("Debug: Last message content:", text);
+
+            // Regex to find [ActionName]
+            const actionMatch = text.match(/\[(.*?)\]/);
+
+            if (actionMatch) {
+                const rawTag = actionMatch[1];
+                const actionName = rawTag.split(":")[0].trim();
+
+                if (actionName && actionName !== lastTriggeredAction) {
+                    console.log(`Debug: Action Tag Detected: [${actionName}]`);
+                    console.log(
+                        `Debug: Current Motion Map keys:`,
+                        Object.keys(motionMap),
+                    );
+
+                    lastTriggeredAction = actionName;
+
+                    if (motionMap[actionName]) {
+                        console.log(
+                            `Debug: Found mapping for ${actionName} -> ${motionMap[actionName]}`,
+                        );
+                        if (Viewer && Viewer.triggerMotion) {
+                            Viewer.triggerMotion(motionMap[actionName]);
+                        } else {
+                            console.warn(
+                                "Debug: Viewer or triggerMotion missing",
+                            );
+                        }
+                    } else {
+                        console.warn(
+                            `Debug: Action [${actionName}] not found in map. Available: ${Object.keys(motionMap).join(", ")}`,
+                        );
+                    }
+                } else if (actionName === lastTriggeredAction) {
+                    console.log(
+                        `Debug: Skipping duplicate action ${actionName}`,
+                    );
+                }
+            } else {
+                console.log(
+                    "Debug: No action tag found in text:",
+                    text.substring(0, 30),
+                );
             }
         }
     }
@@ -154,6 +249,7 @@
         thought2 = "";
         showThought1 = false;
         showThought2 = false;
+        lastTriggeredAction = "";
 
         // Use "3d" type to leverage existing 3D backend logic (TTS, Emotion, etc.)
         await sendPromptStream(
@@ -164,7 +260,8 @@
                 isLoading = false;
             },
             (emotion) => {
-                // Handle emotion detection
+                // Handle emotion detection via Viewer logic
+                console.log("Raw API Emotion:", emotion);
                 if (Viewer && Viewer.setExpression) {
                     Viewer.setExpression(emotion);
                 }
@@ -234,6 +331,7 @@
                     bind:this={Viewer}
                     modelUrl={persona.live2d_model_url}
                     scale={0.2}
+                    {expressionMap}
                 />
             {:else}
                 <div class="error-message">No Model URL</div>
@@ -272,7 +370,7 @@
         />
 
         <!-- Debug UI - At top level to avoid pointer-events issues -->
-        <!-- <div class="debug-controls">
+        <div class="debug-controls">
             <button
                 class="debug-btn"
                 on:click={() => {
@@ -283,7 +381,7 @@
             >
                 🔍 Debug
             </button>
-        </div> -->
+        </div>
     {/if}
 </main>
 
@@ -324,12 +422,13 @@
         display: flex;
         flex-direction: column;
         height: 100%;
-        pointer-events: auto; /* Re-enable pointer events for chat interactions */
+        pointer-events: none; /* Let clicks pass through empty areas */
     }
 
     .chat-content :global(.chat-window) {
         flex: 1;
         overflow-y: auto;
+        pointer-events: auto; /* Only capture clicks on the chat window itself */
     }
 
     .chat-content :global(.chat-input-wrapper) {
@@ -337,6 +436,7 @@
         bottom: 0;
         z-index: 10;
         background-color: rgba(255, 255, 255, 0);
+        pointer-events: auto; /* Capture clicks on input */
     }
 
     .error-message {

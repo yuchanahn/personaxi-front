@@ -118,7 +118,7 @@ export async function loadPersonaOriginal(id: string): Promise<Persona> {
 export async function uploadLive2DZip(
     file: File,
     onProgress: (percent: number) => void
-): Promise<{ model3_json_url: string }> {
+): Promise<{ model3_json_url: string; expressions: string[]; motions: string[] }> {
     // 1. Load ZIP
     const zip = await JSZip.loadAsync(file);
     const filesToUpload: { name: string; data: Blob }[] = [];
@@ -157,6 +157,134 @@ export async function uploadLive2DZip(
 
     if (!model3JsonPath) {
         throw new Error("model3.json not found in ZIP");
+    }
+
+    // [Auto-Fix] Patch model3.json to include all motion files found in ZIP
+    try {
+        const modelEntry = filesToUpload.find(f => f.name === model3JsonPath);
+        if (modelEntry) {
+            const text = await modelEntry.data.text();
+            const modelJson = JSON.parse(text);
+            let modified = false;
+
+            // Ensure FileReferences exists
+            if (!modelJson.FileReferences) modelJson.FileReferences = {};
+            // Ensure Motions exists
+            if (!modelJson.FileReferences.Motions) modelJson.FileReferences.Motions = {};
+
+            const motions = modelJson.FileReferences.Motions;
+
+            // Calculate model directory to strip from motion paths
+            const modelDir = model3JsonPath.substring(0, model3JsonPath.lastIndexOf('/') + 1);
+
+            // Scan for all .motion3.json files in the upload list
+            filesToUpload.forEach(file => {
+                if (file.name.endsWith('.motion3.json')) {
+                    // Determine Group Name from filename
+                    const fileName = file.name.split('/').pop() || "";
+                    const baseName = fileName.replace('.motion3.json', '');
+
+                    // Simple heuristic: split by underscore or numbers to get group
+                    let groupName = baseName.split('_')[0];
+                    if (!groupName) groupName = baseName;
+
+                    // Capitalize first letter for consistency
+                    groupName = groupName.charAt(0).toUpperCase() + groupName.slice(1);
+
+                    // Initialize group array if needed
+                    if (!motions[groupName]) {
+                        motions[groupName] = [];
+                    }
+
+                    // Calculate relative path from model3.json to motion file
+                    let relativeMotionPath = file.name;
+                    if (modelDir && relativeMotionPath.startsWith(modelDir)) {
+                        relativeMotionPath = relativeMotionPath.substring(modelDir.length);
+                    }
+
+                    // Check if file is already referenced (check both raw and relative)
+                    const alreadyExists = motions[groupName].some((m: any) =>
+                        m.File === relativeMotionPath || m.File === file.name
+                    );
+
+                    if (!alreadyExists) {
+                        console.log(`[Auto-Fix] Injecting motion: ${relativeMotionPath} into group ${groupName}`);
+                        motions[groupName].push({
+                            File: relativeMotionPath
+                        });
+                        modified = true;
+                    }
+                }
+            });
+
+            if (modified) {
+                console.log("[Auto-Fix] model3.json patched with new motions:", modelJson);
+                const newBlob = new Blob([JSON.stringify(modelJson, null, 2)], { type: "application/json" });
+                modelEntry.data = newBlob;
+                // Update size for progress calculation
+                totalSize -= text.length; // Approximate
+                totalSize += newBlob.size;
+            }
+        }
+    } catch (e) {
+        console.warn("[Auto-Fix] Failed to patch model3.json (Motions):", e);
+    }
+
+    // [Auto-Fix] Patch model3.json for Expressions
+    try {
+        const modelEntry = filesToUpload.find(f => f.name === model3JsonPath);
+        if (modelEntry) {
+            const text = await modelEntry.data.text();
+            const modelJson = JSON.parse(text);
+            let modified = false;
+
+            // Ensure FileReferences exists
+            if (!modelJson.FileReferences) modelJson.FileReferences = {};
+            // Ensure Expressions exists (Array for Expressions)
+            if (!Array.isArray(modelJson.FileReferences.Expressions)) {
+                modelJson.FileReferences.Expressions = [];
+            }
+
+            const expressions = modelJson.FileReferences.Expressions;
+            const modelDir = model3JsonPath.substring(0, model3JsonPath.lastIndexOf('/') + 1);
+
+            filesToUpload.forEach(file => {
+                if (file.name.endsWith('.exp3.json')) {
+                    const fileName = file.name.split('/').pop() || "";
+                    const baseName = fileName.replace('.exp3.json', '');
+
+                    // Calculate relative path
+                    let relativeExpPath = file.name;
+                    if (modelDir && relativeExpPath.startsWith(modelDir)) {
+                        relativeExpPath = relativeExpPath.substring(modelDir.length);
+                    }
+
+                    // Check for duplicates
+                    const alreadyExists = expressions.some((e: any) =>
+                        e.File === relativeExpPath || e.File === file.name || e.Name === baseName
+                    );
+
+                    if (!alreadyExists) {
+                        console.log(`[Auto-Fix] Injecting expression: ${relativeExpPath} as ${baseName}`);
+                        expressions.push({
+                            Name: baseName,
+                            File: relativeExpPath
+                        });
+                        modified = true;
+                    }
+                }
+            });
+
+            if (modified) {
+                console.log("[Auto-Fix] model3.json patched with new expressions:", modelJson);
+                const newBlob = new Blob([JSON.stringify(modelJson, null, 2)], { type: "application/json" });
+                modelEntry.data = newBlob;
+                // Note: Size update is approximate as we might have modified it in the motion block too.
+                // Ideally we should have one pass, but this is safe enough.
+            }
+        }
+    } catch (e) {
+        console.warn("[Auto-Fix] Failed to patch model3.json (Expressions):", e);
     }
 
     // 3. Get Signed URLs from backend
@@ -216,7 +344,17 @@ export async function uploadLive2DZip(
     const cleanModelPath = model3JsonPath.replace(/\\/g, '/');
     const model3JsonUrl = `${supabaseProjectURL}/${base_folder}/${cleanModelPath}`;
 
-    return { model3_json_url: model3JsonUrl };
+    return {
+        model3_json_url: model3JsonUrl,
+        expressions: Array.from(new Set(filesToUpload
+            .filter(f => f.name.endsWith('.exp3.json'))
+            .map(f => f.name.split('/').pop()?.replace('.exp3.json', '') || "")
+            .filter(n => n)
+        )),
+        motions: filesToUpload
+            .filter(f => f.name.endsWith('.motion3.json'))
+            .map(f => f.name)
+    };
 }
 
 
