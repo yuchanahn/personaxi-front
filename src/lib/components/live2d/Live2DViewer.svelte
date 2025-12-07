@@ -8,6 +8,7 @@
     export let x: number = 0;
     export let y: number = 0;
     export let expressionMap: Record<string, string> = {};
+    export let hitMotionMap: Record<string, string> = {};
 
     let canvasElement: HTMLCanvasElement;
     let app: any;
@@ -48,6 +49,9 @@
 
     export function toggleDebug() {
         showDebug = !showDebug;
+        if (currentModel && (currentModel as any).hitAreaFrames) {
+            (currentModel as any).hitAreaFrames.visible = showDebug;
+        }
     }
     export function resetToDefault() {
         if (!currentModel || !currentModel.internalModel) return;
@@ -290,6 +294,50 @@
                     autoInteract: false,
                 });
 
+                model.interactive = true;
+                model.buttonMode = true;
+
+                // Add Hit Area Frames for Debug
+                try {
+                    if (
+                        PIXI.live2d.HitAreaFrames &&
+                        typeof PIXI.live2d.HitAreaFrames === "function"
+                    ) {
+                        const hitAreaFrames = new PIXI.live2d.HitAreaFrames();
+                        hitAreaFrames.visible = showDebug;
+                        model.addChild(hitAreaFrames);
+                        (model as any).hitAreaFrames = hitAreaFrames; // Store ref
+                        console.log(
+                            "Debug: HitAreaFrames added. Visible:",
+                            hitAreaFrames.visible,
+                        );
+                    } else {
+                        console.warn(
+                            "PIXI.live2d.HitAreaFrames not available. Debug visuals disabled.",
+                        );
+                    }
+                } catch (e) {
+                    console.error("Failed to add HitAreaFrames:", e);
+                }
+
+                // Inspect Hit Data
+                console.log("Debug: Inspecting Model Hit Areas...");
+                // @ts-ignore
+                const hitAreaKeys = model.hitAreas
+                    ? Object.keys(model.hitAreas)
+                    : [];
+                console.log("Debug: Detected Hit Area Keys:", hitAreaKeys);
+
+                if (hitAreaKeys.length === 0) {
+                    console.warn(
+                        "⚠️ This model seems to have NO Hit Areas defined in its settings.",
+                    );
+                    debugInfo.error =
+                        "No Hit Areas detected in this model! (Check .model3.json)";
+                } else {
+                    debugInfo.fileMotions = hitAreaKeys; // Temporary re-use to show in debug panel if needed
+                }
+
                 model.scale.set(1);
                 const bounds = model.getBounds();
                 const paddingFactor = 1.3;
@@ -300,6 +348,87 @@
                 const autoScale = Math.min(scaleX, scaleY);
                 const finalScale = x === 0 && y === 0 ? autoScale : scale;
                 model.scale.set(finalScale);
+
+                // Hit Interaction
+                // Since autoInteract is false, we manually handle tap to trigger hit events
+                model.on("pointertap", (e: any) => {
+                    const point = e.data.global;
+                    model.tap(point.x, point.y);
+                });
+
+                model.on("hit", (hitAreas: string[]) => {
+                    console.log("Hit detected:", hitAreas);
+                    hitAreas.forEach((area) => {
+                        console.log(`Checking hit area: ${area}`);
+
+                        // 1. Custom Map
+                        if (hitMotionMap[area]) {
+                            const motionFile = hitMotionMap[area];
+                            console.log(
+                                `Triggering mapped motion for ${area}: ${motionFile}`,
+                            );
+                            // We need to find the group/index for this file or just play by name if supported?
+                            // Live2DModel.motion() usually takes (group, index, priority).
+                            // But if we have the full filename, we might need a helper, OR better:
+                            // The user selects a "Motion Group" usually, not a file path directly in the UI?
+                            // Actually `availableMotions` are file paths.
+                            // `model.motion` expects (group, index).
+                            // Let's try to match the file path to a group/index.
+
+                            // Simple approach: Assume the value IS the group name if defined in model,
+                            // OR try to find which group/index corresponds to this file.
+
+                            // For now, let's assume the user mapped it to a Valid Group Name or we search effectively.
+                            // But usually `hit` triggers a logical motion like "TapBody".
+
+                            // Let's try to find the group that matches the file.
+                            // ... (Logic to find group by filename if needed, or just expecting a group name)
+                            // Re-reading implementation plan: "Dropdown to select a Motion".
+                            // If they select a file, we need to reverse-lookup the group/index.
+
+                            // Let's implement a smart finder.
+                            let found = false;
+                            if (model.internalModel.motionManager.definitions) {
+                                for (const [grp, motions] of Object.entries(
+                                    model.internalModel.motionManager
+                                        .definitions,
+                                )) {
+                                    // @ts-ignore
+                                    motions.forEach((m, i) => {
+                                        if (
+                                            m.File === motionFile ||
+                                            (m.File &&
+                                                m.File.endsWith(motionFile))
+                                        ) {
+                                            console.log(
+                                                `Found motion ${motionFile} in group ${grp} at index ${i}`,
+                                            );
+                                            model.motion(grp, i, 3); // Priority 3 = FORCE
+                                            found = true;
+                                        }
+                                    });
+                                }
+                            }
+                            if (!found) {
+                                // Maybe it's just a group name?
+                                model.motion(motionFile, undefined, 3);
+                            }
+                        } else {
+                            // 2. Default Fallback: Tap + Area (e.g. TapBody)
+                            const defaultMotion = "Tap" + area;
+                            console.log(
+                                `Trying default hit motion: ${defaultMotion}`,
+                            );
+                            model
+                                .motion(defaultMotion, undefined, 3)
+                                .catch(() => {});
+
+                            // Lowercase fallback
+                            const lower = "tap_" + area.toLowerCase();
+                            model.motion(lower, undefined, 3).catch(() => {});
+                        }
+                    });
+                });
 
                 model.x = x;
                 model.y = y;

@@ -129,6 +129,7 @@
     });
 
     let motionMap: Record<string, string> = {};
+    let hitMotionMap: Record<string, string> = {}; // New
     let expressionMap: Record<string, string> = {};
     let lastTriggeredAction: string = "";
 
@@ -140,6 +141,7 @@
                 persona = null;
                 motionMap = {}; // Reset map
                 expressionMap = {}; // Reset map
+                hitMotionMap = {}; // Reset map
                 loadChatHistory(sessionId);
                 loadPersona(sessionId).then((p) => {
                     if (!p.live2d_model_url) {
@@ -170,6 +172,15 @@
                                 console.log(
                                     "Parsed Expression Map:",
                                     expressionMap,
+                                );
+                            }
+
+                            // Parse Hit Motion Map
+                            if (fs.live2d_hit_motion_map) {
+                                hitMotionMap = fs.live2d_hit_motion_map;
+                                console.log(
+                                    "Parsed Hit Motion Map:",
+                                    hitMotionMap,
                                 );
                             }
                         }
@@ -332,6 +343,7 @@
                     modelUrl={persona.live2d_model_url}
                     scale={0.2}
                     {expressionMap}
+                    {hitMotionMap}
                 />
             {:else}
                 <div class="error-message">No Model URL</div>
@@ -360,13 +372,13 @@
             text={thought1}
             visible={showThought1}
             type="thought1"
-            customStyle="top: 10%; left: 50%; transform: translateX(-50%);"
+            customStyle="top: 5vh; left: 50%; transform: translateX(-50%); z-index: 20;"
         />
         <ThoughtBubble
             text={thought2}
             visible={showThought2}
             type="thought2"
-            customStyle="top: 10%; left: 50%; transform: translateX(-50%);"
+            customStyle="top: 5vh; left: 50%; transform: translateX(-50%); z-index: 20;"
         />
 
         <!-- Debug UI - At top level to avoid pointer-events issues -->

@@ -298,8 +298,17 @@
   <canvas bind:this={canvas} class="vrm-canvas"></canvas>
 
   <!-- Thought Bubbles -->
-  <ThoughtBubble text={thought1} type="thought1" visible={showThought1} />
-  <ThoughtBubble text={thought2} type="thought2" visible={showThought2} />
+  <!-- Thought Bubbles -->
+  <ThoughtBubble
+    text={thought1}
+    visible={showThought1}
+    customStyle="top: 5vh; bottom: auto; left: 50%; transform: translateX(-50%); z-index: 20;"
+  />
+  <ThoughtBubble
+    text={thought2}
+    visible={showThought2}
+    customStyle="top: 5vh; bottom: auto; left: 50%; transform: translateX(-50%); z-index: 20;"
+  />
 
   {#if isModelLoading}
     <div class="model-loader">

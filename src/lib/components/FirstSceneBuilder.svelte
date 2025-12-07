@@ -7,6 +7,7 @@
 
     export let availableExpressions: string[] = [];
     export let availableMotions: string[] = [];
+    export let mode: "live2d" | "3d" = "live2d";
 
     let body_desc = "";
     let anim_list = ""; // Legacy string field, kept for compatibility if needed, or we might auto-generate it.
@@ -30,6 +31,10 @@
         surprise: "",
     };
     let motion_list: { name: string; file: string; desc: string }[] = [];
+    let hit_motion_map: Record<string, string> = {
+        Body: "",
+        Head: "",
+    };
 
     let initialized = false;
 
@@ -60,6 +65,7 @@
             // New Fields
             live2d_expression_map: expression_map,
             live2d_motion_list: motion_list,
+            live2d_hit_motion_map: hit_motion_map,
         };
         const jsonStr = JSON.stringify(obj, null, 2);
         onChange(jsonStr);
@@ -88,6 +94,10 @@
             surprise: "",
         };
         motion_list = [];
+        hit_motion_map = {
+            Body: "",
+            Head: "",
+        };
 
         generateJson();
     }
@@ -107,6 +117,7 @@
         internal_monologue,
         expression_map,
         motion_list,
+        hit_motion_map,
         initialized && generateJson();
 
     onMount(() => {
@@ -146,6 +157,12 @@
                 }
                 if (Array.isArray(data.live2d_motion_list)) {
                     motion_list = data.live2d_motion_list;
+                }
+                if (data.live2d_hit_motion_map) {
+                    hit_motion_map = {
+                        ...hit_motion_map,
+                        ...data.live2d_hit_motion_map,
+                    };
                 } else if (
                     anim_list &&
                     (!motion_list || motion_list.length === 0)
@@ -250,7 +267,7 @@
     </div>
 
     <!-- Expression Mapping Section -->
-    {#if availableExpressions.length > 0}
+    {#if mode === "live2d" && availableExpressions.length > 0}
         <div class="form-section">
             <h3 class="section-title">🎭 Expression Mapping</h3>
             <p class="section-desc">
@@ -279,7 +296,7 @@
     {/if}
 
     <!-- Animation List Builder Section -->
-    {#if availableMotions.length > 0}
+    {#if mode === "live2d" && availableMotions.length > 0}
         <div class="form-section">
             <h3 class="section-title">🎬 Animation List</h3>
             <p class="section-desc">
@@ -321,32 +338,66 @@
         </div>
     {/if}
 
-    <div class="form-group">
-        <div class="field-label">
-            <span class="label-text"
-                >{$t("editPage.characterSettings.animList")}</span
-            >
-            <span class="label-hint"
-                >{$t("editPage.characterSettings.animListHint")}</span
-            >
+    <!-- Hit Reaction Mapping Section -->
+    {#if availableMotions.length > 0}
+        <div class="form-section">
+            <h3 class="section-title">👆 Hit Reaction Mapping</h3>
+            <p class="section-desc">
+                Choose motions to play when the user touches/clicks specific
+                areas.
+            </p>
+            <div class="expression-grid">
+                {#each Object.keys(hit_motion_map) as area}
+                    <div class="expression-item">
+                        <label for="hit-{area}">{area}</label>
+                        <select
+                            id="hit-{area}"
+                            bind:value={hit_motion_map[area]}
+                        >
+                            <option value="">(Default: Tap{area})</option>
+                            {#each availableMotions as mFile}
+                                <option value={mFile}
+                                    >{mFile.split("/").pop()}</option
+                                >
+                            {/each}
+                        </select>
+                    </div>
+                {/each}
+                <!-- Allow adding custom areas? Maybe later. For now, fixed standard areas -->
+            </div>
         </div>
-        <textarea
-            bind:value={anim_list}
-            rows="2"
-            maxlength="2000"
-            placeholder={$t("editPage.characterSettings.animListPlaceholder")}
-            readonly={motion_list.length > 0}
-            class:readonly={motion_list.length > 0}
-        ></textarea>
-        <!-- ... existing counter ... -->
-        <div
-            class="char-counter"
-            class:warning={anim_list.length > 400}
-            class:error={anim_list.length >= 2000}
-        >
-            {anim_list.length} / 2000
+    {/if}
+
+    {#if mode === "live2d"}
+        <div class="form-group">
+            <div class="field-label">
+                <span class="label-text"
+                    >{$t("editPage.characterSettings.animList")}</span
+                >
+                <span class="label-hint"
+                    >{$t("editPage.characterSettings.animListHint")}</span
+                >
+            </div>
+            <textarea
+                bind:value={anim_list}
+                rows="2"
+                maxlength="2000"
+                placeholder={$t(
+                    "editPage.characterSettings.animListPlaceholder",
+                )}
+                readonly={motion_list.length > 0}
+                class:readonly={motion_list.length > 0}
+            ></textarea>
+            <!-- ... existing counter ... -->
+            <div
+                class="char-counter"
+                class:warning={anim_list.length > 400}
+                class:error={anim_list.length >= 2000}
+            >
+                {anim_list.length} / 2000
+            </div>
         </div>
-    </div>
+    {/if}
 
     <div class="form-group">
         <div class="field-label">

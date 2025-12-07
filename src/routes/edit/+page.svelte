@@ -1202,6 +1202,9 @@
                                 initialData={persona.first_scene}
                                 {availableExpressions}
                                 {availableMotions}
+                                mode={persona.personaType === "3D"
+                                    ? "3d"
+                                    : "live2d"}
                                 onChange={(json) => {
                                     firstSceneJson = json;
                                     persona.first_scene = json;

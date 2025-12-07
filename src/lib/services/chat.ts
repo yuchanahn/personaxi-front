@@ -14,7 +14,7 @@ export function extractExpressionTags(text: string): string[] {
 }
 
 export function extractActionTags(text: string): string[] {
-    const matches = text.matchAll(/<act:([a-zA-Z_]+)>/g);
+    const matches = text.matchAll(/\[(.*?)\]/g);
     const result: string[] = [];
     for (const match of matches) {
         if (match[1]) result.push(match[1]);
@@ -66,7 +66,12 @@ export async function handleSendToCharacter(cid: string, prompt: string, model?:
                 }
 
                 if (tags2.length > 0) {
-                    aiText = aiText.replace(/<act:([a-zA-Z_]+)>/g, "")
+                    console.log("🔥 [Animation Detected]:", tags2);
+                    aiText = aiText.replace(/\[(.*?)\]/g, "")
+                    tags2.forEach(tag => {
+                        console.log("➡️ Triggering gesture:", tag);
+                        model?.doGesture(tag)
+                    });
                 }
 
                 const last = m.at(-1);

@@ -22,7 +22,8 @@
       persona = null;
       loadChatHistory(sessionId);
       loadPersona(sessionId).then((p) => (persona = p));
-      await connectTTSSocket((audio: ArrayBuffer) => {
+
+      await connectTTSSocket(async (audio: ArrayBuffer) => {
         if (Viewer && Viewer.speek) {
           Viewer.speek(audio);
         } else {
@@ -38,6 +39,8 @@
       lastSessionId = sessionId;
       if (sessionId) {
         persona = null;
+        // Reset state
+
         loadChatHistory(sessionId);
         loadPersona(sessionId).then((p) => (persona = p));
       }
@@ -53,7 +56,8 @@
   {#if persona}
     <TtsStatusModal
       impl_connectTTS={async () => {
-        await connectTTSSocket((audio: ArrayBuffer) => {
+        await connectTTSSocket(async (audio: ArrayBuffer) => {
+          // Copy same logic as onMount or refactor to function
           if (Viewer && Viewer.speek) {
             Viewer.speek(audio);
           } else {
