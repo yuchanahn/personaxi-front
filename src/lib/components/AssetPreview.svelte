@@ -12,10 +12,12 @@
 
             if (assetsWithType[0] && assetsWithType[0].type) {
                 asset.type = assetsWithType[0].type;
+                asset = asset;
             }
 
             if (!asset.type) {
                 asset.type = "unknown";
+                asset = asset;
             }
         })();
     }
