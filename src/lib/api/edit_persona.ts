@@ -6,8 +6,15 @@ import { accessToken } from "$lib/stores/auth";
 import { get } from "svelte/store";
 
 
-export async function getUploadUrl(fileType: "vrm" | "portrait" | "asset" | "user_profile"): Promise<Response> {
-    const res = await api.get(`/api/upload-url?type=${fileType}`);
+export async function getUploadUrl(
+    fileType: "vrm" | "portrait" | "asset" | "user_profile",
+    oldUrl?: string
+): Promise<Response> {
+    let url = `/api/upload-url?type=${fileType}`;
+    if (oldUrl) {
+        url += `&previous_url=${encodeURIComponent(oldUrl)}`;
+    }
+    const res = await api.get(url);
     if (!res.ok) {
         throw new Error("Failed to get upload URL");
     }
@@ -117,29 +124,54 @@ export async function loadPersonaOriginal(id: string): Promise<Persona> {
  */
 export async function uploadLive2DZip(
     file: File,
-    onProgress: (percent: number) => void
+    onProgress: (percent: number) => void,
+    oldUrl?: string
 ): Promise<{ model3_json_url: string; expressions: string[]; motions: string[] }> {
     // 1. Load ZIP
     const zip = await JSZip.loadAsync(file);
-    const filesToUpload: { name: string; data: Blob }[] = [];
+    const filesToUpload: { name: string; originalName: string; data: Blob }[] = [];
     let totalSize = 0;
     let model3JsonPath = "";
+    let originalModel3JsonPath = "";
 
     // 2. Extract files and filter
+    const renames = new Map<string, string>(); // oldPath -> newPath
+    const folderMap = new Map<string, string>();
+    let folderCounter = 0;
+
     for (const [relativePath, zipEntry] of Object.entries(zip.files)) {
         if (zipEntry.dir) continue;
 
         // Ignore system files
         if (relativePath.includes('__MACOSX') || relativePath.split('/').pop()?.startsWith('.')) continue;
 
-        // Filter extensions
-        const ext = relativePath.split('.').pop()?.toLowerCase();
-        if (!['json', 'moc3', 'png', 'jpg', 'jpeg'].includes(ext || '')) continue;
+        // Determine extension (preserve compound Live2D extensions)
+        const lowerName = relativePath.toLowerCase();
+        let ext = lowerName.split('.').pop() || ''; // Default to single extension
+
+        // List of compound extensions to preserve
+        const compoundExts = [
+            'model3.json', 'json', 'moc3', 'motion3.json', 'exp3.json',
+            'physics3.json', 'pose3.json', 'userdata3.json', 'cdi3.json',
+            'png', 'jpg', 'jpeg', 'tga', 'atlas'
+        ];
+
+        // Check if ends with any specific compound extension
+        const matchedCompound = compoundExts.find(e => lowerName.endsWith('.' + e));
+        if (matchedCompound) {
+            ext = matchedCompound;
+        }
+
+        // Filter valid files (using basic extensions for broad check, or specific logic)
+        // Check if it matches any of allowed raw extensions
+        const allowedTypes = ['json', 'moc3', 'png', 'jpg', 'jpeg', 'tga', 'atlas'];
+        const basicExt = lowerName.split('.').pop() || ''; // This is the single-part extension
+        if (!allowedTypes.includes(basicExt)) continue;
 
         let blob = await zipEntry.async('blob');
 
         // Resize images if needed (Max 2048px for mobile safety)
-        if (['png', 'jpg', 'jpeg'].includes(ext || '')) {
+        if (['png', 'jpg', 'jpeg'].includes(basicExt)) {
             try {
                 blob = await resizeImageBlob(blob, 2048);
             } catch (e) {
@@ -147,16 +179,95 @@ export async function uploadLive2DZip(
             }
         }
 
-        filesToUpload.push({ name: relativePath, data: blob });
+        // [Sanitization] Check for non-ASCII characters in both folders and filename
+        const parts = relativePath.split('/');
+        const filename = parts.pop() || "";
+        const dirParts = parts;
+
+        // Sanitize Directory Parts
+        const newDirParts = dirParts.map(part => {
+            // eslint-disable-next-line
+            if (/[^\x20-\x7E]/.test(part)) {
+                if (!folderMap.has(part)) {
+                    // Use a short deterministic name for folders
+                    folderMap.set(part, `dir_${folderCounter++}`);
+                }
+                return folderMap.get(part) || part;
+            }
+            return part;
+        });
+
+        // Sanitize Filename
+        let newFilename = filename;
+        // eslint-disable-next-line
+        if (/[^\x20-\x7E]/.test(filename)) {
+            const timestamp = Date.now();
+            const index = filesToUpload.length;
+            newFilename = `${timestamp}_${index}.${ext}`;
+        }
+
+        const finalPath = [...newDirParts, newFilename].join('/');
+
+        if (finalPath !== relativePath) {
+            console.log(`[Sanitization] Renaming ${relativePath} -> ${finalPath}`);
+            renames.set(relativePath, finalPath);
+        }
+
+        filesToUpload.push({ name: finalPath, originalName: relativePath, data: blob });
         totalSize += blob.size;
 
         if (relativePath.endsWith('model3.json')) {
-            model3JsonPath = relativePath;
+            model3JsonPath = finalPath; // Update to new name if renamed
+            originalModel3JsonPath = relativePath;
         }
     }
 
     if (!model3JsonPath) {
         throw new Error("model3.json not found in ZIP");
+    }
+
+    // [Sanitization] Patch model3.json references if renames occurred
+    if (renames.size > 0 && originalModel3JsonPath) {
+        try {
+            const modelEntry = filesToUpload.find(f => f.name === model3JsonPath);
+            if (modelEntry) {
+                const text = await modelEntry.data.text();
+                let newText = text;
+
+                // Determine directories for relative path calculation
+                const originalModelDir = originalModel3JsonPath.substring(0, originalModel3JsonPath.lastIndexOf('/') + 1);
+                const newModelDir = model3JsonPath.substring(0, model3JsonPath.lastIndexOf('/') + 1);
+
+                for (const [oldPath, newPath] of renames) {
+                    // Calculate relative paths
+                    // The JSON contains references relative to the model3.json location
+                    let relativeOld = oldPath;
+                    let relativeNew = newPath;
+
+                    // Strip the directory prefix to find what the JSON likely contains
+                    if (originalModelDir && oldPath.startsWith(originalModelDir)) {
+                        relativeOld = oldPath.substring(originalModelDir.length);
+                    }
+                    if (newModelDir && newPath.startsWith(newModelDir)) {
+                        relativeNew = newPath.substring(newModelDir.length);
+                    }
+
+                    // Replace exact matches in JSON strings
+                    // We escape double quotes to match the JSON string value exactly if needed
+                    // But usually safer to just replace the path segment
+                    if (relativeOld !== relativeNew) {
+                        // console.log(`[Sanitization] Patching Ref: "${relativeOld}" -> "${relativeNew}"`);
+                        // Using split/join for global replacement
+                        newText = newText.split(`"${relativeOld}"`).join(`"${relativeNew}"`);
+                    }
+                }
+
+                modelEntry.data = new Blob([newText], { type: "application/json" });
+                console.log("[Sanitization] Patched model3.json with renamed references.");
+            }
+        } catch (e) {
+            console.warn("[Sanitization] Failed to patch model3.json:", e);
+        }
     }
 
     // [Auto-Fix] Patch model3.json to include all motion files found in ZIP
@@ -179,10 +290,11 @@ export async function uploadLive2DZip(
 
             // Scan for all .motion3.json files in the upload list
             filesToUpload.forEach(file => {
-                if (file.name.endsWith('.motion3.json')) {
-                    // Determine Group Name from filename
-                    const fileName = file.name.split('/').pop() || "";
-                    const baseName = fileName.replace('.motion3.json', '');
+                // Check ORIGINAL name for type detection to handle renamed files
+                if (file.originalName.endsWith('.motion3.json')) {
+                    // Determine Group Name from ORIGINAL filename (Semantic)
+                    const originalFileName = file.originalName.split('/').pop() || "";
+                    const baseName = originalFileName.replace('.motion3.json', '');
 
                     // Simple heuristic: split by underscore or numbers to get group
                     let groupName = baseName.split('_')[0];
@@ -196,13 +308,16 @@ export async function uploadLive2DZip(
                         motions[groupName] = [];
                     }
 
-                    // Calculate relative path from model3.json to motion file
+                    // Calculate relative path from model3.json to motion file (using NEW sanitized path)
                     let relativeMotionPath = file.name;
                     if (modelDir && relativeMotionPath.startsWith(modelDir)) {
                         relativeMotionPath = relativeMotionPath.substring(modelDir.length);
                     }
 
                     // Check if file is already referenced (check both raw and relative)
+                    // Note: Existing references might be using old names if we didn't sanitize them in JSON yet?
+                    // Actually, we already sanitized JSON in previous step.
+                    // So JSON contains NEW paths.
                     const alreadyExists = motions[groupName].some((m: any) =>
                         m.File === relativeMotionPath || m.File === file.name
                     );
@@ -249,17 +364,21 @@ export async function uploadLive2DZip(
             const modelDir = model3JsonPath.substring(0, model3JsonPath.lastIndexOf('/') + 1);
 
             filesToUpload.forEach(file => {
-                if (file.name.endsWith('.exp3.json')) {
-                    const fileName = file.name.split('/').pop() || "";
-                    const baseName = fileName.replace('.exp3.json', '');
+                // Check ORIGINAL name
+                if (file.originalName.endsWith('.exp3.json')) {
+                    // Use ORIGINAL Name for semantic meaning
+                    const originalFileName = file.originalName.split('/').pop() || "";
+                    const baseName = originalFileName.replace('.exp3.json', '');
 
-                    // Calculate relative path
+                    // Calculate relative path using NEW Name
                     let relativeExpPath = file.name;
                     if (modelDir && relativeExpPath.startsWith(modelDir)) {
                         relativeExpPath = relativeExpPath.substring(modelDir.length);
                     }
 
                     // Check for duplicates
+                    // Existing entries in JSON have "File" (new path) and "Name" (preserved from file content or old JSON)
+                    // We check if "File" matches
                     const alreadyExists = expressions.some((e: any) =>
                         e.File === relativeExpPath || e.File === file.name || e.Name === baseName
                     );
@@ -267,8 +386,8 @@ export async function uploadLive2DZip(
                     if (!alreadyExists) {
                         console.log(`[Auto-Fix] Injecting expression: ${relativeExpPath} as ${baseName}`);
                         expressions.push({
-                            Name: baseName,
-                            File: relativeExpPath
+                            Name: baseName, // Use semantic original name
+                            File: relativeExpPath // Use functional new path
                         });
                         modified = true;
                     }
@@ -290,7 +409,10 @@ export async function uploadLive2DZip(
     // 3. Get Signed URLs from backend
     const fileNames = filesToUpload.map(f => f.name);
     // Use api.post to handle auth headers automatically
-    const response = await api.post(`/api/upload-live2d`, { files: fileNames });
+    const response = await api.post(`/api/upload-live2d`, {
+        files: fileNames,
+        old_live2d_url: oldUrl
+    });
     if (!response.ok) throw new Error("Failed to get signed URLs");
     const { base_folder, urls } = await response.json();
 

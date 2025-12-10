@@ -24,6 +24,7 @@
     import Icon from "@iconify/svelte";
     import FirstSceneBuilder from "$lib/components/FirstSceneBuilder.svelte";
 
+    let originalPersona: Persona | null = null;
     let vrmFile: File | null = null;
     let live2dFile: File | null = null;
     let live2d_progress = 0;
@@ -201,6 +202,7 @@
     async function load_persona(id: string) {
         try {
             const p = await loadPersonaOriginal(id);
+            originalPersona = JSON.parse(JSON.stringify(p));
 
             if (p.instructions.length > 1 && p.instructions[1]) {
                 const templateIdentifier = p.instructions[1];
@@ -504,9 +506,19 @@
         error = "";
 
         try {
-            const result = await uploadLive2DZip(file, (percent) => {
-                live2d_progress = Math.round(percent);
-            });
+            // Only delete if it's NOT the original file (i.e. it's a temp file)
+            const oldUrl =
+                persona.live2d_model_url !== originalPersona?.live2d_model_url
+                    ? persona.live2d_model_url
+                    : undefined;
+
+            const result = await uploadLive2DZip(
+                file,
+                (percent) => {
+                    live2d_progress = Math.round(percent);
+                },
+                oldUrl,
+            );
 
             persona.live2d_model_url = result.model3_json_url;
             availableExpressions = result.expressions;
@@ -524,7 +536,18 @@
 
         for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
             try {
-                const response = await getUploadUrl("asset");
+                const currentUrl = persona.image_metadatas[assetId]?.url;
+
+                // Only delete if different from original
+                const originalUrl =
+                    originalPersona?.image_metadatas?.[assetId]?.url;
+                const isTemp = currentUrl !== originalUrl;
+
+                const oldUrl =
+                    currentUrl && !currentUrl.startsWith("blob:") && isTemp
+                        ? currentUrl
+                        : undefined;
+                const response = await getUploadUrl("asset", oldUrl);
                 if (!response.ok) {
                     throw new Error(
                         `Server error on getting URL: ${response.status}`,
@@ -574,7 +597,15 @@
 
         for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
             try {
-                const response = await getUploadUrl("vrm");
+                // Only delete if different from original
+                const isTemp = persona.vrm_url !== originalPersona?.vrm_url;
+                const oldUrl =
+                    persona.vrm_url &&
+                    !persona.vrm_url.startsWith("blob:") &&
+                    isTemp
+                        ? persona.vrm_url
+                        : undefined;
+                const response = await getUploadUrl("vrm", oldUrl);
                 if (!response.ok) {
                     throw new Error(
                         `Server error on getting URL: ${response.status}`,
@@ -615,7 +646,16 @@
 
         for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
             try {
-                const response = await getUploadUrl("portrait");
+                // Only delete if different from original
+                const isTemp =
+                    persona.portrait_url !== originalPersona?.portrait_url;
+                const oldUrl =
+                    persona.portrait_url &&
+                    !persona.portrait_url.startsWith("blob:") &&
+                    isTemp
+                        ? persona.portrait_url
+                        : undefined;
+                const response = await getUploadUrl("portrait", oldUrl);
                 if (!response.ok) {
                     throw new Error(
                         `Server error on getting URL: ${response.status}`,

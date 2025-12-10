@@ -179,7 +179,13 @@
         const file = input.files[0];
         try {
             // 1. Get Upload URL
-            const response = await getUploadUrl("user_profile");
+            // Only delete if it's NOT the original file (i.e. it's a temp file)
+            const isTemp = user.profile !== originalUser?.profile;
+            const oldUrl =
+                user.profile && !user.profile.startsWith("blob:") && isTemp
+                    ? user.profile
+                    : undefined;
+            const response = await getUploadUrl("user_profile", oldUrl);
             const { signedURL, fileName } = await response.json();
 
             // 2. Upload File
