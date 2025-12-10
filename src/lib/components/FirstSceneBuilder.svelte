@@ -43,7 +43,9 @@
         let generatedAnimList = "";
         if (motion_list.length > 0) {
             generatedAnimList = motion_list
-                .map((m) => `[${m.name}: ${m.desc}]`)
+                .map((m) => {
+                    return `[${m.name}: ${m.desc}]`;
+                })
                 .join("\n");
         } else {
             generatedAnimList = anim_list; // Fallback to manual input if list is empty
@@ -71,7 +73,6 @@
         onChange(jsonStr);
         dispatch("change", jsonStr);
     }
-
     function reset() {
         body_desc = "";
         anim_list = "";
@@ -126,10 +127,8 @@
                 // Handle both object and string types
                 let data: any;
                 if (typeof initialData === "object") {
-                    // Already an object, use directly
                     data = initialData;
                 } else if (typeof initialData === "string") {
-                    // Parse JSON string
                     data = JSON.parse(initialData);
                 } else {
                     throw new Error("Invalid initialData type");
@@ -148,7 +147,6 @@
                 current_emotion = data.current_emotion ?? "";
                 internal_monologue = data.internal_monologue ?? "";
 
-                // Parse New Fields
                 if (data.live2d_expression_map) {
                     expression_map = {
                         ...expression_map,
@@ -163,39 +161,24 @@
                         ...hit_motion_map,
                         ...data.live2d_hit_motion_map,
                     };
-                } else if (
-                    anim_list &&
-                    (!motion_list || motion_list.length === 0)
-                ) {
-                    // Optional: Try to reverse-parse anim_list if motion_list is missing?
-                    // For now, let's keep it simple. Only load if structured data exists.
                 }
 
-                // Mark initialized and trigger onChange
                 initialized = true;
             } catch (e) {
                 console.error("FirstSceneBuilder: initialData parse error", e);
-                console.warn(
-                    "FirstSceneBuilder: Attempting fallback regex parsing...",
-                );
-
-                // Fallback: Try to extract fields using Regex
-                // This handles cases where JSON might have unescaped newlines or minor syntax errors
+                // Fallback Regex Parsing
                 const extract = (key: string) => {
                     const regex = new RegExp(
                         `"${key}"\\s*:\\s*"((?:[^"\\\\]|\\\\.)*)"`,
                     );
                     const match = initialData!.match(regex);
-                    if (match && match[1]) {
-                        // Unescape common sequences
-                        return match[1]
-                            .replace(/\\n/g, "\n")
-                            .replace(/\\"/g, '"')
-                            .replace(/\\\\/g, "\\");
-                    }
-                    return "";
+                    return match && match[1]
+                        ? match[1]
+                              .replace(/\\n/g, "\n")
+                              .replace(/\\"/g, '"')
+                              .replace(/\\\\/g, "\\")
+                        : "";
                 };
-
                 body_desc = extract("body_desc");
                 anim_list = extract("anim_list");
                 core_desire = extract("core_desire");
@@ -208,20 +191,24 @@
                 last_atmosphere = extract("last_atmosphere");
                 current_emotion = extract("current_emotion");
                 internal_monologue = extract("internal_monologue");
-
-                console.log("FirstSceneBuilder: Fallback parsing completed");
                 initialized = true;
             }
         } else {
-            // No initial data, allow editing from scratch
             initialized = true;
         }
     });
 
     function addMotion() {
+        // Fallback to expression if no motions available
+        const defaultFile =
+            availableMotions.length > 0
+                ? availableMotions[0]
+                : availableExpressions.length > 0
+                  ? availableExpressions[0]
+                  : "";
         motion_list = [
             ...motion_list,
-            { name: "", file: availableMotions[0] || "", desc: "" },
+            { name: "", file: defaultFile, desc: "" },
         ];
     }
 
@@ -296,7 +283,7 @@
     {/if}
 
     <!-- Animation List Builder Section -->
-    {#if mode === "live2d" && availableMotions.length > 0}
+    {#if mode === "live2d" && (availableMotions.length > 0 || availableExpressions.length > 0)}
         <div class="form-section">
             <h3 class="section-title">🎬 Animation List</h3>
             <p class="section-desc">
@@ -312,12 +299,34 @@
                                 placeholder="Name (e.g. Laugh)"
                                 bind:value={motion.name}
                             />
-                            <select class="input-file" bind:value={motion.file}>
-                                {#each availableMotions as mFile}
-                                    <option value={mFile}
-                                        >{mFile.split("/").pop()}</option
-                                    >
-                                {/each}
+                            <select
+                                class="input-file"
+                                bind:value={motion.file}
+                                title="Select Motion or Expression"
+                            >
+                                <option value="" disabled selected
+                                    >Select Action File</option
+                                >
+                                {#if availableMotions.length > 0}
+                                    <optgroup label="Motions">
+                                        {#each availableMotions as mFile}
+                                            <option value={mFile}
+                                                >{mFile
+                                                    .split("/")
+                                                    .pop()}</option
+                                            >
+                                        {/each}
+                                    </optgroup>
+                                {/if}
+                                {#if availableExpressions.length > 0}
+                                    <optgroup label="Expressions">
+                                        {#each availableExpressions as expr}
+                                            <option value={expr}
+                                                >{expr} (Expression)</option
+                                            >
+                                        {/each}
+                                    </optgroup>
+                                {/if}
                             </select>
                         </div>
                         <input

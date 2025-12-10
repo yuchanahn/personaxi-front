@@ -129,6 +129,7 @@
     });
 
     let motionMap: Record<string, string> = {};
+    let motionExprMap: Record<string, string> = {};
     let hitMotionMap: Record<string, string> = {}; // New
     let expressionMap: Record<string, string> = {};
     let lastTriggeredAction: string = "";
@@ -140,6 +141,7 @@
             if (sessionId) {
                 persona = null;
                 motionMap = {}; // Reset map
+                motionExprMap = {};
                 expressionMap = {}; // Reset map
                 hitMotionMap = {}; // Reset map
                 loadChatHistory(sessionId);
@@ -222,11 +224,35 @@
                     lastTriggeredAction = actionName;
 
                     if (motionMap[actionName]) {
+                        const mappedFile = motionMap[actionName];
                         console.log(
-                            `Debug: Found mapping for ${actionName} -> ${motionMap[actionName]}`,
+                            `Debug: Found mapping for ${actionName} -> ${mappedFile}`,
                         );
-                        if (Viewer && Viewer.triggerMotion) {
-                            Viewer.triggerMotion(motionMap[actionName]);
+
+                        if (Viewer) {
+                            // Check if it's an expression
+                            // Heuristic: Check against known availableExpressions OR file extension
+                            const isExpression =
+                                (Viewer.getAvailableExpressions &&
+                                    Viewer.getAvailableExpressions().includes(
+                                        mappedFile,
+                                    )) ||
+                                mappedFile.endsWith(".exp3.json") ||
+                                mappedFile.endsWith(".exp.json"); // legacy check
+
+                            if (isExpression) {
+                                console.log(
+                                    `Debug: Triggering as Expression: ${mappedFile}`,
+                                );
+                                if (Viewer.setExpression)
+                                    Viewer.setExpression(mappedFile);
+                            } else {
+                                console.log(
+                                    `Debug: Triggering as Motion: ${mappedFile}`,
+                                );
+                                if (Viewer.triggerMotion)
+                                    Viewer.triggerMotion(mappedFile);
+                            }
                         } else {
                             console.warn(
                                 "Debug: Viewer or triggerMotion missing",

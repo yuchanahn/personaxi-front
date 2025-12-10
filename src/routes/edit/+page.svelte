@@ -121,75 +121,54 @@
             if (!response.ok) throw new Error("Failed to fetch model3.json");
             const data = await response.json();
 
-            // Parse Expressions
+            // Parse Expressions (Support Cubism 3+ and older/other formats)
+            let rawExprs: any[] = [];
             if (data.FileReferences?.Expressions) {
-                const exprs = data.FileReferences.Expressions;
-                if (Array.isArray(exprs)) {
-                    availableExpressions = exprs
-                        .map(
-                            (e: any) =>
-                                e.Name || e.File.replace(".exp3.json", ""),
-                        )
-                        .filter((n: string) => n);
-                }
+                rawExprs = data.FileReferences.Expressions;
+            } else if (data.expressions) {
+                rawExprs = data.expressions;
+            }
+
+            if (Array.isArray(rawExprs)) {
+                availableExpressions = rawExprs
+                    .map((e: any) => {
+                        if (typeof e === "string") return e;
+                        const name = e.Name || e.name || e.Id || e.id;
+                        const file = e.File || e.file;
+                        return (
+                            name ||
+                            (file
+                                ? file
+                                      .split("/")
+                                      .pop()
+                                      .replace(".exp3.json", "")
+                                : "")
+                        );
+                    })
+                    .filter((n: string) => n);
             }
 
             // Parse Motions
+            let rawMotions: any = {};
             if (data.FileReferences?.Motions) {
-                const motions = data.FileReferences.Motions;
-                const files: string[] = [];
-                Object.values(motions).forEach((group: any) => {
-                    if (Array.isArray(group)) {
-                        group.forEach((m: any) => {
-                            if (m.File) files.push(m.File);
-                        });
-                    }
-                });
-                availableMotions = files;
+                rawMotions = data.FileReferences.Motions;
+            } else if (data.motions) {
+                rawMotions = data.motions;
             }
-            console.log("Loaded Live2D Metadata:", {
-                availableExpressions,
-                availableMotions,
+
+            const files: string[] = [];
+            // Handle both object (grouped) and array (flat) structures if applicable
+            // Standard is usually Group -> Array of Motion Definitions
+            Object.values(rawMotions).forEach((group: any) => {
+                if (Array.isArray(group)) {
+                    group.forEach((m: any) => {
+                        const f = m.File || m.file;
+                        if (f) files.push(f);
+                    });
+                }
             });
-        } catch (e) {
-            console.warn("Failed to load Live2D metadata for UI:", e);
-        }
-    }
+            availableMotions = files;
 
-    async function loadLive2DMetadata2(url: string) {
-        if (!url) return;
-        try {
-            console.log("Fetching Live2D metadata from:", url);
-            const response = await fetch(url);
-            if (!response.ok) throw new Error("Failed to fetch model3.json");
-            const data = await response.json();
-
-            // Parse Expressions
-            if (data.FileReferences?.Expressions) {
-                const exprs = data.FileReferences.Expressions;
-                if (Array.isArray(exprs)) {
-                    availableExpressions = exprs
-                        .map(
-                            (e: any) =>
-                                e.Name || e.File.replace(".exp3.json", ""),
-                        )
-                        .filter((n: string) => n);
-                }
-            }
-
-            // Parse Motions
-            if (data.FileReferences?.Motions) {
-                const motions = data.FileReferences.Motions;
-                const files: string[] = [];
-                Object.values(motions).forEach((group: any) => {
-                    if (Array.isArray(group)) {
-                        group.forEach((m: any) => {
-                            if (m.File) files.push(m.File);
-                        });
-                    }
-                });
-                availableMotions = files;
-            }
             console.log("Loaded Live2D Metadata:", {
                 availableExpressions,
                 availableMotions,
