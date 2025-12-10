@@ -26,22 +26,10 @@
     let observer: IntersectionObserver;
     let feedContainer: HTMLElement; // .feed-container 요소를 바인딩할 변수
 
-    $: getBackgroundImage = (content: Persona): string => {
-        let imageUrl = `${PORTRAIT_URL}${content.owner_id[0]}/${content.id}.portrait`;
-        if (content.image_metadatas && content.image_metadatas.length > 0) {
-            const currentIndex = currentImageIndices.get(content.id) || 0;
-            if (content.image_metadatas[currentIndex]?.url) {
-                imageUrl = content.image_metadatas[currentIndex].url;
-            }
-        }
-        return `url(${imageUrl})`;
-    };
-
     $: getCurrentAsset = (content: Persona): ImageMetadata => {
         let asset: ImageMetadata = {
-            url: `${PORTRAIT_URL}${content.owner_id[0]}/${content.id}.portrait`,
+            url: content.portrait_url,
             description: "portrait",
-            // type: "image", // 포트레이트는 항상 이미지이므로 미리 타입을 지정
         };
         if (content.image_metadatas && content.image_metadatas.length > 0) {
             const currentIndex = currentImageIndices.get(content.id) || 0;
@@ -53,23 +41,15 @@
     };
 
     onMount(async () => {
-        // 1. 서버에서 컨텐츠 데이터 로드
         const data = await loadContent();
         const likes: string[] = await loadlikesdata();
 
-        // 2. [핵심] 각 컨텐츠의 image_metadatas 타입을 확인하고 결과를 기다림
         for (const p of data) {
             if (p.image_metadatas && p.image_metadatas.length > 0) {
-                // portrait 이미지를 맨 앞에 추가하고, 타입 확인
                 p.image_metadatas.unshift({
-                    url: `${PORTRAIT_URL}${p.owner_id[0]}/${p.id}.portrait`,
+                    url: p.portrait_url,
                     description: "portrait",
-                    //type: "image", // 포트레이트는 항상 이미지이므로 미리 타입을 지정
                 });
-                // 나머지 에셋들의 타입 확인
-                //const otherAssets = p.image_metadatas.slice(1);
-                //const assetsWithType = await fetchAndSetAssetTypes(otherAssets);
-                //p.image_metadatas = [p.image_metadatas[0], ...assetsWithType];
 
                 currentImageIndices.set(p.id, 0);
             }
@@ -106,32 +86,62 @@
         const reels = feedContainer.querySelectorAll(".reel");
         reels.forEach((reel) => observer.observe(reel));
 
-        imageInterval = setInterval(() => {
-            if (!activePersonaId) return;
-            const activePersona = $contents.find(
-                (p) => p.id === activePersonaId,
-            );
+        // startImageTimer(); // 반응형 구문이 초기화를 담당하므로 제거
+    });
+
+    onDestroy(() => {
+        if (timerId) {
+            clearTimeout(timerId);
+        }
+        if (observer) {
+            observer.disconnect();
+        }
+    });
+
+    let timerId: ReturnType<typeof setTimeout>;
+
+    let activePersona: Persona | undefined;
+    let activeAssetIndex: number = 0;
+    let activeAsset: ImageMetadata | null | undefined;
+
+    // 현재 활성화된 페르소나와 그 페르소나의 현재 에셋을 파생
+    $: activePersona = activePersonaId
+        ? $contents.find((p) => p.id === activePersonaId)
+        : undefined;
+    $: activeAssetIndex = activePersonaId
+        ? currentImageIndices.get(activePersonaId) || 0
+        : 0;
+    $: activeAsset =
+        activePersona && activePersona.image_metadatas
+            ? activePersona.image_metadatas[activeAssetIndex]
+            : null;
+
+    // activeAsset이나 그 type이 변경되면 타이머를 (재)시작
+    $: if (activeAsset) {
+        startImageTimer(activeAsset);
+    }
+
+    function startImageTimer(asset: ImageMetadata) {
+        if (timerId) clearTimeout(timerId);
+
+        const duration = asset.type === "video" ? 15000 : 5000;
+
+        timerId = setTimeout(() => {
             if (
+                activePersonaId &&
                 activePersona &&
                 activePersona.image_metadatas &&
                 activePersona.image_metadatas.length > 1
             ) {
                 const newIndices = new Map(currentImageIndices);
-                const currentIndex = newIndices.get(activePersonaId) || 0;
                 const nextIndex =
-                    (currentIndex + 1) % activePersona.image_metadatas.length;
+                    (activeAssetIndex + 1) %
+                    activePersona.image_metadatas.length;
                 newIndices.set(activePersonaId, nextIndex);
                 currentImageIndices = newIndices;
             }
-        }, 5000);
-    });
-
-    onDestroy(() => {
-        clearInterval(imageInterval);
-        if (observer) {
-            observer.disconnect();
-        }
-    });
+        }, duration);
+    }
 
     $: isLive = (id: string) => liveIds.includes(id);
 
