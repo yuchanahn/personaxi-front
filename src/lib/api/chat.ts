@@ -4,6 +4,7 @@ import { loadCharacterSessions } from './sessions';
 import { goto } from '$app/navigation';
 import { api } from '$lib/api';
 import { showNeedMoreNeuronsModal } from '$lib/stores/modal';
+import { get } from 'svelte/store';
 
 
 /**
@@ -69,6 +70,11 @@ export async function loadChatHistory(sessionId: string) {
 }
 
 export async function resetChatHistory(sessionId: string) {
+    if (get(messages).length <= 1) {
+        console.log("No chat history to reset");
+        return;
+    }
+
     const res = await api.get(`/api/chat/reset?CSSID=${sessionId}`);
     if (res.ok) {
         const r = await res.json();
