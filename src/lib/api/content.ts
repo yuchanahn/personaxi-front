@@ -77,3 +77,16 @@ export async function loadFollowedContent() {
     }
     return [];
 }
+
+export async function loadLikedContent() {
+    if (!(await api.isLoggedIn())) {
+        return [];
+    }
+
+    const res = await api.get(`/api/contents/liked?locale=${get(settings).language}`);
+    if (res.ok) {
+        const data = await res.json();
+        return data;
+    }
+    return [];
+}

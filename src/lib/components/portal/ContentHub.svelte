@@ -5,6 +5,7 @@
         loadContentWithTags,
         loadContentWithName,
         loadFollowedContent,
+        loadLikedContent,
     } from "$lib/api/content";
     import type { PersonaDTO } from "$lib/types";
     import { onMount } from "svelte";
@@ -42,6 +43,8 @@
             data = await loadContent();
         } else if (category === "following") {
             data = await loadFollowedContent();
+        } else if (category === "liked") {
+            data = await loadLikedContent();
         } else {
             data = await loadContentWithTags([category]);
         }
@@ -135,6 +138,13 @@
                     on:click={() => filterByCategory("following")}
                 >
                     {$t("contentHub.following")}
+                </button>
+                <button
+                    class="bubble"
+                    class:active={selectedCategory === "liked"}
+                    on:click={() => filterByCategory("liked")}
+                >
+                    ♥ {$t("contentHub.likes")}
                 </button>
                 {#each allCategories as category (category.id)}
                     <button

@@ -254,7 +254,8 @@
     "searchByTags": "Search by Tags",
     "searchNamePlaceholder": "Enter a persona's name...",
     "searchTagsPlaceholder": "Enter tags, separated by commas...",
-    "following": "Following"
+    "following": "Following",
+    "likes": "Liked"
   },
   "hub": {
     "feedbackButtonLabel": "Send Feedback",
