@@ -377,37 +377,6 @@
         </div>
     {/if}
 
-    {#if mode === "live2d"}
-        <div class="form-group">
-            <div class="field-label">
-                <span class="label-text"
-                    >{$t("editPage.characterSettings.animList")}</span
-                >
-                <span class="label-hint"
-                    >{$t("editPage.characterSettings.animListHint")}</span
-                >
-            </div>
-            <textarea
-                bind:value={anim_list}
-                rows="2"
-                maxlength="2000"
-                placeholder={$t(
-                    "editPage.characterSettings.animListPlaceholder",
-                )}
-                readonly={motion_list.length > 0}
-                class:readonly={motion_list.length > 0}
-            ></textarea>
-            <!-- ... existing counter ... -->
-            <div
-                class="char-counter"
-                class:warning={anim_list.length > 400}
-                class:error={anim_list.length >= 2000}
-            >
-                {anim_list.length} / 2000
-            </div>
-        </div>
-    {/if}
-
     <div class="form-group">
         <div class="field-label">
             <span class="label-text"

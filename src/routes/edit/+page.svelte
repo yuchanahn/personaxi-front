@@ -397,6 +397,12 @@
         }
     }
 
+    function handleLive2DUploadClick() {
+        if (confirm($t("editPage.licenseUploadWarning"))) {
+            document.getElementById("live2d-file")?.click();
+        }
+    }
+
     function toggleTag(tagId: string) {
         if (persona.tags.includes(tagId)) {
             persona.tags = persona.tags.filter((id) => id !== tagId);
@@ -966,12 +972,13 @@
                                 </p>
 
                                 <div class="file-input-container">
-                                    <label
-                                        for="live2d-file"
+                                    <button
+                                        type="button"
                                         class="file-input-label"
+                                        on:click={handleLive2DUploadClick}
                                     >
                                         <span>{$t("editPage.fileSelect")}</span>
-                                    </label>
+                                    </button>
                                     <input
                                         id="live2d-file"
                                         type="file"

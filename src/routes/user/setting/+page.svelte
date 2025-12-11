@@ -521,7 +521,7 @@
 
                     <div class="card-footer">
                         {#if persona.personaType === "3D"}
-                            <div class="actions-group">
+                            <!-- <div class="actions-group">
                                 <button
                                     class="btn btn-toggle"
                                     class:active={isLive(persona.id)}
@@ -540,7 +540,7 @@
                                 >
                                     <Icon icon="ri:auction-fill" />
                                 </button>
-                            </div>
+                            </div> -->
                         {/if}
                         <div class="actions-group">
                             <button
