@@ -12,6 +12,9 @@
     const dispatch = createEventDispatcher();
 
     $: assetCount = content.image_metadatas?.length || 0;
+    $: is3D = content.tags?.includes("1001");
+    $: isLive2D = content.tags?.includes("1002");
+    $: isSpecialType = is3D || isLive2D;
 
     function goToCreatorPage(event: MouseEvent) {
         event.stopPropagation();
@@ -42,16 +45,18 @@
             </div>
         {/if}
 
-        <div class="overlay-stats">
-            <span class="stat">
-                <Icon icon="mdi:chat" />
-                {content.chat_count}
-            </span>
-            <span class="stat">
-                <Icon icon="mdi:image-multiple" />
-                {assetCount}
-            </span>
-        </div>
+        {#if !isSpecialType}
+            <div class="overlay-stats">
+                <span class="stat">
+                    <Icon icon="mdi:chat" />
+                    {content.chat_count}
+                </span>
+                <span class="stat">
+                    <Icon icon="mdi:image-multiple" />
+                    {assetCount}
+                </span>
+            </div>
+        {/if}
 
         <div class="like-overlay">
             <Icon icon="mdi:heart" />
@@ -245,15 +250,15 @@
     .badge-vrm {
         position: absolute;
         top: 0.5rem;
-        left: 0.5rem;
+        right: 0.5rem; /* Changed to right */
         display: flex;
         align-items: center;
-        gap: 0.3rem;
-        font-size: 0.75rem;
+        gap: 0.2rem; /* Reduced gap */
+        font-size: 0.65rem; /* Reduced font size */
         font-weight: 700;
         color: white;
         background: linear-gradient(135deg, #6366f1, #8b5cf6);
-        padding: 0.25rem 0.6rem;
+        padding: 0.2rem 0.5rem; /* Reduced padding */
         border-radius: 12px;
         box-shadow: 0 2px 8px rgba(99, 102, 241, 0.4);
         z-index: 3;
@@ -265,15 +270,15 @@
     .badge-live2d {
         position: absolute;
         top: 0.5rem;
-        left: 0.5rem;
+        right: 0.5rem; /* Changed to right */
         display: flex;
         align-items: center;
-        gap: 0.3rem;
-        font-size: 0.75rem;
+        gap: 0.2rem; /* Reduced gap */
+        font-size: 0.65rem; /* Reduced font size */
         font-weight: 700;
         color: white;
         background: linear-gradient(135deg, #ec4899, #f43f5e);
-        padding: 0.25rem 0.6rem;
+        padding: 0.2rem 0.5rem; /* Reduced padding */
         border-radius: 12px;
         box-shadow: 0 2px 8px rgba(236, 72, 153, 0.4);
         z-index: 3;
