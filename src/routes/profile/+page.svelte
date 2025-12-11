@@ -4,7 +4,7 @@
     import { goto } from "$app/navigation";
     import { fetchAndSetAssetTypes, loadPersona } from "$lib/api/edit_persona";
     import type { Persona, ImageMetadata, Comment } from "$lib/types";
-    import { PORTRAIT_URL } from "$lib/constants";
+    import { PORTRAIT_URL, allCategories } from "$lib/constants";
     import Icon from "@iconify/svelte";
     import { LikeBtn, loadlikesdata } from "$lib/api/content";
     import { t } from "svelte-i18n";
@@ -262,6 +262,12 @@
 
         return formatted.trim();
     }
+
+    function getTagName(tagId: string | number): string {
+        const id = typeof tagId === "string" ? parseInt(tagId, 10) : tagId;
+        const category = allCategories.find((c) => c.id === id);
+        return category ? $t(category.nameKey) : String(tagId);
+    }
 </script>
 
 <div class="scroll-container select-none">
@@ -346,7 +352,7 @@
                     <div class="tags-container">
                         {#if persona.tags && persona.tags.length > 0}
                             {#each persona.tags as tag}
-                                <span class="tag">{tag}</span>
+                                <span class="tag">{getTagName(tag)}</span>
                             {/each}
                         {/if}
                     </div>

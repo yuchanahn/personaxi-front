@@ -43,6 +43,7 @@
 		"chinese-calendar": "^1.0.3",
 		"eventsource-parser": "^3.0.3",
 		"github-markdown-css": "^5.8.1",
+		"isomorphic-dompurify": "^2.34.0",
 		"jszip": "^3.10.1",
 		"lunisolar": "^2.6.0",
 		"marked": "^15.0.12",
