@@ -462,8 +462,7 @@
     "neuronsConsumed": "neurons consumed per response",
     "costDisplay": "Cost:",
     "neuronBalance": "Neuron Balance: ",
-    "showImage": "Show",
-    "showImage": "Show",
+    "showImage": "Show Image",
     "hideImage": "Hide",
     "report": "Report"
   },
@@ -549,6 +548,11 @@
   },
   "settingPageModal": {
     "korean": "Korean",
+    "settingPageModal.english": "English",
+    "settingPageModal.deleteAccount": "Delete Account",
+    "settingPageModal.deleteAccountConfirm": "Are you sure you want to delete your account? This action cannot be undone. (Your personas will be preserved)",
+    "settingPageModal.deleteAccountSuccess": "Account deleted successfully.",
+    "settingPageModal.deleteAccountFail": "Failed to delete account.",
     "english": "English",
     "description": "Change the display language and theme of the app.",
     "language": "Language",

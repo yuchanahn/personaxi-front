@@ -34,3 +34,8 @@ export async function getFollowing(userId: string): Promise<string[]> {
     }
     return [];
 }
+
+export async function deleteUser(): Promise<boolean> {
+    const res = await api.delete("/api/user/delete");
+    return res.ok;
+}

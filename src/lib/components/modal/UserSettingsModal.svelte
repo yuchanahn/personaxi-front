@@ -3,6 +3,10 @@
     import { t } from "svelte-i18n";
     import Icon from "@iconify/svelte";
     import { settings } from "$lib/stores/settings";
+    import { deleteUser } from "$lib/api/user";
+    import { goto } from "$app/navigation";
+    import { supabase } from "$lib/supabase";
+    import { accessToken } from "$lib/stores/auth";
 
     export let isOpen: boolean = false;
     const dispatch = createEventDispatcher();
@@ -10,6 +14,20 @@
     function closeModal() {
         isOpen = false;
         dispatch("close");
+    }
+
+    async function handleDeleteAccount() {
+        if (confirm($t("settingPageModal.deleteAccountConfirm"))) {
+            const success = await deleteUser();
+            if (success) {
+                await supabase.auth.signOut();
+                accessToken.set(null);
+                alert($t("settingPageModal.deleteAccountSuccess"));
+                window.location.href = "/";
+            } else {
+                alert($t("settingPageModal.deleteAccountFail"));
+            }
+        }
     }
 
     function handleKeydown(event: KeyboardEvent) {
@@ -77,6 +95,13 @@
                         {$t("settingPageModal.dark")}
                     </button>
                 </div>
+            </div>
+            <!-- Delete Account Section -->
+            <div class="delete-account-section">
+                <button class="delete-button" on:click={handleDeleteAccount}>
+                    <Icon icon="ph:trash-bold" />
+                    {$t("settingPageModal.deleteAccount")}
+                </button>
             </div>
         </div>
     </div>
@@ -175,5 +200,29 @@
         background-color: var(--background);
         color: var(--foreground);
         box-shadow: var(--shadow-mini);
+    }
+
+    .delete-account-section {
+        margin-top: 3rem;
+        display: flex;
+        justify-content: center;
+    }
+    .delete-button {
+        background: none;
+        border: 1px solid var(--danger);
+        color: var(--danger);
+        padding: 0.6rem 1.2rem;
+        border-radius: 8px;
+        font-size: 0.9rem;
+        font-weight: 600;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        transition: all 0.2s ease;
+    }
+    .delete-button:hover {
+        background-color: var(--danger);
+        color: hsl(0, 0%, 100%);
     }
 </style>

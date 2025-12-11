@@ -47,8 +47,23 @@ export const api = {
     get2: (url: string, options?: RequestInit) => fetch(API_BASE_URL + url, { ...options, method: 'GET', credentials: 'include' }),
     post: (url: string, data: any, options?: RequestInit) =>
         fetchWithAuth(API_BASE_URL + url, { ...options, method: 'POST', body: JSON.stringify(data) }),
-    post2: (url: string, data: any, options?: RequestInit) =>
-        fetch(API_BASE_URL + url, { ...options, method: 'POST', credentials: 'include', body: JSON.stringify(data) }),
+    post2(url: string, data: any, options?: RequestInit) {
+        return fetch(url, {
+            ...options,
+            method: "POST",
+            body: JSON.stringify(data),
+            headers: {
+                ...options?.headers,
+                "Content-Type": "application/json",
+            },
+        });
+    },
+    delete(url: string, options?: RequestInit) {
+        return fetchWithAuth(API_BASE_URL + url, {
+            ...options,
+            method: "DELETE",
+        });
+    },
 
     ws: async (
         path: string, // 예: '/ws' 또는 '/ws/tts'
