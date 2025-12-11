@@ -463,7 +463,24 @@
     "costDisplay": "Cost:",
     "neuronBalance": "Neuron Balance: ",
     "showImage": "Show",
-    "hideImage": "Hide"
+    "showImage": "Show",
+    "hideImage": "Hide",
+    "report": "Report"
+  },
+  "reportModal": {
+    "title": "Report Content",
+    "selectType": "Reason for reporting",
+    "types": {
+      "spam": "Spam",
+      "inappropriate": "Inappropriate Content",
+      "copyright": "Copyright Violation",
+      "other": "Other"
+    },
+    "details": "Details",
+    "placeholder": "Please describe the issue...",
+    "submit": "Submit Report",
+    "thanks": "Thank you",
+    "thanksMessage": "Your report has been submitted."
   },
   "chatSession": {
     "system": {

@@ -3,6 +3,7 @@
     import { createEventDispatcher, onDestroy, onMount } from "svelte";
     import { t } from "svelte-i18n";
     import Icon from "@iconify/svelte";
+    import ReportModal from "$lib/components/modal/ReportModal.svelte";
 
     import { api } from "$lib/api";
     import type { Persona } from "$lib/types";
@@ -28,6 +29,7 @@
     let isLoading = false;
     let isConfirmingDelete = false;
     let statusMessage = "";
+    let showReportModal = false;
 
     $: isLiked = persona.is_liked || false;
 
@@ -292,6 +294,14 @@
                         <Icon icon="ph:share-network-bold" />
                         <span>{$t("settingModal.share")}</span>
                     </button>
+                    <button
+                        class="action-button constructive"
+                        on:click={() => (showReportModal = true)}
+                        disabled={isLoading}
+                    >
+                        <Icon icon="ph:flag-bold" />
+                        <span>{$t("settingModal.report") || "Report"}</span>
+                    </button>
                 </div>
             </div>
 
@@ -358,6 +368,14 @@
             </div>
         </div>
     </div>
+{/if}
+
+{#if showReportModal}
+    <ReportModal
+        personaId={persona.id}
+        personaName={persona.name}
+        on:close={() => (showReportModal = false)}
+    />
 {/if}
 
 <style>
@@ -545,6 +563,16 @@
     }
     .action-button.destructive:hover:not(:disabled) {
         background-color: var(--destructive-color);
+        color: white;
+    }
+
+    .action-button.constructive {
+        color: #ff9800; /* Orange for report/warning */
+        background-color: transparent;
+        border: 1px solid #ff9800;
+    }
+    .action-button.constructive:hover:not(:disabled) {
+        background-color: #ff9800;
         color: white;
     }
 

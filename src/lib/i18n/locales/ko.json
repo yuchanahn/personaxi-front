@@ -252,7 +252,23 @@
     "costDisplay": "응답 당 :",
     "neuronBalance": "현재 뉴런: ",
     "showImage": "보기",
-    "hideImage": "숨기기"
+    "hideImage": "숨기기",
+    "report": "신고하기"
+  },
+  "reportModal": {
+    "title": "신고하기",
+    "selectType": "신고 사유",
+    "types": {
+      "spam": "스팸 / 부적절한 홍보",
+      "inappropriate": "부적절한 콘텐츠",
+      "copyright": "저작권 침해",
+      "other": "기타"
+    },
+    "details": "상세 내용",
+    "placeholder": "신고 사유를 자세히 적어주세요.",
+    "submit": "신고 제출",
+    "thanks": "신고가 접수되었습니다.",
+    "thanksMessage": "검토 후 조치하겠습니다."
   },
   "contentHub": {
     "searchTitle": "페르소나 검색",
