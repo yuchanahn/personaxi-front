@@ -133,22 +133,22 @@
         position: absolute;
         bottom: 0.5rem;
         right: 0.5rem;
-        background-color: hsl(var(--background) / 0.9);
-        color: var(--foreground);
+        background-color: rgba(0, 0, 0, 0.6);
+        color: white;
         padding: 0.2rem 0.5rem;
         border-radius: var(--radius-button);
         font-size: 0.7rem;
         font-weight: 600;
         z-index: 2;
-        border: 1px solid hsl(var(--border) / 0.5);
-        backdrop-filter: blur(8px);
-        text-shadow: 0 1px 2px hsl(var(--background) / 0.8);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        backdrop-filter: blur(4px);
+        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
         cursor: pointer;
         transition: background-color 0.2s;
     }
 
     .creator-tag:hover {
-        background-color: hsl(var(--secondary) / 0.9);
+        background-color: rgba(0, 0, 0, 0.8);
     }
 
     .overlay-stats {
@@ -167,14 +167,14 @@
         align-items: center;
         gap: 0.3rem;
         font-size: 0.75rem;
-        color: var(--foreground);
-        background-color: hsl(var(--background) / 0.9);
+        color: white;
+        background-color: rgba(0, 0, 0, 0.6);
         padding: 0.2rem 0.4rem;
         border-radius: var(--radius-button);
         font-weight: 600;
-        border: 1px solid hsl(var(--border) / 0.5);
-        backdrop-filter: blur(8px);
-        text-shadow: 0 1px 2px hsl(var(--background) / 0.8);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        backdrop-filter: blur(4px);
+        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
     }
 
     .like-overlay {
@@ -185,15 +185,15 @@
         align-items: center;
         gap: 0.3rem;
         font-size: 0.75rem;
-        color: var(--foreground);
-        background-color: hsl(var(--background) / 0.9);
+        color: white;
+        background-color: rgba(0, 0, 0, 0.6);
         padding: 0.2rem 0.4rem;
         border-radius: var(--radius-button);
         font-weight: 600;
         z-index: 2;
-        border: 1px solid hsl(var(--border) / 0.5);
-        backdrop-filter: blur(8px);
-        text-shadow: 0 1px 2px hsl(var(--background) / 0.8);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        backdrop-filter: blur(4px);
+        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
     }
 
     .tile-info {
