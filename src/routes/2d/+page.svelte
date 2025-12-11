@@ -122,7 +122,7 @@
     overflow: hidden;
     /* 모바일 기본: 세로 배치 */
     flex-direction: column;
-    background-color: #1a1a1a;
+    background-color: var(--background);
   }
 
   .chat-container {

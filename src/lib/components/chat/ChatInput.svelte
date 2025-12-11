@@ -17,7 +17,7 @@
   } = $props();
 
   let prompt = $state("");
-  const MAX_CHARS = 1000;
+  const MAX_CHARS = 2000;
   const charCount = $derived(prompt.length);
   const isOverLimit = $derived(charCount > MAX_CHARS);
 
@@ -133,11 +133,6 @@
     transition:
       border-color 0.2s,
       box-shadow 0.2s;
-  }
-
-  .chat-input:focus {
-    border-color: var(--ring);
-    box-shadow: 0 0 0 3px hsl(from var(--ring) h s l / 0.3);
   }
 
   .chat-input.over-limit {

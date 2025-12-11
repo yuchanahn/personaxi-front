@@ -15,8 +15,8 @@
         });
 
         htmlContent = htmlContent
-            .replace(/\*(.*?)\*/g, '<i class="custom-italic">$1</i>')
-            .replace(/\*\*(.?)\*\*/g, '<b class="custom-bold">$1</b>');
+            .replace(/\*\*(.*?)\*\*/g, '<b class="custom-bold">$1</b>') // 굵게 먼저
+            .replace(/\*(.*?)\*/g, '<i class="custom-italic">$1</i>');
 
         //htmlContent = htmlContent.replace(/\n/g, "<br>");
 

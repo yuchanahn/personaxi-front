@@ -21,7 +21,6 @@
   };
 
   let chatWindowEl: HTMLElement;
-  let isThink = false;
 
   interface NarrationBlock {
     type: "narration";
@@ -86,7 +85,6 @@
     let partIndex = 0;
 
     const processedContent = content
-      .replace(/<think>[\s\S]*?<\/think>/g, "")
       .replace(FIRST_SCENE_TAG_REGEX, () => {
         if (currentPersona?.first_scene) {
           let first_scene = currentPersona.first_scene;
@@ -228,19 +226,6 @@
     });
   }
 
-  $: {
-    const messagesArray = $messages;
-    if (messagesArray.length > 0) {
-      const lastMessage = messagesArray[messagesArray.length - 1];
-      isThink =
-        lastMessage.role === "assistant" &&
-        lastMessage.content.includes("<think>") &&
-        !lastMessage.content.includes("</think>");
-    } else {
-      isThink = false;
-    }
-  }
-
   $: if ($messages && chatWindowEl) {
     tick().then(() => {
       scrollToBottom();
@@ -329,16 +314,6 @@
       </div>
     </div>
   {/if}
-
-  {#if isThink}
-    <div
-      class="loading-dots assistant-placeholder"
-      role="status"
-      aria-label="생각 중"
-    >
-      {$t("chatWindow.thinking")}<span>.</span><span>.</span><span>.</span>
-    </div>
-  {/if}
 </div>
 
 <style>
@@ -391,16 +366,7 @@
     padding-top: 50px;
     scroll-behavior: smooth;
   }
-  .narration-block {
-    align-self: center;
-    width: 100%;
-    max-width: 90%;
-    text-align: center;
-    font-style: italic;
-    color: var(--muted-foreground);
-    line-height: 1.6;
-    white-space: pre-wrap;
-  }
+
   .image-block {
     align-self: center;
     width: 100%;
@@ -408,11 +374,7 @@
     margin-top: 0.5rem;
     margin-bottom: 0.5rem;
   }
-  .image-block img {
-    width: 100%;
-    border-radius: 12px;
-    object-fit: cover;
-  }
+
   .message {
     display: flex;
     width: fit-content;
@@ -499,9 +461,9 @@
     text-align: center;
     cursor: pointer;
     font-weight: bold;
-    font-style: normal; /* narration의 이탤릭체 덮어쓰기 */
+    font-style: normal;
     transition: all 0.2s;
-    text-decoration: none; /* <a> 태그일 경우 밑줄 제거 */
+    text-decoration: none;
   }
   :global(.game-choice:hover) {
     background-color: var(--primary);
