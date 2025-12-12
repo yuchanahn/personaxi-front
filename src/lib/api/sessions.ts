@@ -21,7 +21,10 @@ export async function loadCharacterSessions() {
                     name: chatSession.name,
                     createdAt: chatSession.createdAt,
                     type: chatSession.type,
-                    llmType: chatSession.llmType
+                    llmType: chatSession.llmType,
+                    avatar: chatSession.avatar,
+                    lastMessage: chatSession.lastMessage,
+                    lastMessageAt: chatSession.lastMessageAt
                 });
             }
         }

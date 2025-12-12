@@ -15,6 +15,9 @@ export type ChatSession = {
     createdAt: string;
     type: ChatSessionType;
     llmType: string; // Optional field for LLM type
+    avatar?: string;
+    lastMessage?: string;
+    lastMessageAt?: string;
 };
 
 export const chatSessions = writable<ChatSession[]>([]);

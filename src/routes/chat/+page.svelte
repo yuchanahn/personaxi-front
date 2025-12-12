@@ -1,7 +1,8 @@
 <script lang="ts">
     import { goto } from "$app/navigation";
     import { handleSelect } from "$lib/services/sessionManager";
-    import { chatSessions } from "$lib/stores/chatSessions"; // 스토어 경로를 확인해주세요.
+    import { chatSessions } from "$lib/stores/chatSessions";
+    import ChatSessionItem from "$lib/components/chat/ChatSessionItem.svelte";
     import Icon from "@iconify/svelte";
 
     function navigateToChat(sessionId: string) {
@@ -18,42 +19,15 @@
     </header>
 
     <div class="chat-list-wrapper">
-        <ul class="chat-list">
+        <div class="chat-list">
             {#each $chatSessions as session (session.id)}
-                <li>
-                    <button
-                        class="chat-item"
-                        on:click={() => navigateToChat(session.id)}
-                    >
-                        <div class="icon-wrapper">
-                            {#if session.type === "2D"}
-                                <Icon
-                                    icon="ph:user-duotone"
-                                    width="24"
-                                    height="24"
-                                />
-                            {:else if session.type === "3D"}
-                                <Icon
-                                    icon="ph:user-focus-duotone"
-                                    width="24"
-                                    height="24"
-                                />
-                            {:else}
-                                <Icon
-                                    icon="ph:chat-circle-dots-duotone"
-                                    width="24"
-                                    height="24"
-                                />
-                            {/if}
-                        </div>
-                        <div class="chat-info">
-                            <span class="chat-name">{session.name}</span>
-                        </div>
-                        <div class="caret-wrapper">
-                            <Icon icon="ph:caret-right-bold" />
-                        </div>
-                    </button>
-                </li>
+                <div class="chat-item-wrapper">
+                    <ChatSessionItem
+                        {session}
+                        onClick={() => navigateToChat(session.id)}
+                        onDelete={() => {}}
+                    />
+                </div>
             {:else}
                 <div class="empty-state">
                     <Icon icon="ph:chats-circle" width="60" height="60" />
@@ -62,7 +36,7 @@
                     <a href="/hub" class="explore-button">탐색하러 가기</a>
                 </div>
             {/each}
-        </ul>
+        </div>
     </div>
 </div>
 
@@ -88,59 +62,15 @@
     }
 
     .chat-list {
-        list-style: none;
-        padding: 0;
-        margin: 0;
         display: flex;
         flex-direction: column;
-        gap: 0.5rem;
     }
 
-    .chat-item {
-        display: flex;
-        align-items: center;
-        width: 100%;
-        padding: 1rem;
-        gap: 1rem;
-        background-color: var(--card);
-        border: 1px solid var(--border);
-        border-radius: 12px;
-        cursor: pointer;
-        text-align: left;
-        color: var(--foreground);
-        transition:
-            background-color 0.2s,
-            transform 0.2s;
+    .chat-item-wrapper {
+        border-bottom: 1px solid var(--border);
     }
-    .chat-item:hover {
-        background-color: var(--muted);
-        transform: translateY(-2px);
-    }
-
-    .icon-wrapper {
-        flex-shrink: 0;
-        color: var(--primary);
-    }
-
-    .chat-info {
-        flex-grow: 1;
-        display: flex;
-        flex-direction: column;
-        gap: 0.25rem;
-    }
-
-    .chat-name {
-        font-weight: 600;
-        font-size: 1rem;
-    }
-
-    .chat-meta {
-        font-size: 0.8rem;
-        color: var(--muted-foreground);
-    }
-
-    .caret-wrapper {
-        color: var(--muted-foreground);
+    .chat-item-wrapper:last-child {
+        border-bottom: none;
     }
 
     /* 채팅 목록이 비어있을 때 */
