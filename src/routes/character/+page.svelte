@@ -19,9 +19,7 @@
     const sessionId = $page.url.searchParams.get("c");
     lastSessionId = sessionId;
     if (sessionId) {
-      persona = null;
-      loadChatHistory(sessionId);
-      loadPersona(sessionId).then((p) => (persona = p));
+      // Data loading is handled by the reactive block below
 
       await connectTTSSocket(async (audio: ArrayBuffer) => {
         if (Viewer && Viewer.speek) {
