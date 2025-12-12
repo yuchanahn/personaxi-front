@@ -19,9 +19,6 @@ export function test(canvas: HTMLCanvasElement, persona: Persona) {
         //current_model.unloadVrm();
     }
     if (viewer) {
-
-
-
         viewer.stop();
     }
 
