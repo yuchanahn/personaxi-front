@@ -106,7 +106,7 @@
             setTimeout(() => {
               isModelLoading = false;
               console.log("## Model loaded! END TIMER END!");
-            }, remaining + 10000);
+            }, remaining + 5000);
           })
           .catch((error) => {
             console.error("Error loading VRM:", error);

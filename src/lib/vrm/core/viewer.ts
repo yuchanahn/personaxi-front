@@ -147,7 +147,7 @@ export class Viewer {
     this.camera.lookAt(new THREE.Vector3(center.x, cameraHeight, center.z));
     this.camera.updateProjectionMatrix();
 
-    this.model.initAnimations();
+    await this.model.initAnimations();
     this.scene.add(vrm.scene);
 
     //this.scene.add(new THREE.SkeletonHelper(vrm.scene));
