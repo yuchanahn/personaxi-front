@@ -111,6 +111,14 @@ class AnimationPoolManager {
     private blendTimer: number = 0;
     private currentTransitionTime: number = 0;
 
+    // Gesture Tracking
+    private gestureEndTime: number = 0;
+    private isGesturePlaying: boolean = false;
+
+    // Timer Handles for cancellation
+    private gestureFadeTimer: any = null;
+    private gestureEndTimer: any = null;
+
     private gestureMixer: THREE.AnimationMixer;
 
     constructor(model: Model) {
@@ -124,17 +132,71 @@ class AnimationPoolManager {
         console.log(`[AnimPool] Switching to pool: ${poolName}`);
         this.currentPoolName = poolName;
         this.clipTimer = 0;
-        this.selectAndPlayNextClip(true); // 강제 변경
+
+        // 제스처 재생 중이면 강제 변경 하지 않음
+        // (State는 변경되었으므로, 제스처 끝나면 resumeBackgroundAnimation에서 새 pool의 클립이 선택됨)
+        if (!this.isGesturePlaying) {
+            this.selectAndPlayNextClip(true);
+        }
     }
 
     public triggerGesture(clipName: string, transitionTime: number = 0.3): void {
         const action = this.model.actions[clipName];
         if (!action) return;
+
+        console.log(`[AnimPool] Triggering gesture: ${clipName}`);
+
+        // 1. 기존 제스처 타이머 취소 (중복 실행 방지)
+        if (this.gestureFadeTimer) clearTimeout(this.gestureFadeTimer);
+        if (this.gestureEndTimer) clearTimeout(this.gestureEndTimer);
+
+        // 2. 현재 백그라운드 클립 페이드아웃 (아직 안 되어 있다면)
+        // (연속 제스처의 경우 이미 fadeOut 되었을 수 있지만, 안전하게 호출)
+        if (this.currentClipName && this.model.actions[this.currentClipName]) {
+            this.model.actions[this.currentClipName].fadeOut(transitionTime);
+        }
+
+        // 3. 제스처 재생
         action.reset().setLoop(THREE.LoopOnce, 1).fadeIn(transitionTime).play();
+
+        this.isGesturePlaying = true;
+        const clipDuration = action.getClip().duration;
+
+        // 제스처 종료 시점 기록
+        const now = Date.now() / 1000;
+        this.gestureEndTime = now + clipDuration;
+
+        // 4. Auto Fade Out 스케줄링
+        const fadeOutStartTime = (clipDuration - transitionTime) * 1000;
+
+        this.gestureFadeTimer = setTimeout(() => {
+            if (this.isGesturePlaying) {
+                action.fadeOut(transitionTime);
+                // 5. 백그라운드 애니메이션 복귀 (중요: 현재 Pool에 맞는 클립으로!)
+                this.resumeBackgroundAnimation(transitionTime);
+            }
+        }, Math.max(0, fadeOutStartTime));
+
+        // 6. 완전 종료 후 플래그 해제
+        this.gestureEndTimer = setTimeout(() => {
+            this.isGesturePlaying = false;
+        }, clipDuration * 1000);
+    }
+
+    private resumeBackgroundAnimation(transitionTime: number): void {
+        // "이전 클립"을 되살리는 것이 아니라, "현재 상태(Pool)"에 맞는 클립을 틂.
+        // 왜냐하면 제스처 도중에 State가 Idle -> Speaking으로 바뀌었을 수 있기 때문.
+        // selectAndPlayNextClip(true)를 호출하면 현재 pool에서 적절한 클립을 골라 fadeIn 해줌.
+        // IMPORTANT: transitionTime을 넘겨서, 제스처 fadeOut과 동일한 속도로 fadeIn 되게 함. (T-pose 방지)
+        this.selectAndPlayNextClip(true, transitionTime);
     }
 
     public update(dt: number): void {
         this.gestureMixer.update(dt);
+
+        // 제스처 재생 중에는 백그라운드 풀 로직 정지 (타이머는 가게 둘 수도 있지만, 변경은 막음)
+        if (this.isGesturePlaying) return;
+
         if (!this.currentPoolName) return;
 
         this.clipTimer += dt;
@@ -153,7 +215,7 @@ class AnimationPoolManager {
         }
     }
 
-    private selectAndPlayNextClip(force: boolean = false): void {
+    private selectAndPlayNextClip(force: boolean = false, transitionOverride?: number): void {
         const pool = ANIMATION_POOLS[this.currentPoolName];
         if (!pool) return;
 
@@ -167,13 +229,13 @@ class AnimationPoolManager {
             for (let i = 0; i < 3; i++) {
                 const retry = this.weightedRandomSelect(pool.animations);
                 if (retry && retry.clipName !== this.currentClipName) {
-                    this.playClip(retry, pool);
+                    this.playClip(retry, pool, transitionOverride);
                     return;
                 }
             }
         }
 
-        this.playClip(selectedClip, pool);
+        this.playClip(selectedClip, pool, transitionOverride);
     }
 
     private weightedRandomSelect(animations: WeightedAnimation[]): WeightedAnimation | null {
@@ -207,35 +269,38 @@ class AnimationPoolManager {
         return availableAnims[0]; // 폴백
     }
 
-    private playClip(clip: WeightedAnimation, pool: AnimationPoolConfig): void {
+    private playClip(clip: WeightedAnimation, pool: AnimationPoolConfig, transitionOverride?: number): void {
         if (!this.model.actions[clip.clipName]) {
             console.warn(`[AnimPool] Animation not found: ${clip.clipName}`);
             return;
         }
 
-        //이전 클립이랑 같은 애니메이션인지 확인
-        if (this.currentClipName !== clip.clipName) {
-            console.log(`[AnimPool] Playing: ${clip.clipName} (weight: ${clip.weight})`);
+        // 실제 적용할 transition time 결정 (Override 우선)
+        const transitionTime = transitionOverride ?? pool.transitionTime;
+
+        //이전 클립이랑 같은 애니메이션인지 확인 (Override가 있으면 강제 재생)
+        if (transitionOverride || this.currentClipName !== clip.clipName) {
+            console.log(`[AnimPool] Playing: ${clip.clipName} (weight: ${clip.weight}) trTime:${transitionTime}`);
 
             // 이전 클립 페이드아웃
             if (this.currentClipName && this.model.actions[this.currentClipName]) {
                 //this.model.actions[this.currentClipName].stop(); // fadeOut 대신 즉시 정지 후
                 //this.model.actions[this.currentClipName].reset();
-                this.model.actions[this.currentClipName].fadeOut(pool.transitionTime);
+                this.model.actions[this.currentClipName].fadeOut(transitionTime);
             }
 
             // 새 클립 페이드인
             const action = this.model.actions[clip.clipName];
             action.reset();
             action.setLoop(THREE.LoopPingPong, Infinity); // 무한 루프
-            action.fadeIn(pool.transitionTime);
+            action.fadeIn(transitionTime);
             action.play();
 
             this.currentClipName = clip.clipName;
             this.clipTimer = 0;
             this.isBlending = true;
             this.blendTimer = 0;
-            this.currentTransitionTime = pool.transitionTime;
+            this.currentTransitionTime = transitionTime;
         }
         // 다음 변경 시점 설정
         const playDuration = clip.duration || this.getRandomPlayTime(pool);
