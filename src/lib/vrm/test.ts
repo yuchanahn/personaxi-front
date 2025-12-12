@@ -13,10 +13,15 @@ export function getViewer(): Viewer | null {
 
 export function test(canvas: HTMLCanvasElement, persona: Persona) {
 
+    console.log("#### Loading VRM ####");
+
     if (current_model) {
         //current_model.unloadVrm();
     }
     if (viewer) {
+
+
+
         viewer.stop();
     }
 

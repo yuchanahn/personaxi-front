@@ -372,7 +372,7 @@ const STATE_CONFIGS: Record<CharacterState, StateConfig & { animationPool?: stri
         neckTilt: new THREE.Vector3(0, 0, 0),
         spineRotation: new THREE.Vector3(0, 0, 0),
         expressions: { 'neutral': 1.0 },
-        gazePattern: 'random',
+        gazePattern: 'forward',          // ← 안정적인 시선 (random은 초기 로드 시 흔들림 유발 가능)
         gazeIntensity: 0.6,
         animationPool: 'idle_pool',      // ← 애니메이션 풀 지정
         blendInTime: 0.8,

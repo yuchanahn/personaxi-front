@@ -85,6 +85,9 @@
   });
 
   function loadVrm() {
+    const minLoadTime = 3000;
+    const startTime = Date.now();
+
     try {
       if (persona)
         viewVrmInCanvas(canvas, persona)
@@ -92,12 +95,21 @@
             model = m;
             model?.setCanvas(canvas);
             viewer = getViewer();
-            isModelLoading = false;
+
             updateCameraPosition();
             if (model) model.cfg = cfg;
+
+            // Enforce minimum load time for UX
+            const elapsed = Date.now() - startTime;
+            const remaining = Math.max(0, minLoadTime - elapsed);
+
+            setTimeout(() => {
+              isModelLoading = false;
+            }, remaining);
           })
           .catch((error) => {
             console.error("Error loading VRM:", error);
+            isModelLoading = false; // On error, hide immediately or show error state
           })
           .finally(() => {
             console.log("finally - model loaded!");
@@ -155,12 +167,15 @@
   }
 
   $: if (persona?.id) {
-    isModelLoading = true;
-    // Use setTimeout to ensure loading UI is rendered before heavy VRM parsing starts
-    // This gives the browser time to paint the loading screen (50-100ms is sufficient)
-    setTimeout(() => {
-      loadVrm();
-    }, 100);
+    (async () => {
+      isModelLoading = true;
+      // Wait for UI to update (show loader)
+      await tick();
+      // Give valid timeout to ensure paint
+      setTimeout(() => {
+        loadVrm();
+      }, 50);
+    })();
   }
 
   let isLoading = false;
@@ -311,6 +326,7 @@
   />
 
   {#if isModelLoading}
+    <!-- {console.log("Rendering Model Loader", isModelLoading)} -->
     <div class="model-loader">
       <div class="loader-content">
         <Icon icon="line-md:loading-twotone-loop" width="64" height="64" />
@@ -634,9 +650,9 @@
     justify-content: center;
     background-color: rgba(0, 0, 0, 0.85);
     backdrop-filter: blur(8px);
-    z-index: 1000;
+    z-index: 99999; /* Boost z-index to ensure visibility */
     /* GPU acceleration */
-    transform: translateZ(0);
+    /* transform: translateZ(0); REMOVED to avoid stacking context issues */
     will-change: opacity;
   }
 
