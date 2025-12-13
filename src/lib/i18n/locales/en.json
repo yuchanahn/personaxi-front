@@ -596,8 +596,19 @@
     "action": "Action",
     "comedy": "Comedy",
     "drama": "Drama",
+    "school": "School",
+    "villain": "Villain",
+    "maid": "Maid/Butler",
+    "tsundere": "Tsundere",
+    "yandere": "Yandere",
+    "simulation": "Simulation",
     "vrm": "VRM",
     "live2d": "Live2D"
+  },
+  "sort": {
+    "popular": "Popular",
+    "realtime": "Real-time 🔥",
+    "latest": "New"
   },
   "notifications": {
     "title": "Notifications",

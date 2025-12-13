@@ -5,11 +5,10 @@ import type { Persona } from '$lib/types';
 import { get } from "svelte/store";
 
 
-export async function loadContent() {
-    const res = await api.get2(`/api/contents?locale=${get(settings).language}`);
+export async function loadContent(page: number, limit: number, sort: string = 'latest') {
+    const res = await api.get2(`/api/contents?page=${page}&limit=${limit}&sort=${sort}&locale=${get(settings).language}`);
     if (res.ok) {
-        const data = await res.json();
-        return data;
+        return await res.json();
     }
     return [];
 }
@@ -17,8 +16,7 @@ export async function loadContent() {
 export async function loadContentPaged(limit: number, offset: number) {
     const res = await api.get2(`/api/contents?locale=${get(settings).language}&limit=${limit}&offset=${offset}`);
     if (res.ok) {
-        const data = await res.json();
-        return data;
+        return await res.json();
     }
     return [];
 }
@@ -30,8 +28,7 @@ export async function loadlikesdata() {
 
     const res = await api.get(`/api/contents/likesdata`);
     if (res.ok) {
-        const data = await res.json();
-        return data;
+        return await res.json();
     }
     return [];
 }
@@ -54,17 +51,16 @@ export async function LikeBtn(persona: Persona, onOk: () => void, onError: (mess
     }
 }
 
-export async function loadContentWithTags(tags: string[]) {
+export async function loadContentWithTags(tags: string[], page: number, limit: number, sort: string = 'latest') {
     // tags가 숫자가 아닌 경우, allCategories에서 매핑하여 숫자 ID로 변환
     const numericTags = tags.map(tag => {
         const category = allCategories.find(cat => cat.nameKey === tag);
         return category ? category.id.toString() : tag; // 매핑된 ID가 없으면 원래 태그 사용
     });
 
-    const res = await api.get2(`/api/contents/t?t=${numericTags.join(",")}&locale=${get(settings).language}`);
+    const res = await api.get2(`/api/contents/t?t=${numericTags.join(",")}&page=${page}&limit=${limit}&sort=${sort}&locale=${get(settings).language}`);
     if (res.ok) {
-        const data = await res.json();
-        return data;
+        return await res.json();
     }
     return [];
 }

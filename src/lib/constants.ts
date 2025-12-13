@@ -21,6 +21,12 @@ export const allCategories = [
     { id: 6, nameKey: "tags.action" },
     { id: 7, nameKey: "tags.comedy" },
     { id: 8, nameKey: "tags.drama" },
+    { id: 9, nameKey: "tags.school" },
+    { id: 10, nameKey: "tags.villain" },
+    { id: 11, nameKey: "tags.maid" },
+    { id: 12, nameKey: "tags.tsundere" },
+    { id: 13, nameKey: "tags.yandere" },
+    { id: 14, nameKey: "tags.simulation" },
 
     // ---------------------------------
 

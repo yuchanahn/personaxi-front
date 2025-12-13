@@ -549,8 +549,19 @@
     "action": "액션",
     "comedy": "코미디",
     "drama": "드라마",
+    "school": "학교",
+    "villain": "빌런",
+    "maid": "메이드/집사",
+    "tsundere": "츤데레",
+    "yandere": "얀데레",
+    "simulation": "시뮬레이션",
     "vrm": "VRM",
     "live2d": "Live2D"
+  },
+  "sort": {
+    "popular": "인기순",
+    "realtime": "실시간 🔥",
+    "latest": "최신순"
   },
   "notifications": {
     "title": "알림",
