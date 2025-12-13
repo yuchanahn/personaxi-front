@@ -124,7 +124,7 @@
 
     .feed-item-wrapper {
         width: 100%;
-        height: 100vh;
+        height: 100%;
         scroll-snap-align: start;
     }
 
