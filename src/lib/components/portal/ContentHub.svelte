@@ -371,7 +371,7 @@
         min-width: 0; /* flex 아이템이 내용물 크기보다 작아질 수 있도록 허용 */
         overflow: hidden; /* 넘치는 부분 숨김 */
         width: calc(100% - 60px); /* 검색 버튼 공간 제외 */
-        margin-left: 2.5rem;
+        /* margin-left: 2.5rem; */
     }
 
     /* --- 카테고리 버블 --- */
@@ -554,7 +554,7 @@
 
         .mobile-sort-bar {
             display: flex; /* Show on mobile */
-            padding: 0 1rem 0.75rem 1rem; /* Adjust padding */
+            padding: 0.75rem 1rem 0.75rem 1rem; /* Adjust padding */
         }
 
         .bubbles-wrapper {
