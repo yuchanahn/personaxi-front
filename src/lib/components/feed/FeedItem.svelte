@@ -232,7 +232,7 @@
         bottom: 0;
         left: 0;
         width: 100%;
-        padding: 24px 20px 100px 20px; /* Bottom padding for nav bar space approx */
+        padding: 24px 20px calc(110px + env(safe-area-inset-bottom)) 20px; /* Bottom padding for nav bar space approx */
         z-index: 10;
         display: flex;
         flex-direction: column;

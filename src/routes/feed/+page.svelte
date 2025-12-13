@@ -22,7 +22,10 @@
         if (loading || !hasMore) return;
         loading = true;
         try {
-            const newPersonas = await loadContentPaged(limit, offset);
+            const newPersonas: Persona[] = await loadContentPaged(
+                limit,
+                offset,
+            );
 
             if (newPersonas.length < limit) {
                 hasMore = false;
@@ -105,7 +108,7 @@
 <style>
     .feed-page {
         width: 100%;
-        height: 100vh; /* Full viewport height */
+        height: 100dvh; /* Full viewport height (dynamic) */
         overflow-y: scroll;
         scroll-snap-type: y mandatory;
         background: black;

@@ -822,6 +822,9 @@
                     error = $t("editPage.errorSaveFailed", {
                         values: { message: e.message },
                     });
+                    if (typeof window !== "undefined") {
+                        window.scrollTo({ top: 0, behavior: "smooth" });
+                    }
                 } finally {
                     loading = false;
                 }
@@ -1910,7 +1913,9 @@
         .mobile-save-button {
             display: block;
             position: fixed;
-            bottom: 70px; /* Above navigation bar */
+            bottom: calc(
+                70px + env(safe-area-inset-bottom)
+            ); /* Above navigation bar */
             left: 0;
             right: 0;
             width: 100%;
@@ -1924,7 +1929,7 @@
             border: none;
             border-top: 1px solid var(--border);
             color: var(--primary-foreground);
-            z-index: 9998; /* Below nav bar (9999) */
+            z-index: 10001; /* Ensure above nav bar */
             box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.3);
             background-size: 200% 200%;
             animation: gradient-animation 3s ease infinite;
@@ -1936,7 +1941,9 @@
         }
 
         .container {
-            padding-bottom: 150px; /* Space for nav bar + save button */
+            padding-bottom: calc(
+                160px + env(safe-area-inset-bottom)
+            ); /* Space for nav bar + save button */
         }
     }
 
