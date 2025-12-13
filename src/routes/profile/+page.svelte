@@ -282,6 +282,15 @@
                             <AssetPreview
                                 asset={galleryImages[currentImageIndex]}
                             />
+                            {#if galleryImages[currentImageIndex].is_secret && galleryImages[currentImageIndex].url}
+                                <div class="secret-indicator">
+                                    <Icon icon="ph:lock-key-open-bold" />
+                                    <span
+                                        >{$t("profilePage.secretAssetLabel") ||
+                                            "Secret"}</span
+                                    >
+                                </div>
+                            {/if}
                             {#if galleryImages.length > 1}
                                 <div class="image-counter">
                                     <Icon icon="ph:images-duotone" />
@@ -683,6 +692,23 @@
         border-radius: var(--radius-card);
         overflow: hidden;
         background-color: var(--background);
+    }
+    .secret-indicator {
+        position: absolute;
+        top: 10px;
+        left: 10px;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        background-color: rgba(0, 0, 0, 0.7);
+        color: #fbbf24; /* Amber-400 */
+        padding: 6px 12px;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        z-index: 10;
+        backdrop-filter: blur(4px);
+        border: 1px solid rgba(251, 191, 36, 0.3);
     }
     .profile-portrait-square {
         width: 100%;

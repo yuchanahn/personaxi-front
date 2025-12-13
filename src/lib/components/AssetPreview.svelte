@@ -2,19 +2,18 @@
     import { fetchAndSetAssetTypes } from "$lib/api/edit_persona";
     import type { ImageMetadata } from "$lib/types";
 
+    import Icon from "@iconify/svelte";
+
     export let asset: ImageMetadata;
 
-    $: if (asset && !asset.type) {
+    $: if (asset && !asset.type && !(asset.is_secret && !asset.url)) {
         (async () => {
             const assetsWithType = await fetchAndSetAssetTypes([asset]);
-
             //console.log("Fetched asset type:", assetsWithType);
-
             if (assetsWithType[0] && assetsWithType[0].type) {
                 asset.type = assetsWithType[0].type;
                 asset = asset;
             }
-
             if (!asset.type) {
                 asset.type = "unknown";
                 asset = asset;
@@ -23,8 +22,13 @@
     }
 </script>
 
-{#if asset.type === "image"}
-    <img src={asset.url} alt="에셋 미리보기" class="asset-preview-media" />
+{#if asset.is_secret && !asset.url}
+    <div class="fallback secret">
+        <Icon icon="ph:lock-key-duotone" width="48" height="48" />
+        <p>Private Asset</p>
+    </div>
+{:else if asset.type === "image"}
+    <img src={asset.url} alt="asset" class="asset-preview-media" />
 {:else if asset.type === "video"}
     <video
         autoplay
@@ -52,7 +56,6 @@
     }
 
     .gif-like-video {
-        /* 클릭/터치 이벤트를 막아서 GIF처럼 만듭니다 */
         pointer-events: none;
     }
 
@@ -60,10 +63,17 @@
         width: 100%;
         height: 100%;
         display: flex;
+        flex-direction: column;
         justify-content: center;
         align-items: center;
         text-align: center;
         font-size: 0.8rem;
+        color: var(--muted-foreground);
+        background-color: var(--secondary);
+    }
+
+    .secret {
+        gap: 8px;
         color: var(--muted-foreground);
     }
 </style>

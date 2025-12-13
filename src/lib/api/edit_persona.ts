@@ -108,7 +108,7 @@ export async function loadPersona(id: string): Promise<Persona> {
 }
 
 export async function loadPersonaOriginal(id: string): Promise<Persona> {
-    const response = await api.get2(`/api/persona?id=${id}`);
+    const response = await api.get(`/api/persona/owner?id=${id}`);
     if (!response.ok) {
         throw new Error("Failed to load persona");
     }

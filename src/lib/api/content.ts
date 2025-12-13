@@ -14,6 +14,15 @@ export async function loadContent() {
     return [];
 }
 
+export async function loadContentPaged(limit: number, offset: number) {
+    const res = await api.get2(`/api/contents?locale=${get(settings).language}&limit=${limit}&offset=${offset}`);
+    if (res.ok) {
+        const data = await res.json();
+        return data;
+    }
+    return [];
+}
+
 export async function loadlikesdata() {
     if (!(await api.isLoggedIn())) {
         return [];

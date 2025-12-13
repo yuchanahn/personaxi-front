@@ -6,6 +6,7 @@ export interface ImageMetadata {
     url: string;
     description: string;
     type?: 'image' | 'video' | 'unknown'; // 타입을 저장할 속성
+    is_secret?: boolean;
 }
 
 export interface Persona {
@@ -26,6 +27,7 @@ export interface Persona {
     created_at: string;
     updated_at: string;
     creator_name: string;
+    one_liner?: string;
     first_scene: string;
     greeting: string;
     likes_count: number;
@@ -37,6 +39,7 @@ export interface Persona {
 export interface PersonaDTO {
     id: string;
     name: string;
+    one_liner?: string;
     portrait_url: string;
     creator_name: string;
     likes_count: number;

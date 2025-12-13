@@ -33,6 +33,7 @@
         id: "",
         owner_id: [],
         name: "",
+        one_liner: "", // Add this
         personaType: "",
         instructions: [],
         promptExamples: [],
@@ -236,6 +237,7 @@
                 p.image_metadatas = [];
             }
             persona = p;
+            if (!persona.one_liner) persona.one_liner = "";
             firstSceneJson = p.first_scene;
 
             // Load Metadata if Live2D
@@ -291,15 +293,15 @@
     }
 
     onMount(async () => {
+        if (!(await api.isLoggedIn())) {
+            goto("/login");
+            return;
+        }
+
         const urlParams = new URLSearchParams(window.location.search);
         const id = urlParams.get("c");
         if (id) {
             load_persona(id);
-        }
-
-        if (!(await api.isLoggedIn())) {
-            goto("/login");
-            return;
         }
 
         try {
@@ -463,6 +465,12 @@
     async function handleMultipleAssetFiles(event: Event) {
         const input = event.target as HTMLInputElement;
         if (input.files) {
+            // Limit check
+            if (persona.image_metadatas.length + input.files.length > 40) {
+                alert("Maximum 40 images allowed.");
+                return;
+            }
+
             Array.from(input.files).forEach(async (file) => {
                 const asset: ImageMetadata = {
                     url: "",
@@ -850,6 +858,29 @@
                         />
                     </div>
                     <div class="form-group">
+                        <label for="one_liner"
+                            >{$t("editPage.oneLinerLabel")}</label
+                        >
+                        <p class="description">
+                            {$t("editPage.oneLinerDescription")}
+                        </p>
+                        <input
+                            id="one_liner"
+                            placeholder={$t("editPage.oneLinerPlaceholder")}
+                            bind:value={persona.one_liner}
+                            maxlength="60"
+                            class="input-field"
+                        />
+                        <div
+                            class="char-counter {(persona.one_liner || '')
+                                .length > 60
+                                ? 'error'
+                                : ''}"
+                        >
+                            {(persona.one_liner || "").length}/60
+                        </div>
+                    </div>
+                    <div class="form-group">
                         <label for="greeting"
                             >{$t("editPage.greetingLabel", {
                                 default: $t("editPage.greetingLabelDefault"),
@@ -1019,7 +1050,8 @@
                         {#if persona.personaType == "2D"}
                             <div class="form-group asset-section">
                                 <h3 class="asset-title">
-                                    {$t("editPage.assetSectionTitle")}
+                                    {$t("editPage.assetSectionTitle")} ({persona
+                                        .image_metadatas.length} / 40)
                                 </h3>
                                 <p class="description">
                                     {$t("editPage.assetSectionDescription")}
@@ -1079,6 +1111,43 @@
                                                 ></textarea>
 
                                                 <div class="asset-card-actions">
+                                                    <div
+                                                        class="secret-toggle-group"
+                                                    >
+                                                        <label
+                                                            class="toggle-switch small"
+                                                        >
+                                                            <input
+                                                                type="checkbox"
+                                                                bind:checked={
+                                                                    asset.is_secret
+                                                                }
+                                                            />
+                                                            <span class="slider"
+                                                            ></span>
+                                                        </label>
+                                                        <span
+                                                            class="secret-label"
+                                                            >{$t(
+                                                                "editPage.assets.secretLabel",
+                                                            )}</span
+                                                        >
+                                                        <div
+                                                            class="tooltip-icon small"
+                                                        >
+                                                            <Icon
+                                                                icon="ph:question-bold"
+                                                            />
+                                                            <div
+                                                                class="tooltip-text"
+                                                            >
+                                                                {$t(
+                                                                    "editPage.assets.secretTooltip",
+                                                                )}
+                                                            </div>
+                                                        </div>
+                                                    </div>
+
                                                     <button
                                                         type="button"
                                                         class="btn btn-secondary btn-copy"
@@ -1990,7 +2059,7 @@
 
     .asset-card-actions {
         display: flex;
-        justify-content: flex-end;
+        justify-content: space-between;
         align-items: center;
         gap: 0.5rem;
         margin-top: 0.5rem;
@@ -2199,5 +2268,60 @@
     }
     input:checked + .slider:before {
         transform: translateX(14px);
+    }
+
+    /* Secret Toggle Styles */
+    .secret-toggle-group {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        background-color: var(--background);
+        padding: 0.3rem 0.6rem;
+        border-radius: 999px;
+        border: 1px solid var(--border);
+        white-space: nowrap; /* Prevent text wrapping inside */
+    }
+    .secret-toggle-group label {
+        margin-bottom: 0; /* Override global label margin */
+    }
+    .secret-label {
+        font-size: 0.8rem;
+        font-weight: 600;
+        color: var(--secondary-foreground);
+    }
+    .toggle-switch.small {
+        width: 28px;
+        height: 16px;
+    }
+    .toggle-switch.small .slider:before {
+        height: 12px;
+        width: 12px;
+        left: 2px;
+        bottom: 2px;
+    }
+    .toggle-switch.small input:checked + .slider:before {
+        transform: translateX(12px);
+    }
+    .tooltip-icon.small {
+        margin-left: 0.1rem;
+        font-size: 0.85rem;
+    }
+    .tooltip-icon.small .tooltip-text {
+        bottom: 150%;
+    }
+
+    /* Responsive adjustment for asset card actions */
+    @media (max-width: 480px) {
+        .asset-card-actions {
+            flex-direction: column;
+            gap: 0.8rem;
+            align-items: flex-end; /* Align to right */
+        }
+        .secret-toggle-group {
+            width: fit-content;
+        }
+        .btn-copy {
+            width: 100%;
+        }
     }
 </style>

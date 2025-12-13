@@ -5,6 +5,7 @@
   import { t } from "svelte-i18n";
   import type { ImageMetadata, Persona } from "$lib/types";
   import AssetPreview from "../AssetPreview.svelte";
+  import ChatImage from "./ChatImage.svelte";
   import { get } from "svelte/store";
   import { st_user } from "$lib/stores/user";
   import HtmlRenderer from "./HtmlRenderer.svelte";
@@ -44,6 +45,7 @@
     alt: string;
     id: string;
     metadata: ImageMetadata;
+    index: number;
   }
 
   interface CodeBlock {
@@ -167,13 +169,15 @@
             try {
               const imgIndex = parseInt(imgIndexStr, 10);
               const imageMetadata = currentPersona?.image_metadatas?.[imgIndex];
-              if (imageMetadata?.url && !isNaN(imgIndex)) {
+              // Relaxed condition: Allow if metadata exists, even if URL is empty (Secret)
+              if (imageMetadata && !isNaN(imgIndex)) {
                 blocks.push({
                   type: "image",
-                  url: imageMetadata.url,
+                  url: imageMetadata.url || "", // Pass empty string if missing
                   alt: imageMetadata.description || "scene image",
                   metadata: imageMetadata,
                   id: `${partId}-img-${subPartIndex++}`,
+                  index: imgIndex, // Store index for unlocking
                 });
               }
             } catch (error) {
@@ -294,7 +298,7 @@
       </div>
     {:else if item.type === "image" && showImage}
       <div class="image-block">
-        <AssetPreview asset={item.metadata} />
+        <ChatImage {persona} metadata={item.metadata} index={item.index} />
       </div>
     {:else if item.type === "code"}
       <div class="code-block">

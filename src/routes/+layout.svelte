@@ -157,7 +157,7 @@
             $page.url.pathname,
         );
 
-    $: isChatPage = ["/2d", "/character", "/live2d"].includes(
+    $: isChatPage = ["/2d", "/character", "/live2d", "/feed"].includes(
         $page.url.pathname,
     );
 </script>
