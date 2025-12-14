@@ -153,9 +153,14 @@
 
     $: showNavBottom =
         isMobile &&
-        !["/test", "/2d", "/character", "/", "/live2d"].includes(
-            $page.url.pathname,
-        );
+        ![
+            "/test",
+            "/2d",
+            "/character",
+            "/",
+            "/live2d",
+            "/maintenance",
+        ].includes($page.url.pathname);
 
     $: isChatPage = ["/2d", "/character", "/live2d", "/feed"].includes(
         $page.url.pathname,
@@ -164,7 +169,7 @@
 
 <!-- ────────────── 레이아웃 ────────────── -->
 <div class="layout">
-    {#if !isMobile}
+    {#if !isMobile && $page.url.pathname !== "/maintenance"}
         <Sidebar /> <!-- 모바일에선 아예 렌더하지 않는다 -->
     {/if}
 
@@ -203,7 +208,7 @@
     />
     <WelcomeModal neuronAmount={200} isOpen={welcomeModal} />
 
-    {#if !["/hub", "/"].includes($page.url.pathname)}
+    {#if !["/hub", "/", "/maintenance"].includes($page.url.pathname)}
         <button class="back-btn" on:click={handleBack}
             ><Icon icon="weui:back-filled" width="12" height="24" />
         </button>

@@ -38,6 +38,15 @@ async function fetchWithAuth(url: string, options: RequestInit = {}): Promise<Re
         throw new Error('Unauthorized');
     }
 
+    if (response.status === 503) {
+        // 503 에러(서버 점검/다운) 시 점검 페이지로 이동
+        // 이미 점검 페이지라면 리다이렉트 하지 않음 (무한 루프 방지)
+        if (window.location.pathname !== '/maintenance') {
+            window.location.href = '/maintenance';
+        }
+        throw new Error('Service Unavailable');
+    }
+
     return response;
 }
 
