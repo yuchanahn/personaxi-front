@@ -95,10 +95,10 @@
                         setTimeout(() => resolve(true), 1000);
                     });
                     const durationMs = tempAudio.duration * 1000 || 3000; // Default to 3s if unknown
-                    console.log(`Audio Duration: ${durationMs}ms`);
+                    // console.log(`Audio Duration: ${durationMs}ms`);
 
                     // Audio Start
-                    console.log("Audio Start: Resetting thoughts");
+                    // console.log("Audio Start: Resetting thoughts");
                     isSpeaking = true;
                     showThought2 = false;
                     showThought1 = false;
@@ -109,7 +109,7 @@
                     // Wait for audio to finish
                     setTimeout(() => {
                         // Audio End
-                        console.log("Audio End: Showing Thought 2");
+                        // console.log("Audio End: Showing Thought 2");
                         isSpeaking = false;
                         showThought1 = false; // Ensure thought1 is gone
 
@@ -165,13 +165,13 @@
                                         motionMap[m.name] = m.file;
                                     }
                                 });
-                                console.log("Parsed Motion Map:", motionMap);
+                                // // console.log("Parsed Motion Map:", motionMap);
                             }
 
                             // Parse Expressions
                             if (fs.live2d_expression_map) {
                                 expressionMap = fs.live2d_expression_map;
-                                console.log(
+                                // console.log(
                                     "Parsed Expression Map:",
                                     expressionMap,
                                 );
@@ -180,7 +180,7 @@
                             // Parse Hit Motion Map
                             if (fs.live2d_hit_motion_map) {
                                 hitMotionMap = fs.live2d_hit_motion_map;
-                                console.log(
+                                // console.log(
                                     "Parsed Hit Motion Map:",
                                     hitMotionMap,
                                 );
@@ -205,7 +205,7 @@
         if (lastMsg.role === "assistant") {
             const text = lastMsg.content;
 
-            console.log("Debug: Last message content:", text);
+            // console.log("Debug: Last message content:", text);
 
             // Regex to find [ActionName]
             const actionMatch = text.match(/\[(.*?)\]/);
@@ -215,8 +215,8 @@
                 const actionName = rawTag.split(":")[0].trim();
 
                 if (actionName && actionName !== lastTriggeredAction) {
-                    console.log(`Debug: Action Tag Detected: [${actionName}]`);
-                    console.log(
+                    // console.log(`Debug: Action Tag Detected: [${actionName}]`);
+                    // console.log(
                         `Debug: Current Motion Map keys:`,
                         Object.keys(motionMap),
                     );
@@ -225,7 +225,7 @@
 
                     if (motionMap[actionName]) {
                         const mappedFile = motionMap[actionName];
-                        console.log(
+                        // console.log(
                             `Debug: Found mapping for ${actionName} -> ${mappedFile}`,
                         );
 
@@ -241,13 +241,13 @@
                                 mappedFile.endsWith(".exp.json"); // legacy check
 
                             if (isExpression) {
-                                console.log(
+                                // console.log(
                                     `Debug: Triggering as Expression: ${mappedFile}`,
                                 );
                                 if (Viewer.setExpression)
                                     Viewer.setExpression(mappedFile);
                             } else {
-                                console.log(
+                                // console.log(
                                     `Debug: Triggering as Motion: ${mappedFile}`,
                                 );
                                 if (Viewer.triggerMotion)
@@ -264,12 +264,12 @@
                         );
                     }
                 } else if (actionName === lastTriggeredAction) {
-                    console.log(
+                    // console.log(
                         `Debug: Skipping duplicate action ${actionName}`,
                     );
                 }
             } else {
-                console.log(
+                // console.log(
                     "Debug: No action tag found in text:",
                     text.substring(0, 30),
                 );
@@ -298,7 +298,7 @@
             },
             (emotion) => {
                 // Handle emotion detection via Viewer logic
-                console.log("Raw API Emotion:", emotion);
+                // console.log("Raw API Emotion:", emotion);
                 if (Viewer && Viewer.setExpression) {
                     Viewer.setExpression(emotion);
                 }

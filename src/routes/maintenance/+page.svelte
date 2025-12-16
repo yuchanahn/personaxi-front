@@ -23,7 +23,7 @@
                 window.location.href = "/hub";
             }
         } catch (e) {
-            console.log("Still down...");
+            // console.log("Still down...");
         } finally {
             isChecking = false;
         }

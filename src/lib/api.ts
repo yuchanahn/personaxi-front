@@ -5,7 +5,12 @@ import { accessToken } from '$lib/stores/auth';
 
 export const API_BASE_URL = dev ? '' : "https://api.personaxi.com";
 
-async function fetchWithAuth(url: string, options: RequestInit = {}): Promise<Response> {
+// AuthOption extension to RequestInit
+interface AuthRequestInit extends RequestInit {
+    requireAuth?: boolean;
+}
+
+async function fetchWithAuth(url: string, options: AuthRequestInit = {}): Promise<Response> {
     if (!browser) {
         return fetch(url, options);
     }
@@ -17,30 +22,32 @@ async function fetchWithAuth(url: string, options: RequestInit = {}): Promise<Re
     const { data: { session } } = await supabase.auth.getSession();
     const token = session?.access_token;
 
+    // Default requireAuth to true unless explicitly set to false
+    const requireAuth = options.requireAuth !== false;
+
     if (token) {
         headers.set('Authorization', `Bearer ${token}`);
-    } else {
-        // 토큰이 없으면 로그인 페이지로 이동
+    } else if (requireAuth) {
+        // 토큰이 없는데 인증이 필수라면 로그인 페이지로 이동
         window.location.href = '/login';
         throw new Error('No session');
     }
 
-    if (options.body) {
+    if (options.body && !headers.has('Content-Type')) {
         headers.set('Content-Type', 'application/json');
     }
     options.headers = headers;
 
     let response = await fetch(url, options);
 
-    if (response.status === 401) {
-        // 401 에러(인증 실패) 시 로그인 페이지로 이동
+    if (response.status === 401 && requireAuth) {
+        // 401 에러(인증 실패) 시 로그인 페이지로 이동 (필수 인증일 때만)
         window.location.href = '/login';
         throw new Error('Unauthorized');
     }
 
     if (response.status === 503) {
         // 503 에러(서버 점검/다운) 시 점검 페이지로 이동
-        // 이미 점검 페이지라면 리다이렉트 하지 않음 (무한 루프 방지)
         if (window.location.pathname !== '/maintenance') {
             window.location.href = '/maintenance';
         }
@@ -60,21 +67,16 @@ async function fetchWithAuth(url: string, options: RequestInit = {}): Promise<Re
 
 
 export const api = {
-    get: (url: string, options?: RequestInit) => fetchWithAuth(API_BASE_URL + url, { ...options, method: 'GET' }),
-    get2: (url: string, options?: RequestInit) => fetch(API_BASE_URL + url, { ...options, method: 'GET', credentials: 'include' }),
-    post: (url: string, data: any, options?: RequestInit) =>
+    get: (url: string, options?: AuthRequestInit) => fetchWithAuth(API_BASE_URL + url, { ...options, method: 'GET' }),
+    // get2 is getOptional (Public or Optional Auth)
+    get2: (url: string, options?: AuthRequestInit) => fetchWithAuth(API_BASE_URL + url, { ...options, method: 'GET', requireAuth: false }),
+
+    post: (url: string, data: any, options?: AuthRequestInit) =>
         fetchWithAuth(API_BASE_URL + url, { ...options, method: 'POST', body: JSON.stringify(data) }),
-    post2(url: string, data: any, options?: RequestInit) {
-        return fetch(url, {
-            ...options,
-            method: "POST",
-            body: JSON.stringify(data),
-            headers: {
-                ...options?.headers,
-                "Content-Type": "application/json",
-            },
-        });
-    },
+
+    // post2 is postPublic (No Auth enforced)
+    post2: (url: string, data: any, options?: AuthRequestInit) =>
+        fetchWithAuth(API_BASE_URL + url, { ...options, method: 'POST', body: JSON.stringify(data), requireAuth: false }),
     delete(url: string, options?: RequestInit) {
         return fetchWithAuth(API_BASE_URL + url, {
             ...options,
@@ -120,7 +122,7 @@ export const api = {
             wsURL = `${wsProtocol}//${apiUrl.host}${pathWithToken}`;
         }
 
-        console.log("🔗 WebSocket 연결 시도:", wsURL.replace(/token=[^&]+/, 'token=***'));
+        // console.log("🔗 WebSocket 연결 시도:", wsURL.replace(/token=[^&]+/, 'token=***'));
 
         const socket = new WebSocket(wsURL);
 

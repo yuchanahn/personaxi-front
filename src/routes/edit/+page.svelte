@@ -119,7 +119,7 @@
     async function loadLive2DMetadata(url: string) {
         if (!url) return;
         try {
-            console.log("Fetching Live2D metadata from:", url);
+            // console.log("Fetching Live2D metadata from:", url);
             const response = await fetch(url);
             if (!response.ok) throw new Error("Failed to fetch model3.json");
             const data = await response.json();
@@ -172,10 +172,10 @@
             });
             availableMotions = files;
 
-            console.log("Loaded Live2D Metadata:", {
-                availableExpressions,
-                availableMotions,
-            });
+            // console.log("Loaded Live2D Metadata:", {
+            //     availableExpressions,
+            //     availableMotions,
+            // });
         } catch (e) {
             console.warn("Failed to load Live2D metadata for UI:", e);
         }
@@ -250,7 +250,7 @@
                 loadLive2DMetadata(persona.live2d_model_url);
             }
 
-            console.log("Loaded persona:", persona);
+            // // console.log("Loaded persona:", persona);
             return p;
         } catch (err) {
             console.error("페르소나를 불러오는 데 실패했습니다:", err);
@@ -340,11 +340,11 @@
                         return;
                     }
 
-                    console.log("VRM Meta:", meta);
-                    console.log("Checking license fields...");
-                    console.log("otherPermissionUrl:", meta.otherPermissionUrl);
-                    console.log("licenseName:", meta.licenseName);
-                    console.log("reference:", meta.reference);
+                    // console.log("VRM Meta:", meta);
+                    // console.log("Checking license fields...");
+                    // console.log("otherPermissionUrl:", meta.otherPermissionUrl);
+                    // console.log("licenseName:", meta.licenseName);
+                    // console.log("reference:", meta.reference);
 
                     // Check for 'personaxi' in license fields
                     const otherLicenseUrl = (
@@ -373,18 +373,18 @@
                             return false;
                         });
                     if (otherLicenseUrl.includes("personaxi") || authorMatch) {
-                        console.log("License validation PASSED");
+                        // console.log("License validation PASSED");
                         resolve(true);
                     } else {
-                        console.log("License validation FAILED");
+                        // console.log("License validation FAILED");
                         resolve(false);
                     }
                 },
                 (progress) => {
-                    console.log(
-                        "Loading VRM for validation...",
-                        (progress.loaded / progress.total) * 100 + "%",
-                    );
+                    // console.log(
+                    //     "Loading VRM for validation...",
+                    //     (progress.loaded / progress.total) * 100 + "%",
+                    // );
                 },
                 (error) => {
                     URL.revokeObjectURL(url);
@@ -518,7 +518,7 @@
             persona.live2d_model_url = result.model3_json_url;
             availableExpressions = result.expressions;
             availableMotions = result.motions;
-            console.log("Live2D Upload Success:", result);
+            // console.log("Live2D Upload Success:", result);
         } catch (e: any) {
             console.error("Live2D Upload Error:", e);
             error = `Live2D upload failed: ${e.message}`;
@@ -567,9 +567,9 @@
                     `${supabaseURL}${fileName}`;
                 persona.image_metadatas[assetId].type = undefined;
 
-                console.log(
-                    `✅ ${file.name} uploaded successfully on attempt ${attempt}`,
-                );
+                // console.log(
+                //     `✅ ${file.name} uploaded successfully on attempt ${attempt}`,
+                // );
 
                 return;
             } catch (e: any) {
@@ -616,9 +616,9 @@
                 persona.vrm_url = `${supabaseURL}${fileName}`;
                 vrm_progress = 0;
 
-                console.log(
-                    `✅ ${vrmFile!.name} uploaded successfully on attempt ${attempt}`,
-                );
+                // console.log(
+                //     `✅ ${vrmFile!.name} uploaded successfully on attempt ${attempt}`,
+                // );
 
                 return;
             } catch (e: any) {
@@ -671,9 +671,9 @@
                 portraitPreview = `${supabaseURL}${fileName}`;
                 portrait_progress = 0;
 
-                console.log(
-                    `✅ ${portraitFile!.name} uploaded successfully on attempt ${attempt}`,
-                );
+                // console.log(
+                //     `✅ ${portraitFile!.name} uploaded successfully on attempt ${attempt}`,
+                // );
 
                 return;
             } catch (e: any) {
@@ -1309,7 +1309,7 @@
                                     firstSceneJson = json;
                                     persona.first_scene = json;
 
-                                    console.log(persona.first_scene);
+                                    // console.log(persona.first_scene);
                                 }}
                             />
                         {:else}
