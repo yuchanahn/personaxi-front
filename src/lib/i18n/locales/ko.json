@@ -3,7 +3,7 @@
     "explore": "탐색",
     "feed": "피드",
     "create": "생성",
-    "settings": "설정",
+    "settings": "마이",
     "chat": "채팅"
   },
   "settingPage": {
@@ -22,7 +22,11 @@
     "deleteConfirm": "페르소나 '{name}'을(를) 정말 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다.",
     "editProfile": "수정",
     "save": "저장",
-    "cancel": "취소"
+    "cancel": "취소",
+    "liked": "좋아요",
+    "following": "팔로잉",
+    "noLiked": "아직 좋아요한 페르소나가 없습니다.",
+    "noFollowing": "아직 팔로우한 크리에이터가 없습니다."
   },
   "settingPageModal": {
     "deleteAccount": "회원 탈퇴",
@@ -250,6 +254,8 @@
     "description": "더 많은 대화를 나누려면 뉴런을 충전해주세요.",
     "rechargeTitle": "뉴런 충전!",
     "rechargeDescription": "더 많은 대화를 나누려면 뉴런을 충전해주세요.",
+    "rechargeAlert": "{amount} 뉴런을 선택하셨습니다.",
+    "rechargeSuccess": "충전이 완료되었습니다! 뉴런이 지급되었습니다.",
     "firstCreationReward": "페르소나 최초 생성 시 200 뉴런 지급!",
     "getFreeNeurons": "무료 뉴런 받기",
     "currentNeurons": "현재 수량: {count} 뉴런"

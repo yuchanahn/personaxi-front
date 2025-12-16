@@ -3,8 +3,8 @@
     import { fade, fly } from "svelte/transition";
     import Icon from "@iconify/svelte";
     import NotificationList from "./NotificationList.svelte";
-    import { notificationStore } from "$lib/stores/notification";
     import { t } from "svelte-i18n";
+    import { notificationStore } from "$lib/stores/notification";
 
     export let isOpen = false;
 
@@ -14,11 +14,8 @@
         dispatch("close");
     }
 
-    function markAllRead() {
-        // notificationStore.markAllAsRead();
-        // For now, just close or show toast?
-        // Backend doesn't support bulk read yet efficiently, but we can iterate.
-        // Or just leave it for now.
+    $: if (isOpen) {
+        notificationStore.fetchNotifications();
     }
 </script>
 

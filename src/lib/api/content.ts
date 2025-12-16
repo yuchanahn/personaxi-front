@@ -78,6 +78,9 @@ export async function loadFollowedContent() {
     const res = await api.get(`/api/contents/followed?locale=${get(settings).language}`);
     if (res.ok) {
         const data = await res.json();
+        if (data === null) {
+            return [];
+        }
         return data;
     }
     return [];
@@ -91,6 +94,9 @@ export async function loadLikedContent() {
     const res = await api.get(`/api/contents/liked?locale=${get(settings).language}`);
     if (res.ok) {
         const data = await res.json();
+        if (data === null) {
+            return [];
+        }
         return data;
     }
     return [];

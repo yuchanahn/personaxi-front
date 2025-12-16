@@ -1,0 +1,66 @@
+<script>
+    import { onMount } from "svelte";
+    import { supabase } from "$lib/supabase";
+
+    // Auto logout on mount to clean up session
+    onMount(async () => {
+        await supabase.auth.signOut();
+    });
+</script>
+
+<div
+    class="min-h-screen bg-gray-900 flex flex-col justify-center items-center px-4 sm:px-6 lg:px-8"
+>
+    <div class="max-w-md w-full text-center space-y-8">
+        <div>
+            <div
+                class="mx-auto h-24 w-24 flex items-center justify-center rounded-full bg-red-900/30"
+            >
+                <svg
+                    class="h-12 w-12 text-red-500"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                >
+                    <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+                    />
+                </svg>
+            </div>
+            <h2 class="mt-6 text-3xl font-extrabold text-white">
+                Account Suspended
+            </h2>
+            <p class="mt-2 text-sm text-gray-400">
+                Your account has been suspended due to a violation of our Terms
+                of Service.
+            </p>
+        </div>
+
+        <div
+            class="rounded-md bg-gray-800 p-6 shadow-sm border border-gray-700"
+        >
+            <h3 class="text-sm font-medium text-gray-200">What happens now?</h3>
+            <p class="mt-2 text-sm text-gray-400">
+                Access to all services has been revoked. If you believe this is
+                a mistake, please contact our support team.
+            </p>
+            <div class="mt-6">
+                <a
+                    href="mailto:support@personaxi.com"
+                    class="text-indigo-400 hover:text-indigo-300 text-sm font-semibold"
+                >
+                    Contact Support &rarr;
+                </a>
+            </div>
+        </div>
+
+        <div class="text-center">
+            <a href="/" class="text-xs text-gray-600 hover:text-gray-500"
+                >Return to Home</a
+            >
+        </div>
+    </div>
+</div>

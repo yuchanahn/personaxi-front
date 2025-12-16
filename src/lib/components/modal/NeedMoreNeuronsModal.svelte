@@ -39,12 +39,61 @@
         { neurons: 12000, price: "₩12,000" },
     ];
 
+    import { api } from "$lib/api"; // Assuming api client exists
+    import { notificationStore } from "$lib/stores/notification";
+
+    let isPurchasing = false;
+    let purchaseSuccess = false;
+    let purchasedAmount = 0;
+
     function handleRecharge(amount: number) {
-        alert($t('needNeuronsModal.rechargeAlert', { values: { amount } }));
-        closeModal();
+        if (isPurchasing) return;
+        isPurchasing = true;
+        purchaseSuccess = false;
+
+        let itemId = "";
+        if (amount == 1000) itemId = "neuron_1000";
+        else if (amount == 5500) itemId = "neuron_5500";
+        else if (amount == 12000) itemId = "neuron_12000";
+
+        api.post("/api/shop/purchase/virtual", { itemId })
+            .then((res: any) => {
+                // Update local store
+                st_user.update((u) => {
+                    if (u) {
+                        // Ensure credits is treated as number to avoid string concatenation "10" + 1000 = "101000"
+                        u.credits = parseInt(String(u.credits), 10) + amount;
+                    }
+                    return u;
+                });
+
+                purchaseSuccess = true;
+                purchasedAmount = amount;
+
+                // Refresh notifications
+                notificationStore.fetchNotifications();
+                notificationStore.fetchUnreadCount();
+
+                // Auto close after 2 seconds
+                setTimeout(() => {
+                    closeModal();
+                    // Reset states after closing for next time
+                    setTimeout(() => {
+                        purchaseSuccess = false;
+                        isPurchasing = false;
+                    }, 500);
+                }, 2000);
+            })
+            .catch((err) => {
+                console.error(err);
+                alert("Failed to charge credits."); // Keep alert for error only for now
+                isPurchasing = false;
+            });
     }
 
-    let current_neurons_count = get(st_user)?.credits || 0;
+    let current_neurons_count: number = 0;
+    $: current_neurons_count = $st_user?.credits || 0;
+
     let isFrist = get(st_user)?.data.hasReceivedFirstCreationReward;
 </script>
 
@@ -54,55 +103,90 @@
     <div class="modal-backdrop" on:click|self={closeModal}>
         <div class="modal-content">
             <button class="close-button" on:click={closeModal}>&times;</button>
-            {#if isNeedNeurons}
-                <h2>{$t('needNeuronsModal.title')}</h2>
-                <p class="description">
-                    {$t('needNeuronsModal.description')}
-                </p>
-            {:else}
-                <h2>{$t('needNeuronsModal.rechargeTitle')}</h2>
-                <p class="description">
-                    {$t('needNeuronsModal.rechargeDescription')}
-                </p>
-            {/if}
-            {#if !isFrist}
-                <div class="promo-box">
-                    <Icon icon="ph:gift-bold" width="24" />
-                    <span>{$t('needNeuronsModal.firstCreationReward')}</span>
+
+            {#if purchaseSuccess}
+                <div class="success-view">
+                    <Icon
+                        icon="ph:check-circle-fill"
+                        color="#4caf50"
+                        width="64"
+                    />
+                    <h2>
+                        {$t("needNeuronsModal.rechargeSuccess", {
+                            default: "Purchase Successful!",
+                        })}
+                    </h2>
+                    <p class="description">
+                        {purchasedAmount.toLocaleString()} Neurons added.
+                    </p>
                 </div>
+            {:else}
+                {#if isNeedNeurons}
+                    <h2>{$t("needNeuronsModal.title")}</h2>
+                    <p class="description">
+                        {$t("needNeuronsModal.description")}
+                    </p>
+                {:else}
+                    <h2>{$t("needNeuronsModal.rechargeTitle")}</h2>
+                    <p class="description">
+                        {$t("needNeuronsModal.rechargeDescription")}
+                    </p>
+                {/if}
 
-                <button
-                    class="go-to-edit-button"
-                    on:click={() => {
-                        closeModal();
-                        goto("/edit");
-                    }}
-                >
-                    <Icon icon="ph:plus-circle-bold" width="20" />
-                    <span>{$t('needNeuronsModal.getFreeNeurons')}</span>
-                </button>
-            {/if}
+                {#if !isFrist}
+                    <div class="promo-box">
+                        <Icon icon="ph:gift-bold" width="24" />
+                        <span>{$t("needNeuronsModal.firstCreationReward")}</span
+                        >
+                    </div>
 
-            <div style="display: flex; justify-content: center; align-items: center;">
-                <p>
-                    {$t('needNeuronsModal.currentNeurons', { values: { count: current_neurons_count } })}
-                </p>
-            </div>
-            <div class="recharge-options">
-                {#each rechargeOptions as option}
                     <button
-                        class="recharge-button"
-                        on:click={() => handleRecharge(option.neurons)}
+                        class="go-to-edit-button"
+                        on:click={() => {
+                            closeModal();
+                            goto("/edit");
+                        }}
                     >
-                        <NeuronIcon />
-                        <span class="neurons-amount">
-                            X {option.neurons.toLocaleString()}
-                        </span>
-
-                        <span class="price-tag">{option.price}</span>
+                        <Icon icon="ph:plus-circle-bold" width="20" />
+                        <span>{$t("needNeuronsModal.getFreeNeurons")}</span>
                     </button>
-                {/each}
-            </div>
+                {/if}
+
+                <div
+                    style="display: flex; justify-content: center; align-items: center;"
+                >
+                    <p>
+                        {$t("needNeuronsModal.currentNeurons", {
+                            values: { count: current_neurons_count },
+                        })}
+                    </p>
+                </div>
+                <div class="recharge-options">
+                    {#each rechargeOptions as option}
+                        <button
+                            class="recharge-button"
+                            disabled={isPurchasing}
+                            class:disabled={isPurchasing}
+                            on:click={() => handleRecharge(option.neurons)}
+                        >
+                            <div
+                                style="display:flex; align-items:center; gap:8px;"
+                            >
+                                <NeuronIcon />
+                                <span class="neurons-amount">
+                                    X {option.neurons.toLocaleString()}
+                                </span>
+                            </div>
+
+                            {#if isPurchasing}
+                                <span class="spinner">...</span>
+                            {:else}
+                                <span class="price-tag">{option.price}</span>
+                            {/if}
+                        </button>
+                    {/each}
+                </div>
+            {/if}
         </div>
     </div>
 {/if}
@@ -225,5 +309,30 @@
         padding: 4px 10px;
         border-radius: 6px;
         font-size: 0.9em;
+    }
+
+    .recharge-button.disabled {
+        opacity: 0.7;
+        cursor: not-allowed;
+    }
+
+    .success-view {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 2rem 0;
+        animation: fadeIn 0.3s ease;
+    }
+
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(10px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
     }
 </style>

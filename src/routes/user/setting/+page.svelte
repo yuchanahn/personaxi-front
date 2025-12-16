@@ -18,6 +18,7 @@
         getUploadUrl,
         uploadFileWithProgress,
     } from "$lib/api/edit_persona";
+    import { st_user } from "$lib/stores/user";
 
     const supabaseURL =
         "https://uohepkqmwbstbmnkoqju.supabase.co/storage/v1/object/public/personaxi-assets/";
@@ -296,6 +297,31 @@
         userListTab = tab;
         showUserListModal = true;
     }
+
+    import CharacterCard from "$lib/components/card/CharacterCard.svelte";
+    import { loadLikedContent, loadFollowedContent } from "$lib/api/content";
+
+    let activeTab: "created" | "liked" | "following" = "created";
+    let likedPersonas: any[] = []; // PersonaDTO
+    let followedPersonas: any[] = []; // PersonaDTO
+    let isLoadingTab = false;
+
+    async function switchTab(tab: "created" | "liked" | "following") {
+        activeTab = tab;
+        if (tab === "liked" && likedPersonas.length === 0) {
+            isLoadingTab = true;
+            likedPersonas = await loadLikedContent();
+            isLoadingTab = false;
+        } else if (tab === "following" && followedPersonas.length === 0) {
+            isLoadingTab = true;
+            followedPersonas = await loadFollowedContent();
+            isLoadingTab = false;
+        }
+    }
+
+    function handleCardClick(content: any) {
+        goto(`/profile?c=${content.id}`);
+    }
 </script>
 
 <div class="page-container">
@@ -446,7 +472,9 @@
                 <div style="display: flex; align-items: center;">
                     <NeuronIcon size={24} color={"#a0a0a0"} />
 
-                    <span class="value">{user.credits}</span>
+                    <span class="value"
+                        >{$st_user?.credits || user.credits}</span
+                    >
                 </div>
             </div>
 
@@ -483,93 +511,124 @@
         </div>
     </div>
 
+    <!-- TAB HEADER -->
     <div class="section-header">
-        <h2>{$t("settingPage.myPersonas")}</h2>
-        <button class="btn btn-primary" on:click={() => goto("/edit")}>
-            {$t("settingPage.newPersona")}
-        </button>
+        <div class="tab-buttons">
+            <button
+                class="tab-btn"
+                class:active={activeTab === "created"}
+                on:click={() => switchTab("created")}
+            >
+                {$t("settingPage.myPersonas")}
+            </button>
+            <button
+                class="tab-btn"
+                class:active={activeTab === "liked"}
+                on:click={() => switchTab("liked")}
+            >
+                {$t("settingPage.liked")}
+            </button>
+            <button
+                class="tab-btn"
+                class:active={activeTab === "following"}
+                on:click={() => switchTab("following")}
+            >
+                {$t("settingPage.following")}
+            </button>
+        </div>
+
+        {#if activeTab === "created"}
+            <button class="btn btn-primary" on:click={() => goto("/edit")}>
+                {$t("settingPage.newPersona")}
+            </button>
+        {/if}
     </div>
+
     <div class="personas-section">
-        <div class="persona-grid">
-            {#each personas as persona}
-                <div class="persona-card">
-                    <div class="card-header">
-                        <!-- <img
-                            src={`${PORTRAIT_URL}${persona.owner_id[0]}/${
-                                persona.id
-                            }.portrait`}
-                            alt={persona.name}
-                            class="avatar-image"
-                        /> -->
+        {#if isLoadingTab}
+            <div class="loading-state">Loading...</div>
+        {:else if activeTab === "created"}
+            <div class="persona-grid">
+                {#each personas as persona}
+                    <div class="persona-card">
+                        <div class="card-header">
+                            <AssetPreview
+                                asset={{
+                                    url: persona.portrait_url,
+                                    description: "",
+                                }}
+                            />
 
-                        <AssetPreview
-                            asset={{
-                                url: persona.portrait_url,
-                                description: "",
-                            }}
-                        />
+                            {#if isLive(persona.id)}
+                                <div class="live-indicator">LIVE</div>
+                            {/if}
+                        </div>
 
-                        {#if isLive(persona.id)}
-                            <div class="live-indicator">LIVE</div>
-                        {/if}
-                    </div>
+                        <div class="card-body">
+                            <h3>{persona.name}</h3>
+                            <p class="persona-type">
+                                {persona.personaType} Type
+                            </p>
+                        </div>
 
-                    <div class="card-body">
-                        <h3>{persona.name}</h3>
-                        <p class="persona-type">{persona.personaType} Type</p>
-                    </div>
-
-                    <div class="card-footer">
-                        {#if persona.personaType === "3D"}
-                            <!-- <div class="actions-group">
-                                <button
-                                    class="btn btn-toggle"
-                                    class:active={isLive(persona.id)}
-                                    on:click={() => toggleLive(persona.id)}
-                                    aria-label={isLive(persona.id)
-                                        ? $t("settingPage.broadcastEnd")
-                                        : $t("settingPage.broadcastStart")}
-                                >
-                                    <Icon icon="mdi:broadcast" />
-                                </button>
+                        <div class="card-footer">
+                            <div class="actions-group">
                                 <button
                                     class="btn"
-                                    on:click={() => openAuctionModal(persona)}
-                                    disabled={isLive(persona.id)}
-                                    aria-label={$t("settingPage.auctionStart")}
+                                    on:click={() =>
+                                        goto(`/edit?c=${persona.id}`)}
+                                    aria-label={$t("settingPage.edit")}
                                 >
-                                    <Icon icon="ri:auction-fill" />
+                                    <Icon icon="ri:edit-line" />
                                 </button>
-                            </div> -->
-                        {/if}
-                        <div class="actions-group">
-                            <button
-                                class="btn"
-                                on:click={() => goto(`/edit?c=${persona.id}`)}
-                                aria-label={$t("settingPage.edit")}
-                            >
-                                <Icon icon="ri:edit-line" />
-                            </button>
 
-                            <button
-                                class="btn"
-                                class:public={persona.visibility === "public"}
-                                on:click={() => toggleVisibility(persona)}
-                                aria-label={persona.visibility === "public"
-                                    ? "캐릭터를 비공개로 전환"
-                                    : "캐릭터를 공개로 전환"}
-                            >
-                                {#if persona.visibility === "public"}
-                                    <Icon icon="ph:eye-bold" />
-                                {:else}
-                                    <Icon icon="ph:eye-slash-bold" />
-                                {/if}
-                            </button>
+                                <button
+                                    class="btn"
+                                    class:public={persona.visibility ===
+                                        "public"}
+                                    on:click={() => toggleVisibility(persona)}
+                                    aria-label={persona.visibility === "public"
+                                        ? "캐릭터를 비공개로 전환"
+                                        : "캐릭터를 공개로 전환"}
+                                >
+                                    {#if persona.visibility === "public"}
+                                        <Icon icon="ph:eye-bold" />
+                                    {:else}
+                                        <Icon icon="ph:eye-slash-bold" />
+                                    {/if}
+                                </button>
+                            </div>
                         </div>
                     </div>
-                </div>
-            {/each}
-        </div>
+                {/each}
+            </div>
+        {:else if activeTab === "liked"}
+            <div class="persona-grid">
+                {#each likedPersonas as content}
+                    <CharacterCard
+                        {content}
+                        on:click={() => handleCardClick(content)}
+                    />
+                {/each}
+                {#if likedPersonas.length === 0}
+                    <div class="empty-state">{$t("settingPage.noLiked")}</div>
+                {/if}
+            </div>
+        {:else if activeTab === "following"}
+            <div class="persona-grid">
+                {#each followedPersonas as content}
+                    <CharacterCard
+                        {content}
+                        on:click={() => handleCardClick(content)}
+                    />
+                {/each}
+                {#if followedPersonas.length === 0}
+                    <div class="empty-state">
+                        {$t("settingPage.noFollowing")}
+                    </div>
+                {/if}
+            </div>
+        {/if}
     </div>
 
     {#if showAuctionModal && selectedPersona}
@@ -1003,5 +1062,34 @@
         .creator-name {
             font-size: 0.7em;
         }
+    }
+    .tab-buttons {
+        display: flex;
+        gap: 0.5rem;
+    }
+    .tab-btn {
+        background: transparent;
+        border: none;
+        padding: 0.5rem 1rem;
+        cursor: pointer;
+        color: var(--muted-foreground);
+        font-weight: 600;
+        font-size: 1.1rem;
+        transition: all 0.2s;
+        border-bottom: 2px solid transparent;
+    }
+    .tab-btn:hover {
+        color: var(--foreground);
+    }
+    .tab-btn.active {
+        color: var(--foreground);
+        border-bottom-color: var(--primary);
+    }
+    .loading-state,
+    .empty-state {
+        padding: 3rem;
+        text-align: center;
+        color: var(--muted-foreground);
+        font-size: 1.1rem;
     }
 </style>

@@ -191,20 +191,6 @@
                 >
                     {$t("contentHub.all")}
                 </button>
-                <button
-                    class="bubble"
-                    class:active={selectedCategory === "following"}
-                    on:click={() => filterByCategory("following")}
-                >
-                    {$t("contentHub.following")}
-                </button>
-                <button
-                    class="bubble"
-                    class:active={selectedCategory === "liked"}
-                    on:click={() => filterByCategory("liked")}
-                >
-                    ♥
-                </button>
                 {#each allCategories as category (category.id)}
                     <button
                         class="bubble"
@@ -250,7 +236,7 @@
     <div class="hub-container">
         {#if $isLoading}
             <div class="center-message">Loading...</div>
-        {:else if $contents.length === 0}
+        {:else if $contents === null || $contents.length === 0}
             <div class="center-message">{$t("contentHub.noResults")}</div>
         {:else}
             <div class="content">

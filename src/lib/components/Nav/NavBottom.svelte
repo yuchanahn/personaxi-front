@@ -26,7 +26,7 @@
         },
         {
             href: "/user/setting",
-            icon: "ph:gear-duotone",
+            icon: "ph:user-circle-duotone",
             label: $t("nav.settings"),
         },
     ];

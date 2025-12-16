@@ -79,7 +79,13 @@
             } else {
                 accessToken.set(null);
                 // 로그아웃 상태에서 보호된 라우트 접근 시 로그인 페이지로 이동
-                const publicRoutes = ["/login", "/signup", "/", "/test"];
+                const publicRoutes = [
+                    "/login",
+                    "/signup",
+                    "/",
+                    "/test",
+                    "/suspended",
+                ];
                 if (!publicRoutes.includes($page.url.pathname)) {
                     goto("/login");
                 }

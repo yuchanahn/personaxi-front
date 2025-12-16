@@ -320,6 +320,8 @@
     "description": "Please recharge your neurons to continue the conversation.",
     "rechargeTitle": "Recharge Neurons!",
     "rechargeDescription": "Recharge neurons to enjoy more conversations.",
+    "rechargeAlert": "You selected {amount} Neurons.",
+    "rechargeSuccess": "Recharge complete! Neurons have been added.",
     "firstCreationReward": "Get 200 Neurons for your first Persona creation!",
     "getFreeNeurons": "Get Free Neurons",
     "currentNeurons": "Current: {count} Neurons"

@@ -47,6 +47,14 @@ async function fetchWithAuth(url: string, options: RequestInit = {}): Promise<Re
         throw new Error('Service Unavailable');
     }
 
+    if (response.status === 403) {
+        // 403 Forbidden (Banned)
+        if (window.location.pathname !== '/suspended') {
+            window.location.href = '/suspended';
+        }
+        throw new Error('Forbidden');
+    }
+
     return response;
 }
 
