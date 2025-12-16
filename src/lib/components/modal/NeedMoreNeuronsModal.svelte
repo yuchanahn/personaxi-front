@@ -48,6 +48,11 @@
     let purchasedAmount = 0;
 
     function handleRecharge(amount: number) {
+        // DISABLED: Waiting for real PG integration
+        toast.info("결제 시스템 준비 중입니다. 조금만 기다려주세요!");
+        return;
+
+        /* Original code - re-enable after PG integration
         if (isPurchasing) return;
         isPurchasing = true;
         purchaseSuccess = false;
@@ -90,6 +95,7 @@
                 toast.error("Failed to charge credits.");
                 isPurchasing = false;
             });
+        */
     }
 
     let current_neurons_count: number = 0;
@@ -134,7 +140,7 @@
                     </p>
                 {/if}
 
-                {#if !isFrist}
+                {#if isFrist}
                     <div class="promo-box">
                         <Icon icon="ph:gift-bold" width="24" />
                         <span>{$t("needNeuronsModal.firstCreationReward")}</span
