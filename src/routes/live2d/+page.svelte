@@ -171,19 +171,11 @@
                             // Parse Expressions
                             if (fs.live2d_expression_map) {
                                 expressionMap = fs.live2d_expression_map;
-                                // console.log(
-                                    "Parsed Expression Map:",
-                                    expressionMap,
-                                );
                             }
 
                             // Parse Hit Motion Map
                             if (fs.live2d_hit_motion_map) {
                                 hitMotionMap = fs.live2d_hit_motion_map;
-                                // console.log(
-                                    "Parsed Hit Motion Map:",
-                                    hitMotionMap,
-                                );
                             }
                         }
                     } catch (e) {
@@ -215,19 +207,10 @@
                 const actionName = rawTag.split(":")[0].trim();
 
                 if (actionName && actionName !== lastTriggeredAction) {
-                    // console.log(`Debug: Action Tag Detected: [${actionName}]`);
-                    // console.log(
-                        `Debug: Current Motion Map keys:`,
-                        Object.keys(motionMap),
-                    );
-
                     lastTriggeredAction = actionName;
 
                     if (motionMap[actionName]) {
                         const mappedFile = motionMap[actionName];
-                        // console.log(
-                            `Debug: Found mapping for ${actionName} -> ${mappedFile}`,
-                        );
 
                         if (Viewer) {
                             // Check if it's an expression
@@ -241,15 +224,9 @@
                                 mappedFile.endsWith(".exp.json"); // legacy check
 
                             if (isExpression) {
-                                // console.log(
-                                    `Debug: Triggering as Expression: ${mappedFile}`,
-                                );
                                 if (Viewer.setExpression)
                                     Viewer.setExpression(mappedFile);
                             } else {
-                                // console.log(
-                                    `Debug: Triggering as Motion: ${mappedFile}`,
-                                );
                                 if (Viewer.triggerMotion)
                                     Viewer.triggerMotion(mappedFile);
                             }
@@ -264,15 +241,10 @@
                         );
                     }
                 } else if (actionName === lastTriggeredAction) {
-                    // console.log(
-                        `Debug: Skipping duplicate action ${actionName}`,
-                    );
+                    // Skipping duplicate action
                 }
             } else {
-                // console.log(
-                    "Debug: No action tag found in text:",
-                    text.substring(0, 30),
-                );
+                // No action tag found in text
             }
         }
     }

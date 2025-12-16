@@ -271,6 +271,43 @@
     }
 </script>
 
+<svelte:head>
+    {#if persona}
+        <title>{persona.name} - PersonaXi</title>
+        <meta
+            name="description"
+            content={persona.one_liner ||
+                persona.greeting ||
+                `${persona.name}과 대화하세요`}
+        />
+        <meta property="og:title" content="{persona.name} - PersonaXi" />
+        <meta
+            property="og:description"
+            content={persona.one_liner ||
+                persona.greeting ||
+                `${persona.name}과 대화하세요`}
+        />
+        <meta
+            property="og:image"
+            content={persona.portrait_url ||
+                "https://personaxi.com/og-image.png"}
+        />
+        <meta
+            property="og:url"
+            content="https://personaxi.com/profile?c={persona.id}"
+        />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content="{persona.name} - PersonaXi" />
+        <meta
+            name="twitter:image"
+            content={persona.portrait_url ||
+                "https://personaxi.com/og-image.png"}
+        />
+    {:else}
+        <title>페르소나 - PersonaXi</title>
+    {/if}
+</svelte:head>
+
 <div class="scroll-container select-none">
     <div class="profile-page-wrapper">
         {#if isLoading}
