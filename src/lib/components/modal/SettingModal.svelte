@@ -15,6 +15,8 @@
     import { chatSessions } from "$lib/stores/chatSessions";
     import type { User } from "$lib/types";
     import { getCurrentUser } from "$lib/api/auth";
+    import { toast } from "$lib/stores/toast";
+    import { confirmStore } from "$lib/stores/confirm";
 
     export let isOpen: boolean = false;
     export let persona: Persona;
@@ -144,7 +146,12 @@
     }
 
     async function handleResetChat() {
-        if (!confirm($t("settingModal.confirmReset"))) return;
+        if (
+            !(await confirmStore.ask($t("settingModal.confirmReset"), {
+                type: "warning",
+            }))
+        )
+            return;
         isLoading = true;
         showStatus("Resetting chat...", 0);
         try {
@@ -288,7 +295,8 @@
                     </button>
                     <button
                         class="action-button"
-                        on:click={() => alert("Share feature coming soon!")}
+                        on:click={() =>
+                            toast.info("Share feature coming soon!")}
                         disabled={isLoading}
                     >
                         <Icon icon="ph:share-network-bold" />

@@ -4,6 +4,7 @@
     import { locale, t } from "svelte-i18n";
     import Icon from "@iconify/svelte";
     import { get } from "svelte/store";
+    import { toast } from "$lib/stores/toast";
 
     export let isOpen: boolean = false;
     const dispatch = createEventDispatcher();
@@ -28,7 +29,7 @@
         if (allAgreed) {
             dispatch("confirm");
         } else {
-            alert(get(t)("consentModal.alertAllAgreed"));
+            toast.warning(get(t)("consentModal.alertAllAgreed"));
         }
     }
 

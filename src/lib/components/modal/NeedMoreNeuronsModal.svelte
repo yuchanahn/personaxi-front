@@ -6,6 +6,7 @@
     import NeuronIcon from "../icons/NeuronIcon.svelte";
     import { get } from "svelte/store";
     import { st_user } from "$lib/stores/user";
+    import { toast } from "$lib/stores/toast";
 
     // 부모 컴포넌트로부터 모달 가시성 상태를 양방향으로 바인딩합니다.
     export let isOpen: boolean = false;
@@ -86,7 +87,7 @@
             })
             .catch((err) => {
                 console.error(err);
-                alert("Failed to charge credits."); // Keep alert for error only for now
+                toast.error("Failed to charge credits.");
                 isPurchasing = false;
             });
     }

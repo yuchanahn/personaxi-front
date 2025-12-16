@@ -4,6 +4,7 @@
     import Icon from "@iconify/svelte";
     import { t } from "svelte-i18n";
     import { api } from "$lib/api";
+    import { toast } from "$lib/stores/toast";
 
     const dispatch = createEventDispatcher();
 
@@ -30,7 +31,7 @@
             }, 1500);
         } catch (error) {
             console.error("Feedback submission error:", error);
-            alert($t("feedbackModal.submitFailed"));
+            toast.error($t("feedbackModal.submitFailed"));
             isLoading = false;
         }
     }
@@ -55,7 +56,11 @@
     });
 </script>
 
+<!-- svelte-ignore a11y-click-events-have-key-events -->
+<!-- svelte-ignore a11y-no-static-element-interactions -->
 <div class="modal-backdrop" on:click={closeModal} transition:fade>
+    <!-- svelte-ignore a11y-click-events-have-key-events -->
+    <!-- svelte-ignore a11y-no-static-element-interactions -->
     <div class="modal-container" on:click|stopPropagation>
         <button class="close-button" on:click={closeModal} aria-label="닫기">
             <Icon icon="ph:x-bold" />
@@ -79,7 +84,7 @@
                     bind:value={feedbackText}
                     placeholder={$t("feedbackModal.placeholder")}
                     disabled={isLoading}
-                />
+                ></textarea>
                 <button
                     class="submit-button"
                     on:click={handleSubmit}

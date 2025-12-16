@@ -23,6 +23,8 @@
     import { allCategories } from "$lib/constants";
     import Icon from "@iconify/svelte";
     import FirstSceneBuilder from "$lib/components/FirstSceneBuilder.svelte";
+    import { toast } from "$lib/stores/toast";
+    import { confirmStore } from "$lib/stores/confirm";
 
     let originalPersona: Persona | null = null;
     let vrmFile: File | null = null;
@@ -270,7 +272,7 @@
 
             const isValid = await validateVRMLicense(vrmFile);
             if (!isValid) {
-                alert($t("editPage.vrmLicenseError"));
+                toast.error($t("editPage.vrmLicenseError"));
                 input.value = ""; // Clear input
                 vrmFile = null;
                 return;
@@ -393,14 +395,14 @@
         });
     }
 
-    function handleVRMUploadClick() {
-        if (confirm($t("editPage.vrmLicenseWarning"))) {
+    async function handleVRMUploadClick() {
+        if (await confirmStore.ask($t("editPage.vrmLicenseWarning"))) {
             vrmInput.click();
         }
     }
 
-    function handleLive2DUploadClick() {
-        if (confirm($t("editPage.licenseUploadWarning"))) {
+    async function handleLive2DUploadClick() {
+        if (await confirmStore.ask($t("editPage.licenseUploadWarning"))) {
             document.getElementById("live2d-file")?.click();
         }
     }
@@ -412,7 +414,7 @@
             if (persona.tags.length < 3) {
                 persona.tags = [...persona.tags, tagId];
             } else {
-                alert($t("editPage.validation.maxTags"));
+                toast.warning($t("editPage.validation.maxTags"));
             }
         }
     }
@@ -467,7 +469,7 @@
         if (input.files) {
             // Limit check
             if (persona.image_metadatas.length + input.files.length > 40) {
-                alert("Maximum 40 images allowed.");
+                toast.warning("Maximum 40 images allowed.");
                 return;
             }
 

@@ -7,6 +7,8 @@
     import { goto } from "$app/navigation";
     import { supabase } from "$lib/supabase";
     import { accessToken } from "$lib/stores/auth";
+    import { toast } from "$lib/stores/toast";
+    import { confirmStore } from "$lib/stores/confirm";
 
     export let isOpen: boolean = false;
     const dispatch = createEventDispatcher();
@@ -17,15 +19,20 @@
     }
 
     async function handleDeleteAccount() {
-        if (confirm($t("settingPageModal.deleteAccountConfirm"))) {
+        if (
+            await confirmStore.ask(
+                $t("settingPageModal.deleteAccountConfirm"),
+                { type: "danger", confirmText: "Delete" },
+            )
+        ) {
             const success = await deleteUser();
             if (success) {
                 await supabase.auth.signOut();
                 accessToken.set(null);
-                alert($t("settingPageModal.deleteAccountSuccess"));
+                toast.success($t("settingPageModal.deleteAccountSuccess"));
                 window.location.href = "/";
             } else {
-                alert($t("settingPageModal.deleteAccountFail"));
+                toast.error($t("settingPageModal.deleteAccountFail"));
             }
         }
     }

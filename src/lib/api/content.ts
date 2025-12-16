@@ -47,7 +47,7 @@ export async function LikeBtn(persona: Persona, onOk: () => void, onError: (mess
         }
     } catch (error) {
         console.error("Network or other error:", error);
-        alert("An unexpected error occurred. Please try again.");
+        onError("An unexpected error occurred. Please try again.");
     }
 }
 

@@ -14,6 +14,7 @@
         getFollowers,
     } from "$lib/api/user";
     import { st_user } from "$lib/stores/user";
+    import { toast } from "$lib/stores/toast";
 
     let profile = writable<CreatorProfileDTO | null>(null);
     let isLoading = writable(true);
@@ -82,7 +83,7 @@
 
     async function toggleFollow() {
         if (!$st_user) {
-            alert($t("common.loginRequired"));
+            toast.warning($t("common.loginRequired"));
             return;
         }
 
@@ -104,7 +105,7 @@
             }
         } catch (err) {
             console.error("Follow toggle failed", err);
-            alert("Failed to update follow status");
+            toast.error("Failed to update follow status");
         }
     }
 

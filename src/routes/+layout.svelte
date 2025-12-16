@@ -12,6 +12,8 @@
     import NeedMoreNeuronsModal from "$lib/components/modal/NeedMoreNeuronsModal.svelte";
     import ConsentModal from "$lib/components/modal/ConsentModal.svelte";
     import WelcomeModal from "$lib/components/modal/WelcomeModal.svelte";
+    import ToastContainer from "$lib/components/ui/toast/ToastContainer.svelte";
+    import ConfirmModal from "$lib/components/ui/ConfirmModal.svelte";
 
     /* ────────────── API · 스토어 ────────────── */
     import { loadCharacterSessions } from "$lib/api/sessions";
@@ -219,6 +221,9 @@
             ><Icon icon="weui:back-filled" width="12" height="24" />
         </button>
     {/if}
+
+    <ToastContainer />
+    <ConfirmModal />
 </div>
 
 <style>

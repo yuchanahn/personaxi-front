@@ -15,6 +15,7 @@
     import AssetPreview from "$lib/components/AssetPreview.svelte";
     import { slide } from "svelte/transition";
     import { st_user } from "$lib/stores/user";
+    import { toast } from "$lib/stores/toast";
 
     let persona: Persona | null = null;
     let comments: Comment[] = [];
@@ -54,7 +55,7 @@
             newCommentText = ""; // 입력창 초기화
         } catch (err) {
             console.error("Error posting comment:", err);
-            alert($t("profilePage.commentPostFailed"));
+            toast.error($t("profilePage.commentPostFailed"));
         }
     }
 
@@ -163,7 +164,7 @@
         } else if (persona?.personaType === "2.5D") {
             goto(`/live2d?c=${persona.id}&llmType=${llmType}`);
         } else {
-            alert(persona?.personaType);
+            toast.error(`Unknown Persona Type: ${persona?.personaType}`);
         }
     }
 
@@ -181,7 +182,7 @@
                 }
             },
             (errorMessage) => {
-                alert(`좋아요 처리에 실패했습니다: ${errorMessage}`);
+                toast.error(`좋아요 처리에 실패했습니다: ${errorMessage}`);
             },
         );
     }

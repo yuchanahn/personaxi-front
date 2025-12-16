@@ -3,6 +3,7 @@
     import { t } from "svelte-i18n";
     import { supabase } from "$lib/supabase";
     import Icon from "@iconify/svelte";
+    import { toast } from "$lib/stores/toast";
 
     let mode: "options" | "email" | "register" = "options";
 
@@ -56,7 +57,7 @@
                         redirectTo: `${window.location.origin}/hub`,
                     },
                 });
-                if (error) alert(error.message);
+                if (error) toast.error(error.message);
             },
         },
         {
@@ -69,7 +70,7 @@
                         redirectTo: `${window.location.origin}/hub`,
                     },
                 });
-                if (error) alert(error.message);
+                if (error) toast.error(error.message);
             },
         },
         {

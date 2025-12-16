@@ -4,6 +4,7 @@
     import Icon from "@iconify/svelte";
     import { t } from "svelte-i18n";
     import { api } from "$lib/api";
+    import { toast } from "$lib/stores/toast";
 
     export let personaId: string = "";
     export let personaName: string = "";
@@ -54,7 +55,7 @@
             }, 1500);
         } catch (error) {
             console.error("Report submission error:", error);
-            alert(
+            toast.error(
                 $t("feedbackModal.submitFailed") || "Failed to submit report",
             );
             isLoading = false;
@@ -81,7 +82,11 @@
     });
 </script>
 
+<!-- svelte-ignore a11y-click-events-have-key-events -->
+<!-- svelte-ignore a11y-no-static-element-interactions -->
 <div class="modal-backdrop" on:click={closeModal} transition:fade>
+    <!-- svelte-ignore a11y-click-events-have-key-events -->
+    <!-- svelte-ignore a11y-no-static-element-interactions -->
     <div class="modal-container" on:click|stopPropagation>
         <button class="close-button" on:click={closeModal} aria-label="닫기">
             <Icon icon="ph:x-bold" />
@@ -138,7 +143,7 @@
                         placeholder={$t("reportModal.placeholder") ||
                             "Please describe the issue..."}
                         disabled={isLoading}
-                    />
+                    ></textarea>
                 </div>
 
                 <button
