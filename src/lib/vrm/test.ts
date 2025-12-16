@@ -24,7 +24,10 @@ export function test(canvas: HTMLCanvasElement, persona: Persona) {
 
     viewer = new Viewer(canvas);
 
-    let m = viewer.loadModel(`${VRM_URL}${persona.owner_id[0]}/${persona.id}.vrm`);
+    // Use vrm_url from DB if available, fallback to legacy URL construction
+    const vrmUrl = persona.vrm_url || `${VRM_URL}${persona.owner_id[0]}/${persona.id}.vrm`;
+
+    let m = viewer.loadModel(vrmUrl);
     m.then(m => {
         current_model = m;
         if (viewer) viewer.start();
