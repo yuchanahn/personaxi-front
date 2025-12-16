@@ -6,6 +6,12 @@
     "settings": "마이",
     "chat": "채팅"
   },
+  "chatPage": {
+    "title": "채팅",
+    "noChats": "아직 대화가 없습니다",
+    "startNewChat": "새로운 페르소나와 대화를 시작해보세요.",
+    "goExplore": "탐색하러 가기"
+  },
   "settingPage": {
     "title": "내 페이지",
     "logout": "로그아웃",

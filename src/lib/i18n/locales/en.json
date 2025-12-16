@@ -557,6 +557,12 @@
     "settings": "Settings",
     "chat": "Chat"
   },
+  "chatPage": {
+    "title": "Chat",
+    "noChats": "No chats yet",
+    "startNewChat": "Start a conversation with a new persona.",
+    "goExplore": "Go Explore"
+  },
   "settingPageModal": {
     "korean": "Korean",
     "settingPageModal.english": "English",

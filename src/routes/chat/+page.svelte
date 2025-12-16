@@ -4,6 +4,7 @@
     import { chatSessions } from "$lib/stores/chatSessions";
     import ChatSessionItem from "$lib/components/chat/ChatSessionItem.svelte";
     import Icon from "@iconify/svelte";
+    import { t } from "svelte-i18n";
 
     function navigateToChat(sessionId: string) {
         // 동적 라우트인 [id] 페이지로 이동합니다.
@@ -15,7 +16,7 @@
 
 <div class="chat-page-container">
     <header class="page-header">
-        <h1>채팅</h1>
+        <h1>{$t("chatPage.title")}</h1>
     </header>
 
     <div class="chat-list-wrapper">
@@ -31,9 +32,11 @@
             {:else}
                 <div class="empty-state">
                     <Icon icon="ph:chats-circle" width="60" height="60" />
-                    <h2>아직 대화가 없습니다</h2>
-                    <p>새로운 페르소나와 대화를 시작해보세요.</p>
-                    <a href="/hub" class="explore-button">탐색하러 가기</a>
+                    <h2>{$t("chatPage.noChats")}</h2>
+                    <p>{$t("chatPage.startNewChat")}</p>
+                    <a href="/hub" class="explore-button"
+                        >{$t("chatPage.goExplore")}</a
+                    >
                 </div>
             {/each}
         </div>
