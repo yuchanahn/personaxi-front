@@ -56,7 +56,12 @@
                     {/if}
                 </div>
                 {#if session.lastMessage}
-                    <div class="message">{session.lastMessage}</div>
+                    <div class="message">
+                        {session.lastMessage.replace(
+                            /<system-input>[\s\S]*?<\/system-input>/g,
+                            "[상호작용]",
+                        )}
+                    </div>
                 {/if}
             </div>
         </button>
