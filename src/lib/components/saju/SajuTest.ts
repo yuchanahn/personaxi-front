@@ -779,14 +779,6 @@ export function calculateDaeunSu(
   return daeunSu;
 }
 
-//
-// ( ... 기존 saju.ts 파일 코드 ... )
-// ... (calculateDaeunSu 함수 바로 다음에 붙여넣으세요) ...
-//
-
-// ==================================
-// 6. LLM 프롬프트 생성 마스터 함수 (Master Prompt Generator)
-// ==================================
 
 function formatHapChungForPrompt(arr: string[]): string {
   return arr.length > 0 ? arr.join(", ") : "없음";
@@ -812,7 +804,8 @@ export function generateSajuAnalysisPrompt(
 
   // 2. 프롬프트 문자열 구성 시작 (LLM 페르소나 및 데이터 주입)
   let prompt = `
-- 현재 시간: ${birthDate.getFullYear()}년 ${birthDate.getMonth() + 1}월 ${birthDate.getDate()}일
+- 현재 시간: ${new Date().getFullYear()}년 ${new Date().getMonth() + 1}월 ${new Date().getDate()}일
+- 태어난 시간: ${birthDate.getFullYear()}년 ${birthDate.getMonth() + 1}월 ${birthDate.getDate()}일
 - 일간(日干): ${me.name} (${me.symbol}, ${me.sign})
 
 - 사주 원국 (四柱)
@@ -842,7 +835,7 @@ export function generateSajuAnalysisPrompt(
 - 10년 대운 (大運)
   대운수: ${elements.daeun.su}
   방향: ${elements.daeun.direction}
-  대운 주기: 
+  대운 주기: ${elements.daeun.cycles.length}
 `;
 
   // 3. 대운 주기 (동적 생성)

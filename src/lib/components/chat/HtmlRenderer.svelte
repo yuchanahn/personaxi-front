@@ -36,10 +36,55 @@
     {@html htmlContent}
 </div>
 
+<!-- 
+<style>
+    @import url("https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&display=swap");
+    .narration-block {
+        font-family: "Gowun Batang", "Batang", serif;
+        line-height: 1.8;
+        color: #f0e6d2;
+        letter-spacing: -0.03em;
+        word-break: keep-all;
+    }
+
+    .narration-block :global(p) {
+        margin: 0 0 1.2em 0;
+        text-align: justify;
+    }
+
+    .narration-block :global(strong),
+    .narration-block :global(b) {
+        color: #ffd700;
+        font-weight: 700;
+        text-shadow: 0 0 5px rgba(255, 215, 0, 0.3);
+    }
+    .narration-block :global(ul),
+    .narration-block :global(ol) {
+        padding-left: 1.2em;
+        margin-bottom: 1.2em;
+        background: rgba(0, 0, 0, 0.2);
+        padding: 1rem 1rem 1rem 2rem;
+        border-left: 3px solid #8b6c42;
+        border-radius: 0 4px 4px 0;
+    }
+    .narration-block :global(li) {
+        margin-bottom: 0.5em;
+        list-style-type: none;
+        position: relative;
+    }
+    .narration-block :global(li)::before {
+        content: "✦";
+        position: absolute;
+        left: -1.2em;
+        color: #d4af37;
+    }
+</style> -->
+
 <style>
     .narration-block :global(p) {
         margin: 0 0 1em 0;
     }
+
     .narration-block :global(ul),
     .narration-block :global(ol) {
         padding-left: 1.5em;

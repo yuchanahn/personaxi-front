@@ -273,17 +273,6 @@
       <div class="message user">
         {item.content}
       </div>
-      <!-- {:else if item.type === "narration"}
-      <div class="narration-block">
-        {@html applyInlineStyles(item.content.replace(/\n/g, "<br>"))}
-      </div>
-    {:else if item.type === "dialogue"}
-      <div class="message assistant">
-        <div class="speaker-name">{item.speaker}</div>
-        <div class="dialogue-bubble">
-          {@html applyInlineStyles(item.content)}
-        </div>
-      </div> -->
     {:else if item.type === "narration"}
       <HtmlRenderer content={item.content} />
     {:else if item.type === "dialogue"}

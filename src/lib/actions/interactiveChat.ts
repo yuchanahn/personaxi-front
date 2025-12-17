@@ -1,4 +1,5 @@
 import { generateSajuAnalysisPrompt } from "$lib/components/saju/SajuTest";
+import { parseBirthDate, parseBirthTime, parseGender } from "$lib/components/utils/sajuParse";
 
 export function interactiveChat(node: HTMLElement, callback: (payload: string) => void) {
 
@@ -34,31 +35,37 @@ export function interactiveChat(node: HTMLElement, callback: (payload: string) =
 
         const setSaju = (fieldId: string, field: HTMLInputElement) => {
             if (fieldId === "saju_date") {
-                birthDate = new Date(field.value.trim());
+                birthDate = parseBirthDate(field.value) ?? birthDate;
             }
+
             if (fieldId === "saju_time") {
-                const timeParts = field.value.trim().split(":");
-                birthHour = parseInt(timeParts[0], 10);
-                birthMinute = parseInt(timeParts[1], 10);
+                const t = parseBirthTime(field.value); // 실패해도 12:00 반환
+                birthHour = t.h;
+                birthMinute = t.m;
             }
+
             if (fieldId === "saju_gender") {
-                gender = field.value.trim() as "남" | "여";
+                gender = parseGender(field.value);
+            }
+
+            // 시간이 아예 입력되지 않았어도 시작 가능하게 강제 기본값
+            if (birthHour === null || birthMinute === null) {
+                birthHour = 12;
+                birthMinute = 0;
             }
 
             if (!push && birthDate && birthHour !== null && birthMinute !== null) {
-
                 let prompt = "";
-
                 try {
                     prompt = generateSajuAnalysisPrompt(birthDate, birthHour, birthMinute, gender);
-                } catch (error) {
-                    prompt = "함수실패"
+                } catch {
+                    prompt = "함수실패";
                 }
-
                 queue.push("\n- 만세력\n" + prompt);
                 push = true;
             }
-        }
+        };
+
 
         if (inputEnd && target === inputEnd) {
             const allInputFields = node.querySelectorAll(".game-input:not(.used)") as NodeListOf<HTMLInputElement>;
