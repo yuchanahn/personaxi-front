@@ -216,17 +216,18 @@
     "startButton": "Start Exploring"
   },
   "noticeModal": {
-    "title": "Alpha Test Participation Guide",
-    "description1": "This service is currently an <strong>alpha version</strong> under development, and we aim to create a better AI persona with you.",
-    "description2": "During the test period, <strong>unexpected errors may occur</strong> or data may be arbitrarily <strong>changed or initialized</strong>. We are doing our best for the official release, so we ask for your kind understanding.",
-    "techStackTitle": "Key Technology Stack",
-    "techStackDescription": "This service is experimentally applying the latest technologies.",
-    "aiModel": "AI Model:",
-    "ttsModel": "Voice Model (TTS):",
-    "vrmModel": "3D Model:",
-    "aiWarningTitle": "AI Response Precautions",
-    "aiWarningDescription": "We are applying experimental prompting techniques to the AI model, so sometimes the AI may give <strong>sensitive or inappropriate answers</strong>. This is part of the process to implement more free and human-like interactions.",
-    "confirm": "I have read and understood all of the above."
+    "title": "🎉 Launch Event",
+    "subtitle": "First 500 Users Only!",
+    "description1": "To celebrate the official launch of <strong>PersonaXi</strong>, we're giving special rewards to the first 500 users!",
+    "description2": "Sign up now and create your first persona to get <strong>300 Neurons</strong> for free!",
+    "benefitTitle": "🎁 Event Benefits",
+    "benefit1": "Sign-up Bonus: <strong>100 Neurons</strong>",
+    "benefit2": "First Persona Creation: <strong>+200 Neurons</strong>",
+    "benefitTotal": "Total <strong>300 Neurons</strong> FREE!",
+    "noteTitle": "📢 Notice",
+    "note1": "This event is limited to the first 500 users and may end early.",
+    "note2": "Unexpected changes may occur for service improvements. Thank you for your understanding.",
+    "confirm": "Join the Event"
   },
   "firstPersonaCreatedModal": {
     "title": "First Persona Created!",

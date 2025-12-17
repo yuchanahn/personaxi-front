@@ -4,6 +4,8 @@
     import { onMount, onDestroy } from "svelte";
     import Icon from "@iconify/svelte";
     import { t } from "svelte-i18n";
+    import AssetPreview from "../AssetPreview.svelte";
+    import type { ImageMetadata } from "$lib/types";
 
     const dispatch = createEventDispatcher();
 
@@ -25,8 +27,75 @@
     onDestroy(() => {
         window.removeEventListener("keydown", handleKeydown);
     });
+
+    let asset: ImageMetadata = {
+        description: "PersonaXi",
+        url: "/event_01.mp4",
+        type: "video",
+    };
 </script>
 
+<!-- svelte-ignore a11y_no_static_element_interactions -->
+<!-- svelte-ignore a11y_click_events_have_key_events -->
+<div
+    class="modal-backdrop"
+    on:click={closeModal}
+    transition:fade={{ duration: 200 }}
+>
+    <div class="modal-container" on:click|stopPropagation>
+        <button class="close-button" on:click={closeModal} aria-label="닫기">
+            <Icon icon="ph:x-bold" />
+        </button>
+        <div class="modal-content">
+            <h2 class="modal-title">
+                <Icon icon="ph:sparkle-duotone" />
+                <span>{$t("noticeModal.title")}</span>
+            </h2>
+            <p class="subtitle">{$t("noticeModal.subtitle")}</p>
+
+            <div class="modal-body">
+                <AssetPreview {asset} />
+                <p>
+                    {@html $t("noticeModal.description1")}
+                    <br /><br />
+                    {@html $t("noticeModal.description2")}
+                </p>
+
+                <div class="info-section benefits">
+                    <h3 class="info-title">
+                        <Icon icon="ph:gift-duotone" />
+                        {$t("noticeModal.benefitTitle")}
+                    </h3>
+                    <ul class="benefit-list">
+                        <li>{@html $t("noticeModal.benefit1")}</li>
+                        <li>{@html $t("noticeModal.benefit2")}</li>
+                    </ul>
+                    <p class="benefit-total">
+                        {@html $t("noticeModal.benefitTotal")}
+                    </p>
+                </div>
+
+                <div class="info-section notice">
+                    <h3 class="info-title">
+                        <Icon icon="ph:megaphone-duotone" />
+                        {$t("noticeModal.noteTitle")}
+                    </h3>
+                    <ul class="notice-list">
+                        <li>{$t("noticeModal.note1")}</li>
+                        <li>{$t("noticeModal.note2")}</li>
+                    </ul>
+                </div>
+            </div>
+
+            <button class="confirm-button" on:click={closeModal}>
+                <Icon icon="ph:rocket-launch-duotone" />
+                <span>{$t("noticeModal.confirm")}</span>
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- 
 <div
     class="modal-backdrop"
     on:click={closeModal}
@@ -88,7 +157,7 @@
             </button>
         </div>
     </div>
-</div>
+</div> -->
 
 <style>
     .modal-backdrop {
@@ -97,8 +166,6 @@
         left: 0;
         bottom: 20%;
         width: 100%;
-
-        background-color: rgba(0, 0, 0, 0.7);
         display: flex;
         justify-content: center;
         align-items: center;
@@ -188,7 +255,6 @@
         border-radius: 8px;
         cursor: pointer;
         transition: all 0.3s ease;
-        flex-shrink: 0; /* 버튼은 줄어들지 않도록 */
     }
     .confirm-button:hover {
         transform: translateY(-2px);
@@ -228,6 +294,68 @@
 
     .final-notice strong {
         font-weight: 700;
+    }
+
+    /* --- 이벤트 모달 스타일 --- */
+    .subtitle {
+        font-size: 1.2rem;
+        font-weight: 600;
+        color: #ffd700;
+        text-align: center;
+        margin: 0 0 1rem 0;
+    }
+
+    .benefit-list,
+    .notice-list {
+        list-style: none;
+        padding: 0;
+        margin: 0.5rem 0;
+    }
+
+    .benefit-list li {
+        padding: 0.5rem 0;
+        padding-left: 1.5rem;
+        position: relative;
+    }
+
+    .benefit-list li::before {
+        content: "✓";
+        position: absolute;
+        left: 0;
+        color: #4ade80;
+    }
+
+    .notice-list li {
+        padding: 0.3rem 0;
+        padding-left: 1.5rem;
+        position: relative;
+        font-size: 0.9rem;
+        color: #aaa;
+    }
+
+    .notice-list li::before {
+        content: "•";
+        position: absolute;
+        left: 0.5rem;
+    }
+
+    .benefit-total {
+        text-align: center;
+        font-size: 1.1rem;
+        padding: 0.75rem;
+        margin: 0.5rem 0 0 0;
+        background: linear-gradient(
+            135deg,
+            rgba(255, 215, 0, 0.1),
+            rgba(255, 215, 0, 0.05)
+        );
+        border-radius: 8px;
+        border: 1px solid rgba(255, 215, 0, 0.3);
+    }
+
+    .benefits {
+        border-color: rgba(255, 215, 0, 0.3);
+        background: rgba(255, 215, 0, 0.05);
     }
 
     /* --- 스크롤바 디자인 --- */
