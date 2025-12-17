@@ -419,117 +419,123 @@
                                 </span>
                             </h3>
 
-                            {#if showFirstScene}
+                            <div class="scene-wrapper">
                                 <div
-                                    transition:slide={{
-                                        duration: 300,
-                                        axis: "y",
-                                    }}
+                                    class="scene-content"
+                                    class:blurred={!showFirstScene}
                                 >
-                                    {#if threeDSceneData}
-                                        <div class="threed-data-wrapper">
-                                            <div class="threed-chips">
-                                                {#if threeDSceneData.current_emotion}
+                                    <div
+                                        transition:slide={{
+                                            duration: 300,
+                                            axis: "y",
+                                        }}
+                                    >
+                                        {#if threeDSceneData}
+                                            <div class="threed-data-wrapper">
+                                                <div class="threed-chips">
+                                                    {#if threeDSceneData.current_emotion}
+                                                        <div
+                                                            class="data-chip emotion"
+                                                        >
+                                                            <span
+                                                                class="chip-label"
+                                                                ><Icon
+                                                                    icon="ph:smiley-duotone"
+                                                                /> 감정</span
+                                                            >
+                                                            <span
+                                                                class="chip-value"
+                                                                >{threeDSceneData.current_emotion}</span
+                                                            >
+                                                        </div>
+                                                    {/if}
+                                                    {#if threeDSceneData.core_desire}
+                                                        <div
+                                                            class="data-chip desire"
+                                                        >
+                                                            <span
+                                                                class="chip-label"
+                                                                ><Icon
+                                                                    icon="ph:target-duotone"
+                                                                /> 욕구</span
+                                                            >
+                                                            <span
+                                                                class="chip-value"
+                                                                >{threeDSceneData.core_desire}</span
+                                                            >
+                                                        </div>
+                                                    {/if}
+                                                    {#if threeDSceneData.personality}
+                                                        <div
+                                                            class="data-chip personality"
+                                                        >
+                                                            <span
+                                                                class="chip-label"
+                                                                ><Icon
+                                                                    icon="ph:fingerprint-duotone"
+                                                                /> 성격</span
+                                                            >
+                                                            <span
+                                                                class="chip-value"
+                                                                >{threeDSceneData.personality}</span
+                                                            >
+                                                        </div>
+                                                    {/if}
+                                                </div>
+
+                                                {#if threeDSceneData.mem_list}
                                                     <div
-                                                        class="data-chip emotion"
+                                                        class="threed-narrative"
                                                     >
-                                                        <span class="chip-label"
-                                                            ><Icon
-                                                                icon="ph:smiley-duotone"
-                                                            /> 감정</span
-                                                        >
-                                                        <span class="chip-value"
-                                                            >{threeDSceneData.current_emotion}</span
-                                                        >
-                                                    </div>
-                                                {/if}
-                                                {#if threeDSceneData.core_desire}
-                                                    <div
-                                                        class="data-chip desire"
-                                                    >
-                                                        <span class="chip-label"
-                                                            ><Icon
-                                                                icon="ph:target-duotone"
-                                                            /> 욕구</span
-                                                        >
-                                                        <span class="chip-value"
-                                                            >{threeDSceneData.core_desire}</span
-                                                        >
-                                                    </div>
-                                                {/if}
-                                                {#if threeDSceneData.personality}
-                                                    <div
-                                                        class="data-chip personality"
-                                                    >
-                                                        <span class="chip-label"
-                                                            ><Icon
-                                                                icon="ph:fingerprint-duotone"
-                                                            /> 성격</span
-                                                        >
-                                                        <span class="chip-value"
-                                                            >{threeDSceneData.personality}</span
-                                                        >
+                                                        <p class="scene-text">
+                                                            {@html replaceNicknameInText(
+                                                                threeDSceneData.mem_list,
+                                                            ).replaceAll(
+                                                                "\n",
+                                                                "<br/>",
+                                                            )}
+                                                        </p>
                                                     </div>
                                                 {/if}
                                             </div>
+                                        {:else if persona.first_scene === "<tr>"}
+                                            <p class="scene-text">
+                                                {$t("profilePage.translating")}
+                                            </p>
+                                        {:else}
+                                            <p class="scene-text">
+                                                {replaceNicknameInText(
+                                                    formatSceneText(
+                                                        persona.first_scene,
+                                                    ),
+                                                )}
+                                            </p>
+                                        {/if}
+                                    </div>
+                                </div>
 
-                                            {#if threeDSceneData.mem_list}
-                                                <div class="threed-narrative">
-                                                    <p class="scene-text">
-                                                        {@html replaceNicknameInText(
-                                                            threeDSceneData.mem_list,
-                                                        ).replaceAll(
-                                                            "\n",
-                                                            "<br/>",
-                                                        )}
-                                                    </p>
-                                                </div>
-                                            {/if}
-                                        </div>
-                                    {:else if persona.first_scene === "<tr>"}
-                                        <p class="scene-text">
-                                            {$t("profilePage.translating")}
-                                        </p>
-                                    {:else}
-                                        <p class="scene-text">
-                                            {replaceNicknameInText(
-                                                formatSceneText(
-                                                    persona.first_scene,
-                                                ),
-                                            )}
-                                        </p>
-                                    {/if}
-                                </div>
-                                {#if !(persona.personaType === "3D" || persona.personaType === "2.5D")}
-                                    <button
-                                        class="spoiler-toggle-btn hide"
-                                        on:click={() =>
-                                            (showFirstScene = false)}
-                                    >
-                                        <Icon icon="ph:eye-slash-bold" />
-                                        <span>{$t("common.hide")}</span>
-                                    </button>
-                                {/if}
-                            {:else}
-                                <div class="spoiler-overlay">
-                                    <p class="spoiler-warning">
-                                        <Icon
-                                            icon="ph:warning-circle-duotone"
-                                        />
-                                        <span
-                                            >{$t(
-                                                "profilePage.spoilerWarning",
-                                            )}</span
+                                {#if !showFirstScene}
+                                    <div class="spoiler-overlay-modern">
+                                        <button
+                                            class="btn-reveal"
+                                            on:click={() =>
+                                                (showFirstScene = true)}
                                         >
-                                    </p>
-                                    <button
-                                        class="spoiler-toggle-btn show"
-                                        on:click={() => (showFirstScene = true)}
-                                    >
-                                        <Icon icon="ph:eye-bold" />
-                                        <span>{$t("common.show")}</span>
-                                    </button>
-                                </div>
+                                            <Icon icon="ph:eye-bold" />
+                                            <span>{$t("common.show")}</span>
+                                        </button>
+                                    </div>
+                                {/if}
+                            </div>
+
+                            {#if showFirstScene && !(persona.personaType === "3D" || persona.personaType === "2.5D")}
+                                <button
+                                    class="spoiler-toggle-btn hide"
+                                    on:click={() => (showFirstScene = false)}
+                                >
+                                    <Icon icon="ph:eye-slash-bold" />
+                                    <span>{$t("common.hide")}</span>
+                                </button>
                             {/if}
                         </div>
                     {/if}
@@ -938,24 +944,52 @@
         color: var(--foreground);
         margin-bottom: 1.5rem;
     }
-    .spoiler-overlay {
+    .scene-wrapper {
+        position: relative;
+    }
+    .scene-content {
+        transition: all 0.3s ease;
+    }
+    .scene-content.blurred {
+        filter: blur(6px);
+        opacity: 0.6;
+        height: 120px;
+        overflow: hidden;
+        user-select: none;
+    }
+    .spoiler-overlay-modern {
+        position: absolute;
+        inset: 0;
         display: flex;
-        flex-direction: column;
         align-items: center;
         justify-content: center;
-        gap: 1rem;
-        padding: 2rem;
-        background: rgba(0, 0, 0, 0.3);
-        border-radius: 8px;
-        text-align: center;
+        z-index: 10;
+        background: linear-gradient(
+            to bottom,
+            transparent,
+            hsla(var(--dark), 0.1)
+        );
     }
-    .spoiler-warning {
+    .btn-reveal {
         display: flex;
         align-items: center;
         gap: 0.5rem;
-        color: #ffb86c; /* Warning color */
-        font-weight: bold;
-        font-size: 1.1rem;
+        padding: 0.6rem 1.2rem;
+        border-radius: 20px;
+        border: 1px solid var(--border);
+        background: hsla(var(--card), 0.8);
+        color: var(--foreground);
+        cursor: pointer;
+        font-weight: 600;
+        backdrop-filter: blur(4px);
+        transition: all 0.2s;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    }
+    .btn-reveal:hover {
+        background: var(--primary);
+        color: var(--primary-foreground);
+        border-color: var(--primary);
+        transform: translateY(-2px);
     }
     .spoiler-toggle-btn {
         display: flex;
@@ -974,11 +1008,7 @@
         background: var(--muted);
         transform: translateY(-2px);
     }
-    .spoiler-toggle-btn.show {
-        background: var(--primary);
-        color: var(--primary-foreground);
-        border: none;
-    }
+
     .spoiler-toggle-btn.hide {
         margin-top: 1rem;
         width: 100%;

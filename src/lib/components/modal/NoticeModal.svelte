@@ -88,7 +88,6 @@
             </div>
 
             <button class="confirm-button" on:click={closeModal}>
-                <Icon icon="ph:rocket-launch-duotone" />
                 <span>{$t("noticeModal.confirm")}</span>
             </button>
         </div>

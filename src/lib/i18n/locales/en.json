@@ -216,15 +216,15 @@
     "startButton": "Start Exploring"
   },
   "noticeModal": {
-    "title": "🎉 Launch Event",
+    "title": "Launch Event",
     "subtitle": "First 500 Users Only!",
     "description1": "To celebrate the official launch of <strong>PersonaXi</strong>, we're giving special rewards to the first 500 users!",
     "description2": "Sign up now and create your first persona to get <strong>300 Neurons</strong> for free!",
-    "benefitTitle": "🎁 Event Benefits",
+    "benefitTitle": "Event Benefits",
     "benefit1": "Sign-up Bonus: <strong>100 Neurons</strong>",
     "benefit2": "First Persona Creation: <strong>+200 Neurons</strong>",
     "benefitTotal": "Total <strong>300 Neurons</strong> FREE!",
-    "noteTitle": "📢 Notice",
+    "noteTitle": "Notice",
     "note1": "This event is limited to the first 500 users and may end early.",
     "note2": "Unexpected changes may occur for service improvements. Thank you for your understanding.",
     "confirm": "Join the Event"
