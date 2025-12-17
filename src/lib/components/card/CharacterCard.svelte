@@ -11,7 +11,7 @@
 
     const dispatch = createEventDispatcher();
 
-    $: assetCount = content.image_metadatas?.length || 0;
+    $: assetCount = content.image_count ?? content.image_metadatas?.length ?? 0;
     $: is3D = content.tags?.includes("1001");
     $: isLive2D = content.tags?.includes("1002");
     $: isSpecialType = is3D || isLive2D;

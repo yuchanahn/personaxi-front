@@ -23,6 +23,7 @@ export interface Persona {
     live2d_model_url?: string; // Live2D model3.json URL
     portrait_url: string; // Add this
     image_metadatas: ImageMetadata[];
+    image_count: number;
     visibility: string; // e.g., "public", "private"
     created_at: string;
     updated_at: string;
@@ -47,6 +48,7 @@ export interface PersonaDTO {
     chat_count: number;
     personaType: string;
     image_metadatas: ImageMetadata[];
+    image_count: number;
     owner_id: string[];
     tags: string[];
 }
