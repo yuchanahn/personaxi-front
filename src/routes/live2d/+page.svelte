@@ -32,7 +32,7 @@
     const TEST_MODEL_URL = "/live2d/huohuo/huohuo.model3.json";
 
     // Parse thoughts from the last message
-    $: if ($messages.length > 0) {
+    $: if ($messages.length > 0 && persona !== null) {
         const lastMsg = $messages[$messages.length - 1];
         if (lastMsg.role === "assistant") {
             const text = lastMsg.content;
@@ -70,6 +70,7 @@
     onMount(async () => {
         const sessionId = $page.url.searchParams.get("c");
         lastSessionId = sessionId;
+        $messages = [];
         if (sessionId) {
             persona = null;
             loadChatHistory(sessionId);
