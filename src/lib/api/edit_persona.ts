@@ -486,6 +486,11 @@ export async function fetchAndSetAssetTypes(
     const promises = metadatas.map(
         async (metadata: ImageMetadata): Promise<ImageMetadata> => {
             try {
+                // Skip blob URLs (local previews) to avoid NetworkError
+                if (metadata.url.startsWith("blob:")) {
+                    return metadata;
+                }
+
                 const response = await fetch(metadata.url, {
                     method: "HEAD",
                 });

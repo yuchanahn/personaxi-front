@@ -25,6 +25,7 @@
     import FirstSceneBuilder from "$lib/components/FirstSceneBuilder.svelte";
     import { toast } from "$lib/stores/toast";
     import { confirmStore } from "$lib/stores/confirm";
+    import { extractFirstFrame } from "$lib/utils/media";
 
     let originalPersona: Persona | null = null;
     let vrmFile: File | null = null;
@@ -48,6 +49,7 @@
         vrm_url: "", // Add this
         portrait_url: "", // Add this
         image_metadatas: [], // Add this
+        image_count: 0,
         visibility: "private", // Add this, default to private
         created_at: "",
         updated_at: "",
@@ -283,13 +285,29 @@
     }
 
     let portraitFile: File | null = null;
+    let portraitImageFile: File | null = null;
     let portraitPreview: string | null = null;
 
-    function handleProfileChange(event: Event) {
+    async function handleProfileChange(event: Event) {
         const input = event.target as HTMLInputElement;
         if (input.files && input.files.length > 0) {
             portraitFile = input.files[0];
-            portraitPreview = URL.createObjectURL(portraitFile);
+
+            // Check if video
+            if (portraitFile.type.startsWith("video/")) {
+                const frame = await extractFirstFrame(portraitFile);
+                if (frame) {
+                    portraitImageFile = frame;
+                    portraitPreview = URL.createObjectURL(frame);
+                } else {
+                    // Fallback to video blob for preview if extraction fails (though extraction is preferred)
+                    portraitPreview = URL.createObjectURL(portraitFile);
+                }
+            } else {
+                portraitImageFile = null; // Reset if not video
+                portraitPreview = URL.createObjectURL(portraitFile);
+            }
+
             uploadPortraitFile();
         }
     }
@@ -671,6 +689,11 @@
                 portraitPreview = `${supabaseURL}${fileName}`;
                 portrait_progress = 0;
 
+                // Upload static portrait if exists (e.g. video thumbnail)
+                if (portraitImageFile) {
+                    await uploadStaticPortrait(portraitImageFile);
+                }
+
                 // console.log(
                 //     `✅ ${portraitFile!.name} uploaded successfully on attempt ${attempt}`,
                 // );
@@ -691,6 +714,28 @@
                     await new Promise((res) => setTimeout(res, 500));
                 }
             }
+        }
+    }
+
+    async function uploadStaticPortrait(file: File) {
+        try {
+            // Logic similar to uploadPortraitFile but for static_portrait
+            // We can reuse getUploadUrl with a suffix or new type?
+            // Since backend doesn't care about "type" strictly for URL generation usually, we can treat it as 'portrait'
+            // but we need a unique name. unique name is handled by backend usually or we just upload.
+
+            // Simplest: Upload as 'asset' or 'portrait' type but ensure we set persona.static_portrait_url
+
+            const response = await getUploadUrl("asset", undefined); // Treat as generic asset to get a URL
+            if (!response.ok) return;
+
+            const { signedURL, fileName } = await response.json();
+
+            await uploadFileWithProgress(signedURL, file, (p) => {});
+
+            persona.static_portrait_url = `${supabaseURL}${fileName}`;
+        } catch (e) {
+            console.error("Failed to upload static portrait", e);
         }
     }
 </script>

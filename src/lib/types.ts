@@ -22,6 +22,7 @@ export interface Persona {
     vrm_url: string; // Add this
     live2d_model_url?: string; // Live2D model3.json URL
     portrait_url: string; // Add this
+    static_portrait_url?: string; // Extracted frame for video portraits
     image_metadatas: ImageMetadata[];
     image_count: number;
     visibility: string; // e.g., "public", "private"

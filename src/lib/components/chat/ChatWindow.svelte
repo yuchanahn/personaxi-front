@@ -10,6 +10,8 @@
   import { st_user } from "$lib/stores/user";
   import HtmlRenderer from "./HtmlRenderer.svelte";
   import { interactiveChat } from "$lib/actions/interactiveChat";
+  import { toast } from "$lib/stores/toast";
+  import { api } from "$lib/api";
 
   export let isLoading: boolean = false;
   export let cssid: string;
@@ -321,20 +323,35 @@
   let isGeneratingImage = false;
 
   async function generateSituationImage() {
-    if (isGeneratingImage) return;
+    if (isGeneratingImage || !persona) return;
     isGeneratingImage = true;
 
-    // Simulate API call
-    setTimeout(() => {
-      // Mock response: Append image link to chat
-      // We need to update the LAST assistant message in the store
+    try {
+      const response = await api.post("/api/chat/2d/generate-image", {
+        personaId: persona.id,
+        context: "",
+      });
+
+      if (!response.ok) {
+        if (response.status === 402) {
+          toast.error("Not enough Neurons!");
+        } else {
+          const errData = await response.json();
+          toast.error(errData.error || "Image generation failed");
+        }
+        return;
+      }
+
+      const data = await response.json();
+      const imageUrl = data.imageUrl;
+
+      // Update store
       const msgs = get(messages);
       if (msgs.length > 0) {
         const lastMsg = msgs[msgs.length - 1];
         if (lastMsg.role === "assistant") {
-          const imageMarkdown = `\n\n![Situation Image](https://picsum.photos/400/300?random=${Date.now()})`;
+          const imageMarkdown = `\n\n![Situation Image](${imageUrl})`;
 
-          // Update store
           messages.update((current) => {
             const updated = [...current];
             updated[updated.length - 1].content += imageMarkdown;
@@ -342,8 +359,12 @@
           });
         }
       }
+    } catch (e) {
+      console.error("Failed to generate image", e);
+      toast.error("Network error during generation");
+    } finally {
       isGeneratingImage = false;
-    }, 2000); // 2 seconds delay
+    }
   }
 </script>
 
