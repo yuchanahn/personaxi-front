@@ -286,7 +286,7 @@
           persona?.personaType === "2D" || persona?.personaType === "2.5D";
         const isLastMessage = i === $messages.length - 1;
 
-        if (is2D && isLastMessage && !isLoading) {
+        if (is2D && isLastMessage && !isLoading && $messages.length > 1) {
           blocks.push({
             type: "situation_trigger",
             id: `${messageId}-trigger`,
@@ -321,15 +321,18 @@
 
   // --- Situation Image Generation ---
   let isGeneratingImage = false;
+  let showRatioOptions = false;
 
-  async function generateSituationImage() {
+  async function generateSituationImage(ratio: string) {
     if (isGeneratingImage || !persona) return;
     isGeneratingImage = true;
+    showRatioOptions = false; // Hide options after selection
 
     try {
       const response = await api.post("/api/chat/2d/generate-image", {
         personaId: persona.id,
         context: "",
+        aspectRatio: ratio,
       });
 
       if (!response.ok) {
@@ -411,18 +414,100 @@
       </div>
     {:else if item.type === "situation_trigger"}
       <div class="situation-trigger-wrapper">
-        <button
-          class="situation-btn"
-          on:click={generateSituationImage}
-          disabled={isGeneratingImage}
-        >
-          {#if isGeneratingImage}
-            <span class="spinner-sm"></span> {$t("chatInput.generatingImage")}
-          {:else}
+        {#if !showRatioOptions && !isGeneratingImage}
+          <button
+            class="situation-btn"
+            on:click={() => (showRatioOptions = true)}
+          >
             {$t("chatInput.generateSituationImage")}
             <span class="cost-badge">({$t("chatInput.cost")})</span>
-          {/if}
-        </button>
+          </button>
+        {:else if showRatioOptions && !isGeneratingImage}
+          <div class="ratio-group">
+            <!-- svelte-ignore a11y_consider_explicit_label -->
+            <button
+              class="ratio-btn"
+              on:click={() => generateSituationImage("16:9")}
+              title="Landscape (16:9)"
+            >
+              <svg
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <rect x="2" y="6" width="20" height="12" rx="2" />
+              </svg>
+            </button>
+            <!-- svelte-ignore a11y_consider_explicit_label -->
+            <button
+              class="ratio-btn"
+              on:click={() => generateSituationImage("1:1")}
+              title="Square (1:1)"
+            >
+              <svg
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <rect x="5" y="5" width="14" height="14" rx="2" />
+              </svg>
+            </button>
+            <!-- svelte-ignore a11y_consider_explicit_label -->
+            <button
+              class="ratio-btn"
+              on:click={() => generateSituationImage("3:4")}
+              title="Portrait (3:4)"
+            >
+              <svg
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <rect x="5" y="2" width="14" height="20" rx="2" />
+              </svg>
+            </button>
+            <!-- svelte-ignore a11y_consider_explicit_label -->
+            <button
+              class="ratio-cancel-btn"
+              on:click={() => (showRatioOptions = false)}
+              title="Cancel"
+            >
+              <svg
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path d="M18 6L6 18M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+        {/if}
+        {#if isGeneratingImage}
+          <div class="generating-indicator">
+            <span class="spinner-sm"></span>
+            {$t("chatInput.generatingImage")}
+          </div>
+        {/if}
       </div>
     {:else if item.type === "code"}
       <div class="code-block">
@@ -508,13 +593,6 @@
     width: 100%;
     border-radius: 12px;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  }
-
-  .situation-trigger-wrapper {
-    display: flex;
-    justify-content: center;
-    margin-top: 0.5rem;
-    width: 100%;
   }
 
   .situation-btn {
@@ -661,5 +739,61 @@
     justify-content: space-between;
     align-items: center;
     padding: 0.5rem 0;
+  }
+  .situation-trigger-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-top: 0.5rem;
+    width: 100%;
+    gap: 0.5rem;
+  }
+
+  .ratio-group {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .ratio-btn {
+    background-color: var(--secondary);
+    color: var(--secondary-foreground);
+    border: 1px solid var(--border);
+    padding: 0.5rem;
+    border-radius: 8px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+  }
+  .ratio-btn:hover {
+    background-color: var(--primary);
+    color: var(--primary-foreground);
+    transform: scale(1.05);
+  }
+
+  .ratio-cancel-btn {
+    background: transparent;
+    border: 1px solid var(--destructive);
+    color: var(--destructive);
+    padding: 0.5rem;
+    border-radius: 8px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .ratio-cancel-btn:hover {
+    background-color: rgba(255, 0, 0, 0.1);
+  }
+
+  .generating-indicator {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.9rem;
+    color: var(--muted-foreground);
   }
 </style>
