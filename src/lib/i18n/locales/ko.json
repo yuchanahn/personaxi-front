@@ -62,7 +62,10 @@
   },
   "chatInput": {
     "placeholder": "무엇이든 물어보세요",
-    "sendButton": "보내기"
+    "sendButton": "보내기",
+    "generateSituationImage": "✨ 상황 이미지 생성",
+    "generatingImage": "생성 중...",
+    "cost": "10 뉴런"
   },
   "broadcastChatInput": {
     "placeholder": "채팅을 입력하세요...",

@@ -46,7 +46,10 @@
   },
   "chatInput": {
     "placeholder": "Ask anything...",
-    "sendButton": "Send"
+    "sendButton": "Send",
+    "generateSituationImage": "✨ Generate Situation Image",
+    "generatingImage": "Generating...",
+    "cost": "10 Neurons"
   },
   "broadcastChatInput": {
     "placeholder": "Type your chat...",

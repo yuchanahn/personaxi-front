@@ -47,14 +47,12 @@
     metadata: ImageMetadata;
     index: number;
   }
-
   interface CodeBlock {
     type: "code";
     content: string;
     language: string;
     id: string;
   }
-
   interface InputPromptBlock {
     type: "input_prompt";
     id: string;
@@ -64,13 +62,27 @@
     max: number | null;
   }
 
+  interface SituationTriggerBlock {
+    type: "situation_trigger";
+    id: string;
+  }
+
+  interface MarkdownImageBlock {
+    type: "markdown_image";
+    url: string;
+    alt: string;
+    id: string;
+  }
+
   type ChatLogItem =
     | NarrationBlock
     | DialogueBlock
     | UserBlock
     | ImageBlock
     | CodeBlock
-    | InputPromptBlock;
+    | InputPromptBlock
+    | SituationTriggerBlock
+    | MarkdownImageBlock;
 
   function parseAssistantContent(
     content: string,
@@ -79,9 +91,10 @@
   ): ChatLogItem[] {
     const FIRST_SCENE_TAG_REGEX = /<first_scene>/g;
     const CODE_BLOCK_REGEX = /```(?<lang>\w*)\s*\n?(?<code>[\s\S]+?)\s*```/;
+    const MARKDOWN_IMAGE_REGEX = /!\[(?<alt>.*?)\]\((?<url>.*?)\)/;
 
     const ALL_TAGS_REGEX =
-      /<(dialogue) speaker="([^"]+)">([\s\S]*?)<\/dialogue>|<(img) (\d+)>|<(Action) type="([^"]+)" question="([^"]+)" variable="([^"]+)"(?: max="(\d+)")? \/>/g;
+      /<(dialogue) speaker="([^"]+)">([\s\S]*?)<\/dialogue>|<(img) (\d+)>|<(Action) type="([^"]+)" question="([^"]+)" variable="([^"]+)"(?: max="(\d+)")? \/>|!\[(.*?)\]\((.*?)\)/g;
 
     const blocks: ChatLogItem[] = [];
     let partIndex = 0;
@@ -151,47 +164,82 @@
             actQ,
             actVar,
             actMax, // Action 캡처 그룹
+            mdAlt, // Markdown Image Alt (capture group 11) - wait, regex above has standard groups?
+            // The consolidated regex structure needs careful index checks or use named groups if possible, but exec result array is easier to map if we know the order.
+            // <dialogue>... groups: 2, 3
+            // <img ...> groups: 4, 5
+            // <Action ...> groups: 6, 7, 8, 9, 10
+            // ![...]... groups: 11, 12
           ] = match;
 
-          if (tagDia === "dialogue") {
-            // Parse speaker placeholders
-            let parsedSpeaker = speaker
-              .replaceAll("{{char}}", currentPersona?.name || "Character")
-              .replaceAll("{{user}}", get(st_user)?.data?.nickname || "User");
+          // Manual index check because the destructuring above might be off depending on browser/engine regex support for empty groups,
+          // but `exec` returns `undefined` for non-participating groups.
+          // Let's rely on checking the string parts or checking which group is defined.
 
-            blocks.push({
-              type: "dialogue",
-              speaker: parsedSpeaker,
-              content: diaContent.trim(),
-              id: `${partId}-d-${subPartIndex++}`,
-            });
-          } else if (tagImg === "img") {
-            try {
-              const imgIndex = parseInt(imgIndexStr, 10);
-              const imageMetadata = currentPersona?.image_metadatas?.[imgIndex];
-              // Relaxed condition: Allow if metadata exists, even if URL is empty (Secret)
-              if (imageMetadata && !isNaN(imgIndex)) {
-                blocks.push({
-                  type: "image",
-                  url: imageMetadata.url || "", // Pass empty string if missing
-                  alt: imageMetadata.description || "scene image",
-                  metadata: imageMetadata,
-                  id: `${partId}-img-${subPartIndex++}`,
-                  index: imgIndex, // Store index for unlocking
-                });
-              }
-            } catch (error) {
-              console.error("Error parsing img tag:", error);
+          if (fullMatch.startsWith("<dialogue")) {
+            const m = fullMatch.match(
+              /speaker="([^"]+)">([\s\S]*?)<\/dialogue>/,
+            );
+            if (m) {
+              let parsedSpeaker = m[1]
+                .replaceAll("{{char}}", currentPersona?.name || "Character")
+                .replaceAll("{{user}}", get(st_user)?.data?.nickname || "User");
+
+              blocks.push({
+                type: "dialogue",
+                speaker: parsedSpeaker,
+                content: m[2].trim(),
+                id: `${partId}-d-${subPartIndex++}`,
+              });
             }
-          } else if (tagAct === "Action") {
-            blocks.push({
-              type: "input_prompt",
-              id: `${partId}-action-${subPartIndex++}`,
-              prompt_type: actType,
-              question: actQ,
-              variable: actVar,
-              max: actMax ? parseInt(actMax, 10) : null,
-            });
+          } else if (fullMatch.startsWith("<img")) {
+            const m = fullMatch.match(/<img (\d+)>/);
+            if (m) {
+              try {
+                const imgIndex = parseInt(m[1], 10);
+                const imageMetadata =
+                  currentPersona?.image_metadatas?.[imgIndex];
+                if (imageMetadata && !isNaN(imgIndex)) {
+                  blocks.push({
+                    type: "image",
+                    url: imageMetadata.url || "",
+                    alt: imageMetadata.description || "scene image",
+                    metadata: imageMetadata,
+                    id: `${partId}-img-${subPartIndex++}`,
+                    index: imgIndex,
+                  });
+                }
+              } catch (error) {
+                console.error("Error parsing img tag:", error);
+              }
+            }
+          } else if (fullMatch.startsWith("<Action")) {
+            // ... existing action parsing logic if needed ...
+            const m = fullMatch.match(
+              /type="([^"]+)" question="([^"]+)" variable="([^"]+)"(?: max="(\d+)")?/,
+            );
+            if (m) {
+              blocks.push({
+                type: "input_prompt",
+                id: `${partId}-action-${subPartIndex++}`,
+                prompt_type: m[1],
+                question: m[2],
+                variable: m[3],
+                max: m[4] ? parseInt(m[4], 10) : null,
+              });
+            }
+          } else if (fullMatch.startsWith("![")) {
+            // Markdown Image
+            // Groups 11 and 12 from original big regex, or just re-match
+            const m = fullMatch.match(/!\[(.*?)\]\((.*?)\)/);
+            if (m) {
+              blocks.push({
+                type: "markdown_image",
+                alt: m[1],
+                url: m[2],
+                id: `${partId}-md-img-${subPartIndex++}`,
+              });
+            }
           }
 
           lastIndex = match.index + fullMatch.length;
@@ -221,10 +269,28 @@
         if (msg.role === "user") {
           const tagRegex = /<system-input>[\s\S]*?<\/system-input>/g;
           const sanitizedContent = msg.content.replace(tagRegex, "[상호작용]");
-          return { type: "user", content: sanitizedContent, id: messageId };
+          return {
+            type: "user",
+            content: sanitizedContent,
+            id: messageId,
+          } as ChatLogItem;
         }
       } else if (msg.role === "assistant") {
-        return parseAssistantContent(msg.content, messageId, persona);
+        const blocks = parseAssistantContent(msg.content, messageId, persona);
+
+        // Add Situation Trigger Button to the LAST message if it's a 2D persona
+        // PersonaType check: "2D", "2.5D" (usually "2D" in internal type, but let's be safe)
+        const is2D =
+          persona?.personaType === "2D" || persona?.personaType === "2.5D";
+        const isLastMessage = i === $messages.length - 1;
+
+        if (is2D && isLastMessage && !isLoading) {
+          blocks.push({
+            type: "situation_trigger",
+            id: `${messageId}-trigger`,
+          });
+        }
+        return blocks;
       }
       return [];
     });
@@ -249,6 +315,35 @@
       top: chatWindowEl.scrollHeight,
       behavior: "smooth",
     });
+  }
+
+  // --- Situation Image Generation ---
+  let isGeneratingImage = false;
+
+  async function generateSituationImage() {
+    if (isGeneratingImage) return;
+    isGeneratingImage = true;
+
+    // Simulate API call
+    setTimeout(() => {
+      // Mock response: Append image link to chat
+      // We need to update the LAST assistant message in the store
+      const msgs = get(messages);
+      if (msgs.length > 0) {
+        const lastMsg = msgs[msgs.length - 1];
+        if (lastMsg.role === "assistant") {
+          const imageMarkdown = `\n\n![Situation Image](https://picsum.photos/400/300?random=${Date.now()})`;
+
+          // Update store
+          messages.update((current) => {
+            const updated = [...current];
+            updated[updated.length - 1].content += imageMarkdown;
+            return updated;
+          });
+        }
+      }
+      isGeneratingImage = false;
+    }, 2000); // 2 seconds delay
   }
 </script>
 
@@ -289,6 +384,25 @@
       <div class="image-block">
         <ChatImage {persona} metadata={item.metadata} index={item.index} />
       </div>
+    {:else if item.type === "markdown_image" && showImage}
+      <div class="image-block situation-image">
+        <img src={item.url} alt={item.alt} loading="lazy" />
+      </div>
+    {:else if item.type === "situation_trigger"}
+      <div class="situation-trigger-wrapper">
+        <button
+          class="situation-btn"
+          on:click={generateSituationImage}
+          disabled={isGeneratingImage}
+        >
+          {#if isGeneratingImage}
+            <span class="spinner-sm"></span> {$t("chatInput.generatingImage")}
+          {:else}
+            {$t("chatInput.generateSituationImage")}
+            <span class="cost-badge">({$t("chatInput.cost")})</span>
+          {/if}
+        </button>
+      </div>
     {:else if item.type === "code"}
       <div class="code-block">
         {#if item.language}
@@ -310,6 +424,7 @@
 </div>
 
 <style>
+  /* ... existing styles ... */
   .code-block {
     align-self: center;
     width: 100%;
@@ -366,6 +481,54 @@
     max-width: 90%;
     margin-top: 0.5rem;
     margin-bottom: 0.5rem;
+  }
+
+  .situation-image img {
+    width: 100%;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  }
+
+  .situation-trigger-wrapper {
+    display: flex;
+    justify-content: center;
+    margin-top: 0.5rem;
+    width: 100%;
+  }
+
+  .situation-btn {
+    background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
+    color: white;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: all 0.2s;
+    box-shadow: 0 2px 8px rgba(99, 102, 241, 0.3);
+  }
+
+  .situation-btn:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);
+  }
+
+  .situation-btn:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+  }
+
+  .spinner-sm {
+    width: 14px;
+    height: 14px;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-top-color: white;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
   }
 
   .message {
