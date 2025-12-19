@@ -443,7 +443,16 @@
     .chat-content :global(.chat-window) {
         flex: 1;
         overflow-y: auto;
-        pointer-events: auto; /* Only capture clicks on the chat window itself */
+        pointer-events: none; /* Allow clicks/drags to pass through empty areas to the model */
+        scrollbar-width: none; /* Hide scrollbar to reduce visual clutter */
+    }
+    .chat-content :global(.chat-window)::-webkit-scrollbar {
+        display: none;
+    }
+
+    /* Make messages and interactive elements capture events again */
+    .chat-content :global(.chat-window > *) {
+        pointer-events: auto;
     }
 
     .chat-content :global(.chat-input-wrapper) {

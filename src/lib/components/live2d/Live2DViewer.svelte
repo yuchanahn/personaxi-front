@@ -261,6 +261,199 @@
         return;
     }
 
+    function draggable(model: any) {
+        model.buttonMode = true;
+        model.on("pointerdown", (e: any) => {
+            model.dragging = true;
+            model._pointerX = e.data.global.x - model.x;
+            model._pointerY = e.data.global.y - model.y;
+        });
+        model.on("pointermove", (e: any) => {
+            if (model.dragging) {
+                model.focus(e.data.global.x, e.data.global.y);
+            }
+        });
+        model.on("pointerupoutside", () => {
+            model.dragging = false;
+            model.internalModel.focusController.focus(0, 0);
+        });
+        model.on("pointerup", () => {
+            model.dragging = false;
+            model.internalModel.focusController.focus(0, 0);
+        });
+    }
+
+    // Motion Presets Configuration
+    type MotionAxis = {
+        intensity: number; // Amplitude
+        speed: number; // Frequency
+    };
+
+    type MotionPreset = {
+        bodyX?: MotionAxis;
+        bodyY?: MotionAxis;
+        bodyZ?: MotionAxis;
+        headX?: MotionAxis;
+        headY?: MotionAxis;
+    };
+
+    const MOTION_PRESETS: Record<string, MotionPreset> = {
+        idle: {
+            bodyX: { intensity: 2, speed: 0.005 },
+            bodyY: { intensity: 5, speed: 0.005 },
+            bodyZ: { intensity: 2, speed: 0.005 },
+            headX: { intensity: 2, speed: 0.005 },
+            headY: { intensity: 10, speed: 0.005 },
+        },
+        joy: {
+            bodyX: { intensity: 5, speed: 0.01 },
+            bodyY: { intensity: 10, speed: 0.01 },
+            bodyZ: { intensity: 5, speed: 0.01 },
+            headX: { intensity: 5, speed: 0.01 },
+            headY: { intensity: 20, speed: 0.01 },
+        },
+        sadness: {
+            bodyX: { intensity: 1, speed: 0.001 },
+            bodyY: { intensity: 2, speed: 0.002 },
+            bodyZ: { intensity: 0, speed: 0 },
+            headX: { intensity: 1, speed: 0.001 },
+            headY: { intensity: 5, speed: 0.002 },
+        },
+    };
+
+    let currentPresetName = "idle";
+    let bounceTicker: any;
+
+    function startBouncing(presetName: string = "idle") {
+        if (!currentModel || !app) return;
+
+        // Prevent duplicate ticker if already running same preset?
+        // Or just restart to apply new preset instantly.
+        if (bounceTicker) {
+            app.ticker.remove(bounceTicker);
+            bounceTicker = null;
+        }
+
+        currentPresetName = presetName;
+        const preset = MOTION_PRESETS[presetName] || MOTION_PRESETS["idle"];
+        console.log(`🚀 Starting Motion Preset: ${presetName}`, preset);
+
+        let startTime = Date.now();
+        const internal = currentModel.internalModel;
+        const core = internal.coreModel;
+        const ids = core._parameterIds;
+        const values = core._parameterValues;
+
+        if (!ids || !values) {
+            console.error("❌ No parameter IDs found.");
+            return;
+        }
+
+        // Map indices
+        const indices = {
+            bodyX: ids.indexOf("ParamBodyAngleX"),
+            bodyY: ids.indexOf("ParamBodyAngleY"),
+            bodyZ: ids.indexOf("ParamBodyAngleZ"),
+            headX: ids.indexOf("ParamAngleX"),
+            headY: ids.indexOf("ParamAngleY"),
+        };
+
+        bounceTicker = () => {
+            const now = Date.now();
+            const elapsed = now - startTime;
+
+            // Apply each axis if defined in preset AND exists in model
+            if (preset.bodyX && indices.bodyX !== -1) {
+                values[indices.bodyX] =
+                    Math.sin(elapsed * preset.bodyX.speed) *
+                    preset.bodyX.intensity;
+            }
+            if (preset.bodyY && indices.bodyY !== -1) {
+                values[indices.bodyY] =
+                    Math.sin(elapsed * preset.bodyY.speed) *
+                    preset.bodyY.intensity;
+            }
+            if (preset.bodyZ && indices.bodyZ !== -1) {
+                values[indices.bodyZ] =
+                    Math.sin(elapsed * preset.bodyZ.speed) *
+                    preset.bodyZ.intensity;
+            }
+            if (preset.headX && indices.headX !== -1) {
+                values[indices.headX] =
+                    Math.sin(elapsed * preset.headX.speed) *
+                    preset.headX.intensity;
+            }
+            if (preset.headY && indices.headY !== -1) {
+                values[indices.headY] =
+                    Math.sin(elapsed * preset.headY.speed) *
+                    preset.headY.intensity;
+            }
+        };
+
+        app.ticker.add(bounceTicker, null, PIXI.UPDATE_PRIORITY.UTILITY);
+    }
+
+    function stopBouncing() {
+        if (app && bounceTicker) {
+            app.ticker.remove(bounceTicker);
+            bounceTicker = null;
+
+            const core = currentModel?.internalModel?.coreModel;
+            if (core) {
+                core.setParameterValueById("ParamBodyAngleY", 0);
+                core.setParameterValueById("ParamAngleY", 0);
+            }
+        }
+    }
+    function checkParameters() {
+        if (!currentModel) return;
+
+        const internal = currentModel.internalModel;
+        const core = internal.coreModel;
+
+        console.log("🔎 모델 내부 구조 확인 중...");
+
+        let ids: string[] = [];
+
+        // [방법 1] Cubism 4 표준 (parameters.ids)
+        if (core.parameters && core.parameters.ids) {
+            // 배열인지 TypedArray인지 확인하여 처리
+            ids = Array.from(core.parameters.ids);
+            console.log("✅ Cubism 4 방식(core.parameters.ids)으로 ID 발견!");
+        }
+        // [방법 2] Cubism 2 표준 (getParamIds)
+        else if (typeof core.getParamIds === "function") {
+            ids = core.getParamIds();
+            console.log("✅ Cubism 2 방식(getParamIds)으로 ID 발견!");
+        }
+        // [방법 3] 구형 방식 (getParameterIds)
+        else if (typeof core.getParameterIds === "function") {
+            ids = core.getParameterIds();
+            console.log("✅ 구형 방식(getParameterIds)으로 ID 발견!");
+        }
+        // [방법 4] InternalModel의 settings에서 찾기 (가장 안전)
+        else if (internal.settings && internal.settings.parameters) {
+            ids = internal.settings.parameters.map((p: any) => p.name || p.id);
+            console.log("✅ Settings 파일에서 ID 발견!");
+        }
+
+        if (ids.length > 0) {
+            console.log("📜 파라미터 ID 목록 (상위 20개):", ids.slice(0, 20));
+
+            // 우리가 찾던 'Body'나 'Angle' 관련 ID 찾기
+            const targets = ids.filter(
+                (id) =>
+                    id.toLowerCase().includes("body") ||
+                    id.toLowerCase().includes("angle"),
+            );
+            console.log("🎯 몸/고개 움직임 관련 파라미터:", targets);
+        } else {
+            console.warn(
+                "⚠️ 파라미터 ID를 찾을 수 없습니다. coreModel 객체를 직접 찍어보세요:",
+                core,
+            );
+        }
+    }
     onMount(async () => {
         setTimeout(async () => {
             try {
@@ -284,6 +477,8 @@
 
                 model.interactive = true;
                 model.buttonMode = true;
+
+                draggable(model);
 
                 // Add Hit Area Frames for Debug
                 try {
@@ -355,26 +550,7 @@
                             console.log(
                                 `Triggering mapped motion for ${area}: ${motionFile}`,
                             );
-                            // We need to find the group/index for this file or just play by name if supported?
-                            // Live2DModel.motion() usually takes (group, index, priority).
-                            // But if we have the full filename, we might need a helper, OR better:
-                            // The user selects a "Motion Group" usually, not a file path directly in the UI?
-                            // Actually `availableMotions` are file paths.
-                            // `model.motion` expects (group, index).
-                            // Let's try to match the file path to a group/index.
 
-                            // Simple approach: Assume the value IS the group name if defined in model,
-                            // OR try to find which group/index corresponds to this file.
-
-                            // For now, let's assume the user mapped it to a Valid Group Name or we search effectively.
-                            // But usually `hit` triggers a logical motion like "TapBody".
-
-                            // Let's try to find the group that matches the file.
-                            // ... (Logic to find group by filename if needed, or just expecting a group name)
-                            // Re-reading implementation plan: "Dropdown to select a Motion".
-                            // If they select a file, we need to reverse-lookup the group/index.
-
-                            // Let's implement a smart finder.
                             let found = false;
                             if (model.internalModel.motionManager.definitions) {
                                 for (const [grp, motions] of Object.entries(
@@ -429,6 +605,9 @@
 
                 app.stage.addChild(model);
                 currentModel = model;
+                startBouncing();
+                checkParameters();
+
                 isLoaded = true;
                 debugInfo.modelUrl = modelUrl;
 
@@ -626,6 +805,27 @@
                             }}
                         >
                             {expr}
+                        </button>
+                    {/each}
+                </div>
+            </div>
+
+            <div class="info-section">
+                <strong>Motion Presets:</strong>
+                <div
+                    class="presets-row"
+                    style="display: flex; gap: 5px; flex-wrap: wrap; margin-top: 5px;"
+                >
+                    {#each Object.keys(MOTION_PRESETS) as preset}
+                        <button
+                            class="list-item clickable"
+                            style="flex: 1; text-align: center; border: 1px solid #0f0; border-radius: 4px; {currentPresetName ===
+                            preset
+                                ? 'background: rgba(0, 255, 0, 0.4); color: white;'
+                                : ''}"
+                            on:click={() => startBouncing(preset)}
+                        >
+                            {preset}
                         </button>
                     {/each}
                 </div>
