@@ -210,10 +210,14 @@
                 if (actionName && actionName !== lastTriggeredAction) {
                     lastTriggeredAction = actionName;
 
-                    if (motionMap[actionName]) {
+                    if (motionMap[actionName] || expressionMap[actionName]) {
                         const mappedFile = motionMap[actionName];
 
                         if (Viewer) {
+                            console.log(
+                                "Debug: Triggering action:",
+                                actionName,
+                            );
                             // Check if it's an expression
                             // Heuristic: Check against known availableExpressions OR file extension
                             const isExpression =
@@ -225,8 +229,8 @@
                                 mappedFile.endsWith(".exp.json"); // legacy check
 
                             if (isExpression) {
-                                if (Viewer.setExpression)
-                                    Viewer.setExpression(mappedFile);
+                                if (Viewer.triggerExpression)
+                                    Viewer.triggerExpression(mappedFile);
                             } else {
                                 if (Viewer.triggerMotion)
                                     Viewer.triggerMotion(mappedFile);

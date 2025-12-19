@@ -171,10 +171,21 @@
         console.warn(`Debug: Motion file not found: ${fileName}`);
     }
 
+    export function triggerExpression(fileName: string) {
+        if (!currentModel) return;
+
+        console.log(
+            `Debug: |triggerExpression| Found custom mapping for category '${fileName}'`,
+        );
+        currentModel.expression(fileName);
+        debugInfo.currentExpression = fileName;
+        return;
+    }
+
     export function setExpression(emotion: string) {
         if (!currentModel) return;
 
-        console.log(`Debug: setExpression called with: ${emotion}`);
+        console.log(`Debug: |setExpression| called with: ${emotion}`);
         debugInfo.currentEmotion = emotion;
 
         const emotionLower = emotion.toLowerCase();
@@ -248,29 +259,6 @@
         }
 
         return;
-
-        // 2. Fallback to Index / Default system
-        console.log(
-            `Debug: No custom mapping for '${category}', using index ${expressionIndex}`,
-        );
-
-        try {
-            const definitions =
-                currentModel.internalModel?.motionManager?.expressionManager
-                    ?.definitions;
-            if (definitions && definitions.length > expressionIndex) {
-                const name = definitions[expressionIndex].Name;
-                currentModel.expression(name);
-                debugInfo.currentExpression = `${name} (Index: ${expressionIndex})`;
-            } else {
-                console.log(
-                    `Debug: No expression definition found for index ${expressionIndex}, skipping.`,
-                );
-            }
-        } catch (e) {
-            console.warn("Error setting expression:", e);
-            debugInfo.currentExpression = "Error";
-        }
     }
 
     onMount(async () => {
