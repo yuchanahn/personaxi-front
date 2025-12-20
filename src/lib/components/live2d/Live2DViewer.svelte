@@ -195,6 +195,10 @@
         console.warn(`Debug: Motion file not found: ${fileName}`);
     }
 
+    let expressionLockUntil = 0; // Timestamp
+    let pendingEmotion: string | null = null;
+    let lockTimeout: any = null;
+
     export function triggerExpression(fileName: string) {
         if (!currentModel) return;
 
@@ -203,11 +207,43 @@
         );
         currentModel.expression(fileName);
         debugInfo.currentExpression = fileName;
+
+        // 🔥 Lock expression update for 1 second (1000ms)
+        expressionLockUntil = Date.now() + 2000;
+        console.log(`Debug: Expression Locked until ${expressionLockUntil}`);
+
+        // Clear any existing pending stuff if we force a new expression
+        if (lockTimeout) clearTimeout(lockTimeout);
+        pendingEmotion = null;
+
         return;
     }
 
     export function setExpression(emotion: string) {
         if (!currentModel) return;
+
+        // 🔥 Check Lock
+        if (Date.now() < expressionLockUntil) {
+            console.log(
+                `Debug: setExpression Locked. queueing emotion: ${emotion}`,
+            );
+            pendingEmotion = emotion;
+
+            if (!lockTimeout) {
+                const wait = expressionLockUntil - Date.now();
+                lockTimeout = setTimeout(() => {
+                    lockTimeout = null;
+                    if (pendingEmotion) {
+                        console.log(
+                            `Debug: Applying pending emotion: ${pendingEmotion}`,
+                        );
+                        setExpression(pendingEmotion);
+                        pendingEmotion = null;
+                    }
+                }, wait);
+            }
+            return;
+        }
 
         console.log(`Debug: |setExpression| called with: ${emotion}`);
         debugInfo.currentEmotion = emotion;
