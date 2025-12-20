@@ -30,21 +30,45 @@
     };
 
     export async function speak(audioUrl: string) {
-        if (!currentModel) {
-            console.warn("Live2D model not ready for speaking.");
-            return;
+        if (!currentModel) return;
+
+        // 1. 기존 오디오 정리 (중복 재생 방지)
+        if (currentAudio) {
+            currentAudio.pause();
+            currentAudio = null;
         }
 
+        // 2. 새로운 오디오 객체 생성
+        const audio = new Audio(audioUrl);
+        audio.crossOrigin = "anonymous"; // CORS 필수
+
+        // 3. 🔥 여기서 연결해야 합니다! (분석기에 꽂기)
+        setAudio(audio);
+
+        // 4. 모션 엔진 가동
+        startNeuroMotion();
+
+        // 5. 재생 시작
         try {
-            if (currentModel.stopSpeaking) {
-                console.log("🛑 Stopping previous Live2D audio");
-                currentModel.stopSpeaking();
-            }
-            resetToDefault();
-            await currentModel.speak(audioUrl);
+            await audio.play();
+
+            // (선택사항) 라이브러리 립싱크도 같이 쓰고 싶으면
+            // currentModel.speak(audioUrl) 대신
+            // 립싱크용 볼륨을 startNeuroMotion 안에서 ParamMouthOpenY에 넣어주는게 베스트입니다.
+            // 하지만 일단 기존 speak와 병행하려면 아래처럼 꼼수로 동시에 틀거나,
+            // 라이브러리 speak 기능을 끄고 직접 구현해야 합니다.
+
+            // 일단 '모션'이 목적이므로 audio.play()로 소리는 나옵니다.
         } catch (e) {
-            console.error("Live2D speak failed:", e);
+            console.error("Audio play failed:", e);
         }
+
+        // 6. 끝나면 정리
+        audio.onended = () => {
+            console.log("Audio Finished");
+            // 모션 멈추기 (필요하면)
+            // app.ticker.remove(neuroTicker);
+        };
     }
 
     export function toggleDebug() {
@@ -299,25 +323,32 @@
 
     const MOTION_PRESETS: Record<string, MotionPreset> = {
         idle: {
-            bodyX: { intensity: 2, speed: 0.005 },
-            bodyY: { intensity: 5, speed: 0.005 },
-            bodyZ: { intensity: 2, speed: 0.005 },
-            headX: { intensity: 2, speed: 0.005 },
-            headY: { intensity: 10, speed: 0.005 },
+            bodyX: { intensity: 2, speed: 5 },
+            bodyY: { intensity: 5, speed: 5 },
+            bodyZ: { intensity: 2, speed: 5 },
+            headX: { intensity: 2, speed: 5 },
+            headY: { intensity: 10, speed: 5 },
         },
         joy: {
-            bodyX: { intensity: 5, speed: 0.01 },
-            bodyY: { intensity: 10, speed: 0.01 },
-            bodyZ: { intensity: 5, speed: 0.01 },
-            headX: { intensity: 5, speed: 0.01 },
-            headY: { intensity: 20, speed: 0.01 },
+            bodyX: { intensity: 5, speed: 5 },
+            bodyY: { intensity: 10, speed: 5 },
+            bodyZ: { intensity: 5, speed: 5 },
+            headX: { intensity: 5, speed: 5 },
+            headY: { intensity: 20, speed: 5 },
         },
         sadness: {
-            bodyX: { intensity: 1, speed: 0.001 },
-            bodyY: { intensity: 2, speed: 0.002 },
-            bodyZ: { intensity: 0, speed: 0 },
-            headX: { intensity: 1, speed: 0.001 },
-            headY: { intensity: 5, speed: 0.002 },
+            bodyX: { intensity: 1, speed: 5 },
+            bodyY: { intensity: 2, speed: 5 },
+            bodyZ: { intensity: 0, speed: 5 },
+            headX: { intensity: 1, speed: 5 },
+            headY: { intensity: 5, speed: 5 },
+        },
+        nooo: {
+            bodyX: { intensity: 0, speed: 5 },
+            bodyY: { intensity: 0, speed: 5 },
+            bodyZ: { intensity: 0, speed: 5 },
+            headX: { intensity: 30, speed: 5 },
+            headY: { intensity: 0, speed: 5 },
         },
     };
 
@@ -365,27 +396,27 @@
             // Apply each axis if defined in preset AND exists in model
             if (preset.bodyX && indices.bodyX !== -1) {
                 values[indices.bodyX] =
-                    Math.sin(elapsed * preset.bodyX.speed) *
+                    Math.sin((elapsed * preset.bodyX.speed) / 1000) *
                     preset.bodyX.intensity;
             }
             if (preset.bodyY && indices.bodyY !== -1) {
                 values[indices.bodyY] =
-                    Math.sin(elapsed * preset.bodyY.speed) *
+                    Math.sin((elapsed * preset.bodyY.speed) / 1000) *
                     preset.bodyY.intensity;
             }
             if (preset.bodyZ && indices.bodyZ !== -1) {
                 values[indices.bodyZ] =
-                    Math.sin(elapsed * preset.bodyZ.speed) *
+                    Math.sin((elapsed * preset.bodyZ.speed) / 1000) *
                     preset.bodyZ.intensity;
             }
             if (preset.headX && indices.headX !== -1) {
                 values[indices.headX] =
-                    Math.sin(elapsed * preset.headX.speed) *
+                    Math.sin((elapsed * preset.headX.speed) / 1000) *
                     preset.headX.intensity;
             }
             if (preset.headY && indices.headY !== -1) {
                 values[indices.headY] =
-                    Math.sin(elapsed * preset.headY.speed) *
+                    Math.sin((elapsed * preset.headY.speed) / 1000) *
                     preset.headY.intensity;
             }
         };
@@ -405,55 +436,107 @@
             }
         }
     }
-    function checkParameters() {
-        if (!currentModel) return;
+
+    let audioContext: AudioContext | null = null;
+    let analyser: AnalyserNode | null = null;
+    let dataArray: Uint8Array | null = null;
+    let audioSource: MediaElementAudioSourceNode | null = null;
+    let currentAudio: HTMLAudioElement | null = null;
+
+    let neuroTicker: any;
+
+    export function setAudio(audio: HTMLAudioElement) {
+        currentAudio = audio;
+        if (audioContext) {
+            audioContext.close();
+            audioContext = null;
+        }
+        audioContext = new AudioContext();
+        analyser = audioContext.createAnalyser();
+        analyser.fftSize = 256;
+        dataArray = new Uint8Array(analyser.frequencyBinCount);
+        audioSource = audioContext.createMediaElementSource(audio);
+        audioSource.connect(analyser);
+        audioSource.connect(audioContext.destination);
+    }
+
+    function startNeuroMotion() {
+        if (!currentModel || !app || neuroTicker) return;
 
         const internal = currentModel.internalModel;
         const core = internal.coreModel;
 
-        console.log("🔎 모델 내부 구조 확인 중...");
+        const ids = core._parameterIds;
+        const values = core._parameterValues;
 
-        let ids: string[] = [];
+        const idxMouthY = ids.indexOf("ParamMouthOpenY");
+        const idxBodyY = ids.indexOf("ParamBodyAngleY");
+        const idxBodyZ = ids.indexOf("ParamBodyAngleZ");
+        const idxHeadY = ids.indexOf("ParamAngleY");
+        const idxHeadZ = ids.indexOf("ParamAngleZ");
 
-        // [방법 1] Cubism 4 표준 (parameters.ids)
-        if (core.parameters && core.parameters.ids) {
-            // 배열인지 TypedArray인지 확인하여 처리
-            ids = Array.from(core.parameters.ids);
-            console.log("✅ Cubism 4 방식(core.parameters.ids)으로 ID 발견!");
-        }
-        // [방법 2] Cubism 2 표준 (getParamIds)
-        else if (typeof core.getParamIds === "function") {
-            ids = core.getParamIds();
-            console.log("✅ Cubism 2 방식(getParamIds)으로 ID 발견!");
-        }
-        // [방법 3] 구형 방식 (getParameterIds)
-        else if (typeof core.getParameterIds === "function") {
-            ids = core.getParameterIds();
-            console.log("✅ 구형 방식(getParameterIds)으로 ID 발견!");
-        }
-        // [방법 4] InternalModel의 settings에서 찾기 (가장 안전)
-        else if (internal.settings && internal.settings.parameters) {
-            ids = internal.settings.parameters.map((p: any) => p.name || p.id);
-            console.log("✅ Settings 파일에서 ID 발견!");
-        }
+        let startTime = Date.now();
+        let bodyVol = 0;
+        let lipVol = 0;
 
-        if (ids.length > 0) {
-            console.log("📜 파라미터 ID 목록 (상위 20개):", ids.slice(0, 20));
+        neuroTicker = () => {
+            let volume = 0;
+            if (analyser && dataArray) {
+                analyser.getByteFrequencyData(dataArray);
+                let sum = 0;
+                for (let i = 0; i < dataArray.length; i++) {
+                    sum += dataArray[i];
+                }
+                volume = sum / dataArray.length;
+            }
 
-            // 우리가 찾던 'Body'나 'Angle' 관련 ID 찾기
-            const targets = ids.filter(
-                (id) =>
-                    id.toLowerCase().includes("body") ||
-                    id.toLowerCase().includes("angle"),
-            );
-            console.log("🎯 몸/고개 움직임 관련 파라미터:", targets);
-        } else {
-            console.warn(
-                "⚠️ 파라미터 ID를 찾을 수 없습니다. coreModel 객체를 직접 찍어보세요:",
-                core,
-            );
+            const inputIntensity = Math.max(0, (volume - 10) / 40);
+            const lipTarget = Math.max(0, (volume - 5) / 30);
+
+            bodyVol += (inputIntensity - bodyVol) * 0.1;
+            lipVol += (lipTarget - lipVol) * 0.6;
+
+            const t = (Date.now() - startTime) / 1000;
+            const sway = (Math.sin(t * 1.5) + Math.cos(t * 0.9)) * 0.5;
+            const flutter = 0.8 + 0.2 * Math.sin(t * 25);
+
+            if (idxMouthY !== -1) {
+                let openAmount = lipVol * 0.2;
+                values[idxMouthY] = Math.min(1, openAmount * flutter);
+            }
+
+            if (idxHeadY !== -1) {
+                const base = Math.sin(t * 2) * 2;
+                const talk = bodyVol * 15;
+                values[idxHeadY] = base + talk;
+            }
+
+            if (idxBodyZ !== -1) {
+                values[idxBodyZ] = sway * 3;
+            }
+
+            if (idxHeadZ !== -1) {
+                values[idxHeadZ] = sway * 4 + bodyVol * 2 * Math.sin(t * 10);
+            }
+
+            if (idxBodyY !== -1) {
+                values[idxBodyY] = bodyVol * 5;
+            }
+        };
+
+        app.ticker.add(neuroTicker, null, PIXI.UPDATE_PRIORITY.UTILITY);
+    }
+
+    function stopNeuroMotion() {
+        if (app && neuroTicker) {
+            app.ticker.remove(neuroTicker);
+            neuroTicker = null;
+
+            // 멈출 때 서서히 돌아오게 하려면 별도 로직 필요하지만, 일단 0으로 초기화
+            // (파라미터 초기화 코드는 생략, 필요시 추가)
         }
     }
+
     onMount(async () => {
         setTimeout(async () => {
             try {
@@ -605,8 +688,8 @@
 
                 app.stage.addChild(model);
                 currentModel = model;
-                startBouncing();
-                checkParameters();
+                //startBouncing();
+                startNeuroMotion();
 
                 isLoaded = true;
                 debugInfo.modelUrl = modelUrl;

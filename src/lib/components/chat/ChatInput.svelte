@@ -3,6 +3,7 @@
   import Icon from "@iconify/svelte";
   import { t } from "svelte-i18n";
   import SttComponent from "../stt/SttComponent.svelte";
+  import { st_user } from "$lib/stores/user";
 
   let {
     onSend,
@@ -20,6 +21,7 @@
   const MAX_CHARS = 2000;
   const charCount = $derived(prompt.length);
   const isOverLimit = $derived(charCount > MAX_CHARS);
+  const neededNeurons = 10; // Default estimate for Live2D/3D
 
   function handleSubmit(e: KeyboardEvent) {
     if (isDisabled || isOverLimit) return;
@@ -43,13 +45,18 @@
 </script>
 
 <div class="chat-input-wrapper">
-  {#if !isListening && charCount > 0}
+  {#if !isListening && charCount > 1000}
     <div
       class="char-counter"
       class:warning={charCount > MAX_CHARS * 0.9}
       class:error={isOverLimit}
     >
       {charCount}/{MAX_CHARS}
+    </div>
+  {/if}
+  {#if !isListening && charCount > 0}
+    <div class="neuron-indicator">
+      {neededNeurons} / {$st_user?.credits ?? 0}
     </div>
   {/if}
   <div class="input-container" class:listening={isListening}>
@@ -156,6 +163,20 @@
   .char-counter.error {
     color: #ef4444;
     font-weight: 600;
+  }
+
+  .neuron-indicator {
+    position: absolute;
+    bottom: 8px;
+    right: 50px;
+    font-size: 0.75rem;
+    color: var(--primary);
+    font-weight: 500;
+    pointer-events: none;
+    z-index: 5;
+    background: rgba(var(--background), 0.8);
+    padding: 2px 6px;
+    border-radius: 10px;
   }
 
   .chat-send-button {

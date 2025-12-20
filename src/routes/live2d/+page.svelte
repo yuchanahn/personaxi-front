@@ -13,6 +13,7 @@
 
     import ThoughtBubble from "$lib/components/chat/ThoughtBubble.svelte";
     import { messages } from "$lib/stores/messages";
+    import { st_user } from "$lib/stores/user";
 
     let lastSessionId: string | null = null;
     let persona: Persona | null = null;
@@ -115,11 +116,16 @@
                         showThought1 = false; // Ensure thought1 is gone
 
                         if (thought2) {
-                            showThought2 = true; // Show thought 2
-                            // Hide thought 2 after 8 seconds
+                            // Random delay between 2000ms and 3000ms
+                            const delay =
+                                Math.floor(Math.random() * 1000) + 2000;
                             setTimeout(() => {
-                                showThought2 = false;
-                            }, 8000);
+                                showThought2 = true; // Show thought 2
+                                // Hide thought 2 after 8 seconds
+                                setTimeout(() => {
+                                    showThought2 = false;
+                                }, 8000);
+                            }, delay);
                         }
                     }, durationMs);
                 } else {
@@ -256,6 +262,15 @@
 
     const send = async (prompt: string) => {
         if (!persona || !lastSessionId) return;
+
+        // Optimistic Credit Deduction
+        st_user.update((u) => {
+            if (u && u.credits >= 10) {
+                u.credits -= 10; // Deduct logic matches ChatInput display
+            }
+            return u;
+        });
+
         isLoading = true;
 
         // Reset thoughts for new turn
@@ -325,10 +340,15 @@
                             showThought1 = false;
 
                             if (thought2) {
-                                showThought2 = true;
+                                // Random delay between 2000ms and 3000ms
+                                const delay =
+                                    Math.floor(Math.random() * 1000) + 2000;
                                 setTimeout(() => {
-                                    showThought2 = false;
-                                }, 8000);
+                                    showThought2 = true;
+                                    setTimeout(() => {
+                                        showThought2 = false;
+                                    }, 8000);
+                                }, delay);
                             }
                         }, durationMs);
                     }
