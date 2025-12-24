@@ -516,8 +516,12 @@
   -->
   <div class="chat-container select-none">
     <div class="chat-content">
-      <ChatWindow cssid={cssid ?? ""} showChat={show} {isLoading} />
-      <ChatInput onSend={send} onChangeInput={handleInputChange} />
+      <ChatWindow cssid={cssid ?? ""} showChat={show} {isLoading} {persona} />
+      <ChatInput
+        onSend={send}
+        onChangeInput={handleInputChange}
+        placeholderName={persona?.name}
+      />
     </div>
   </div>
 </div>

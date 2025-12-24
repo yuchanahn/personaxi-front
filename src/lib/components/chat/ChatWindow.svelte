@@ -383,7 +383,9 @@
 >
   {#if chatLog.length === 0}
     <div class="empty-message" role="status">
-      {$t("chatWindow.noConversation")}
+      {$t("chatWindow.noConversation", {
+        values: { name: persona?.name || "AI" },
+      })}
     </div>
   {/if}
 

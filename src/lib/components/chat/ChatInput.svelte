@@ -10,11 +10,13 @@
     onChangeInput = (t: string) => {},
     isDisabled = false,
     isListening = $bindable(false),
+    placeholderName = "",
   }: {
     onSend: (text: string) => void;
     onChangeInput?: (text: string) => void;
     isDisabled?: boolean;
     isListening?: boolean;
+    placeholderName?: string;
   } = $props();
 
   let prompt = $state("");
@@ -63,7 +65,9 @@
     {#if !isListening}
       <textarea
         bind:value={prompt}
-        placeholder={$t("chatInput.placeholder")}
+        placeholder={$t("chatInput.placeholder", {
+          values: { name: placeholderName || "친구" },
+        })}
         class="chat-input focus-override"
         class:over-limit={isOverLimit}
         rows="1"

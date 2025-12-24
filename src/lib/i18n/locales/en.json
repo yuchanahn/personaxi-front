@@ -45,7 +45,7 @@
     "community": "Join the Community"
   },
   "chatInput": {
-    "placeholder": "Ask anything...",
+    "placeholder": "Talk to {name}...",
     "sendButton": "Send",
     "generateSituationImage": "✨ Generate Situation Image",
     "generatingImage": "Generating...",
@@ -305,7 +305,7 @@
     "createFailed": "Auction creation failed"
   },
   "chatWindow": {
-    "noConversation": "No conversation yet. Type a question to start.",
+    "noConversation": "{name}, No conversation yet. Type a question to start.",
     "thinking": "Thinking"
   },
   "livePage": {

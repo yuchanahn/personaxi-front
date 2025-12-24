@@ -379,8 +379,13 @@
                     cssid={lastSessionId ?? ""}
                     {showChat}
                     {isLoading}
+                    {persona}
                 />
-                <ChatInput onSend={send} onChangeInput={handleInputChange} />
+                <ChatInput
+                    onSend={send}
+                    onChangeInput={handleInputChange}
+                    placeholderName={persona?.name}
+                />
             </div>
         </div>
 

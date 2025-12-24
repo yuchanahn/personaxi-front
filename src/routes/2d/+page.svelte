@@ -75,7 +75,7 @@
       {showImage}
       SendMessage={send}
     />
-    <ChatInput onSend={send} {isDisabled} />
+    <ChatInput onSend={send} {isDisabled} placeholderName={persona?.name} />
   </div>
 </main>
 
