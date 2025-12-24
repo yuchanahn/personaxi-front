@@ -482,18 +482,31 @@
     let neuroTicker: any;
 
     export function setAudio(audio: HTMLAudioElement) {
-        currentAudio = audio;
-        if (audioContext) {
-            audioContext.close();
-            audioContext = null;
+        if (!currentModel) return;
+
+        const audioSrc = audio.src;
+        console.log(`Debug: Calling model.speak() with ${audioSrc}`);
+
+        // 🔊 Mute the original HTMLAudioElement to prevent double audio (echo)
+        // because model.speak() plays the audio internally for lip sync.
+        audio.muted = true;
+
+        // Stop any previous speak to avoid overlap
+        if (currentModel.speak) {
+            currentModel
+                .speak(audioSrc, {
+                    volume: 1.0,
+                    resetExpression: false,
+                })
+                .then(() => {
+                    console.log("Debug: speak() completed");
+                })
+                .catch((e: any) => {
+                    console.error("Debug: speak() failed", e);
+                });
+        } else {
+            console.warn("Debug: model.speak() is not available!");
         }
-        audioContext = new AudioContext();
-        analyser = audioContext.createAnalyser();
-        analyser.fftSize = 256;
-        dataArray = new Uint8Array(analyser.frequencyBinCount);
-        audioSource = audioContext.createMediaElementSource(audio);
-        audioSource.connect(analyser);
-        audioSource.connect(audioContext.destination);
     }
 
     function startNeuroMotion() {
@@ -501,45 +514,50 @@
 
         const internal = currentModel.internalModel;
         const core = internal.coreModel;
-
         const ids = core._parameterIds;
         const values = core._parameterValues;
 
-        const idxMouthY = ids.indexOf("ParamMouthOpenY");
-        const idxBodyY = ids.indexOf("ParamBodyAngleY");
-        const idxBodyZ = ids.indexOf("ParamBodyAngleZ");
-        const idxHeadY = ids.indexOf("ParamAngleY");
-        const idxHeadZ = ids.indexOf("ParamAngleZ");
+        // Helper: Find first matching parameter index
+        const findParam = (candidates: string[]) => {
+            for (const c of candidates) {
+                const idx = ids.indexOf(c);
+                if (idx !== -1) return idx;
+            }
+            return -1;
+        };
+
+        const idxBodyY = findParam([
+            "ParamBodyAngleY",
+            "ParamBodyAngle",
+            "ParamBodyY",
+        ]);
+        const idxBodyZ = findParam(["ParamBodyAngleZ", "ParamBodyZ"]);
+        const idxHeadY = findParam(["ParamAngleY"]);
+        const idxHeadZ = findParam(["ParamAngleZ"]);
 
         let startTime = Date.now();
         let bodyVol = 0;
-        let lipVol = 0;
 
         neuroTicker = () => {
+            // 1. Get Volume from MotionManager (set by speak())
             let volume = 0;
-            if (analyser && dataArray) {
-                analyser.getByteFrequencyData(dataArray);
-                let sum = 0;
-                for (let i = 0; i < dataArray.length; i++) {
-                    sum += dataArray[i];
-                }
-                volume = sum / dataArray.length;
+            if (
+                internal.motionManager &&
+                // @ts-ignore
+                typeof internal.motionManager.mouthSync === "function"
+            ) {
+                // @ts-ignore
+                volume = internal.motionManager.mouthSync() * 100; // Usually returns 0-1
             }
 
             const inputIntensity = Math.max(0, (volume - 10) / 40);
             const lipTarget = Math.max(0, (volume - 5) / 30);
 
             bodyVol += (inputIntensity - bodyVol) * 0.1;
-            lipVol += (lipTarget - lipVol) * 0.6;
 
             const t = (Date.now() - startTime) / 1000;
             const sway = (Math.sin(t * 1.5) + Math.cos(t * 0.9)) * 0.5;
             const flutter = 0.8 + 0.2 * Math.sin(t * 25);
-
-            if (idxMouthY !== -1) {
-                let openAmount = lipVol * 0.2;
-                values[idxMouthY] = Math.min(1, openAmount * flutter);
-            }
 
             if (idxHeadY !== -1) {
                 const base = Math.sin(t * 2) * 2;
@@ -733,6 +751,14 @@
                 console.log("Debug: Model loaded", model);
                 console.log("Debug: Internal Model", model.internalModel);
                 console.log("Debug: Settings", model.internalModel?.settings);
+
+                // Check Parameters
+                if (model.internalModel?.coreModel?._parameterIds) {
+                    console.log(
+                        "Debug: Available Parameter IDs:",
+                        model.internalModel.coreModel._parameterIds,
+                    );
+                }
 
                 // Discovery
                 const foundExpressions = new Set<string>();
