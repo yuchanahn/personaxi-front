@@ -8,6 +8,7 @@
   import { loadPersona } from "$lib/api/edit_persona";
   import { connectTTSSocket, disconnectTTSSocket } from "$lib/api/tts";
   import TtsStatusModal from "$lib/components/modal/TTSStatusModal.svelte";
+  import { messages } from "$lib/stores/messages";
 
   let lastSessionId: string | null = null;
   let persona: Persona | null = null;
@@ -18,6 +19,7 @@
   onMount(async () => {
     const sessionId = $page.url.searchParams.get("c");
     lastSessionId = sessionId;
+    $messages = [];
     if (sessionId) {
       // Data loading is handled by the reactive block below
 

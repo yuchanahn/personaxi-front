@@ -379,7 +379,6 @@
                     cssid={lastSessionId ?? ""}
                     {showChat}
                     {isLoading}
-                    {persona}
                 />
                 <ChatInput
                     onSend={send}
