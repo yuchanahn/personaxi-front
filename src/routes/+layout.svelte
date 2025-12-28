@@ -20,6 +20,7 @@
     import { confirmConsent, getCurrentUser } from "$lib/api/auth";
     import { st_user } from "$lib/stores/user";
     import { needMoreNeuronsModal } from "$lib/stores/modal";
+    import { pricingStore } from "$lib/stores/pricing";
 
     /* ────────────── SvelteKit 내장 ────────────── */
     import { onMount, tick } from "svelte";
@@ -62,6 +63,8 @@
     /* ────────────── 인증 확인 ────────────── */
     onMount(() => {
         if (!browser) return;
+
+        pricingStore.fetchPricingPolicy();
 
         // 1. 초기 세션 로드
         supabase.auth.getSession().then(({ data: { session } }) => {

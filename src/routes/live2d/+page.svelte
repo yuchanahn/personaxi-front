@@ -14,9 +14,10 @@
     import { ttsState } from "$lib/stores/ttsStore";
     import ThoughtBubble from "$lib/components/chat/ThoughtBubble.svelte";
     import SpeechBubble from "$lib/components/chat/SpeechBubble.svelte";
-    import { messages } from "$lib/stores/messages";
     import { st_user } from "$lib/stores/user";
     import { settings } from "$lib/stores/settings";
+    import { pricingStore } from "$lib/stores/pricing";
+    import { get } from "svelte/store";
 
     let lastSessionId: string | null = null;
     let persona: Persona | null = null;
@@ -259,9 +260,10 @@
         if (!persona || !lastSessionId) return;
 
         // Optimistic Credit Deduction
+        const cost = get(pricingStore).costs.chat_live2d || 10;
         st_user.update((u) => {
-            if (u && u.credits >= 10) {
-                u.credits -= 10; // Deduct logic matches ChatInput display
+            if (u && u.credits >= cost) {
+                u.credits -= cost;
             }
             return u;
         });

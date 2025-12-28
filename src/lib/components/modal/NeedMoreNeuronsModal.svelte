@@ -7,6 +7,7 @@
     import { get } from "svelte/store";
     import { st_user } from "$lib/stores/user";
     import { toast } from "$lib/stores/toast";
+    import { pricingStore } from "$lib/stores/pricing";
 
     // 부모 컴포넌트로부터 모달 가시성 상태를 양방향으로 바인딩합니다.
     export let isOpen: boolean = false;
@@ -34,11 +35,11 @@
     });
 
     // 충전 옵션 데이터 (실제로는 서버에서 받아올 수 있습니다)
-    const rechargeOptions = [
-        { neurons: 1000, price: "₩1,200" },
-        { neurons: 5500, price: "₩5,900" },
-        { neurons: 12000, price: "₩12,000" },
-    ];
+    // const rechargeOptions = [
+    //     { neurons: 1000, price: "₩1,200" },
+    //     { neurons: 5500, price: "₩5,900" },
+    //     { neurons: 12000, price: "₩12,000" },
+    // ];
 
     import { api } from "$lib/api"; // Assuming api client exists
     import { notificationStore } from "$lib/stores/notification";
@@ -169,7 +170,7 @@
                     </p>
                 </div>
                 <div class="recharge-options">
-                    {#each rechargeOptions as option}
+                    {#each $pricingStore.purchase_options as option}
                         <button
                             class="recharge-button"
                             disabled={isPurchasing}
@@ -188,7 +189,9 @@
                             {#if isPurchasing}
                                 <span class="spinner">...</span>
                             {:else}
-                                <span class="price-tag">{option.price}</span>
+                                <span class="price-tag"
+                                    >{option.price_display}</span
+                                >
                             {/if}
                         </button>
                     {/each}

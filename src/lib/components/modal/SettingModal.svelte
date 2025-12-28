@@ -24,6 +24,8 @@
     export let mode: "2d" | "3d" = "3d";
     export let showImage: boolean = true;
 
+    import { pricingStore } from "$lib/stores/pricing";
+
     let change_llm_type = "";
 
     const dispatch = createEventDispatcher();
@@ -35,17 +37,36 @@
 
     $: isLiked = persona.is_liked || false;
 
-    const availableLLMs = [
-        { id: "gemini-flash", name: "Gemini Flash", cost: 3 },
-        { id: "gemini-flash-lite", name: "Gemini Flash Lite", cost: 1 },
-        { id: "gemini-pro", name: "Gemini Pro", cost: 5 },
-    ];
-    let selectedLLM =
-        availableLLMs.find((llm) => llm.id === llmType) || availableLLMs[1]; // Default to Flash-Lite
+    $: baseCost =
+        mode === "3d"
+            ? $pricingStore.costs.chat_3d
+            : $pricingStore.costs.chat_2d;
+
+    $: availableLLMs = [
+        { id: "gemini-flash", name: "Gemini Flash", multiplier: 1.5 },
+        {
+            id: "gemini-flash-lite",
+            name: "Gemini Flash Lite",
+            multiplier:
+                $pricingStore.model_multipliers["gemini-flash-lite"] || 1.0,
+        },
+        {
+            id: "gemini-pro",
+            name: "Gemini Pro",
+            multiplier: $pricingStore.model_multipliers["gemini-pro"] || 2.0,
+        },
+    ].map((llm) => ({
+        ...llm,
+        cost: Math.round(baseCost * llm.multiplier),
+    }));
+
+    let selectedLLM_id = llmType;
+    $: selectedLLM =
+        availableLLMs.find((llm) => llm.id === selectedLLM_id) ||
+        availableLLMs[1];
 
     function changeLLMType(newType: string) {
-        selectedLLM =
-            availableLLMs.find((llm) => llm.id === newType) || availableLLMs[1]; // Default to Flash-Lite
+        selectedLLM_id = newType;
 
         chatSessions.update((sessions) => {
             return sessions.map((session) => {
@@ -244,7 +265,7 @@
                 <div class="select-wrapper">
                     <select
                         bind:value={selectedLLM}
-                        on:change={handleLLMChange}
+                        on:change={() => handleLLMChange()}
                         disabled={isLoading || mode === "3d"}
                     >
                         {#each availableLLMs as llm}
