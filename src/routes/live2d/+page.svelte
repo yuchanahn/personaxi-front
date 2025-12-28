@@ -14,8 +14,8 @@
     import { ttsState } from "$lib/stores/ttsStore";
     import ThoughtBubble from "$lib/components/chat/ThoughtBubble.svelte";
     import SpeechBubble from "$lib/components/chat/SpeechBubble.svelte";
+    import { messages } from "$lib/stores/messages";
     import { st_user } from "$lib/stores/user";
-    import { settings } from "$lib/stores/settings";
     import { pricingStore } from "$lib/stores/pricing";
     import { get } from "svelte/store";
 
