@@ -185,6 +185,7 @@
                         console.log(
                             `Debug: Found motion in group ${group} at index ${i}`,
                         );
+                        resetToDefault();
                         currentModel.motion(group, i);
                         debugInfo.lastMotion = `${group} (${i}): ${fileName}`;
                         return;

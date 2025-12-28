@@ -24,7 +24,7 @@
     let persona: Persona | null = null;
 
     let Viewer: Live2DViewer;
-    let showChat: boolean = true;
+    let showChat: boolean = false;
     let isLoading = false;
 
     // Thought Bubble State
