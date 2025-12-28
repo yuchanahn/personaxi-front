@@ -4,6 +4,8 @@
     export let customStyle: string = "";
     export let speed: number = 30;
 
+    export let onEnded: () => void = () => {};
+
     import { onMount, onDestroy } from "svelte";
 
     let displayedText: string = "";
@@ -53,6 +55,7 @@
                 typeTimeout = setTimeout(typeNextChar, speed);
             } else {
                 isTyping = false; // 타이핑 종료 선언 -> 이때 visible이 false라면 말풍선 사라짐
+                onEnded();
             }
         };
 

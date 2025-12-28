@@ -11,9 +11,12 @@
     import { connectTTSSocket, disconnectTTSSocket } from "$lib/api/tts";
     import TtsStatusModal from "$lib/components/modal/TTSStatusModal.svelte";
 
+    import { ttsState } from "$lib/stores/ttsStore";
     import ThoughtBubble from "$lib/components/chat/ThoughtBubble.svelte";
+    import SpeechBubble from "$lib/components/chat/SpeechBubble.svelte";
     import { messages } from "$lib/stores/messages";
     import { st_user } from "$lib/stores/user";
+    import { settings } from "$lib/stores/settings";
 
     let lastSessionId: string | null = null;
     let persona: Persona | null = null;
@@ -29,23 +32,18 @@
     let showThought2 = false;
     let isSpeaking = false;
 
-    // Hardcoded model for testing if not present in persona
     const TEST_MODEL_URL = "/live2d/huohuo/huohuo.model3.json";
 
-    // Parse thoughts from the last message
     $: if ($messages.length > 0 && persona !== null) {
         const lastMsg = $messages[$messages.length - 1];
         if (lastMsg.role === "assistant") {
             const text = lastMsg.content;
 
-            // Extract Thought 1: Starts with ( and ends with ) before any newline or speech
             const t1Match = text.match(/^\s*\((.*?)\)/);
             if (t1Match) {
-                // Only update if changed to avoid re-triggering
                 if (thought1 !== t1Match[1]) {
                     console.log("Thought 1 detected:", t1Match[1]);
                     thought1 = t1Match[1];
-                    // Only show thought1 if we haven't started speaking yet AND haven't shown it for this turn
                     if (!isSpeaking && !showThought2) {
                         console.log("Showing Thought 1");
                         showThought1 = true;
@@ -53,20 +51,17 @@
                 }
             }
 
-            // Extract Thought 2: Ends with (thought)
-            // We look for a pattern where the text ends with (content)
-            // and ensure it's distinct from thought 1 (check index or length)
             const t2Match = text.match(/\((.*?)\)\s*$/);
             if (t2Match) {
-                // Ensure this isn't just thought 1 (e.g. if text is ONLY "(thought)")
-                // If text is just "(thought)", it's thought 1.
-                // If text is "(thought1) speech (thought2)", then t2Match is thought 2.
                 if (text.trim() !== t2Match[0].trim()) {
                     thought2 = t2Match[1];
                 }
             }
         }
     }
+
+    let speechText = "";
+    let showSpeech = false;
 
     onMount(async () => {
         const sessionId = $page.url.searchParams.get("c");
@@ -305,6 +300,31 @@
     onDestroy(() => {
         disconnectTTSSocket();
     });
+
+    function handleThoughtEnded(): void {
+        if ($ttsState == "connected") return;
+        const lastMsg = $messages[$messages.length - 1];
+        if (lastMsg.role === "assistant") {
+            let content = lastMsg.content;
+            content = content.replace(/\([^)]*\)/g, "");
+            content = content.replace(/\[[^\]]*\]/g, "");
+            console.log("content: ", content);
+            speechText = content;
+        }
+        showSpeech = true;
+        setTimeout(() => {
+            showThought1 = false;
+        }, 2000);
+    }
+
+    function handleSpeechEnded(): void {
+        showSpeech = false;
+        showThought1 = false;
+        showThought2 = true;
+        setTimeout(() => {
+            showThought2 = false;
+        }, 8000);
+    }
 </script>
 
 <main>
@@ -400,12 +420,20 @@
             visible={showThought1}
             type="thought1"
             customStyle="top: 5vh; left: 50%; transform: translateX(-50%); z-index: 20;"
+            onEnded={handleThoughtEnded}
         />
         <ThoughtBubble
             text={thought2}
             visible={showThought2}
             type="thought2"
             customStyle="top: 5vh; left: 50%; transform: translateX(-50%); z-index: 20;"
+        />
+
+        <SpeechBubble
+            text={speechText}
+            visible={showSpeech}
+            customStyle="top: 25vh; left: 50%; transform: translateX(-50%); z-index: 25;"
+            onEnded={handleSpeechEnded}
         />
 
         <!-- Debug UI - At top level to avoid pointer-events issues -->
