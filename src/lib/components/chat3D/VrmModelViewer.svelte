@@ -13,7 +13,9 @@
   import { sparks } from "$lib/vrm/stores";
 
   import ThoughtBubble from "$lib/components/chat/ThoughtBubble.svelte";
+  import SpeechBubble from "$lib/components/chat/SpeechBubble.svelte";
   import { messages } from "$lib/stores/messages";
+  import { ttsState } from "$lib/stores/ttsStore";
 
   export let persona: Persona | null;
   export let cssid: string | null = null;
@@ -35,6 +37,8 @@
   let showThought1 = false;
   let showThought2 = false;
   let isSpeaking = false;
+  let speechText = "";
+  let showSpeech = false;
 
   // Parse thoughts from the last message
   $: if ($messages.length > 0) {
@@ -66,6 +70,31 @@
         }
       }
     }
+  }
+
+  function handleThoughtEnded(): void {
+    if ($ttsState == "connected") return;
+    const lastMsg = $messages[$messages.length - 1];
+    if (lastMsg.role === "assistant") {
+      let content = lastMsg.content;
+      content = content.replace(/\([^)]*\)/g, "");
+      content = content.replace(/\[[^\]]*\]/g, "");
+      console.log("content: ", content);
+      speechText = content;
+    }
+    showSpeech = true;
+    setTimeout(() => {
+      showThought1 = false;
+    }, 2000);
+  }
+
+  function handleSpeechEnded(): void {
+    showSpeech = false;
+    showThought1 = false;
+    showThought2 = true;
+    setTimeout(() => {
+      showThought2 = false;
+    }, 8000);
   }
 
   let cfg = {
@@ -220,6 +249,7 @@
       // }, 2000); // 2 seconds overlap
 
       showThought2 = false;
+      showSpeech = false;
 
       model
         .speak(audio)
@@ -319,11 +349,19 @@
     text={thought1}
     visible={showThought1}
     customStyle="top: 5vh; bottom: auto; left: 50%; transform: translateX(-50%); z-index: 20;"
+    onEnded={handleThoughtEnded}
   />
   <ThoughtBubble
     text={thought2}
     visible={showThought2}
     customStyle="top: 5vh; bottom: auto; left: 50%; transform: translateX(-50%); z-index: 20;"
+  />
+
+  <SpeechBubble
+    text={speechText}
+    visible={showSpeech}
+    customStyle="top: 25vh; left: 50%; transform: translateX(-50%); z-index: 25;"
+    onEnded={handleSpeechEnded}
   />
 
   {#if isModelLoading}
