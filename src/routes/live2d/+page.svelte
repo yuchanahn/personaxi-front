@@ -18,6 +18,7 @@
     import { st_user } from "$lib/stores/user";
     import { pricingStore } from "$lib/stores/pricing";
     import { get } from "svelte/store";
+    import { chatSessions } from "$lib/stores/chatSessions";
 
     let lastSessionId: string | null = null;
     let persona: Persona | null = null;
@@ -63,6 +64,15 @@
 
     let speechText = "";
     let showSpeech = false;
+
+    let currentCost = 0;
+    $: if (lastSessionId) {
+        const session = $chatSessions.find((s) => s.id === lastSessionId);
+        const llmType = session?.llmType || "gemini-flash-lite"; // Default
+        const baseCost = $pricingStore.costs.chat_live2d || 10;
+        const multiplier = $pricingStore.model_multipliers[llmType] || 1.0;
+        currentCost = Math.round(baseCost * multiplier);
+    }
 
     onMount(async () => {
         const sessionId = $page.url.searchParams.get("c");
@@ -260,10 +270,9 @@
         if (!persona || !lastSessionId) return;
 
         // Optimistic Credit Deduction
-        const cost = get(pricingStore).costs.chat_live2d || 10;
         st_user.update((u) => {
-            if (u && u.credits >= cost) {
-                u.credits -= cost;
+            if (u && u.credits >= currentCost) {
+                u.credits -= currentCost;
             }
             return u;
         });
@@ -406,6 +415,8 @@
                     onSend={send}
                     onChangeInput={handleInputChange}
                     placeholderName={persona?.name}
+                    mode="3d"
+                    neededNeurons={currentCost}
                 />
             </div>
         </div>

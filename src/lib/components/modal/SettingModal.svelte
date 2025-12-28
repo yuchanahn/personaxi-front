@@ -43,7 +43,11 @@
             : $pricingStore.costs.chat_2d;
 
     $: availableLLMs = [
-        { id: "gemini-flash", name: "Gemini Flash", multiplier: 1.5 },
+        {
+            id: "gemini-flash",
+            name: "Gemini Flash",
+            multiplier: $pricingStore.model_multipliers["gemini-flash"] || 1.5,
+        },
         {
             id: "gemini-flash-lite",
             name: "Gemini Flash Lite",
@@ -57,13 +61,14 @@
         },
     ].map((llm) => ({
         ...llm,
-        cost: Math.round(baseCost * llm.multiplier),
+        cost: Math.round((baseCost || 10) * llm.multiplier),
     }));
 
     let selectedLLM_id = llmType;
     $: selectedLLM =
-        availableLLMs.find((llm) => llm.id === selectedLLM_id) ||
-        availableLLMs[1];
+        availableLLMs.find((llm) => {
+            return llm.id === selectedLLM_id;
+        }) || availableLLMs[1];
 
     function changeLLMType(newType: string) {
         selectedLLM_id = newType;
@@ -140,7 +145,7 @@
         try {
             api.post(`/api/chat/char/sessions/edit`, {
                 cssid: persona.id,
-                llmType: selectedLLM.id,
+                llmType: selectedLLM_id,
             })
                 .then((res) => {
                     if (!res.ok) {
@@ -149,7 +154,7 @@
                     return res.json();
                 })
                 .then(() => {
-                    changeLLMType(selectedLLM.id); // URL 업데이트
+                    changeLLMType(selectedLLM_id); // URL 업데이트
                 });
 
             //settings.set({
@@ -264,12 +269,12 @@
 
                 <div class="select-wrapper">
                     <select
-                        bind:value={selectedLLM}
+                        bind:value={selectedLLM_id}
                         on:change={() => handleLLMChange()}
                         disabled={isLoading || mode === "3d"}
                     >
                         {#each availableLLMs as llm}
-                            <option value={llm}
+                            <option value={llm.id}
                                 >{llm.name} - ⚡️{llm.cost}</option
                             >
                         {/each}

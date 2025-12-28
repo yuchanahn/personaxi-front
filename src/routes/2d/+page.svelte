@@ -7,11 +7,27 @@
   import { fetchAndSetAssetTypes, loadPersona } from "$lib/api/edit_persona";
   import type { Persona } from "$lib/types";
   import SettingsModal from "$lib/components/modal/SettingModal.svelte";
+  import { pricingStore } from "$lib/stores/pricing";
+  import { st_user } from "$lib/stores/user";
+  import { chatSessions } from "$lib/stores/chatSessions";
+  import { get } from "svelte/store";
 
   let lastSessionId: string | null = null;
   let persona: Persona | null = null;
 
   $: llmType = $page.url.searchParams.get("llmType") || "Error";
+
+  let currentCost = 0;
+  $: if (llmType) {
+    // For 2D, we trust the URL param or fallback just like finding session
+    // But ideally we should find session to be safe, like live2d
+    const session = $chatSessions.find((s) => s.id === lastSessionId);
+    const effectiveType = session?.llmType || llmType || "gemini-flash-lite";
+
+    const baseCost = $pricingStore.costs.chat_2d || 10;
+    const multiplier = $pricingStore.model_multipliers[effectiveType] || 1.0;
+    currentCost = Math.round(baseCost * multiplier);
+  }
 
   const loadChatData = () => {
     const sessionId = $page.url.searchParams.get("c");
@@ -40,6 +56,15 @@
   let isDisabled = false;
   const send = async (prompt: string) => {
     const sessionId = $page.url.searchParams.get("c");
+
+    // Optimistic Credit Deduction
+    st_user.update((u) => {
+      if (u && u.credits >= currentCost) {
+        u.credits -= currentCost;
+      }
+      return u;
+    });
+
     isLoading = true;
     isDisabled = true;
     await sendPromptStream(sessionId ?? "", prompt, "2d", () => {
@@ -75,7 +100,13 @@
       {showImage}
       SendMessage={send}
     />
-    <ChatInput onSend={send} {isDisabled} placeholderName={persona?.name} />
+    <ChatInput
+      onSend={send}
+      {isDisabled}
+      placeholderName={persona?.name}
+      mode="2d"
+      neededNeurons={currentCost}
+    />
   </div>
 </main>
 

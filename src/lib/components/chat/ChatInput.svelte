@@ -5,25 +5,40 @@
   import SttComponent from "../stt/SttComponent.svelte";
   import { st_user } from "$lib/stores/user";
 
+  import { pricingStore } from "$lib/stores/pricing";
+  import { get } from "svelte/store";
+
   let {
     onSend,
     onChangeInput = (t: string) => {},
     isDisabled = false,
     isListening = $bindable(false),
     placeholderName = "",
+    mode = "3d", // Add mode prop to determine base cost
+    neededNeurons,
   }: {
     onSend: (text: string) => void;
     onChangeInput?: (text: string) => void;
     isDisabled?: boolean;
     isListening?: boolean;
     placeholderName?: string;
+    mode?: "2d" | "3d";
+    neededNeurons?: number;
   } = $props();
 
   let prompt = $state("");
   const MAX_CHARS = 2000;
   const charCount = $derived(prompt.length);
   const isOverLimit = $derived(charCount > MAX_CHARS);
-  const neededNeurons = 10; // Default estimate for Live2D/3D
+
+  // Dynamic cost calculation based on mode or prop
+  const displayNeurons = $derived(
+    neededNeurons !== undefined
+      ? neededNeurons
+      : mode === "3d"
+        ? $pricingStore.costs.chat_3d
+        : $pricingStore.costs.chat_2d,
+  );
 
   function handleSubmit(e: KeyboardEvent) {
     if (isDisabled || isOverLimit) return;
@@ -58,7 +73,7 @@
   {/if}
   {#if !isListening && charCount > 0}
     <div class="neuron-indicator">
-      {neededNeurons} / {$st_user?.credits ?? 0}
+      {displayNeurons} / {$st_user?.credits ?? 0}
     </div>
   {/if}
   <div class="input-container" class:listening={isListening}>
