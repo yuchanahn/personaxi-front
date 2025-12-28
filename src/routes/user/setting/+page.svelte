@@ -19,6 +19,7 @@
         uploadFileWithProgress,
     } from "$lib/api/edit_persona";
     import { st_user } from "$lib/stores/user";
+    import { chatSessions } from "$lib/stores/chatSessions";
 
     const supabaseURL =
         "https://uohepkqmwbstbmnkoqju.supabase.co/storage/v1/object/public/personaxi-assets/";
@@ -322,6 +323,35 @@
     function handleCardClick(content: any) {
         goto(`/profile?c=${content.id}`);
     }
+
+    function handleStartChat(persona: Persona) {
+        // Default to Flash-Lite
+        let llmType = "gemini-flash-lite";
+
+        // Check if user has a saved preference for this session
+        chatSessions.update((sessions) => {
+            const existingSession = sessions.find(
+                (session) => session.id === persona.id,
+            );
+            if (existingSession && existingSession.llmType) {
+                llmType = existingSession.llmType;
+            }
+            return sessions;
+        });
+
+        // Force Flash-Lite for 3D/Live2D modes (override saved preference)
+        if (persona.personaType === "3D" || persona.personaType === "2.5D") {
+            llmType = "gemini-flash-lite";
+        }
+
+        if (persona.personaType === "2D" || persona.personaType === "2d") {
+            goto(`/2d?c=${persona.id}&llmType=${llmType}`);
+        } else if (persona.personaType === "3D") {
+            goto(`/character?c=${persona.id}&llmType=${llmType}`);
+        } else if (persona.personaType === "2.5D") {
+            goto(`/live2d?c=${persona.id}&llmType=${llmType}`);
+        }
+    }
 </script>
 
 <div class="page-container">
@@ -551,13 +581,25 @@
             <div class="persona-grid">
                 {#each personas as persona}
                     <div class="persona-card">
-                        <div class="card-header">
+                        <!-- svelte-ignore a11y_click_events_have_key_events -->
+                        <!-- svelte-ignore a11y_no_static_element_interactions -->
+                        <div
+                            class="card-header clickable"
+                            on:click={() => handleStartChat(persona)}
+                        >
                             <AssetPreview
                                 asset={{
                                     url: persona.portrait_url,
                                     description: "",
                                 }}
                             />
+                            <div class="chat-overlay">
+                                <Icon
+                                    icon="ph:chat-circle-dots-bold"
+                                    width="32"
+                                    height="32"
+                                />
+                            </div>
 
                             {#if isLive(persona.id)}
                                 <div class="live-indicator">LIVE</div>
@@ -890,6 +932,27 @@
         align-items: center;
         padding: 0;
         position: relative;
+    }
+    .card-header.clickable {
+        cursor: pointer;
+    }
+    .card-header.clickable:hover .chat-overlay {
+        opacity: 1;
+    }
+    .chat-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.4);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        opacity: 0;
+        transition: opacity 0.2s;
+        pointer-events: none;
     }
     .card-header .avatar-image {
         width: 100%;

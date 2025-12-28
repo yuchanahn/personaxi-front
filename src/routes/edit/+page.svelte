@@ -26,6 +26,7 @@
     import { toast } from "$lib/stores/toast";
     import { confirmStore } from "$lib/stores/confirm";
     import { extractFirstFrame } from "$lib/utils/media";
+    import { chatSessions } from "$lib/stores/chatSessions";
 
     let originalPersona: Persona | null = null;
     let vrmFile: File | null = null;
@@ -738,157 +739,206 @@
             console.error("Failed to upload static portrait", e);
         }
     }
+
+    function handleStartChat() {
+        if (!persona.id) {
+            toast.error("저장 후 대화할 수 있습니다.");
+            return;
+        }
+
+        // Default to Flash-Lite
+        let llmType = "gemini-flash-lite";
+
+        // Check if user has a saved preference for this session
+        chatSessions.update((sessions) => {
+            const existingSession = sessions.find(
+                (session) => session.id === persona?.id,
+            );
+            if (existingSession && existingSession.llmType) {
+                llmType = existingSession.llmType;
+            }
+            return sessions;
+        });
+
+        // Force Flash-Lite for 3D/Live2D modes (override saved preference)
+        if (persona?.personaType === "3D" || persona?.personaType === "2.5D") {
+            llmType = "gemini-flash-lite";
+        }
+
+        if (persona?.personaType === "2D" || persona?.personaType === "2d") {
+            goto(`/2d?c=${persona.id}&llmType=${llmType}`);
+        } else if (persona?.personaType === "3D") {
+            goto(`/character?c=${persona.id}&llmType=${llmType}`);
+        } else if (persona?.personaType === "2.5D") {
+            goto(`/live2d?c=${persona.id}&llmType=${llmType}`);
+        } else {
+            toast.error(`Unknown Persona Type: ${persona?.personaType}`);
+        }
+    }
 </script>
 
 <div class="container">
     <div class="header">
         <h1>{$t("editPage.title")}</h1>
-        <button
-            class="save-button"
-            type="submit"
-            on:click={async () => {
-                if (loading || showSuccess) return;
+        <div class="header-actions">
+            {#if persona.id}
+                <button
+                    class="chat-button secondary"
+                    on:click={handleStartChat}
+                >
+                    <Icon icon="ph:chat-circle-dots-bold" />
+                    <span>{$t("profilePage.startChatButton")}</span>
+                </button>
+            {/if}
+            <button
+                class="save-button"
+                type="submit"
+                on:click={async () => {
+                    if (loading || showSuccess) return;
 
-                error = "";
+                    error = "";
 
-                // --- [수정] Kintsugi 저장 로직 및 유효성 검사 ---
-                let finalInstructions = [];
+                    // --- [수정] Kintsugi 저장 로직 및 유효성 검사 ---
+                    let finalInstructions = [];
 
-                if (selectedTemplate === kintsugiTemplateId) {
-                    // [신규] Kintsugi 필드 개별 글자 수 검사
-                    if (k_description.length > 1000) {
-                        error = $t("editPage.validation.kintsugiDescLimit");
-                        return;
-                    }
-                    if (k_personality.length > 1000) {
-                        error = $t(
-                            "editPage.validation.kintsugiPersonalityLimit",
-                        );
-                        return;
-                    }
-                    if (k_userPersona.length > 800) {
-                        error = $t(
-                            "editPage.validation.kintsugiUserPersonaLimit",
-                        );
-                        return;
-                    }
-                    if (k_scenario.length > 200) {
-                        error = $t("editPage.validation.kintsugiScenarioLimit");
-                        return;
+                    if (selectedTemplate === kintsugiTemplateId) {
+                        // [신규] Kintsugi 필드 개별 글자 수 검사
+                        if (k_description.length > 1000) {
+                            error = $t("editPage.validation.kintsugiDescLimit");
+                            return;
+                        }
+                        if (k_personality.length > 1000) {
+                            error = $t(
+                                "editPage.validation.kintsugiPersonalityLimit",
+                            );
+                            return;
+                        }
+                        if (k_userPersona.length > 800) {
+                            error = $t(
+                                "editPage.validation.kintsugiUserPersonaLimit",
+                            );
+                            return;
+                        }
+                        if (k_scenario.length > 200) {
+                            error = $t(
+                                "editPage.validation.kintsugiScenarioLimit",
+                            );
+                            return;
+                        }
+
+                        const kintsugiJson = JSON.stringify({
+                            description: k_description,
+                            personality: k_personality,
+                            userPersona: k_userPersona,
+                            scenario: k_scenario,
+                        });
+                        finalInstructions.push(kintsugiJson);
+                    } else {
+                        finalInstructions.push(singleInstruction);
+
+                        if (singleInstruction.length > 3000) {
+                            error = $t(
+                                "editPage.validation.instructionsLimitExceeded",
+                            );
+                            return;
+                        }
+                        if (!singleInstruction.trim()) {
+                            error = $t("editPage.validation.allFieldsRequired");
+                            return;
+                        }
                     }
 
-                    const kintsugiJson = JSON.stringify({
-                        description: k_description,
-                        personality: k_personality,
-                        userPersona: k_userPersona,
-                        scenario: k_scenario,
-                    });
-                    finalInstructions.push(kintsugiJson);
-                } else {
-                    finalInstructions.push(singleInstruction);
-
-                    if (singleInstruction.length > 3000) {
-                        error = $t(
-                            "editPage.validation.instructionsLimitExceeded",
-                        );
-                        return;
+                    // 템플릿 식별자 추가
+                    if (selectedTemplate === "conversation") {
+                        finalInstructions.push("conversation");
+                    } else if (selectedTemplate === "simulation") {
+                        finalInstructions.push("simulation");
+                    } else if (selectedTemplate === kintsugiTemplateId) {
+                        finalInstructions.push(kintsugiTemplateId); // 신규 템플릿 ID
+                    } else {
+                        finalInstructions.push("custom");
                     }
-                    if (!singleInstruction.trim()) {
+
+                    persona.instructions = finalInstructions;
+                    // ----------------------------------------------
+
+                    if (
+                        !persona.name.trim() ||
+                        !persona.personaType.trim() ||
+                        !persona.greeting.trim() ||
+                        !persona.first_scene.trim() ||
+                        persona.tags.length === 0
+                    ) {
                         error = $t("editPage.validation.allFieldsRequired");
                         return;
                     }
-                }
 
-                // 템플릿 식별자 추가
-                if (selectedTemplate === "conversation") {
-                    finalInstructions.push("conversation");
-                } else if (selectedTemplate === "simulation") {
-                    finalInstructions.push("simulation");
-                } else if (selectedTemplate === kintsugiTemplateId) {
-                    finalInstructions.push(kintsugiTemplateId); // 신규 템플릿 ID
-                } else {
-                    finalInstructions.push("custom");
-                }
+                    if (
+                        persona.greeting.length > 200 ||
+                        persona.first_scene.length > 2500
+                    ) {
+                        error = $t("editPage.validation.charLimitExceeded");
+                        return;
+                    }
 
-                persona.instructions = finalInstructions;
-                // ----------------------------------------------
+                    if (
+                        persona.promptExamples.some((ex) => ex.length > 200) ||
+                        persona.promptExamples.length > 10
+                    ) {
+                        error = $t(
+                            "editPage.validation.promptExamplesLimitExceeded",
+                        );
+                        return;
+                    }
 
-                if (
-                    !persona.name.trim() ||
-                    !persona.personaType.trim() ||
-                    !persona.greeting.trim() ||
-                    !persona.first_scene.trim() ||
-                    persona.tags.length === 0
-                ) {
-                    error = $t("editPage.validation.allFieldsRequired");
-                    return;
-                }
+                    loading = true;
+                    uploadProgress = 0; // 저장 시작 시 진행률 초기화
 
-                if (
-                    persona.greeting.length > 200 ||
-                    persona.first_scene.length > 2500
-                ) {
-                    error = $t("editPage.validation.charLimitExceeded");
-                    return;
-                }
+                    try {
+                        const id: string | null = await savePersona(persona);
 
-                if (
-                    persona.promptExamples.some((ex) => ex.length > 200) ||
-                    persona.promptExamples.length > 10
-                ) {
-                    error = $t(
-                        "editPage.validation.promptExamplesLimitExceeded",
-                    );
-                    return;
-                }
+                        if (id) {
+                            showSuccess = true;
 
-                loading = true;
-                uploadProgress = 0; // 저장 시작 시 진행률 초기화
+                            setTimeout(() => {
+                                showSuccess = false;
+                            }, 2000);
 
-                try {
-                    const id: string | null = await savePersona(persona);
-
-                    if (id) {
-                        showSuccess = true;
-
-                        setTimeout(() => {
-                            showSuccess = false;
-                        }, 2000);
-
-                        if (!persona.id) {
-                            goto(`/edit?c=${id}`, { replaceState: true });
-                            if (hasReceivedFirstCreationReward) {
-                                showRewardModal = true;
-                                hasReceivedFirstCreationReward = false;
+                            if (!persona.id) {
+                                goto(`/edit?c=${id}`, { replaceState: true });
+                                if (hasReceivedFirstCreationReward) {
+                                    showRewardModal = true;
+                                    hasReceivedFirstCreationReward = false;
+                                }
+                            } else {
+                                load_persona(id);
                             }
-                        } else {
-                            load_persona(id);
                         }
+                    } catch (e: any) {
+                        error = $t("editPage.errorSaveFailed", {
+                            values: { message: e.message },
+                        });
+                        if (typeof window !== "undefined") {
+                            window.scrollTo({ top: 0, behavior: "smooth" });
+                        }
+                    } finally {
+                        loading = false;
                     }
-                } catch (e: any) {
-                    error = $t("editPage.errorSaveFailed", {
-                        values: { message: e.message },
-                    });
-                    if (typeof window !== "undefined") {
-                        window.scrollTo({ top: 0, behavior: "smooth" });
-                    }
-                } finally {
-                    loading = false;
-                }
-            }}
-        >
-            {#if loading}
-                <span
-                    >{$t("editPage.saveButtonLoading")} ({Math.round(
-                        uploadProgress,
-                    )}%)</span
-                >
-            {:else if showSuccess}
-                <span>{$t("editPage.saveButtonSuccess")}</span>
-            {:else}
-                <span>{$t("editPage.saveButton")}</span>
-            {/if}
-        </button>
+                }}
+            >
+                {#if loading}
+                    <span
+                        >{$t("editPage.saveButtonLoading")} ({Math.round(
+                            uploadProgress,
+                        )}%)</span
+                    >
+                {:else if showSuccess}
+                    <span>{$t("editPage.saveButtonSuccess")}</span>
+                {:else}
+                    <span>{$t("editPage.saveButton")}</span>
+                {/if}
+            </button>
+        </div>
     </div>
     {#if error}
         <p class="error">{error}</p>
@@ -1034,13 +1084,31 @@
                             {/if}
                         </div>
                         {#if portraitPreview}
-                            <div class="portrait-preview">
+                            <!-- svelte-ignore a11y_click_events_have_key_events -->
+                            <!-- svelte-ignore a11y_no_static_element_interactions -->
+                            <div
+                                class="portrait-preview clickable"
+                                class:has-id={!!persona.id}
+                                on:click={() => {
+                                    if (persona.id) handleStartChat();
+                                }}
+                            >
                                 <AssetPreview
                                     asset={{
                                         url: portraitPreview,
                                         description: "",
                                     }}
                                 />
+                                {#if persona.id}
+                                    <div class="chat-overlay">
+                                        <Icon
+                                            icon="ph:chat-circle-dots-bold"
+                                            width="32"
+                                            height="32"
+                                        />
+                                        <span>대화하기</span>
+                                    </div>
+                                {/if}
                             </div>
                         {/if}
 
@@ -2377,5 +2445,65 @@
         .btn-copy {
             width: 100%;
         }
+    }
+
+    .header-actions {
+        display: flex;
+        gap: 1rem;
+        align-items: center;
+    }
+
+    .chat-button {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.75rem 1.5rem;
+        border-radius: var(--radius-button);
+        font-weight: 600;
+        font-size: 1rem;
+        cursor: pointer;
+        transition: all 0.2s;
+        border: 1px solid var(--border);
+        background: var(--secondary);
+        color: var(--secondary-foreground);
+    }
+
+    .chat-button:hover {
+        background: var(--secondary-hover);
+        transform: translateY(-1px);
+    }
+
+    .chat-button.secondary {
+        /* Additional secondary styling if needed */
+    }
+
+    .portrait-preview.clickable {
+        cursor: pointer;
+        position: relative;
+        overflow: hidden;
+        border-radius: var(--radius-card);
+    }
+
+    .portrait-preview.clickable.has-id:hover .chat-overlay {
+        opacity: 1;
+    }
+
+    .chat-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.6);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        opacity: 0;
+        transition: opacity 0.2s;
+        gap: 0.5rem;
+        font-weight: 600;
+        backdrop-filter: blur(2px);
     }
 </style>
