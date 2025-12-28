@@ -29,6 +29,13 @@
         error: "",
     };
 
+    // --- Tactile Physics State ---
+    let dragTargetX = 0;
+    let dragTargetY = 0;
+    let dragPhysicsX = 0;
+    let dragPhysicsY = 0;
+    let isDragging = false;
+
     export async function speak(audioUrl: string) {
         if (!currentModel) return;
 
@@ -325,23 +332,61 @@
     function draggable(model: any) {
         model.buttonMode = true;
         model.on("pointerdown", (e: any) => {
-            model.dragging = true;
-            model._pointerX = e.data.global.x - model.x;
-            model._pointerY = e.data.global.y - model.y;
+            isDragging = true;
+            dragPhysicsX = 0;
+            dragPhysicsY = 0;
+            updateDragTarget(e);
         });
         model.on("pointermove", (e: any) => {
-            if (model.dragging) {
-                model.focus(e.data.global.x, e.data.global.y);
+            if (isDragging) {
+                updateDragTarget(e);
             }
         });
-        model.on("pointerupoutside", () => {
-            model.dragging = false;
-            model.internalModel.focusController.focus(0, 0);
-        });
-        model.on("pointerup", () => {
-            model.dragging = false;
-            model.internalModel.focusController.focus(0, 0);
-        });
+        const stopDrag = () => {
+            isDragging = false;
+            // Smoothly return to center (handled by lerp in ticker)
+            dragTargetX = 0;
+            dragTargetY = 0;
+            // model.internalModel.focusController.focus(0, 0); // Disable default focus
+        };
+        model.on("pointerupoutside", stopDrag);
+        model.on("pointerup", stopDrag);
+    }
+
+    function updateDragTarget(e: any) {
+        if (!app) return;
+        const x = e.data.global.x;
+        const y = e.data.global.y;
+
+        const centerX = app.screen.width / 2;
+        const centerY = app.screen.height / 2;
+
+        // Normalized Target (-1 ~ 1)
+        // Clamp to avoid extreme rotation
+        const clamp = (val: number, min: number, max: number) =>
+            Math.min(Math.max(val, min), max);
+
+        const newTargetX = clamp((x - centerX) / (app.screen.width / 3), -1, 1);
+        const newTargetY = clamp(
+            (y - centerY) / (app.screen.height / 3),
+            -1,
+            1,
+        );
+
+        // Calculate Velocity Impulse (Delta)
+        // Add "kick" to physics
+        const deltaX = (newTargetX - dragTargetX) * 20; // Sensitivity
+        const deltaY = (newTargetY - dragTargetY) * 20;
+
+        dragPhysicsX += deltaX;
+        dragPhysicsY += deltaY;
+
+        // Clamp Physics to prevent explosion
+        dragPhysicsX = clamp(dragPhysicsX, -30, 30);
+        dragPhysicsY = clamp(dragPhysicsY, -30, 30);
+
+        dragTargetX = newTargetX;
+        dragTargetY = newTargetY;
     }
 
     // Motion Presets Configuration
@@ -533,14 +578,22 @@
             "ParamBodyY",
         ]);
         const idxBodyZ = findParam(["ParamBodyAngleZ", "ParamBodyZ"]);
+        const idxBodyX = findParam(["ParamBodyAngleX", "ParamBodyX"]); // Added BodyX
         const idxHeadY = findParam(["ParamAngleY"]);
         const idxHeadZ = findParam(["ParamAngleZ"]);
+        const idxHeadX = findParam(["ParamAngleX"]); // Added HeadX
 
         let startTime = Date.now();
         let bodyVol = 0;
 
+        // Physics State
+        let currentBodyX = 0;
+        let currentBodyY = 0;
+        let velX = 0;
+        let velY = 0;
+
         neuroTicker = () => {
-            // 1. Get Volume from MotionManager (set by speak())
+            // 1. Get Volume from MotionManager
             let volume = 0;
             if (
                 internal.motionManager &&
@@ -548,34 +601,63 @@
                 typeof internal.motionManager.mouthSync === "function"
             ) {
                 // @ts-ignore
-                volume = internal.motionManager.mouthSync() * 100; // Usually returns 0-1
+                volume = internal.motionManager.mouthSync() * 100;
             }
 
             const inputIntensity = Math.max(0, (volume - 10) / 40);
-            const lipTarget = Math.max(0, (volume - 5) / 30);
-
             bodyVol += (inputIntensity - bodyVol) * 0.1;
 
             const t = (Date.now() - startTime) / 1000;
             const sway = (Math.sin(t * 1.5) + Math.cos(t * 0.9)) * 0.5;
-            const flutter = 0.8 + 0.2 * Math.sin(t * 25);
+
+            // --- Tactile Physics Interaction ---
+            // Goal: Smoothly interpolate towards dragTarget (Posture) + Add Velocity Impulse (Sweep)
+
+            // 1. Spring Physics for Body X/Y
+            // Target is dragTargetX/Y * Multiplier (e.g., 10 degrees)
+            const targetX = dragTargetX * 10;
+            const targetY = dragTargetY * 10;
+
+            // Simple Lerp for Posture
+            currentBodyX += (targetX - currentBodyX) * 0.1;
+            currentBodyY += (targetY - currentBodyY) * 0.1;
+
+            // Velocity Decay
+            dragPhysicsX *= 0.9;
+            dragPhysicsY *= 0.9;
+
+            // Combine Posture + Impulse
+            const finalBodyX = currentBodyX + dragPhysicsX;
+            const finalBodyY = currentBodyY + dragPhysicsY;
+
+            // Apply to Parameters
+            if (idxHeadX !== -1) {
+                // Head looks at mouse + slight physics
+                values[idxHeadX] = dragTargetX * 30 + dragPhysicsX * 0.5;
+            }
 
             if (idxHeadY !== -1) {
                 const base = Math.sin(t * 2) * 2;
                 const talk = bodyVol * 15;
-                values[idxHeadY] = base + talk;
+                // Head looks at mouse Y + talk + breathing
+                values[idxHeadY] =
+                    base + talk + dragTargetY * 30 + dragPhysicsY * 0.5;
+            }
+
+            if (idxBodyX !== -1) {
+                // Body twists to follow
+                values[idxBodyX] = finalBodyX;
             }
 
             if (idxBodyZ !== -1) {
-                values[idxBodyZ] = sway * 3;
-            }
-
-            if (idxHeadZ !== -1) {
-                values[idxHeadZ] = sway * 4 + bodyVol * 2 * Math.sin(t * 10);
+                // Body tilts based on X movement (natural balance)
+                // -X twist usually means -Z tilt slightly
+                values[idxBodyZ] = finalBodyX * 0.5 + sway;
             }
 
             if (idxBodyY !== -1) {
-                values[idxBodyY] = bodyVol * 5;
+                // Body leans forward/back
+                values[idxBodyY] = finalBodyY + bodyVol * 5;
             }
         };
 

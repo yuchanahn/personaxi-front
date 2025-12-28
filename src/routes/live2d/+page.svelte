@@ -517,7 +517,7 @@
 
     /* Make messages and interactive elements capture events again */
     .chat-content :global(.chat-window > *) {
-        pointer-events: auto;
+        pointer-events: none;
     }
 
     .chat-content :global(.chat-input-wrapper) {
