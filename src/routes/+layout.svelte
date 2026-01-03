@@ -64,7 +64,7 @@
     onMount(() => {
         if (!browser) return;
 
-        pricingStore.fetchPricingPolicy();
+        //pricingStore.fetchPricingPolicy();
 
         // 1. 초기 세션 로드
         supabase.auth.getSession().then(({ data: { session } }) => {
