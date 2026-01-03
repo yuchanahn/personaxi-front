@@ -39,6 +39,10 @@ function createPricingStore() {
         subscribe,
         fetchPricingPolicy: async () => {
             try {
+                if (!await api.isLoggedIn()) {
+                    return;
+                }
+
                 const res = await api.get("/api/policy/pricing");
                 if (res.ok) {
                     const data = await res.json();

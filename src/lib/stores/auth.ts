@@ -1,5 +1,6 @@
 import { writable, derived } from 'svelte/store';
 import { supabase } from '$lib/supabase';
+import { api } from '$lib/api';
 
 export const accessToken = writable<string | null>(null);
 
