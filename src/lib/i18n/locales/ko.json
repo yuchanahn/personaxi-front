@@ -165,7 +165,24 @@
     "searchTagsPlaceholder": "태그를 쉼표(,)로 구분하여 입력...",
     "following": "팔로잉",
     "likes": "좋아요",
-    "auctionInProgress": "경매 중"
+    "auctionInProgress": "경매 중",
+    "categories": "카테고리",
+    "toggleCategories": "카테고리 토글",
+    "searchResult": "\"{query}\" 검색 결과",
+    "nav": {
+      "character": "캐릭터",
+      "story": "스토리",
+      "companion": "동반자",
+      "2d": "2D",
+      "3d": "3D"
+    }
+  },
+  "content": {
+    "newArrivals": "✨ 신규 도착",
+    "todaysPopular": "🔥 오늘의 인기",
+    "live2dTitle": "💃 살아 움직이는: Live2D",
+    "vrmTitle": "🧊 디지털 생명체: VRM",
+    "allPersonas": "📚 모든 페르소나"
   },
   "auctionPage": {
     "bidder": "입찰자",

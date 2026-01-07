@@ -12,43 +12,179 @@
     import { writable } from "svelte/store";
     import { t } from "svelte-i18n";
     import CharacterCard from "../card/CharacterCard.svelte";
+    import ContentCarousel from "./ContentCarousel.svelte";
     import Icon from "@iconify/svelte";
     import { allCategories } from "$lib/constants";
+    import { slide } from "svelte/transition";
+
+    // --- 상수 ---
+    const visibleCategories = allCategories.filter(
+        (c) => c.id !== 1001 && c.id !== 1002,
+    );
 
     // --- 상태 관리 ---
     let contents = writable<PersonaDTO[]>([]);
-    let isLoading = writable(true);
+    let newContents = writable<PersonaDTO[]>([]);
+    let popularContents = writable<PersonaDTO[]>([]);
+    let live2dContents = writable<PersonaDTO[]>([]);
+    let vrmContents = writable<PersonaDTO[]>([]);
 
-    // 검색 모달 상태
+    let isLoading = writable(true);
+    let isNewLoading = writable(true);
+    let isPopularLoading = writable(true);
+    let isLive2dLoading = writable(true);
+    let isVrmLoading = writable(true);
+
     let isSearchModalOpen = false;
     let query = "";
     let searchType: "name" | "tags" = "name";
 
-    let selectedCategory: string | null = null; // null이면 '전체'
+    let selectedCategory: string | null = null;
     let currentSort = "latest";
     let page = 1;
+    let newPage = 1;
+    let popularPage = 1;
+    let live2dPage = 1;
+    let vrmPage = 1;
     const limit = 20;
 
-    // --- 데이터 로딩 및 필터링 ---
+    let hasMoreNew = true;
+    let hasMorePopular = true;
+    let hasMoreLive2d = true;
+    let hasMoreVrm = true;
+
+    let isCategoryExpanded = false;
+
+    // --- Tab Navigation ---
+    type HubTab = "character" | "story" | "companion" | "2d" | "3d";
+    let activeTab: HubTab = "character";
+
+    function setActiveTab(tab: HubTab) {
+        activeTab = tab;
+        // Functionality will be added later
+    }
+
+    // --- 데이터 로딩 ---
     onMount(async () => {
+        loadFeaturedSections();
         const data = await loadContent(page, limit, currentSort);
         contents.set(data);
         isLoading.set(false);
-        // 기존 live, auction 관련 코드는 간결성을 위해 제거했지만, 필요하다면 이어서 추가하면 돼.
     });
 
-    // 카테고리 클릭 시 필터링 실행
+    async function loadFeaturedSections() {
+        // New
+        isNewLoading.set(true);
+        loadContent(newPage, 10, "latest").then((data) => {
+            newContents.set(data);
+            if (data.length < 10) hasMoreNew = false;
+            isNewLoading.set(false);
+        });
+
+        // Popular
+        isPopularLoading.set(true);
+        loadContent(popularPage, 10, "popular").then((data) => {
+            popularContents.set(data);
+            if (data.length < 10) hasMorePopular = false;
+            isPopularLoading.set(false);
+        });
+
+        // Live2D
+        isLive2dLoading.set(true);
+        loadContentWithTags(["tags.live2d"], live2dPage, 10, "popular").then(
+            (data) => {
+                live2dContents.set(data);
+                if (data.length < 10) hasMoreLive2d = false;
+                isLive2dLoading.set(false);
+            },
+        );
+
+        // VRM
+        isVrmLoading.set(true);
+        loadContentWithTags(["tags.vrm"], vrmPage, 10, "popular").then(
+            (data) => {
+                vrmContents.set(data);
+                if (data.length < 10) hasMoreVrm = false;
+                isVrmLoading.set(false);
+            },
+        );
+    }
+
+    async function handleLoadMore(type: "new" | "popular" | "live2d" | "vrm") {
+        if (type === "new") {
+            if ($isNewLoading || !hasMoreNew) return;
+            isNewLoading.set(true);
+            newPage++;
+            const data = await loadContent(newPage, 10, "latest");
+            if (data.length > 0) {
+                newContents.update((c) => [...c, ...data]);
+                if (data.length < 10) hasMoreNew = false;
+            } else {
+                hasMoreNew = false;
+            }
+            isNewLoading.set(false);
+        } else if (type === "popular") {
+            if ($isPopularLoading || !hasMorePopular) return;
+            isPopularLoading.set(true);
+            popularPage++;
+            const data = await loadContent(popularPage, 10, "popular");
+            if (data.length > 0) {
+                popularContents.update((c) => [...c, ...data]);
+                if (data.length < 10) hasMorePopular = false;
+            } else {
+                hasMorePopular = false;
+            }
+            isPopularLoading.set(false);
+        } else if (type === "live2d") {
+            if ($isLive2dLoading || !hasMoreLive2d) return;
+            isLive2dLoading.set(true);
+            live2dPage++;
+            const data = await loadContentWithTags(
+                ["tags.live2d"],
+                live2dPage,
+                10,
+                "popular",
+            );
+            if (data.length > 0) {
+                live2dContents.update((c) => [...c, ...data]);
+                if (data.length < 10) hasMoreLive2d = false;
+            } else {
+                hasMoreLive2d = false;
+            }
+            isLive2dLoading.set(false);
+        } else if (type === "vrm") {
+            if ($isVrmLoading || !hasMoreVrm) return;
+            isVrmLoading.set(true);
+            vrmPage++;
+            const data = await loadContentWithTags(
+                ["tags.vrm"],
+                vrmPage,
+                10,
+                "popular",
+            );
+            if (data.length > 0) {
+                vrmContents.update((c) => [...c, ...data]);
+                if (data.length < 10) hasMoreVrm = false;
+            } else {
+                hasMoreVrm = false;
+            }
+            isVrmLoading.set(false);
+        }
+    }
+
+    // --- 필터링 및 로직 ---
     async function filterByCategory(category: string | null) {
         selectedCategory = category;
         page = 1;
         isLoading.set(true);
         let data: PersonaDTO[] = [];
+
         if (category === null) {
             data = await loadContent(page, limit, currentSort);
         } else if (category === "following") {
-            data = await loadFollowedContent(); // Following doesn't support generic sort yet usually
+            data = await loadFollowedContent();
         } else if (category === "liked") {
-            data = await loadLikedContent(); // Liked usually implies recent
+            data = await loadLikedContent();
         } else {
             data = await loadContentWithTags(
                 [category],
@@ -86,26 +222,19 @@
         isLoading.set(false);
     }
 
-    // 검색 실행 (모달 내부)
     async function executeSearch() {
         isLoading.set(true);
-        isSearchModalOpen = false; // 검색 실행 후 모달 닫기
+        selectedCategory = "search";
+        isSearchModalOpen = false;
+
         let data: PersonaDTO[] = [];
-        page = 1; // 검색 시 첫 페이지로 초기화
+        page = 1;
 
         if (!query.trim()) {
             data = await loadContent(page, limit, currentSort);
+            selectedCategory = null;
         } else if (searchType === "name") {
             data = await loadContentWithName(query);
-        } else if (searchType === "tags") {
-            const tags = query
-                .split(",")
-                .map((tag) => tag.trim())
-                .filter((tag) => tag !== "");
-            data =
-                tags.length > 0
-                    ? await loadContentWithTags(tags, page, limit, currentSort)
-                    : await loadContent(page, limit, currentSort);
         }
         contents.set(data);
         isLoading.set(false);
@@ -114,9 +243,14 @@
     function handleCardClick(content: PersonaDTO) {
         goto(`/profile?c=${content.id}`);
     }
+
+    function toggleCategory() {
+        isCategoryExpanded = !isCategoryExpanded;
+    }
 </script>
 
 <div class="page-wrapper">
+    <!-- Search Modal -->
     {#if isSearchModalOpen}
         <!-- svelte-ignore a11y_click_events_have_key_events -->
         <!-- svelte-ignore a11y_no_static_element_interactions -->
@@ -133,21 +267,15 @@
                     <button
                         class:active={searchType === "name"}
                         on:click={() => (searchType = "name")}
-                        >{$t("contentHub.searchByName")}</button
                     >
-                    <!-- <button
-                        class:active={searchType === "tags"}
-                        on:click={() => (searchType = "tags")}
-                        >{$t("contentHub.searchByTags")}</button
-                    > -->
+                        {$t("contentHub.searchByName")}
+                    </button>
                 </div>
                 <div class="search-input-wrapper">
                     <input
                         type="text"
                         bind:value={query}
-                        placeholder={searchType === "name"
-                            ? $t("contentHub.searchNamePlaceholder")
-                            : $t("contentHub.searchTagsPlaceholder")}
+                        placeholder={$t("contentHub.searchNamePlaceholder")}
                         on:keydown={(e) => e.key === "Enter" && executeSearch()}
                     />
                     <button class="search-button" on:click={executeSearch}>
@@ -158,42 +286,110 @@
         </div>
     {/if}
 
+    <!-- Header Section -->
     <div class="header-section">
-        <div class="sort-tabs desktop-only">
+        <div class="left-controls">
+            <!-- Category Toggle -->
             <button
-                class:active={currentSort === "popular"}
-                on:click={() => changeSort("popular")}
+                class="category-toggle-btn"
+                on:click={toggleCategory}
+                aria-label={$t("contentHub.toggleCategories")}
             >
-                {$t("sort.popular")}
+                <div class="icon-wrapper">
+                    <Icon icon="mdi:tune-variant" width="24" height="24" />
+                </div>
+                <span class="desktop-only">{$t("contentHub.categories")}</span>
             </button>
-            <div class="separator"></div>
-            <button
-                class:active={currentSort === "realtime"}
-                on:click={() => changeSort("realtime")}
-            >
-                {$t("sort.realtime")}
-            </button>
-            <div class="separator"></div>
-            <button
-                class:active={currentSort === "latest"}
-                on:click={() => changeSort("latest")}
-            >
-                {$t("sort.latest")}
-            </button>
+
+            <!-- Navigation Tabs -->
+            <div class="nav-tabs">
+                <button
+                    class="nav-tab"
+                    class:active={activeTab === "character"}
+                    on:click={() => setActiveTab("character")}
+                >
+                    {$t("contentHub.nav.character")}
+                </button>
+                <div class="tab-separator">|</div>
+                <button
+                    class="nav-tab"
+                    class:active={activeTab === "story"}
+                    on:click={() => setActiveTab("story")}
+                >
+                    {$t("contentHub.nav.story")}
+                </button>
+                <div class="tab-separator">|</div>
+                <div class="companion-group">
+                    <span
+                        class="nav-label"
+                        class:active={activeTab === "2d" || activeTab === "3d"}
+                        >{$t("contentHub.nav.companion")}</span
+                    >
+                    <button
+                        class="nav-tab"
+                        class:active={activeTab === "2d"}
+                        on:click={() => setActiveTab("2d")}
+                    >
+                        {$t("contentHub.nav.2d")}
+                    </button>
+                    <button
+                        class="nav-tab"
+                        class:active={activeTab === "3d"}
+                        on:click={() => setActiveTab("3d")}
+                    >
+                        {$t("contentHub.nav.3d")}
+                    </button>
+                </div>
+            </div>
+
+            {#if selectedCategory}
+                <!-- <div class="current-category">
+                    <Icon icon="mdi:chevron-right" />
+                    <span>
+                        {#if selectedCategory === "following"}
+                            {$t("contentHub.following")}
+                        {:else if selectedCategory === "liked"}
+                            {$t("contentHub.liked")}
+                        {:else if selectedCategory === "search"}
+                            {$t("contentHub.searchResult", { query })}
+                        {:else}
+                            {$t(selectedCategory)}
+                        {/if}
+                    </span>
+                    <button
+                        class="reset-cat"
+                        on:click={() => filterByCategory(null)}
+                    >
+                        <Icon icon="mdi:close-circle" />
+                    </button>
+                </div> -->
+            {/if}
         </div>
 
-        <div class="bubbles-wrapper">
-            <div class="category-bubbles">
+        <div class="right-controls">
+            <button
+                class="search-trigger-button"
+                on:click={() => (isSearchModalOpen = true)}
+            >
+                <Icon icon="mdi:magnify" width="24" height="24" />
+            </button>
+        </div>
+    </div>
+
+    <!-- Collapsible Category Bar -->
+    {#if isCategoryExpanded}
+        <div class="category-panel" transition:slide={{ duration: 300 }}>
+            <div class="category-grid">
                 <button
-                    class="bubble"
+                    class="cat-chip"
                     class:active={selectedCategory === null}
                     on:click={() => filterByCategory(null)}
                 >
                     {$t("contentHub.all")}
                 </button>
-                {#each allCategories as category (category.id)}
+                {#each visibleCategories as category (category.id)}
                     <button
-                        class="bubble"
+                        class="cat-chip"
                         class:active={selectedCategory === category.nameKey}
                         on:click={() => filterByCategory(category.nameKey)}
                     >
@@ -202,222 +398,387 @@
                 {/each}
             </div>
         </div>
-        <button
-            class="search-trigger-button"
-            on:click={() => (isSearchModalOpen = true)}
-        >
-            <Icon icon="mdi:magnify" width="24" height="24" />
-        </button>
-    </div>
-
-    <div class="mobile-sort-bar">
-        <button
-            class:active={currentSort === "popular"}
-            on:click={() => changeSort("popular")}
-        >
-            {$t("sort.popular")}
-        </button>
-        <div class="separator"></div>
-        <button
-            class:active={currentSort === "realtime"}
-            on:click={() => changeSort("realtime")}
-        >
-            {$t("sort.realtime")}
-        </button>
-        <div class="separator"></div>
-        <button
-            class:active={currentSort === "latest"}
-            on:click={() => changeSort("latest")}
-        >
-            {$t("sort.latest")}
-        </button>
-    </div>
+    {/if}
 
     <div class="hub-container">
-        {#if $isLoading}
-            <div class="center-message">Loading...</div>
-        {:else if $contents === null || $contents.length === 0}
-            <div class="center-message">{$t("contentHub.noResults")}</div>
+        <!-- Default View -->
+        {#if selectedCategory === null && query === ""}
+            <!-- Section 1: New Arrivals -->
+            <ContentCarousel
+                title={$t("content.newArrivals")}
+                contents={$newContents}
+                isLoading={$isNewLoading}
+                hasMore={hasMoreNew}
+                on:select={(e) => handleCardClick(e.detail)}
+                on:loadMore={() => handleLoadMore("new")}
+            />
+
+            <!-- Section 2: Popular -->
+            <ContentCarousel
+                title={$t("content.todaysPopular")}
+                contents={$popularContents}
+                isLoading={$isPopularLoading}
+                hasMore={hasMorePopular}
+                on:select={(e) => handleCardClick(e.detail)}
+                on:loadMore={() => handleLoadMore("popular")}
+            />
+
+            <!-- Section 3: Live2D -->
+            <ContentCarousel
+                title={$t("content.live2dTitle")}
+                contents={$live2dContents}
+                isLoading={$isLive2dLoading}
+                hasMore={hasMoreLive2d}
+                emptyMessage="No Live2D models found."
+                on:select={(e) => handleCardClick(e.detail)}
+                on:loadMore={() => handleLoadMore("live2d")}
+            />
+
+            <!-- Section 4: VRM -->
+            <ContentCarousel
+                title={$t("content.vrmTitle")}
+                contents={$vrmContents}
+                isLoading={$isVrmLoading}
+                hasMore={hasMoreVrm}
+                emptyMessage="No VRM models found."
+                on:select={(e) => handleCardClick(e.detail)}
+                on:loadMore={() => handleLoadMore("vrm")}
+            />
+
+            <!-- Section 5: All Personas (Grid) -->
+            <section class="hub-section">
+                <div class="section-header">
+                    <h3>{$t("content.allPersonas")}</h3>
+
+                    <div class="sort-controls">
+                        <button
+                            class:active={currentSort === "latest"}
+                            on:click={() => changeSort("latest")}
+                            >{$t("sort.latest")}</button
+                        >
+                        <button
+                            class:active={currentSort === "popular"}
+                            on:click={() => changeSort("popular")}
+                            >{$t("sort.popular")}</button
+                        >
+                    </div>
+                </div>
+
+                {#if $isLoading}
+                    <div class="center-message">Loading...</div>
+                {:else if $contents.length === 0}
+                    <div class="center-message">
+                        {$t("contentHub.noResults")}
+                    </div>
+                {:else}
+                    <div class="content flex-grid">
+                        {#each $contents as content (content.id)}
+                            <CharacterCard
+                                {content}
+                                on:click={() => handleCardClick(content)}
+                            />
+                        {/each}
+                    </div>
+                {/if}
+            </section>
         {:else}
-            <div class="content">
-                {#each $contents as content (content.id)}
-                    <CharacterCard
-                        {content}
-                        on:click={() => handleCardClick(content)}
-                    />
-                {/each}
-            </div>
+            <!-- Filtered View -->
+            <section class="hub-section full-height">
+                <div class="section-header">
+                    <h3>
+                        {#if selectedCategory === "search"}
+                            {$t("contentHub.searchResult", {
+                                values: { query },
+                            })}
+                        {:else if selectedCategory === "following"}
+                            {$t("contentHub.following")}
+                        {:else if selectedCategory === "liked"}
+                            {$t("contentHub.liked")}
+                        {:else}
+                            {$t(selectedCategory || "contentHub.all")}
+                        {/if}
+                    </h3>
+                    <div class="sort-controls">
+                        <button
+                            class:active={currentSort === "latest"}
+                            on:click={() => changeSort("latest")}
+                            >{$t("sort.latest")}</button
+                        >
+                        <button
+                            class:active={currentSort === "popular"}
+                            on:click={() => changeSort("popular")}
+                            >{$t("sort.popular")}</button
+                        >
+                    </div>
+                </div>
+
+                {#if $isLoading}
+                    <div class="center-message">Loading...</div>
+                {:else if $contents.length === 0}
+                    <div class="center-message">
+                        {$t("contentHub.noResults")}
+                    </div>
+                {:else}
+                    <div class="content flex-grid">
+                        {#each $contents as content (content.id)}
+                            <CharacterCard
+                                {content}
+                                on:click={() => handleCardClick(content)}
+                            />
+                        {/each}
+                    </div>
+                {/if}
+            </section>
         {/if}
     </div>
 </div>
 
 <style>
-    /* --- 페이지 레이아웃 --- */
+    /* --- Layout --- */
     .page-wrapper {
         display: flex;
         flex-direction: column;
         height: 100%;
-        width: 100vw; /* 뷰포트 너비에 맞춤 */
-        max-width: 100vw; /* 뷰포트를 넘지 않도록 */
-        overflow-x: hidden; /* 가로 스크롤 방지 */
+        width: 100vw;
+        max-width: 100vw;
+        overflow-x: hidden;
         box-sizing: border-box;
+        background-color: var(--background);
     }
+
     .header-section {
         display: flex;
         align-items: center;
-        gap: 0.75rem; /* gap을 줄여서 공간 확보 */
+        justify-content: space-between;
         padding: 1rem 1.5rem;
-        /* border-bottom: 1px solid var(--border); */ /* Remove border from here */
         flex-shrink: 0;
-        width: 100%;
-        max-width: 100vw;
-        box-sizing: border-box;
+        z-index: 10;
     }
 
-    .mobile-sort-bar {
-        display: none; /* Hidden by default on desktop */
+    .left-controls {
+        display: flex;
         align-items: center;
-        gap: 0.5rem;
-        padding: 0.75rem 1.5rem;
-        border-bottom: 1px solid var(--border);
-        background-color: var(--card); /* Ensure background matches */
+        gap: 1.5rem; /* Separates toggle from tabs */
+        /* 사이드바 아이콘 만큼 띄워주기 */
+        padding-left: 2.5rem;
     }
 
-    .mobile-sort-bar button {
+    /* --- Navigation Tabs --- */
+    .nav-tabs {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        margin-left: 0.5rem;
+    }
+
+    .nav-tab {
         background: none;
         border: none;
-        font-size: 0.9rem;
-        font-weight: 500;
         color: var(--muted-foreground);
+        font-size: 1.1rem;
+        font-weight: 500;
         cursor: pointer;
         padding: 0;
+        transition:
+            color 0.2s,
+            text-shadow 0.2s;
     }
 
-    .mobile-sort-bar button.active {
+    .nav-tab:hover {
         color: var(--foreground);
-        font-weight: 600;
     }
 
-    .sort-tabs {
+    .nav-tab.active {
+        color: var(--foreground);
+        font-weight: 700;
+        text-shadow: 0 0 8px rgba(255, 255, 255, 0.5); /* Glow effect request */
+    }
+
+    .tab-separator {
+        color: var(--border);
+        font-size: 0.9rem;
+        font-weight: 300;
+    }
+    .current-category {
         display: flex;
         align-items: center;
         gap: 0.5rem;
-        margin-left: 50px; /* Prevent overlap with sidebar toggle */
-        flex-shrink: 0;
+        font-size: 0.95rem;
+        color: var(--foreground);
+        font-weight: 500;
+        animation: fadeIn 0.3s;
     }
 
-    .sort-tabs button {
+    .companion-group {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .nav-label {
+        color: var(--muted-foreground); /* Default to muted */
+        font-size: 1rem;
+        font-weight: 500;
+        margin-right: 0.2rem;
+        transition:
+            color 0.2s,
+            text-shadow 0.2s;
+    }
+
+    .nav-label.active {
+        color: var(--foreground);
+        font-weight: 700;
+        text-shadow: 0 0 8px rgba(255, 255, 255, 0.5);
+    }
+
+    .reset-cat {
         background: none;
         border: none;
-        font-size: 0.95rem;
-        font-weight: 500;
         color: var(--muted-foreground);
         cursor: pointer;
         padding: 0;
-        transition: color 0.2s;
+        display: flex;
+        align-items: center;
+    }
+    .reset-cat:hover {
+        color: var(--destructive);
     }
 
-    .sort-tabs button:hover {
+    .category-toggle-btn {
+        background: none;
+        border: none;
+        color: var(--foreground);
+        font-size: 1rem;
+        font-weight: 600;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.5rem;
+        border-radius: var(--radius-button);
+        transition: background-color 0.2s;
+    }
+    .category-toggle-btn:hover {
+        background-color: var(--muted);
+    }
+    .icon-wrapper {
+        display: flex;
+        align-items: center;
+        justify-content: center;
         color: var(--foreground);
     }
 
-    .sort-tabs button.active {
+    /* --- Category Panel --- */
+    .category-panel {
+        background-color: var(--card);
+        border-bottom: 1px solid var(--border);
+        padding: 1rem 1.5rem;
+        overflow: hidden;
+    }
+    .category-grid {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+    }
+    .cat-chip {
+        padding: 0.5rem 1rem;
+        font-size: 0.9rem;
+        background-color: var(--muted);
         color: var(--foreground);
-        font-weight: 700;
+        border: 1px solid transparent;
+        border-radius: 20px;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+    .cat-chip:hover {
+        background-color: var(--secondary);
+    }
+    .cat-chip.active {
+        background: var(--primary-gradient);
+        color: var(--primary-foreground);
     }
 
-    .separator {
-        width: 1px;
-        height: 12px;
-        background-color: var(--border);
-    }
+    /* --- Hub Content --- */
     .hub-container {
         flex: 1;
         overflow-y: auto;
-        min-height: 0;
+        padding-bottom: 2rem;
     }
-    .hub-container > .content {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-        gap: 1.5rem;
-        padding: 1.5rem;
-    }
-    .center-message {
+
+    .hub-section {
+        padding: 1.5rem 0 0.5rem 1.5rem;
         display: flex;
-        justify-content: center;
-        align-items: center;
+        flex-direction: column;
+        gap: 1rem;
+    }
+    .hub-section.full-height {
         height: 100%;
-        font-size: 1.2rem;
-        color: var(--muted-foreground);
     }
 
-    /* --- 카테고리 버블 래퍼 --- */
-    .bubbles-wrapper {
-        flex: 1; /* flex-grow: 1 대신 flex: 1 사용 */
-        min-width: 0; /* flex 아이템이 내용물 크기보다 작아질 수 있도록 허용 */
-        overflow: hidden; /* 넘치는 부분 숨김 */
-        width: calc(100% - 60px); /* 검색 버튼 공간 제외 */
-        /* margin-left: 2.5rem; */
-    }
-
-    /* --- 카테고리 버블 --- */
-    .category-bubbles {
+    .section-header {
         display: flex;
-        gap: 0.75rem;
-        overflow-x: auto;
-        width: 100%; /* 부모 너비에 맞춤 */
-        scrollbar-width: none; /* Firefox */
-        padding-bottom: 2px; /* 스크롤바 공간 확보 */
+        align-items: center;
+        justify-content: space-between;
+        padding-right: 1.5rem;
     }
-    .category-bubbles::-webkit-scrollbar {
-        display: none; /* Chrome, Safari, Opera */
+    .section-header h3 {
+        font-size: 1.25rem;
+        font-weight: 700;
+        margin: 0;
     }
 
-    .bubble {
-        flex-shrink: 0;
-        padding: 0.5rem 1rem;
-        font-size: 0.9rem;
-        font-weight: 500;
-        background-color: var(--muted);
+    .sort-controls button {
+        background: none;
+        border: none;
         color: var(--muted-foreground);
-        border: 1px solid var(--border);
-        border-radius: 20px;
+        font-size: 0.9rem;
+        margin-left: 0.5rem;
         cursor: pointer;
-        transition: all 0.2s ease-in-out;
-        white-space: nowrap; /* 텍스트 줄바꿈 방지 */
     }
-    .bubble:hover {
-        background-color: var(--secondary);
-        color: var(--secondary-foreground);
-    }
-    .bubble.active {
-        background: var(--primary-gradient);
-        color: var(--primary-foreground);
-        border-color: transparent;
+    .sort-controls button.active {
+        color: var(--primary);
         font-weight: 600;
     }
 
-    /* --- 검색 아이콘 버튼 --- */
-    .search-trigger-button {
-        flex-shrink: 0;
-        width: 40px; /* 고정 너비 */
-        height: 40px; /* 고정 높이 */
-        background: none;
-        border: none;
-        color: var(--foreground);
-        padding: 0.5rem;
-        border-radius: 50%;
-        cursor: pointer;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        transition: background-color 0.2s;
+    /* --- Carousel --- */
+    .carousel-container {
+        width: 100%;
+        overflow-x: auto;
+        padding-bottom: 1rem;
+        scrollbar-width: none;
+        min-height: 150px;
     }
-    .search-trigger-button:hover {
-        background-color: var(--muted);
+    .carousel-container::-webkit-scrollbar {
+        display: none;
     }
 
-    /* --- 검색 모달 --- */
+    .carousel-track {
+        display: flex;
+        gap: 1rem;
+        padding-right: 1.5rem;
+    }
+
+    .carousel-item {
+        flex-shrink: 0;
+        width: 200px;
+    }
+
+    .empty-shim,
+    .loading-shim {
+        padding: 1rem;
+        color: var(--muted-foreground);
+        font-style: italic;
+    }
+
+    /* --- Grid --- */
+    .content.flex-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        gap: 1.5rem;
+        padding-right: 1.5rem;
+    }
+
+    /* --- Search Modal --- */
     .modal-overlay {
         position: fixed;
         top: 0;
@@ -434,12 +795,10 @@
     .modal-content {
         position: relative;
         background: var(--card);
-        padding: 2.5rem 2rem 2rem 2rem;
+        padding: 2.5rem 2rem;
         border-radius: var(--radius-card-lg);
-        box-shadow: var(--shadow-popover);
         width: 90%;
         max-width: 500px;
-        animation: fadeIn 0.3s ease-out;
     }
     .modal-content h2 {
         text-align: center;
@@ -454,112 +813,85 @@
         color: var(--muted-foreground);
         cursor: pointer;
         padding: 0.5rem;
-        border-radius: 50%;
-        transition: background-color 0.2s;
-    }
-    .close-button:hover {
-        background-color: var(--muted);
-    }
-    .search-options,
-    .search-input-wrapper {
-        margin: 0 auto;
     }
     .search-options {
         display: flex;
         justify-content: center;
         gap: 0.5rem;
-        background-color: var(--muted);
-        padding: 0.25rem;
-        border-radius: var(--radius-input);
         margin-bottom: 1rem;
     }
     .search-options button {
         padding: 0.4rem 0.8rem;
-        font-size: 0.8rem;
-        font-weight: 500;
-        background-color: transparent;
-        color: var(--muted-foreground);
+        background: transparent;
         border: none;
-        border-radius: var(--radius-button);
+        color: var(--muted-foreground);
         cursor: pointer;
-        transition: all 0.2s ease-in-out;
-        white-space: nowrap;
     }
     .search-options button.active {
         background-color: var(--secondary);
-        color: var(--secondary-foreground);
-        box-shadow: var(--shadow-mini);
+        color: var(--foreground);
+        border-radius: var(--radius-button);
     }
     .search-input-wrapper {
         position: relative;
         width: 100%;
-        max-width: 400px;
     }
     .search-input-wrapper input {
+        width: 100%;
+        padding: 0.75rem 3rem 0.75rem 1rem;
         background-color: var(--input);
         border: 1px solid var(--border-input);
         color: var(--foreground);
-        padding: 0.75rem 3rem 0.75rem 1rem;
-        font-size: 1rem;
         border-radius: var(--radius-input);
-        width: 100%;
     }
     .search-button {
         position: absolute;
         right: 0.5rem;
         top: 50%;
         transform: translateY(-50%);
-        padding: 0.5rem;
         background: none;
         border: none;
         color: var(--muted-foreground);
         cursor: pointer;
     }
 
-    @keyframes fadeIn {
-        from {
-            opacity: 0;
-            transform: scale(0.95);
-        }
-        to {
-            opacity: 1;
-            transform: scale(1);
-        }
+    .search-trigger-button {
+        background: none;
+        border: none;
+        color: var(--foreground);
+        padding: 0.5rem;
+        cursor: pointer;
     }
 
+    /* --- Mobile --- */
     @media (max-width: 768px) {
         .header-section {
-            padding: 0.75rem 1rem; /* 모바일에서 패딩 줄임 */
-            gap: 0.5rem; /* 모바일에서 간격 더 줄임 */
-            border-bottom: none; /* Let mobile sort bar handle border */
+            padding: 0.75rem 1rem;
         }
-
         .desktop-only {
-            display: none !important;
+            display: none;
+        }
+        .carousel-item {
+            width: 160px;
+        }
+        .content.flex-grid {
+            grid-template-columns: repeat(2, 1fr);
+            gap: 0.75rem;
+            padding-right: 1rem;
+        }
+        .hub-section {
+            padding-left: 1rem;
+        }
+        .left-controls {
+            padding-left: 0rem;
         }
 
-        .mobile-sort-bar {
-            display: flex; /* Show on mobile */
-            padding: 0.75rem 1rem 0.75rem 1rem; /* Adjust padding */
-        }
-
-        .bubbles-wrapper {
-            width: calc(100% - 50px); /* 모바일에서 검색 버튼 공간 조정 */
-        }
-
-        .search-trigger-button {
-            width: 36px;
-            height: 36px;
-        }
-
-        .hub-container > .content {
-            grid-template-columns: repeat(3, 1fr);
+        .nav-tabs {
             gap: 0.5rem;
-            padding: 0.5rem;
+            margin-left: 0.25rem;
         }
-
-        .bubbles-wrapper {
-            margin-left: 0rem;
+        .nav-tab {
+            font-size: 1rem;
         }
     }
 </style>

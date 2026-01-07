@@ -138,7 +138,24 @@
     "searchNamePlaceholder": "Enter a persona's name...",
     "searchTagsPlaceholder": "Enter tags, separated by commas...",
     "following": "Following",
-    "likes": "Liked"
+    "likes": "Liked",
+    "categories": "Categories",
+    "toggleCategories": "Toggle Categories",
+    "searchResult": "Search Results: \"{query}\"",
+    "nav": {
+      "character": "Character",
+      "story": "Story",
+      "companion": "Companion",
+      "2d": "2D",
+      "3d": "3D"
+    }
+  },
+  "content": {
+    "newArrivals": "✨ New Arrivals",
+    "todaysPopular": "🔥 Today's Popular",
+    "live2dTitle": "💃 Alive & Moving: Live2D",
+    "vrmTitle": "🧊 Digital Lifeforms: VRM",
+    "allPersonas": "📚 All Personas"
   },
   "hub": {
     "feedbackButtonLabel": "Send Feedback",
