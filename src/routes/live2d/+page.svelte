@@ -452,7 +452,7 @@
         />
 
         <!-- Debug UI - At top level to avoid pointer-events issues -->
-        <div class="debug-controls">
+        <!-- <div class="debug-controls">
             <button
                 class="debug-btn"
                 on:click={() => {
@@ -463,7 +463,7 @@
             >
                 🔍 Debug
             </button>
-        </div>
+        </div> -->
     {/if}
 </main>
 

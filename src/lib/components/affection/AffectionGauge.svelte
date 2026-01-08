@@ -351,14 +351,14 @@
     </div>
 </div>
 
-<div class="debug-controls">
+<!-- <div class="debug-controls">
     <button on:click={() => (score = Math.max(0, score - 10))}>
         -10 (Shake)
     </button>
     <button on:click={() => (score = Math.min(100, score + 10))}>
         +10 (Pulse)
     </button>
-</div>
+</div> -->
 
 <style>
     .debug-controls {
