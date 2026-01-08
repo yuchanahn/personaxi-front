@@ -549,28 +549,38 @@
                 on:click={() => switchTab("created")}
             >
                 <span class="desktop-text">{$t("settingPage.myPersonas")}</span>
-                <span class="mobile-text">내 페르소나</span>
+                <span class="mobile-text">
+                    <Icon icon="ph:cards-bold" width="24" height="24" />
+                </span>
             </button>
             <button
                 class="tab-btn"
                 class:active={activeTab === "liked"}
                 on:click={() => switchTab("liked")}
             >
-                {$t("settingPage.liked")}
+                <span class="desktop-text">{$t("settingPage.liked")}</span>
+                <span class="mobile-text">
+                    <Icon icon="ph:heart-bold" width="24" height="24" />
+                </span>
             </button>
             <button
                 class="tab-btn"
                 class:active={activeTab === "following"}
                 on:click={() => switchTab("following")}
             >
-                {$t("settingPage.following")}
+                <span class="desktop-text">{$t("settingPage.following")}</span>
+                <span class="mobile-text">
+                    <Icon icon="ph:users-bold" width="24" height="24" />
+                </span>
             </button>
         </div>
 
         {#if activeTab === "created"}
             <button class="btn btn-primary" on:click={() => goto("/edit")}>
                 <span class="desktop-text">{$t("settingPage.newPersona")}</span>
-                <span class="mobile-text">+ 만들기</span>
+                <span class="mobile-text">
+                    <Icon icon="ph:plus-bold" width="24" height="24" />
+                </span>
             </button>
         {/if}
     </div>
@@ -631,8 +641,8 @@
                                         "public"}
                                     on:click={() => toggleVisibility(persona)}
                                     aria-label={persona.visibility === "public"
-                                        ? "캐릭터를 비공개로 전환"
-                                        : "캐릭터를 공개로 전환"}
+                                        ? $t("settingPage.makePrivate")
+                                        : $t("settingPage.makePublic")}
                                 >
                                     {#if persona.visibility === "public"}
                                         <Icon icon="ph:eye-bold" />

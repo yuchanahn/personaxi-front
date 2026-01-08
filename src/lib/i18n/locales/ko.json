@@ -1,4 +1,22 @@
 {
+  "tts": {
+    "connectionFailed": "TTS WebSocket 연결 실패",
+    "connectedMessage": "음성 연결이 설정되었습니다.",
+    "disconnectedMessage": "TTS 연결이 해제되었습니다.",
+    "disconnectButton": "연결 해제",
+    "reconnectButton": "재연결",
+    "connectingMessage": "음성(TTS) 연결 중..."
+  },
+  "live": {
+    "fetchListFailed": "방송 목록을 불러오는데 실패했습니다",
+    "responseNotArray": "응답이 배열 형식이 아닙니다",
+    "setStatusFailed": "방송 상태 변경 실패"
+  },
+  "vrm": {
+    "faceObjectNotFound": "Face 오브젝트를 찾을 수 없습니다.",
+    "morphTargetDictionaryNotFound": "morphTargetDictionary를 찾을 수 없습니다.",
+    "targetNotFound": "타겟 '{targetName}'을(를) 찾을 수 없습니다."
+  },
   "nav": {
     "explore": "탐색",
     "feed": "피드",
@@ -32,7 +50,9 @@
     "liked": "좋아요",
     "following": "팔로잉",
     "noLiked": "아직 좋아요한 페르소나가 없습니다.",
-    "noFollowing": "아직 팔로우한 크리에이터가 없습니다."
+    "noFollowing": "아직 팔로우한 크리에이터가 없습니다.",
+    "makePrivate": "캐릭터를 비공개로 전환",
+    "makePublic": "캐릭터를 공개로 전환"
   },
   "settingPageModal": {
     "deleteAccount": "회원 탈퇴",

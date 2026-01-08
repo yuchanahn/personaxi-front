@@ -13,13 +13,24 @@
     "edit": "Edit",
     "delete": "Delete",
     "deleteConfirm": "Are you sure you want to delete the persona '{name}'? This action cannot be undone.",
-    "editProfile": "edit",
-    "save": "save",
-    "cancel": "cancel",
+    "editProfile": "Edit Profile",
+    "save": "Save",
+    "cancel": "Cancel",
+    "liked": "Liked",
+    "following": "Following",
+    "noLiked": "No liked personas yet.",
+    "noFollowing": "No following creators yet.",
     "languageSelect": "Select Language",
     "korean": "Korean",
     "profileAlt": "Profile",
-    "nicknamePlaceholder": "Nickname"
+    "nicknamePlaceholder": "Nickname",
+    "makePrivate": "Make character private",
+    "makePublic": "Make character public"
+  },
+  "settingPageModal": {
+    "deleteAccount": "Delete Account",
+    "deleteAccountConfirm": "Are you sure you want to delete your account? This action cannot be undone, and all personal data will be deleted. (Personas will be preserved)",
+    "deleteAccountSuccess": "Account deletion complete."
   },
   "tts": {
     "connectionFailed": "TTS WebSocket connection failed",
@@ -285,7 +296,11 @@
     "confirmButton": "Confirm",
     "alertAllAgreed": "You must agree to all required terms.",
     "privacyPolicyTitle": "Privacy Policy",
-    "termsOfServiceTitle": "Terms of Service"
+    "privacyPolicyContent": "Privacy Policy content goes here...",
+    "termsOfServiceTitle": "Terms of Service",
+    "termsOfServiceContent": "Terms of Service content goes here...",
+    "chatLogsConsentTitle": "Chat & Log Data Collection Consent",
+    "chatLogsConsentContent": "Details about chat and log data collection..."
   },
   "profilePage": {
     "translating": "Translating content. You can see the results by refreshing the page shortly.",
@@ -316,7 +331,9 @@
       "text3": "The illustration is truly beautiful...✨",
       "timestamp3": "2 days ago"
     },
-    "defaultProfile": "Default Profile"
+    "defaultProfile": "Default Profile",
+    "spoilerWarning": "Spoiler Alert! View first scene?",
+    "characterIntel": "Character Info"
   },
   "auctionModal": {
     "createFailed": "Auction creation failed"
@@ -584,14 +601,24 @@
     "startNewChat": "Start a conversation with a new persona.",
     "goExplore": "Go Explore"
   },
+  "verifyPage": {
+    "invalidAccess": "Invalid access.",
+    "unknownError": "An unknown error occurred.",
+    "connectionError": "Could not connect to authentication server.",
+    "verifyingTitle": "Activating account...",
+    "verifyingMessage": "Please wait a moment.",
+    "successTitle": "Verification complete!",
+    "successMessage": "Redirecting to login page...",
+    "errorTitle": "Verification Failed",
+    "backToLogin": "Back to Login"
+  },
   "settingPageModal": {
     "korean": "Korean",
-    "settingPageModal.english": "English",
-    "settingPageModal.deleteAccount": "Delete Account",
-    "settingPageModal.deleteAccountConfirm": "Are you sure you want to delete your account? This action cannot be undone. (Your personas will be preserved)",
-    "settingPageModal.deleteAccountSuccess": "Account deleted successfully.",
-    "settingPageModal.deleteAccountFail": "Failed to delete account.",
     "english": "English",
+    "deleteAccount": "Delete Account",
+    "deleteAccountConfirm": "Are you sure you want to delete your account? This action cannot be undone. (Your personas will be preserved)",
+    "deleteAccountSuccess": "Account deleted successfully.",
+    "deleteAccountFail": "Failed to delete account.",
     "description": "Change the display language and theme of the app.",
     "language": "Language",
     "title": "Settings",
@@ -600,7 +627,9 @@
     "dark": "Dark"
   },
   "common": {
-    "back": "Back"
+    "back": "Back",
+    "hide": "Hide",
+    "show": "Show"
   },
   "creatorPage": {
     "personas": "AI Personas",
