@@ -395,6 +395,8 @@
                 <Live2DViewer
                     bind:this={Viewer}
                     modelUrl={persona.live2d_model_url}
+                    backgroundImage={persona.static_portrait_url ||
+                        "/og-image.png"}
                     scale={0.2}
                     {expressionMap}
                     {hitMotionMap}

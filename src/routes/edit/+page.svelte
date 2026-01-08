@@ -27,6 +27,7 @@
     import { confirmStore } from "$lib/stores/confirm";
     import { extractFirstFrame } from "$lib/utils/media";
     import { chatSessions } from "$lib/stores/chatSessions";
+    import { FFmpegManager } from "$lib/utils/ffmpeg";
 
     let originalPersona: Persona | null = null;
     let vrmFile: File | null = null;
@@ -288,25 +289,51 @@
     let portraitFile: File | null = null;
     let portraitImageFile: File | null = null;
     let portraitPreview: string | null = null;
+    let compression_progress = 0;
+    let isCompressing = false;
 
     async function handleProfileChange(event: Event) {
         const input = event.target as HTMLInputElement;
         if (input.files && input.files.length > 0) {
-            portraitFile = input.files[0];
+            const originalFile = input.files[0];
+            portraitFile = originalFile;
 
             // Check if video
-            if (portraitFile.type.startsWith("video/")) {
-                const frame = await extractFirstFrame(portraitFile);
+            if (originalFile.type.startsWith("video/")) {
+                const frame = await extractFirstFrame(originalFile);
                 if (frame) {
                     portraitImageFile = frame;
                     portraitPreview = URL.createObjectURL(frame);
                 } else {
-                    // Fallback to video blob for preview if extraction fails (though extraction is preferred)
-                    portraitPreview = URL.createObjectURL(portraitFile);
+                    portraitPreview = URL.createObjectURL(originalFile);
+                }
+
+                // Compress Video
+                try {
+                    isCompressing = true;
+                    compression_progress = 0;
+                    toast.info("Compressing video... Please wait.");
+
+                    const compressed =
+                        await FFmpegManager.getInstance().compressVideo(
+                            originalFile,
+                            (p) => {
+                                compression_progress = p;
+                            },
+                        );
+
+                    portraitFile = compressed; // Use compressed file for upload
+                    toast.success("Compression complete!");
+                } catch (e) {
+                    console.error("Compression failed, using original:", e);
+                    toast.error("Compression failed. Uploading original.");
+                } finally {
+                    isCompressing = false;
+                    compression_progress = 0;
                 }
             } else {
                 portraitImageFile = null; // Reset if not video
-                portraitPreview = URL.createObjectURL(portraitFile);
+                portraitPreview = URL.createObjectURL(originalFile);
             }
 
             uploadPortraitFile();
@@ -693,6 +720,8 @@
                 // Upload static portrait if exists (e.g. video thumbnail)
                 if (portraitImageFile) {
                     await uploadStaticPortrait(portraitImageFile);
+                } else {
+                    persona.static_portrait_url = persona.portrait_url;
                 }
 
                 // console.log(
@@ -1082,6 +1111,24 @@
                                     >{portraitFile.name}</span
                                 >
                             {/if}
+                            {#if isCompressing}
+                                <div class="upload-status">
+                                    <Icon
+                                        icon="line-md:loading-twotone-loop"
+                                        width="24"
+                                        height="24"
+                                    />
+                                    <span
+                                        >Compressing Video... {compression_progress}%</span
+                                    >
+                                </div>
+                            {:else if portrait_progress > 0}
+                                <div class="upload-status">
+                                    <span
+                                        >Uploading... {portrait_progress}%</span
+                                    >
+                                </div>
+                            {/if}
                         </div>
                         {#if portraitPreview}
                             <!-- svelte-ignore a11y_click_events_have_key_events -->
@@ -1089,9 +1136,6 @@
                             <div
                                 class="portrait-preview clickable"
                                 class:has-id={!!persona.id}
-                                on:click={() => {
-                                    if (persona.id) handleStartChat();
-                                }}
                             >
                                 <AssetPreview
                                     asset={{
@@ -1099,16 +1143,6 @@
                                         description: "",
                                     }}
                                 />
-                                {#if persona.id}
-                                    <div class="chat-overlay">
-                                        <Icon
-                                            icon="ph:chat-circle-dots-bold"
-                                            width="32"
-                                            height="32"
-                                        />
-                                        <span>대화하기</span>
-                                    </div>
-                                {/if}
                             </div>
                         {/if}
 

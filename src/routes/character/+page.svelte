@@ -73,6 +73,7 @@
     <VrmModelViewer
       bind:this={Viewer}
       {persona}
+      backgroundImage={persona.static_portrait_url || "/og-image.png"}
       cssid={lastSessionId ?? ""}
       bind:show={showChat}
     />

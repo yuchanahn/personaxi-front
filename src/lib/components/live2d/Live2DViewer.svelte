@@ -9,6 +9,7 @@
     export let y: number = 0;
     export let expressionMap: Record<string, string> = {};
     export let hitMotionMap: Record<string, string> = {};
+    export let backgroundImage: string | null = null;
 
     let canvasElement: HTMLCanvasElement;
     let app: any;
@@ -759,60 +760,60 @@
                     model.tap(point.x, point.y);
                 });
 
-                model.on("hit", (hitAreas: string[]) => {
-                    console.log("Hit detected:", hitAreas);
-                    hitAreas.forEach((area) => {
-                        console.log(`Checking hit area: ${area}`);
+                // model.on("hit", (hitAreas: string[]) => {
+                //     console.log("Hit detected:", hitAreas);
+                //     hitAreas.forEach((area) => {
+                //         console.log(`Checking hit area: ${area}`);
 
-                        // 1. Custom Map
-                        if (hitMotionMap[area]) {
-                            const motionFile = hitMotionMap[area];
-                            console.log(
-                                `Triggering mapped motion for ${area}: ${motionFile}`,
-                            );
+                //         // 1. Custom Map
+                //         if (hitMotionMap[area]) {
+                //             const motionFile = hitMotionMap[area];
+                //             console.log(
+                //                 `Triggering mapped motion for ${area}: ${motionFile}`,
+                //             );
 
-                            let found = false;
-                            if (model.internalModel.motionManager.definitions) {
-                                for (const [grp, motions] of Object.entries(
-                                    model.internalModel.motionManager
-                                        .definitions,
-                                )) {
-                                    // @ts-ignore
-                                    motions.forEach((m, i) => {
-                                        if (
-                                            m.File === motionFile ||
-                                            (m.File &&
-                                                m.File.endsWith(motionFile))
-                                        ) {
-                                            console.log(
-                                                `Found motion ${motionFile} in group ${grp} at index ${i}`,
-                                            );
-                                            model.motion(grp, i, 3); // Priority 3 = FORCE
-                                            found = true;
-                                        }
-                                    });
-                                }
-                            }
-                            if (!found) {
-                                // Maybe it's just a group name?
-                                model.motion(motionFile, undefined, 3);
-                            }
-                        } else {
-                            // 2. Default Fallback: Tap + Area (e.g. TapBody)
-                            const defaultMotion = "Tap" + area;
-                            console.log(
-                                `Trying default hit motion: ${defaultMotion}`,
-                            );
-                            model
-                                .motion(defaultMotion, undefined, 3)
-                                .catch(() => {});
+                //             let found = false;
+                //             if (model.internalModel.motionManager.definitions) {
+                //                 for (const [grp, motions] of Object.entries(
+                //                     model.internalModel.motionManager
+                //                         .definitions,
+                //                 )) {
+                //                     // @ts-ignore
+                //                     motions.forEach((m, i) => {
+                //                         if (
+                //                             m.File === motionFile ||
+                //                             (m.File &&
+                //                                 m.File.endsWith(motionFile))
+                //                         ) {
+                //                             console.log(
+                //                                 `Found motion ${motionFile} in group ${grp} at index ${i}`,
+                //                             );
+                //                             model.motion(grp, i, 3); // Priority 3 = FORCE
+                //                             found = true;
+                //                         }
+                //                     });
+                //                 }
+                //             }
+                //             if (!found) {
+                //                 // Maybe it's just a group name?
+                //                 model.motion(motionFile, undefined, 3);
+                //             }
+                //         } else {
+                //             // 2. Default Fallback: Tap + Area (e.g. TapBody)
+                //             const defaultMotion = "Tap" + area;
+                //             console.log(
+                //                 `Trying default hit motion: ${defaultMotion}`,
+                //             );
+                //             model
+                //                 .motion(defaultMotion, undefined, 3)
+                //                 .catch(() => {});
 
-                            // Lowercase fallback
-                            const lower = "tap_" + area.toLowerCase();
-                            model.motion(lower, undefined, 3).catch(() => {});
-                        }
-                    });
-                });
+                //             // Lowercase fallback
+                //             const lower = "tap_" + area.toLowerCase();
+                //             model.motion(lower, undefined, 3).catch(() => {});
+                //         }
+                //     });
+                // });
 
                 model.x = x;
                 model.y = y;
@@ -964,6 +965,14 @@
 </script>
 
 <div class="live2d-container">
+    {#if backgroundImage}
+        <img
+            src={backgroundImage}
+            alt="background"
+            class="live2d-bg"
+            draggable="false"
+        />
+    {/if}
     <canvas bind:this={canvasElement} class="live2d-canvas"></canvas>
 
     {#if !isLoaded}
@@ -1143,12 +1152,28 @@
         width: 100%;
         height: 100%;
         pointer-events: none; /* Let clicks pass through container */
+        background-color: #000; /* Fallback */
+    }
+
+    .live2d-bg {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        z-index: 0;
+        opacity: 0.6; /* Slight dimming for better character visibility */
     }
 
     .live2d-canvas {
+        position: absolute; /* Changed to absolute to stack */
+        top: 0;
+        left: 0;
         width: 100%;
         height: 100%;
         display: block;
+        z-index: 1; /* Above background */
         pointer-events: auto; /* Re-enable canvas interaction if model needs it, or 'none' if strictly background */
     }
 

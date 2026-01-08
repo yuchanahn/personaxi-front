@@ -50,7 +50,11 @@ export default defineConfig({
         changeOrigin: true,
         agent: new https.Agent({ keepAlive: true }),
       },
-    }
+    },
+    headers: {
+      "Cross-Origin-Opener-Policy": "same-origin",
+      "Cross-Origin-Embedder-Policy": "require-corp",
+    },
   },
   esbuild: {
     target: "es2022"

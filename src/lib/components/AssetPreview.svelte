@@ -44,7 +44,15 @@
     <div class="fallback"></div>
 {:else}
     <div class="fallback">
-        <p>loading...</p>
+        {#if asset.static_url}
+            <img
+                src={asset.static_url}
+                alt="asset"
+                class="asset-preview-media"
+            />
+        {:else}
+            <p>loading...</p>
+        {/if}
     </div>
 {/if}
 

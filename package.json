@@ -35,6 +35,8 @@
 		]
 	},
 	"dependencies": {
+		"@ffmpeg/ffmpeg": "^0.12.15",
+		"@ffmpeg/util": "^0.12.2",
 		"@gltf-transform/core": "^4.1.4",
 		"@iconify/svelte": "^5.0.0",
 		"@supabase/supabase-js": "^2.84.0",

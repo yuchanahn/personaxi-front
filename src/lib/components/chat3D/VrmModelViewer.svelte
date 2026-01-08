@@ -20,6 +20,7 @@
   export let persona: Persona | null;
   export let cssid: string | null = null;
   export let show: boolean = true;
+  export let backgroundImage: string | null = null;
 
   let model: Model | null;
   let listeningTimeout: ReturnType<typeof setTimeout>;
@@ -341,6 +342,14 @@
   on:mousedown={handleMouseClick}
   on:mousemove={handleMouseMove}
 >
+  {#if backgroundImage}
+    <img
+      src={backgroundImage}
+      alt="background"
+      class="vrm-bg"
+      draggable="false"
+    />
+  {/if}
   <canvas bind:this={canvas} class="vrm-canvas"></canvas>
 
   <!-- Thought Bubbles -->
@@ -572,6 +581,18 @@
     width: 100vw;
     height: 100vh;
     overflow: hidden;
+    background-color: #000;
+  }
+
+  .vrm-bg {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    z-index: 0;
+    opacity: 0.6;
   }
 
   .vrm-canvas {
