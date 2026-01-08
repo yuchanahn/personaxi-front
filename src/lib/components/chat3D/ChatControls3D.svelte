@@ -1,7 +1,9 @@
 <script lang="ts">
   import SettingsButton from "$lib/components/common/SettingsButton.svelte";
   import SettingsModal from "$lib/components/modal/SettingModal.svelte";
+  import AffectionGauge from "$lib/components/affection/AffectionGauge.svelte";
   import type { Persona } from "$lib/types";
+  import { onMount, onDestroy } from "svelte";
 
   export let cssid: string;
   export let showChat: boolean;
@@ -9,6 +11,29 @@
   export let llmType: string; // llmType prop 추가
 
   let isSettingsModalOpen = false;
+  let affectionScore = 0; // Default
+
+  function handleAffectionUpdate(e: CustomEvent) {
+    if (e.detail.score !== undefined) {
+      affectionScore = e.detail.score;
+    }
+  }
+
+  onMount(() => {
+    window.addEventListener(
+      "affection-update",
+      handleAffectionUpdate as EventListener,
+    );
+  });
+
+  onDestroy(() => {
+    if (typeof window !== "undefined") {
+      window.removeEventListener(
+        "affection-update",
+        handleAffectionUpdate as EventListener,
+      );
+    }
+  });
 </script>
 
 {#if isSettingsModalOpen}
@@ -19,6 +44,10 @@
     on:close={() => (isSettingsModalOpen = false)}
   />
 {/if}
+
+<div class="affection-wrapper">
+  <AffectionGauge score={affectionScore} />
+</div>
 
 <div class="control-box">
   <SettingsButton onClick={() => (isSettingsModalOpen = true)} />
@@ -102,6 +131,14 @@
 </div>
 
 <style>
+  .affection-wrapper {
+    position: absolute;
+    top: 70px;
+    left: 20px;
+    z-index: 1000;
+    /* Independent positioning, no background container */
+  }
+
   .control-box {
     position: absolute;
     top: 10px;
@@ -115,6 +152,7 @@
     border-radius: 6px;
     backdrop-filter: blur(5px); /* 블러 효과 */
     border: 0.5px solid rgba(255, 255, 255, 0.15); /* 테두리 */
+    align-items: center; /* Center items */
   }
 
   .settings-button,

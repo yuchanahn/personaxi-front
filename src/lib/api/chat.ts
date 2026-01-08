@@ -55,6 +55,24 @@ export async function loadChatHistory(sessionId: string) {
             console.warn("No chat history found for session:", sessionId);
             return;
         }
+        // Initialize Affection Score from last assistant message
+        const lastAssistantMsg = [...history].reverse().find((m: any) => m.role === 'assistant');
+        if (lastAssistantMsg) {
+            try {
+                const json = JSON.parse(lastAssistantMsg.content);
+                if (typeof json.affection_score === 'number') {
+                    console.log("💕 Initialize Affection Score:", json.affection_score);
+                    if (typeof window !== 'undefined') {
+                        window.dispatchEvent(new CustomEvent('affection-update', {
+                            detail: { score: json.affection_score }
+                        }));
+                    }
+                }
+            } catch (e) {
+                // Ignore parse errors for legacy text messages
+            }
+        }
+
         messages.set(
             [
                 { role: "assistant", content: "<first_scene>" },
@@ -195,14 +213,27 @@ export async function impl_sendPromptStream(
     let buffer = "";
 
     while (true) {
-        const { rts, done } = await tickSSEStream2(reader, decoder, { buffer });
+        const { events, done } = await tickSSEStream2(reader, decoder, { buffer });
 
-        for (const rt of rts) {
-            const cssid = extractCSSID(rt);
-            if (cssid) {
-                onCSSID?.(cssid);
-            } else {
-                onData(rt);
+        for (const event of events) {
+            if (event.type === 'affection') {
+                // Handle affection update
+                try {
+                    const affectionData = JSON.parse(event.data);
+                    console.log("💕 Affection Update:", affectionData);
+                    // Dispatch custom event for UI to pick up
+                    window.dispatchEvent(new CustomEvent('affection-update', { detail: affectionData }));
+                } catch (e) {
+                    console.error("Failed to parse affection data", e);
+                }
+            } else if (event.type === 'data') {
+                const rt = event.data;
+                const cssid = extractCSSID(rt);
+                if (cssid) {
+                    onCSSID?.(cssid);
+                } else {
+                    onData(rt);
+                }
             }
         }
 

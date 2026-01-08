@@ -8,48 +8,56 @@ export function extractCSSID(raw: string | null | undefined): string | null {
 }
 
 
+export type SSEEvent = {
+    type: 'data' | 'affection' | 'error';
+    data: string;
+};
+
 export async function tickSSEStream2(
     reader: ReadableStreamDefaultReader<Uint8Array> | undefined,
     decoder: TextDecoder,
     bufferRef: { buffer: string }
-): Promise<{ rts: string[]; done: boolean }> {
+): Promise<{ events: SSEEvent[]; done: boolean }> {
     if (!reader) {
         console.error('tickSSEStream: reader가 정의되지 않음');
-        return { rts: [], done: true };
+        return { events: [], done: true };
     }
-
-    let chat = "";
 
     const { value, done } = await reader.read();
     if (done) {
-        console.log("DONE: ", chat)
-        return { rts: [], done: true };
+        return { events: [], done: true };
     }
 
     bufferRef.buffer += decoder.decode(value, { stream: true });
 
-    const events = bufferRef.buffer.split('\n\n');
-    bufferRef.buffer = events.pop() || '';
+    const chunks = bufferRef.buffer.split('\n\n');
+    bufferRef.buffer = chunks.pop() || '';
 
-    const rts: string[] = [];
+    const events: SSEEvent[] = [];
 
-    for (const event of events) {
-        //if (!event.startsWith('data: ')) {
-        chat += event;
-        //}
-        const dataLines = event
-            .split('\n')
-            .filter(line => line.startsWith('data: '))
-            .map(line => line.slice(6));
+    for (const chunk of chunks) {
+        let type: SSEEvent['type'] = 'data';
+        let data = '';
 
-        const raw = dataLines.join('\n');
-        if (raw === '[DONE]') {
-            return { rts, done: true };
+        const lines = chunk.split('\n');
+        for (const line of lines) {
+            if (line.startsWith('event: ')) {
+                const eventType = line.slice(7).trim();
+                if (eventType === 'affection') type = 'affection';
+                if (eventType === 'error') type = 'error';
+            } else if (line.startsWith('data: ')) {
+                data += line.slice(6);
+            }
         }
-        rts.push(raw.replace(/\\n/g, '\n'));
+
+        const raw = data;
+        if (raw === '[DONE]') {
+            return { events, done: true };
+        }
+        events.push({ type, data: raw.replace(/\\n/g, '\n') });
     }
 
-    return { rts, done: false };
+    return { events, done: false };
 }
 
 export async function tickSSEStream(
