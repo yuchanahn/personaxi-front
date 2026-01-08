@@ -21,8 +21,7 @@
     import { st_user } from "$lib/stores/user";
     import { chatSessions } from "$lib/stores/chatSessions";
 
-    const supabaseURL =
-        "https://uohepkqmwbstbmnkoqju.supabase.co/storage/v1/object/public/personaxi-assets/";
+    const supabaseURL = "/storage/v1/object/public/personaxi-assets/";
 
     let user = {
         id: "",
@@ -549,7 +548,8 @@
                 class:active={activeTab === "created"}
                 on:click={() => switchTab("created")}
             >
-                {$t("settingPage.myPersonas")}
+                <span class="desktop-text">{$t("settingPage.myPersonas")}</span>
+                <span class="mobile-text">내 페르소나</span>
             </button>
             <button
                 class="tab-btn"
@@ -569,7 +569,8 @@
 
         {#if activeTab === "created"}
             <button class="btn btn-primary" on:click={() => goto("/edit")}>
-                {$t("settingPage.newPersona")}
+                <span class="desktop-text">{$t("settingPage.newPersona")}</span>
+                <span class="mobile-text">+ 만들기</span>
             </button>
         {/if}
     </div>
@@ -1140,6 +1141,7 @@
         font-size: 1.1rem;
         transition: all 0.2s;
         border-bottom: 2px solid transparent;
+        white-space: nowrap; /* Prevent wrapping */
     }
     .tab-btn:hover {
         color: var(--foreground);
@@ -1154,5 +1156,23 @@
         text-align: center;
         color: var(--muted-foreground);
         font-size: 1.1rem;
+    }
+
+    /* Responsive Text Logic */
+    .mobile-text {
+        display: none;
+    }
+
+    @media (max-width: 768px) {
+        .tab-btn {
+            padding: 0.5rem 0.5rem; /* Reduce padding on mobile */
+            font-size: 1rem;
+        }
+        .desktop-text {
+            display: none;
+        }
+        .mobile-text {
+            display: inline;
+        }
     }
 </style>

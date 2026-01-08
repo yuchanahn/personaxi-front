@@ -50,6 +50,11 @@ export default defineConfig({
         changeOrigin: true,
         agent: new https.Agent({ keepAlive: true }),
       },
+      '/storage': {
+        target: 'https://uohepkqmwbstbmnkoqju.supabase.co',
+        changeOrigin: true,
+        secure: false,
+      },
     },
     headers: {
       "Cross-Origin-Opener-Policy": "same-origin",
@@ -60,6 +65,7 @@ export default defineConfig({
     target: "es2022"
   },
   optimizeDeps: {
+    exclude: ["@ffmpeg/ffmpeg", "@ffmpeg/util"],
     esbuildOptions: {
       target: "es2022",
     },

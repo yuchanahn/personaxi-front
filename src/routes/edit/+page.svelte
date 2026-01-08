@@ -534,8 +534,7 @@
         }
     }
 
-    const supabaseURL =
-        "https://uohepkqmwbstbmnkoqju.supabase.co/storage/v1/object/public/personaxi-assets/";
+    const supabaseURL = "/storage/v1/object/public/personaxi-assets/";
 
     async function handleLive2DUpload(event: Event) {
         const input = event.target as HTMLInputElement;
@@ -1049,7 +1048,6 @@
                             id="personaType"
                             bind:value={persona.personaType}
                             on:change={() => {
-                                // Reset first_scene when switching from 3D/2.5D to 2D
                                 if (
                                     (previousPersonaType === "3D" ||
                                         previousPersonaType === "2.5D") &&
@@ -1064,9 +1062,9 @@
                             <option value="" disabled
                                 >{$t("editPage.typeSelectDefault")}</option
                             >
-                            <option value="3D">3D</option>
-                            <option value="2D">2D</option>
-                            <option value="2.5D">2.5D (Live2D)</option>
+                            <option value="2D">Chat</option>
+                            <option value="2.5D">Live2D(beta)</option>
+                            <option value="3D">3D(beta)</option>
                         </select>
                     </div>
 

@@ -49,6 +49,9 @@
         background-color: var(--background);
         min-height: 100vh;
         color: var(--foreground);
+        overflow-x: hidden; /* 가로 스크롤 방지 */
+        box-sizing: border-box;
+        width: 100%;
     }
 
     .page-header {
@@ -67,6 +70,7 @@
     .chat-list {
         display: flex;
         flex-direction: column;
+        width: 100%;
     }
 
     .chat-item-wrapper {
@@ -101,5 +105,19 @@
         border-radius: 8px;
         text-decoration: none;
         font-weight: 600;
+    }
+
+    @media (max-width: 768px) {
+        .page-header {
+            margin-left: 0; /* 모바일에서는 여백 제거 */
+            justify-content: center; /* 중앙 정렬 */
+        }
+        .page-header h1 {
+            font-size: 1.5rem;
+        }
+        .chat-page-container {
+            padding-left: 0.5rem;
+            padding-right: 0.5rem;
+        }
     }
 </style>
