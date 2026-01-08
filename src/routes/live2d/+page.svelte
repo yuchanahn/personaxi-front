@@ -74,7 +74,43 @@
         currentCost = Math.round(baseCost * multiplier);
     }
 
+    let affectionScore = 100;
+
+    // Vignette System: Dual Layer
+    // Layer 1 (Black): Intense at 0 score, Transparent at 100
+    // Layer 2 (Pink): Transparent at 0 score, Visible at 100
+
+    let blackOpacity = 1;
+    let pinkOpacity = 0;
+
+    $: {
+        const t = Math.max(0, Math.min(100, affectionScore)) / 100;
+
+        // Black: 0.95 -> 0.0
+        blackOpacity = 0.95 - t * 0.95;
+
+        // Pink: 0.0 -> 0.45
+        pinkOpacity = t * 0.45;
+    }
+
     onMount(async () => {
+        // Listen for Affection Updates
+        const handleAffection = (e: CustomEvent) => {
+            if (e.detail?.score !== undefined) {
+                affectionScore = e.detail.score;
+            }
+        };
+        window.addEventListener(
+            "affection-update",
+            handleAffection as EventListener,
+        );
+
+        const removeListener = () =>
+            window.removeEventListener(
+                "affection-update",
+                handleAffection as EventListener,
+            );
+
         const sessionId = $page.url.searchParams.get("c");
         lastSessionId = sessionId;
         $messages = [];
@@ -339,6 +375,14 @@
 </script>
 
 <main>
+    <div
+        class="vignette-overlay vignette-black"
+        style="opacity: {blackOpacity};"
+    ></div>
+    <div
+        class="vignette-overlay vignette-pink"
+        style="opacity: {pinkOpacity};"
+    ></div>
     {#if persona}
         <TtsStatusModal
             impl_connectTTS={async () => {
@@ -453,6 +497,21 @@
 
         <!-- Debug UI - At top level to avoid pointer-events issues -->
         <!-- <div class="debug-controls">
+            <div class="debug-panel">
+                <label>
+                    Affection: {affectionScore}
+                    <input
+                        type="range"
+                        min="0"
+                        max="100"
+                        bind:value={affectionScore}
+                    />
+                </label>
+                <div style="font-size: 10px; color: #888;">
+                    {blackOpacity} / {pinkOpacity}
+                </div>
+            </div>
+
             <button
                 class="debug-btn"
                 on:click={() => {
@@ -475,6 +534,34 @@
         width: 100vw;
         height: 100vh;
         overflow: hidden;
+    }
+
+    .vignette-overlay {
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+        z-index: 100;
+        transition: opacity 1.5s ease-in-out;
+    }
+
+    .vignette-black {
+        background: radial-gradient(
+            circle at center,
+            transparent 30%,
+            rgba(0, 0, 0, 0.4) 80%,
+            rgba(0, 0, 0, 0.95) 150%
+        );
+        mix-blend-mode: multiply; /* Horror vibe */
+    }
+
+    .vignette-pink {
+        background: radial-gradient(
+            circle at center,
+            transparent 30%,
+            rgba(255, 182, 193, 0.4) 80%,
+            rgba(255, 105, 180, 0.9) 150%
+        );
+        mix-blend-mode: screen; /* Romantic glow */
     }
 
     .live2d-wrapper {
@@ -565,5 +652,21 @@
         background: rgba(0, 255, 0, 0.2);
         box-shadow: 0 0 15px rgba(0, 255, 0, 0.5);
         transform: scale(1.05);
+    }
+
+    .debug-panel {
+        background: rgba(0, 0, 0, 0.8);
+        padding: 10px;
+        border-radius: 8px;
+        color: white;
+        margin-bottom: 10px;
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+        border: 1px solid #444;
+    }
+    .debug-panel input {
+        width: 100%;
+        cursor: pointer;
     }
 </style>
