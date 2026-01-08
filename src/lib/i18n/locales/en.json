@@ -27,11 +27,6 @@
     "makePrivate": "Make character private",
     "makePublic": "Make character public"
   },
-  "settingPageModal": {
-    "deleteAccount": "Delete Account",
-    "deleteAccountConfirm": "Are you sure you want to delete your account? This action cannot be undone, and all personal data will be deleted. (Personas will be preserved)",
-    "deleteAccountSuccess": "Account deletion complete."
-  },
   "tts": {
     "connectionFailed": "TTS WebSocket connection failed",
     "connectedMessage": "Voice connection established.",
@@ -282,7 +277,7 @@
     "firstCreationReward": "Get 200 Neurons for your first Persona creation!",
     "getFreeNeurons": "Get Free Neurons",
     "currentNeurons": "Current: {count} Neurons",
-    "rechargeAlert": "You need more tokens to continue. Please recharge your account."
+    "rechargeAlert": "You need more neurons to continue. Please recharge your account."
   },
   "consentModal": {
     "title": "Service Agreement",

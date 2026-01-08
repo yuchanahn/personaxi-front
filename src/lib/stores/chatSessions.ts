@@ -1,4 +1,4 @@
-import { get, writable } from 'svelte/store';
+import { get, writable, derived } from 'svelte/store';
 
 export enum ChatSessionType {
     CHAT = 'text',
@@ -21,6 +21,14 @@ export type ChatSession = {
 };
 
 export const chatSessions = writable<ChatSession[]>([]);
+
+export const sortedChatSessions = derived(chatSessions, ($sessions) => {
+    return [...$sessions].sort((a, b) => {
+        const timeA = new Date(a.lastMessageAt || a.createdAt).getTime();
+        const timeB = new Date(b.lastMessageAt || b.createdAt).getTime();
+        return timeB - timeA; // Descending order (newest first)
+    });
+});
 
 export const createNewSession = (id: string, name: string, type: ChatSessionType, llmType: string) => {
     const newSession: ChatSession = {

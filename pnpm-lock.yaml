@@ -50,6 +50,9 @@ importers:
       marked:
         specifier: ^15.0.12
         version: 15.0.12
+      moment:
+        specifier: ^2.30.1
+        version: 2.30.1
       moment-timezone:
         specifier: ^0.6.0
         version: 0.6.0

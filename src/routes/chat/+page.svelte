@@ -1,7 +1,7 @@
 <script lang="ts">
     import { goto } from "$app/navigation";
     import { handleSelect } from "$lib/services/sessionManager";
-    import { chatSessions } from "$lib/stores/chatSessions";
+    import { sortedChatSessions } from "$lib/stores/chatSessions";
     import ChatSessionItem from "$lib/components/chat/ChatSessionItem.svelte";
     import Icon from "@iconify/svelte";
     import { t } from "svelte-i18n";
@@ -21,7 +21,7 @@
 
     <div class="chat-list-wrapper">
         <div class="chat-list">
-            {#each $chatSessions as session (session.id)}
+            {#each $sortedChatSessions as session (session.id)}
                 <div class="chat-item-wrapper">
                     <ChatSessionItem
                         {session}

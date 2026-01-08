@@ -4,6 +4,9 @@
         type ChatSession,
     } from "$lib/stores/chatSessions";
     import AssetPreview from "$lib/components/AssetPreview.svelte";
+    import { locale } from "svelte-i18n";
+    import moment from "moment";
+    import "moment/dist/locale/ko";
 
     export let session: ChatSession = {
         id: "",
@@ -18,14 +21,27 @@
     export let onClick;
     export let onDelete;
 
-    function formatTime(dateString: string) {
+    $: currentLocale = $locale || "en";
+
+    function formatTime(dateString: string, loc: string) {
         if (!dateString) return "";
         try {
-            const date = new Date(dateString);
-            return date.toLocaleTimeString([], {
-                hour: "2-digit",
-                minute: "2-digit",
-            });
+            const date = moment(dateString);
+
+            // Set moment locale based on stored locale
+            // Map 'en'->'en', 'ko'->'ko' (assuming moment supports 'ko')
+            moment.locale(loc === "ko" ? "ko" : "en");
+
+            const now = moment();
+
+            if (date.isSame(now, "day")) {
+                // Determine format based on locale (English: 12h, Korean: may want '오후 2:00' or 24h)
+                // Using standard LT format which is localized
+                return date.format("LT");
+            } else {
+                // Return 'X days ago' or 'X일 전'
+                return date.fromNow();
+            }
         } catch (e) {
             return "";
         }
@@ -51,7 +67,10 @@
                     <span class="name">{session.name}</span>
                     {#if session.lastMessageAt}
                         <span class="time"
-                            >{formatTime(session.lastMessageAt)}</span
+                            >{formatTime(
+                                session.lastMessageAt,
+                                currentLocale,
+                            )}</span
                         >
                     {/if}
                 </div>
