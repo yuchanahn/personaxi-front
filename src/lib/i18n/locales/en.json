@@ -154,16 +154,16 @@
       "story": "Story",
       "companion": "Companion",
       "2d": "2D",
-      "3d": "3D",
-      "fantasy": "Journey to Another World"
+      "3d": "3D"
     }
   },
   "content": {
-    "newArrivals": "✨ New Arrivals",
-    "todaysPopular": "🔥 Today's Popular",
-    "live2dTitle": "💃 Alive & Moving: Live2D",
-    "vrmTitle": "🧊 Digital Lifeforms: VRM",
-    "allPersonas": "📚 All Personas"
+    "newArrivals": "Just Arrived",
+    "todaysPopular": "Trending Now",
+    "live2dTitle": "Live2D Collection",
+    "vrmTitle": "VRM Showcase",
+    "allPersonas": "All Personas",
+    "fantasy": "Fantasy World"
   },
   "hub": {
     "feedbackButtonLabel": "Send Feedback",

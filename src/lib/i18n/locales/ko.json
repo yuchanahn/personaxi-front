@@ -195,16 +195,16 @@
       "story": "스토리",
       "companion": "동반자",
       "2d": "2D",
-      "3d": "3D",
-      "fantasy": "이세계로 떠나는 여행"
+      "3d": "3D"
     }
   },
   "content": {
-    "newArrivals": "✨ 신규 도착",
-    "todaysPopular": "🔥 오늘의 인기",
-    "live2dTitle": "💃 살아 움직이는: Live2D",
-    "vrmTitle": "🧊 디지털 생명체: VRM",
-    "allPersonas": "📚 모든 페르소나"
+    "newArrivals": "새로운 만남",
+    "todaysPopular": "화제의 중심",
+    "live2dTitle": "살아 숨 쉬는 그림",
+    "vrmTitle": "입체적인 존재감",
+    "allPersonas": "전체 컬렉션",
+    "fantasy": "환상적인 이야기"
   },
   "auctionPage": {
     "bidder": "입찰자",

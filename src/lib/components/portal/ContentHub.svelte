@@ -332,8 +332,6 @@
     <!-- Header Section -->
     <div class="header-section">
         <div class="left-controls">
-            <!-- Category Toggle -->
-
             <!-- Navigation Tabs -->
             <div class="nav-tabs">
                 <button
@@ -464,7 +462,7 @@
 
             <!-- Section 3: Fantasy -->
             <ContentCarousel
-                title={$t("contentHub.nav.fantasy")}
+                title={$t("content.fantasy")}
                 contents={$fantasyContents}
                 isLoading={$isFantasyLoading}
                 hasMore={false}
