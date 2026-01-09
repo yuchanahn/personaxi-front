@@ -40,6 +40,7 @@
         name: "",
         one_liner: "", // Add this
         personaType: "",
+        contentType: "character", // Add this
         instructions: [],
         promptExamples: [],
         tags: [],
@@ -93,6 +94,10 @@
         persona.voice_id = selectedVoiceId;
     } else {
         persona.voice_id = "";
+    }
+
+    $: if (persona.contentType === "story") {
+        persona.personaType = "2D";
     }
 
     let firstSceneTextarea: HTMLTextAreaElement;
@@ -974,27 +979,72 @@
     <div class="scrollable-content">
         <div class="form-grid">
             <div class="form-column">
+                <!-- Content Type Selector -->
+                <div class="content-type-selector">
+                    <button
+                        class:active={persona.contentType === "character" ||
+                            !persona.contentType}
+                        on:click={() => (persona.contentType = "character")}
+                    >
+                        <Icon icon="ph:user-circle-duotone" width="24" />
+                        <div class="text">
+                            <span class="title"
+                                >{$t("editPage.type.character")}</span
+                            >
+                            <span class="desc"
+                                >{$t("editPage.type.characterDesc")}</span
+                            >
+                        </div>
+                    </button>
+                    <button
+                        class:active={persona.contentType === "story"}
+                        on:click={() => (persona.contentType = "story")}
+                    >
+                        <Icon icon="ph:book-open-text-duotone" width="24" />
+                        <div class="text">
+                            <span class="title"
+                                >{$t("editPage.type.story")}</span
+                            >
+                            <span class="desc"
+                                >{$t("editPage.type.storyDesc")}</span
+                            >
+                        </div>
+                    </button>
+                </div>
+
                 <div class="form-section-card">
                     <h2>{$t("editPage.basicInfo")}</h2>
                     <div class="form-group">
-                        <label for="name">{$t("editPage.nameLabel")}</label>
+                        <label for="name">
+                            {persona.contentType === "story"
+                                ? $t("editPage.storyNameLabel")
+                                : $t("editPage.nameLabel")}
+                        </label>
                         <input
                             id="name"
                             bind:value={persona.name}
                             required
-                            placeholder={$t("editPage.namePlaceholder")}
+                            placeholder={persona.contentType === "story"
+                                ? $t("editPage.storyNamePlaceholder")
+                                : $t("editPage.namePlaceholder")}
                         />
                     </div>
                     <div class="form-group">
-                        <label for="one_liner"
-                            >{$t("editPage.oneLinerLabel")}</label
-                        >
+                        <label for="one_liner">
+                            {persona.contentType === "story"
+                                ? $t("editPage.storyOneLinerLabel")
+                                : $t("editPage.oneLinerLabel")}
+                        </label>
                         <p class="description">
-                            {$t("editPage.oneLinerDescription")}
+                            {persona.contentType === "story"
+                                ? $t("editPage.storyOneLinerDescription")
+                                : $t("editPage.oneLinerDescription")}
                         </p>
                         <input
                             id="one_liner"
-                            placeholder={$t("editPage.oneLinerPlaceholder")}
+                            placeholder={persona.contentType === "story"
+                                ? $t("editPage.oneLinerPlaceholder") // Reusing placeholder as it seems generic enough or can be updated later
+                                : $t("editPage.oneLinerPlaceholder")}
                             bind:value={persona.one_liner}
                             maxlength="60"
                             class="input-field"
@@ -1063,8 +1113,10 @@
                                 >{$t("editPage.typeSelectDefault")}</option
                             >
                             <option value="2D">Chat</option>
-                            <option value="2.5D">Live2D(beta)</option>
-                            <option value="3D">3D(beta)</option>
+                            {#if persona.contentType !== "story"}
+                                <option value="2.5D">Live2D(beta)</option>
+                                <option value="3D">3D(beta)</option>
+                            {/if}
                         </select>
                     </div>
 
@@ -1144,7 +1196,7 @@
                             </div>
                         {/if}
 
-                        {#if persona.personaType == "2.5D"}
+                        {#if persona.personaType == "2.5D" && persona.contentType !== "story"}
                             <div class="form-group asset-section">
                                 <h3 class="asset-title">Live2D Model Upload</h3>
                                 <p class="description">
@@ -1353,7 +1405,7 @@
                         {/if}
                     </div>
 
-                    {#if persona.personaType == "3D"}
+                    {#if persona.personaType == "3D" && persona.contentType !== "story"}
                         <div class="form-group">
                             <label for="vrm"
                                 >{$t("editPage.vrmFileLabel")}</label
@@ -1385,7 +1437,7 @@
                         </div>
                     {/if}
 
-                    {#if persona.personaType == "3D" || persona.personaType == "2.5D"}
+                    {#if (persona.personaType == "3D" || persona.personaType == "2.5D") && persona.contentType !== "story"}
                         <div class="form-group">
                             <label for="voice-select"
                                 >{$t("editPage.voiceLabel")}</label
@@ -1459,45 +1511,47 @@
                             />
                         {:else}
                             <!-- Original textarea for non-3D -->
-                            <div class="toggle-container">
-                                <span class:active={!toggleDialogueTag}
-                                    >{"{{char}}"}</span
-                                >
-                                <label class="toggle-switch">
-                                    <input
-                                        type="checkbox"
-                                        bind:checked={toggleDialogueTag}
-                                    />
-                                    <span class="slider"></span>
-                                </label>
-                                <span class:active={toggleDialogueTag}
-                                    >{"{{user}}"}</span
-                                >
-                                <div class="tooltip-icon">
-                                    <Icon icon="ph:question-bold" />
-                                    <div class="tooltip-text">
-                                        <p>
-                                            <strong>{"{{char}}"}</strong>: {$t(
-                                                "editPage.tooltip.char",
-                                                { default: "캐릭터 이름" },
-                                            )}
-                                        </p>
-                                        <p>
-                                            <strong>{"{{user}}"}</strong>: {$t(
-                                                "editPage.tooltip.user",
-                                                { default: "사용자 이름" },
-                                            )}
-                                        </p>
+                            {#if persona.contentType !== "story"}
+                                <div class="toggle-container">
+                                    <span class:active={!toggleDialogueTag}
+                                        >{"{{char}}"}</span
+                                    >
+                                    <label class="toggle-switch">
+                                        <input
+                                            type="checkbox"
+                                            bind:checked={toggleDialogueTag}
+                                        />
+                                        <span class="slider"></span>
+                                    </label>
+                                    <span class:active={toggleDialogueTag}
+                                        >{"{{user}}"}</span
+                                    >
+                                    <div class="tooltip-icon">
+                                        <Icon icon="ph:question-bold" />
+                                        <div class="tooltip-text">
+                                            <p>
+                                                <strong>{"{{char}}"}</strong>: {$t(
+                                                    "editPage.tooltip.char",
+                                                    { default: "캐릭터 이름" },
+                                                )}
+                                            </p>
+                                            <p>
+                                                <strong>{"{{user}}"}</strong>: {$t(
+                                                    "editPage.tooltip.user",
+                                                    { default: "사용자 이름" },
+                                                )}
+                                            </p>
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
-                            <button
-                                type="button"
-                                class="btn-util"
-                                on:click={insertDialogueTag}
-                            >
-                                {$t("editPage.aiSettings.addDialogueTag")}
-                            </button>
+                                <button
+                                    type="button"
+                                    class="btn-util"
+                                    on:click={insertDialogueTag}
+                                >
+                                    {$t("editPage.aiSettings.addDialogueTag")}
+                                </button>
+                            {/if}
 
                             <p class="description">
                                 {$t("editPage.firstSceneDescription")}
@@ -2537,5 +2591,53 @@
         gap: 0.5rem;
         font-weight: 600;
         backdrop-filter: blur(2px);
+    }
+
+    .content-type-selector {
+        display: flex;
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .content-type-selector button {
+        flex: 1;
+        display: flex;
+        align-items: center;
+        gap: 0.8rem;
+        padding: 1rem;
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 12px;
+        color: rgba(255, 255, 255, 0.6);
+        cursor: pointer;
+        transition: all 0.2s ease;
+        text-align: left;
+    }
+
+    .content-type-selector button:hover {
+        background: rgba(255, 255, 255, 0.08);
+        border-color: rgba(255, 255, 255, 0.2);
+    }
+
+    .content-type-selector button.active {
+        background: rgba(59, 130, 246, 0.15);
+        border-color: #3b82f6;
+        color: #fff;
+    }
+
+    .content-type-selector .text {
+        display: flex;
+        flex-direction: column;
+        gap: 0.2rem;
+    }
+
+    .content-type-selector .title {
+        font-weight: 600;
+        font-size: 1rem;
+    }
+
+    .content-type-selector .desc {
+        font-size: 0.8rem;
+        opacity: 0.7;
     }
 </style>

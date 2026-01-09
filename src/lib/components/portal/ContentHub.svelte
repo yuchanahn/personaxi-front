@@ -8,7 +8,7 @@
         loadLikedContent,
     } from "$lib/api/content";
     import type { PersonaDTO } from "$lib/types";
-    import { onMount } from "svelte";
+    import { onMount, tick } from "svelte";
     import { writable } from "svelte/store";
     import { t } from "svelte-i18n";
     import CharacterCard from "../card/CharacterCard.svelte";
@@ -59,12 +59,15 @@
     type HubTab = "character" | "story" | "companion" | "2d" | "3d";
     let activeTab: HubTab = "character";
 
-    function setActiveTab(tab: HubTab) {
+    $: currentContentType = activeTab === "story" ? "story" : "character";
+
+    async function setActiveTab(tab: HubTab) {
+        if (activeTab === tab) return;
         activeTab = tab;
-        if (tab === "character") {
-            filterByCategory(null);
-        } else if (tab === "story") {
-            // Story mode logic later
+        await tick();
+        if (tab === "character" || tab === "story") {
+            selectedCategory = null;
+            reloadAll();
         } else if (tab === "2d") {
             filterByCategory("tags.live2d");
         } else if (tab === "3d") {
@@ -72,18 +75,27 @@
         }
     }
 
-    // --- 데이터 로딩 ---
-    onMount(async () => {
+    async function reloadAll() {
+        isLoading.set(true);
         loadFeaturedSections();
-        const data = await loadContent(page, limit, currentSort);
+        const data = await loadContent(
+            page,
+            limit,
+            currentSort,
+            currentContentType,
+        );
         contents.set(data);
         isLoading.set(false);
+    }
+
+    onMount(async () => {
+        reloadAll();
     });
 
     async function loadFeaturedSections() {
         // New
         isNewLoading.set(true);
-        loadContent(newPage, 10, "latest").then((data) => {
+        loadContent(newPage, 10, "latest", currentContentType).then((data) => {
             newContents.set(data);
             if (data.length < 10) hasMoreNew = false;
             isNewLoading.set(false);
@@ -91,31 +103,44 @@
 
         // Popular
         isPopularLoading.set(true);
-        loadContent(popularPage, 10, "popular").then((data) => {
-            popularContents.set(data);
-            if (data.length < 10) hasMorePopular = false;
-            isPopularLoading.set(false);
-        });
-
-        // Live2D
-        isLive2dLoading.set(true);
-        loadContentWithTags(["tags.live2d"], live2dPage, 10, "popular").then(
+        loadContent(popularPage, 10, "popular", currentContentType).then(
             (data) => {
+                popularContents.set(data);
+                if (data.length < 10) hasMorePopular = false;
+                isPopularLoading.set(false);
+            },
+        );
+
+        // Live2D (Only relevant for characters)
+        if (currentContentType === "character") {
+            isLive2dLoading.set(true);
+            loadContentWithTags(
+                ["tags.live2d"],
+                live2dPage,
+                10,
+                "popular",
+            ).then((data) => {
                 live2dContents.set(data);
                 if (data.length < 10) hasMoreLive2d = false;
                 isLive2dLoading.set(false);
-            },
-        );
+            });
 
-        // VRM
-        isVrmLoading.set(true);
-        loadContentWithTags(["tags.vrm"], vrmPage, 10, "popular").then(
-            (data) => {
-                vrmContents.set(data);
-                if (data.length < 10) hasMoreVrm = false;
-                isVrmLoading.set(false);
-            },
-        );
+            // VRM (Only relevant for characters)
+            isVrmLoading.set(true);
+            loadContentWithTags(["tags.vrm"], vrmPage, 10, "popular").then(
+                (data) => {
+                    vrmContents.set(data);
+                    if (data.length < 10) hasMoreVrm = false;
+                    isVrmLoading.set(false);
+                },
+            );
+        } else {
+            // Clear companion lists for story mode
+            live2dContents.set([]);
+            vrmContents.set([]);
+            isLive2dLoading.set(false);
+            isVrmLoading.set(false);
+        }
     }
 
     async function handleLoadMore(type: "new" | "popular" | "live2d" | "vrm") {
@@ -123,7 +148,12 @@
             if ($isNewLoading || !hasMoreNew) return;
             isNewLoading.set(true);
             newPage++;
-            const data = await loadContent(newPage, 10, "latest");
+            const data = await loadContent(
+                newPage,
+                10,
+                "latest",
+                currentContentType,
+            );
             if (data.length > 0) {
                 newContents.update((c) => [...c, ...data]);
                 if (data.length < 10) hasMoreNew = false;
@@ -135,7 +165,12 @@
             if ($isPopularLoading || !hasMorePopular) return;
             isPopularLoading.set(true);
             popularPage++;
-            const data = await loadContent(popularPage, 10, "popular");
+            const data = await loadContent(
+                popularPage,
+                10,
+                "popular",
+                currentContentType,
+            );
             if (data.length > 0) {
                 popularContents.update((c) => [...c, ...data]);
                 if (data.length < 10) hasMorePopular = false;
@@ -188,7 +223,12 @@
         let data: PersonaDTO[] = [];
 
         if (category === null) {
-            data = await loadContent(page, limit, currentSort);
+            data = await loadContent(
+                page,
+                limit,
+                currentSort,
+                currentContentType,
+            );
         } else if (category === "following") {
             data = await loadFollowedContent();
         } else if (category === "liked") {
@@ -213,7 +253,7 @@
         let data: PersonaDTO[] = [];
 
         if (selectedCategory === null) {
-            data = await loadContent(page, limit, sort);
+            data = await loadContent(page, limit, sort, currentContentType);
         } else if (selectedCategory === "following") {
             data = await loadFollowedContent();
         } else if (selectedCategory === "liked") {
@@ -434,26 +474,28 @@
             />
 
             <!-- Section 3: Live2D -->
-            <ContentCarousel
-                title={$t("content.live2dTitle")}
-                contents={$live2dContents}
-                isLoading={$isLive2dLoading}
-                hasMore={hasMoreLive2d}
-                emptyMessage="No Live2D models found."
-                on:select={(e) => handleCardClick(e.detail)}
-                on:loadMore={() => handleLoadMore("live2d")}
-            />
+            {#if currentContentType === "character"}
+                <ContentCarousel
+                    title={$t("content.live2dTitle")}
+                    contents={$live2dContents}
+                    isLoading={$isLive2dLoading}
+                    hasMore={hasMoreLive2d}
+                    emptyMessage="No Live2D models found."
+                    on:select={(e) => handleCardClick(e.detail)}
+                    on:loadMore={() => handleLoadMore("live2d")}
+                />
 
-            <!-- Section 4: VRM -->
-            <ContentCarousel
-                title={$t("content.vrmTitle")}
-                contents={$vrmContents}
-                isLoading={$isVrmLoading}
-                hasMore={hasMoreVrm}
-                emptyMessage="No VRM models found."
-                on:select={(e) => handleCardClick(e.detail)}
-                on:loadMore={() => handleLoadMore("vrm")}
-            />
+                <!-- Section 4: VRM -->
+                <ContentCarousel
+                    title={$t("content.vrmTitle")}
+                    contents={$vrmContents}
+                    isLoading={$isVrmLoading}
+                    hasMore={hasMoreVrm}
+                    emptyMessage="No VRM models found."
+                    on:select={(e) => handleCardClick(e.detail)}
+                    on:loadMore={() => handleLoadMore("vrm")}
+                />
+            {/if}
 
             <!-- Section 5: All Personas (Grid) -->
             <section class="hub-section">

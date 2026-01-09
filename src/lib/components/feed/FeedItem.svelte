@@ -95,7 +95,14 @@
 
     function handleChat(e: MouseEvent) {
         e.stopPropagation();
-        goto(`/chat/${persona.id}`);
+
+        if (persona.personaType === "3D") {
+            goto(`/character?c=${persona.id}`);
+        } else if (persona.personaType === "2D") {
+            goto(`/2d?c=${persona.id}`);
+        } else {
+            goto(`/live2d?c=${persona.id}`);
+        }
     }
 </script>
 

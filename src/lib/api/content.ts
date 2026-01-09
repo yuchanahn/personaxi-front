@@ -5,9 +5,9 @@ import type { Persona } from '$lib/types';
 import { get } from "svelte/store";
 
 
-export async function loadContent(page: number, limit: number, sort: string = 'latest') {
+export async function loadContent(page: number, limit: number, sort: string = 'latest', contentType: string = 'character') {
     const offset = (page - 1) * limit;
-    const res = await api.get2(`/api/contents?offset=${offset}&limit=${limit}&sort=${sort}&locale=${get(settings).language}`);
+    const res = await api.get2(`/api/contents?offset=${offset}&limit=${limit}&sort=${sort}&type=${contentType}&locale=${get(settings).language}`);
     if (res.ok) {
         const data = await res.json();
         if (data === null) {
