@@ -190,11 +190,13 @@
     "toggleCategories": "카테고리 토글",
     "searchResult": "\"{query}\" 검색 결과",
     "nav": {
+      "home": "홈",
       "character": "캐릭터",
       "story": "스토리",
       "companion": "동반자",
       "2d": "2D",
-      "3d": "3D"
+      "3d": "3D",
+      "fantasy": "이세계로 떠나는 여행"
     }
   },
   "content": {

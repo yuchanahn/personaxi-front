@@ -5,9 +5,24 @@ import type { Persona } from '$lib/types';
 import { get } from "svelte/store";
 
 
-export async function loadContent(page: number, limit: number, sort: string = 'latest', contentType: string = 'character') {
+export async function loadContent(page: number, limit: number, sort: string = 'latest', contentType: string = 'character', tags: string[] = []) {
     const offset = (page - 1) * limit;
-    const res = await api.get2(`/api/contents?offset=${offset}&limit=${limit}&sort=${sort}&type=${contentType}&locale=${get(settings).language}`);
+
+    // Convert tags to query string if present
+    let tagsQuery = '';
+    if (tags.length > 0) {
+        // Map tags to IDs if needed, similar to loadContentWithTags?
+        // Actually the backend parses strings. But logic in loadContentWithTags mapped nameKey to ID.
+        // Let's copy that mapping logic if we want to be safe, or assume backend handles strings.
+        // User's previous code in loadContentWithTags did mapping.
+        const mappedTags = tags.map(tag => {
+            const category = allCategories.find(cat => cat.nameKey === tag);
+            return category ? category.id.toString() : tag;
+        });
+        tagsQuery = `&t=${mappedTags.join(",")}`;
+    }
+
+    const res = await api.get2(`/api/contents?offset=${offset}&limit=${limit}&sort=${sort}&type=${contentType}&locale=${get(settings).language}${tagsQuery}`);
     if (res.ok) {
         const data = await res.json();
         if (data === null) {

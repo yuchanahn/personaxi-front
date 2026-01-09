@@ -56,8 +56,8 @@
     let isCategoryExpanded = false;
 
     // --- Tab Navigation ---
-    type HubTab = "character" | "story" | "companion" | "2d" | "3d";
-    let activeTab: HubTab = "character";
+    type HubTab = "home" | "character" | "story" | "companion" | "2d" | "3d";
+    let activeTab: HubTab = "home";
 
     $: currentContentType = activeTab === "story" ? "story" : "character";
 
@@ -65,9 +65,15 @@
         if (activeTab === tab) return;
         activeTab = tab;
         await tick();
+
+        // Reset category/sort for list views
         if (tab === "character" || tab === "story") {
             selectedCategory = null;
-            reloadAll();
+            currentSort = "latest";
+            page = 1;
+            reloadAll(); // Reloads the main grid list
+        } else if (tab === "home") {
+            loadFeaturedSections(); // Reload dashboard
         } else if (tab === "2d") {
             filterByCategory("tags.live2d");
         } else if (tab === "3d") {
@@ -77,14 +83,17 @@
 
     async function reloadAll() {
         isLoading.set(true);
-        loadFeaturedSections();
-        const data = await loadContent(
-            page,
-            limit,
-            currentSort,
-            currentContentType,
-        );
-        contents.set(data);
+        if (activeTab === "home") {
+            await loadFeaturedSections();
+        } else {
+            const data = await loadContent(
+                page,
+                limit,
+                currentSort,
+                currentContentType,
+            );
+            contents.set(data);
+        }
         isLoading.set(false);
     }
 
@@ -92,55 +101,57 @@
         reloadAll();
     });
 
+    // --- State for Home Dashboard ---
+    let fantasyContents = writable<PersonaDTO[]>([]);
+    let isFantasyLoading = writable(true);
+
+    // ... other states (new, popular etc) ...
+
     async function loadFeaturedSections() {
-        // New
+        // 1. New Arrivals (Strict Daily)
         isNewLoading.set(true);
-        loadContent(newPage, 10, "latest", currentContentType).then((data) => {
+        // Load ALL types for Home New Arrivals
+        loadContent(newPage, 10, "latest_daily", "all").then((data) => {
             newContents.set(data);
             if (data.length < 10) hasMoreNew = false;
             isNewLoading.set(false);
         });
 
-        // Popular
+        // 2. Popular Today (Realtime)
         isPopularLoading.set(true);
-        loadContent(popularPage, 10, "popular", currentContentType).then(
-            (data) => {
-                popularContents.set(data);
-                if (data.length < 10) hasMorePopular = false;
-                isPopularLoading.set(false);
-            },
-        );
+        // Load ALL types for Home Popular
+        loadContent(popularPage, 10, "realtime", "all").then((data) => {
+            popularContents.set(data);
+            if (data.length < 10) hasMorePopular = false;
+            isPopularLoading.set(false);
+        });
 
-        // Live2D (Only relevant for characters)
-        if (currentContentType === "character") {
-            isLive2dLoading.set(true);
-            loadContentWithTags(
-                ["tags.live2d"],
-                live2dPage,
-                10,
-                "popular",
-            ).then((data) => {
+        // 3. Fantasy (Journey to Another World)
+        isFantasyLoading.set(true);
+        // Load ALL types with fantasy tag
+        loadContent(1, 10, "popular", "all", ["tags.fantasy"]).then((data) => {
+            fantasyContents.set(data);
+            isFantasyLoading.set(false);
+        });
+
+        // 4. Tech Demos (Live2D & VRM)
+        isLive2dLoading.set(true);
+        loadContent(live2dPage, 10, "popular", "all", ["tags.live2d"]).then(
+            (data) => {
                 live2dContents.set(data);
                 if (data.length < 10) hasMoreLive2d = false;
                 isLive2dLoading.set(false);
-            });
+            },
+        );
 
-            // VRM (Only relevant for characters)
-            isVrmLoading.set(true);
-            loadContentWithTags(["tags.vrm"], vrmPage, 10, "popular").then(
-                (data) => {
-                    vrmContents.set(data);
-                    if (data.length < 10) hasMoreVrm = false;
-                    isVrmLoading.set(false);
-                },
-            );
-        } else {
-            // Clear companion lists for story mode
-            live2dContents.set([]);
-            vrmContents.set([]);
-            isLive2dLoading.set(false);
-            isVrmLoading.set(false);
-        }
+        isVrmLoading.set(true);
+        loadContent(vrmPage, 10, "popular", "all", ["tags.vrm"]).then(
+            (data) => {
+                vrmContents.set(data);
+                if (data.length < 10) hasMoreVrm = false;
+                isVrmLoading.set(false);
+            },
+        );
     }
 
     async function handleLoadMore(type: "new" | "popular" | "live2d" | "vrm") {
@@ -148,12 +159,7 @@
             if ($isNewLoading || !hasMoreNew) return;
             isNewLoading.set(true);
             newPage++;
-            const data = await loadContent(
-                newPage,
-                10,
-                "latest",
-                currentContentType,
-            );
+            const data = await loadContent(newPage, 10, "latest_daily", "all");
             if (data.length > 0) {
                 newContents.update((c) => [...c, ...data]);
                 if (data.length < 10) hasMoreNew = false;
@@ -165,12 +171,7 @@
             if ($isPopularLoading || !hasMorePopular) return;
             isPopularLoading.set(true);
             popularPage++;
-            const data = await loadContent(
-                popularPage,
-                10,
-                "popular",
-                currentContentType,
-            );
+            const data = await loadContent(popularPage, 10, "realtime", "all");
             if (data.length > 0) {
                 popularContents.update((c) => [...c, ...data]);
                 if (data.length < 10) hasMorePopular = false;
@@ -182,12 +183,9 @@
             if ($isLive2dLoading || !hasMoreLive2d) return;
             isLive2dLoading.set(true);
             live2dPage++;
-            const data = await loadContentWithTags(
-                ["tags.live2d"],
-                live2dPage,
-                10,
-                "popular",
-            );
+            const data = await loadContent(live2dPage, 10, "popular", "all", [
+                "tags.live2d",
+            ]);
             if (data.length > 0) {
                 live2dContents.update((c) => [...c, ...data]);
                 if (data.length < 10) hasMoreLive2d = false;
@@ -199,12 +197,9 @@
             if ($isVrmLoading || !hasMoreVrm) return;
             isVrmLoading.set(true);
             vrmPage++;
-            const data = await loadContentWithTags(
-                ["tags.vrm"],
-                vrmPage,
-                10,
-                "popular",
-            );
+            const data = await loadContent(vrmPage, 10, "popular", "all", [
+                "tags.vrm",
+            ]);
             if (data.length > 0) {
                 vrmContents.update((c) => [...c, ...data]);
                 if (data.length < 10) hasMoreVrm = false;
@@ -338,19 +333,17 @@
     <div class="header-section">
         <div class="left-controls">
             <!-- Category Toggle -->
-            <button
-                class="category-toggle-btn"
-                on:click={toggleCategory}
-                aria-label={$t("contentHub.toggleCategories")}
-            >
-                <div class="icon-wrapper">
-                    <Icon icon="mdi:tune-variant" width="24" height="24" />
-                </div>
-                <span class="desktop-only">{$t("contentHub.categories")}</span>
-            </button>
 
             <!-- Navigation Tabs -->
             <div class="nav-tabs">
+                <button
+                    class="nav-tab"
+                    class:active={activeTab === "home"}
+                    on:click={() => setActiveTab("home")}
+                >
+                    {$t("contentHub.nav.home")}
+                </button>
+                <div class="tab-separator">|</div>
                 <button
                     class="nav-tab"
                     class:active={activeTab === "character"}
@@ -393,26 +386,9 @@
             </div>
 
             {#if selectedCategory}
-                <!-- <div class="current-category">
-                    <Icon icon="mdi:chevron-right" />
-                    <span>
-                        {#if selectedCategory === "following"}
-                            {$t("contentHub.following")}
-                        {:else if selectedCategory === "liked"}
-                            {$t("contentHub.liked")}
-                        {:else if selectedCategory === "search"}
-                            {$t("contentHub.searchResult", { query })}
-                        {:else}
-                            {$t(selectedCategory)}
-                        {/if}
-                    </span>
-                    <button
-                        class="reset-cat"
-                        on:click={() => filterByCategory(null)}
-                    >
-                        <Icon icon="mdi:close-circle" />
-                    </button>
-                </div> -->
+                <div class="current-category">
+                    <!-- filtered chips handled below -->
+                </div>
             {/if}
         </div>
 
@@ -423,11 +399,24 @@
             >
                 <Icon icon="mdi:magnify" width="24" height="24" />
             </button>
+
+            <!-- Only show filtering options if NOT in Home mode (Home has curated lists) -->
+            {#if activeTab !== "home"}
+                <button
+                    class="category-toggle-btn"
+                    on:click={toggleCategory}
+                    aria-label={$t("contentHub.toggleCategories")}
+                >
+                    <div class="icon-wrapper">
+                        <Icon icon="mdi:tune-variant" width="24" height="24" />
+                    </div>
+                </button>
+            {/if}
         </div>
     </div>
 
-    <!-- Collapsible Category Bar -->
-    {#if isCategoryExpanded}
+    <!-- Collapsible Category Bar (Only for List Views) -->
+    {#if isCategoryExpanded && activeTab !== "home"}
         <div class="category-panel" transition:slide={{ duration: 300 }}>
             <div class="category-grid">
                 <button
@@ -451,8 +440,8 @@
     {/if}
 
     <div class="hub-container">
-        <!-- Default View -->
-        {#if selectedCategory === null && query === ""}
+        <!-- HOME DASHBOARD VIEW -->
+        {#if activeTab === "home"}
             <!-- Section 1: New Arrivals -->
             <ContentCarousel
                 title={$t("content.newArrivals")}
@@ -473,68 +462,39 @@
                 on:loadMore={() => handleLoadMore("popular")}
             />
 
-            <!-- Section 3: Live2D -->
-            {#if currentContentType === "character"}
-                <ContentCarousel
-                    title={$t("content.live2dTitle")}
-                    contents={$live2dContents}
-                    isLoading={$isLive2dLoading}
-                    hasMore={hasMoreLive2d}
-                    emptyMessage="No Live2D models found."
-                    on:select={(e) => handleCardClick(e.detail)}
-                    on:loadMore={() => handleLoadMore("live2d")}
-                />
+            <!-- Section 3: Fantasy -->
+            <ContentCarousel
+                title={$t("contentHub.nav.fantasy")}
+                contents={$fantasyContents}
+                isLoading={$isFantasyLoading}
+                hasMore={false}
+                on:select={(e) => handleCardClick(e.detail)}
+                on:loadMore={() => {}}
+            />
 
-                <!-- Section 4: VRM -->
-                <ContentCarousel
-                    title={$t("content.vrmTitle")}
-                    contents={$vrmContents}
-                    isLoading={$isVrmLoading}
-                    hasMore={hasMoreVrm}
-                    emptyMessage="No VRM models found."
-                    on:select={(e) => handleCardClick(e.detail)}
-                    on:loadMore={() => handleLoadMore("vrm")}
-                />
-            {/if}
+            <!-- Section 4: Live2D -->
+            <ContentCarousel
+                title={$t("content.live2dTitle")}
+                contents={$live2dContents}
+                isLoading={$isLive2dLoading}
+                hasMore={hasMoreLive2d}
+                emptyMessage="No Live2D models found."
+                on:select={(e) => handleCardClick(e.detail)}
+                on:loadMore={() => handleLoadMore("live2d")}
+            />
 
-            <!-- Section 5: All Personas (Grid) -->
-            <section class="hub-section">
-                <div class="section-header">
-                    <h3>{$t("content.allPersonas")}</h3>
-
-                    <div class="sort-controls">
-                        <button
-                            class:active={currentSort === "latest"}
-                            on:click={() => changeSort("latest")}
-                            >{$t("sort.latest")}</button
-                        >
-                        <button
-                            class:active={currentSort === "popular"}
-                            on:click={() => changeSort("popular")}
-                            >{$t("sort.popular")}</button
-                        >
-                    </div>
-                </div>
-
-                {#if $isLoading}
-                    <div class="center-message">Loading...</div>
-                {:else if $contents.length === 0}
-                    <div class="center-message">
-                        {$t("contentHub.noResults")}
-                    </div>
-                {:else}
-                    <div class="content flex-grid">
-                        {#each $contents as content (content.id)}
-                            <CharacterCard
-                                {content}
-                                on:click={() => handleCardClick(content)}
-                            />
-                        {/each}
-                    </div>
-                {/if}
-            </section>
+            <!-- Section 5: VRM -->
+            <ContentCarousel
+                title={$t("content.vrmTitle")}
+                contents={$vrmContents}
+                isLoading={$isVrmLoading}
+                hasMore={hasMoreVrm}
+                emptyMessage="No VRM models found."
+                on:select={(e) => handleCardClick(e.detail)}
+                on:loadMore={() => handleLoadMore("vrm")}
+            />
         {:else}
-            <!-- Filtered View -->
+            <!-- LIST VIEW (Character / Story / Filtered) -->
             <section class="hub-section full-height">
                 <div class="section-header">
                     <h3>
@@ -546,8 +506,10 @@
                             {$t("contentHub.following")}
                         {:else if selectedCategory === "liked"}
                             {$t("contentHub.liked")}
+                        {:else if selectedCategory}
+                            {$t(selectedCategory)}
                         {:else}
-                            {$t(selectedCategory || "contentHub.all")}
+                            {$t(`contentHub.nav.${activeTab}`)}
                         {/if}
                     </h3>
                     <div class="sort-controls">
@@ -613,6 +575,11 @@
         gap: 1.5rem; /* Separates toggle from tabs */
         /* 사이드바 아이콘 만큼 띄워주기 */
         padding-left: 2.5rem;
+    }
+    .right-controls {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
     }
 
     /* --- Navigation Tabs --- */

@@ -31,7 +31,7 @@
             description: "",
         };
         if (content.static_portrait_url) {
-            console.log("static portrait url: ", content.name);
+            //console.log("static portrait url: ", content.name);
             meta.static_url = content.static_portrait_url;
         }
     }

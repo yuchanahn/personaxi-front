@@ -149,11 +149,13 @@
     "toggleCategories": "Toggle Categories",
     "searchResult": "Search Results: \"{query}\"",
     "nav": {
+      "home": "Home",
       "character": "Character",
       "story": "Story",
       "companion": "Companion",
       "2d": "2D",
-      "3d": "3D"
+      "3d": "3D",
+      "fantasy": "Journey to Another World"
     }
   },
   "content": {
