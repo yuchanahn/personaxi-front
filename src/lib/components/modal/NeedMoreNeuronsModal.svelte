@@ -49,55 +49,64 @@
     let purchasedAmount = 0;
 
     function handleRecharge(amount: number) {
-        // DISABLED: Waiting for real PG integration
-        toast.info("결제 시스템 준비 중입니다. 조금만 기다려주세요!");
-        return;
+        // TEMPORARY: Use the provided Test URL for all options for now, or mapped real URLs later.
+        // In a real scenario, map amount -> specific checkout URL
+        let checkoutUrl =
+            "https://personaxi.lemonsqueezy.com/checkout/buy/37030093-8078-4bd9-bc76-9711cbac1f3e?embed=1";
 
-        /* Original code - re-enable after PG integration
-        if (isPurchasing) return;
-        isPurchasing = true;
-        purchaseSuccess = false;
+        // Append user ID
+        const userValue = get(st_user);
+        if (userValue) {
+            checkoutUrl += `&checkout[custom][user_id]=${userValue.id}`;
+        }
 
-        let itemId = "";
-        if (amount == 1000) itemId = "neuron_1000";
-        else if (amount == 5500) itemId = "neuron_5500";
-        else if (amount == 12000) itemId = "neuron_12000";
+        // Try to initialize if missing
+        // @ts-ignore
+        if (!window.LemonSqueezy && window.createLemonSqueezy) {
+            // @ts-ignore
+            window.createLemonSqueezy();
+        }
 
-        api.post("/api/shop/purchase/virtual", { itemId })
-            .then((res: any) => {
-                // Update local store
-                st_user.update((u) => {
-                    if (u) {
-                        // Ensure credits is treated as number to avoid string concatenation "10" + 1000 = "101000"
-                        u.credits = parseInt(String(u.credits), 10) + amount;
-                    }
-                    return u;
-                });
+        // Open via Lemon.js (if loaded) or fallback to new window
+        // @ts-ignore
+        if (window.LemonSqueezy) {
+            // @ts-ignore
+            window.LemonSqueezy.Url.Open(checkoutUrl);
+        } else {
+            console.warn("Lemon.js not ready, opening in new tab");
+            // Fallback if script didn't load for some reason, or just open in new tab
+            window.open(checkoutUrl, "_blank");
+        }
 
-                purchaseSuccess = true;
-                purchasedAmount = amount;
-
-                // Refresh notifications
-                notificationStore.fetchNotifications();
-                notificationStore.fetchUnreadCount();
-
-                // Auto close after 2 seconds
-                setTimeout(() => {
-                    closeModal();
-                    // Reset states after closing for next time
-                    setTimeout(() => {
-                        purchaseSuccess = false;
-                        isPurchasing = false;
-                    }, 500);
-                }, 2000);
-            })
-            .catch((err) => {
-                console.error(err);
-                toast.error("Failed to charge credits.");
-                isPurchasing = false;
-            });
-        */
+        closeModal();
     }
+
+    onMount(() => {
+        window.addEventListener("keydown", handleKeydown);
+
+        // Ensure Lemon.js is loaded
+        if (!document.getElementById("lemon-js")) {
+            const script = document.createElement("script");
+            script.id = "lemon-js";
+            script.src = "https://assets.lemonsqueezy.com/lemon.js";
+            script.defer = true;
+            script.onload = () => {
+                // @ts-ignore
+                if (window.createLemonSqueezy) {
+                    // @ts-ignore
+                    window.createLemonSqueezy();
+                }
+            };
+            document.body.appendChild(script);
+        } else {
+            // If already loaded, ensure it's initialized
+            // @ts-ignore
+            if (window.createLemonSqueezy && !window.LemonSqueezy) {
+                // @ts-ignore
+                window.createLemonSqueezy();
+            }
+        }
+    });
 
     let current_neurons_count: number = 0;
     $: current_neurons_count = $st_user?.credits || 0;
@@ -182,7 +191,12 @@
                             >
                                 <NeuronIcon />
                                 <span class="neurons-amount">
-                                    X {option.neurons.toLocaleString()}
+                                    {$t("shop.neuron_pack", {
+                                        values: {
+                                            count: option.neurons.toLocaleString(),
+                                        },
+                                        default: `${option.neurons.toLocaleString()} Neurons`,
+                                    })}
                                 </span>
                             </div>
 

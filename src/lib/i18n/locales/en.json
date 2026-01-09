@@ -681,5 +681,11 @@
     "loadMore": "Load More",
     "loading": "Loading...",
     "markAllRead": "Mark all as read"
+  },
+  "shop": {
+    "title": "Neuron Shop",
+    "subtitle": "Charge Neurons to interact with more personas!",
+    "buyNow": "Buy Now",
+    "neuron_pack": "{count} Neurons"
   }
 }

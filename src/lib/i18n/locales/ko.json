@@ -634,5 +634,11 @@
     "loadMore": "더 보기",
     "loading": "로딩 중...",
     "markAllRead": "모두 읽음으로 표시"
+  },
+  "shop": {
+    "title": "뉴런 상점",
+    "subtitle": "더 많은 페르소나와 대화하기 위해 뉴런을 충전하세요!",
+    "buyNow": "구매하기",
+    "neuron_pack": "{count} 뉴런"
   }
 }
