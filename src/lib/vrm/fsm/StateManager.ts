@@ -143,6 +143,7 @@ class AnimationPoolManager {
     public triggerGesture(clipName: string, transitionTime: number = 0.3): void {
         const action = this.model.actions[clipName];
         if (!action) return;
+        action.clampWhenFinished = true;
 
         console.log(`[AnimPool] Triggering gesture: ${clipName}`);
 
@@ -158,6 +159,7 @@ class AnimationPoolManager {
 
         // 3. 제스처 재생
         action.reset().setLoop(THREE.LoopOnce, 1).fadeIn(transitionTime).play();
+
 
         this.isGesturePlaying = true;
         const clipDuration = action.getClip().duration;

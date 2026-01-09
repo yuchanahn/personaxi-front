@@ -16,7 +16,34 @@
   let Viewer: VrmModelViewer;
   let showChat: boolean = false;
 
+  let affectionScore = 100;
+  let blackOpacity = 1;
+  let pinkOpacity = 0;
+
+  // Vignette Logic
+  $: {
+    const t = Math.max(0, Math.min(100, affectionScore)) / 100;
+    blackOpacity = 0.95 - t * 0.95;
+    pinkOpacity = t * 0.45;
+  }
+
   onMount(async () => {
+    // Listen for Affection Updates
+    const handleAffection = (e: CustomEvent) => {
+      if (e.detail?.score !== undefined) {
+        affectionScore = e.detail.score;
+      }
+    };
+    window.addEventListener(
+      "affection-update",
+      handleAffection as EventListener,
+    );
+    const removeListener = () =>
+      window.removeEventListener(
+        "affection-update",
+        handleAffection as EventListener,
+      );
+
     const sessionId = $page.url.searchParams.get("c");
     lastSessionId = sessionId;
     $messages = [];
@@ -31,6 +58,8 @@
         }
       });
     }
+
+    return removeListener;
   });
 
   $: {
@@ -53,6 +82,14 @@
 </script>
 
 <main>
+  <div
+    class="vignette-overlay vignette-black"
+    style="opacity: {blackOpacity};"
+  ></div>
+  <div
+    class="vignette-overlay vignette-pink"
+    style="opacity: {pinkOpacity};"
+  ></div>
   {#if persona}
     <TtsStatusModal
       impl_connectTTS={async () => {
@@ -84,6 +121,16 @@
       {persona}
       llmType={""}
     />
+
+    <!-- Debug UI -->
+    <div class="debug-controls">
+      <label>
+        Affection: {affectionScore}
+        <input type="range" min="0" max="100" bind:value={affectionScore} />
+      </label>
+      <button on:click={() => (affectionScore = 0)}>0</button>
+      <button on:click={() => (affectionScore = 100)}>100</button>
+    </div>
   {/if}
 </main>
 
@@ -95,5 +142,33 @@
     width: 100vw;
     height: 100vh;
     overflow: hidden;
+  }
+
+  .vignette-overlay {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 100;
+    transition: opacity 1.5s ease-in-out;
+  }
+
+  .vignette-black {
+    background: radial-gradient(
+      circle at center,
+      transparent 30%,
+      rgba(0, 0, 0, 0.4) 80%,
+      rgba(0, 0, 0, 0.95) 150%
+    );
+    mix-blend-mode: multiply;
+  }
+
+  .vignette-pink {
+    background: radial-gradient(
+      circle at center,
+      transparent 30%,
+      rgba(255, 182, 193, 0.4) 80%,
+      rgba(255, 105, 180, 0.9) 150%
+    );
+    mix-blend-mode: screen;
   }
 </style>
