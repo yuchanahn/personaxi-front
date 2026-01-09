@@ -61,7 +61,15 @@
 
     function setActiveTab(tab: HubTab) {
         activeTab = tab;
-        // Functionality will be added later
+        if (tab === "character") {
+            filterByCategory(null);
+        } else if (tab === "story") {
+            // Story mode logic later
+        } else if (tab === "2d") {
+            filterByCategory("tags.live2d");
+        } else if (tab === "3d") {
+            filterByCategory("tags.vrm");
+        }
     }
 
     // --- 데이터 로딩 ---
@@ -320,11 +328,13 @@
                 </button>
                 <div class="tab-separator">|</div>
                 <div class="companion-group">
-                    <span
-                        class="nav-label"
+                    <button
+                        class="nav-label-btn"
                         class:active={activeTab === "2d" || activeTab === "3d"}
-                        >{$t("contentHub.nav.companion")}</span
+                        on:click={() => setActiveTab("2d")}
                     >
+                        {$t("contentHub.nav.companion")}
+                    </button>
                     <button
                         class="nav-tab"
                         class:active={activeTab === "2d"}
@@ -615,7 +625,8 @@
         gap: 0.5rem;
     }
 
-    .nav-label {
+    .nav-label,
+    .nav-label-btn {
         color: var(--muted-foreground); /* Default to muted */
         font-size: 1rem;
         font-weight: 500;
@@ -623,9 +634,15 @@
         transition:
             color 0.2s,
             text-shadow 0.2s;
+
+        background: none;
+        border: none;
+        padding: 0;
+        cursor: pointer;
     }
 
-    .nav-label.active {
+    .nav-label.active,
+    .nav-label-btn.active {
         color: var(--foreground);
         font-weight: 700;
         text-shadow: 0 0 8px rgba(255, 255, 255, 0.5);

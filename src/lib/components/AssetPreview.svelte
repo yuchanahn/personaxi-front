@@ -1,24 +1,52 @@
 <script lang="ts">
     import { fetchAndSetAssetTypes } from "$lib/api/edit_persona";
     import type { ImageMetadata } from "$lib/types";
-
     import Icon from "@iconify/svelte";
+    import { onDestroy } from "svelte";
 
     export let asset: ImageMetadata;
 
-    $: if (asset && !asset.type && !(asset.is_secret && !asset.url)) {
-        (async () => {
-            const assetsWithType = await fetchAndSetAssetTypes([asset]);
-            //console.log("Fetched asset type:", assetsWithType);
-            if (assetsWithType[0] && assetsWithType[0].type) {
-                asset.type = assetsWithType[0].type;
-                asset = asset;
-            }
-            if (!asset.type) {
-                asset.type = "unknown";
-                asset = asset;
-            }
-        })();
+    let isFetching = false;
+    let fetchAborted = false;
+
+    // 컴포넌트 unmount 시 플래그 설정
+    onDestroy(() => {
+        fetchAborted = true;
+    });
+
+    $: {
+        const shouldFetchType =
+            asset &&
+            !asset.type &&
+            !(asset.is_secret && !asset.url) &&
+            !isFetching;
+
+        if (shouldFetchType) {
+            isFetching = true;
+            fetchAborted = false;
+
+            (async () => {
+                try {
+                    const assetsWithType = await fetchAndSetAssetTypes([asset]);
+
+                    // 컴포넌트가 unmount되었으면 업데이트 스킵
+                    if (fetchAborted) return;
+
+                    if (assetsWithType[0]?.type) {
+                        asset = { ...asset, type: assetsWithType[0].type };
+                    } else {
+                        asset = { ...asset, type: "unknown" };
+                    }
+                } catch (error) {
+                    console.error("Failed to fetch asset type:", error);
+                    if (!fetchAborted) {
+                        asset = { ...asset, type: "unknown" };
+                    }
+                } finally {
+                    isFetching = false;
+                }
+            })();
+        }
     }
 </script>
 
@@ -37,21 +65,33 @@
         playsinline
         class="asset-preview-media gif-like-video"
     >
-        <source src={asset.url} />
-        this browser does not support the video tag.
+        <source src={asset.url} type="video/mp4" />
+        <track kind="captions" />
+        Your browser does not support the video tag.
     </video>
 {:else if asset.type === "unknown"}
-    <div class="fallback"></div>
+    <div class="fallback">
+        <Icon icon="ph:file-duotone" width="48" height="48" />
+        <p>Unknown file type</p>
+    </div>
 {:else}
     <div class="fallback">
         {#if asset.static_url}
             <img
                 src={asset.static_url}
-                alt="asset"
+                alt="asset preview"
                 class="asset-preview-media"
             />
         {:else}
-            <p>loading...</p>
+            <div class="loading">
+                <Icon
+                    icon="ph:spinner-duotone"
+                    width="32"
+                    height="32"
+                    class="spin"
+                />
+                <p>Loading...</p>
+            </div>
         {/if}
     </div>
 {/if}
@@ -74,6 +114,7 @@
         flex-direction: column;
         justify-content: center;
         align-items: center;
+        gap: 8px;
         text-align: center;
         font-size: 0.8rem;
         color: var(--muted-foreground);
@@ -81,7 +122,26 @@
     }
 
     .secret {
-        gap: 8px;
         color: var(--muted-foreground);
+    }
+
+    .loading {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 8px;
+    }
+
+    :global(.spin) {
+        animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+        from {
+            transform: rotate(0deg);
+        }
+        to {
+            transform: rotate(360deg);
+        }
     }
 </style>
