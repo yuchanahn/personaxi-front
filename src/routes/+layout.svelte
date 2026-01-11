@@ -217,7 +217,7 @@
             welcomeModal = true;
         }}
     />
-    <WelcomeModal neuronAmount={200} isOpen={welcomeModal} />
+    <WelcomeModal neuronAmount={100} isOpen={welcomeModal} />
 
     {#if !["/hub", "/", "/maintenance"].includes($page.url.pathname)}
         <button class="back-btn" on:click={handleBack}

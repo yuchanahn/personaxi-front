@@ -334,14 +334,15 @@
         <div class="left-controls">
             <!-- Navigation Tabs -->
             <div class="nav-tabs">
-                <button
+                <!-- Home button removed per user request -->
+                <!-- <button
                     class="nav-tab"
                     class:active={activeTab === "home"}
                     on:click={() => setActiveTab("home")}
                 >
                     {$t("contentHub.nav.home")}
                 </button>
-                <div class="tab-separator">|</div>
+                <div class="tab-separator">|</div> -->
                 <button
                     class="nav-tab"
                     class:active={activeTab === "character"}
@@ -598,7 +599,9 @@
         padding: 0;
         transition:
             color 0.2s,
-            text-shadow 0.2s;
+            transform 0.1s;
+        white-space: nowrap; /* Prevent wrapping for long names (e.g. English) */
+        flex-shrink: 0;
     }
 
     .nav-tab:hover {
@@ -646,6 +649,8 @@
         border: none;
         padding: 0;
         cursor: pointer;
+        white-space: nowrap; /* Prevent wrapping */
+        flex-shrink: 0;
     }
 
     .nav-label.active,
@@ -890,24 +895,24 @@
     /* --- Mobile --- */
     @media (max-width: 768px) {
         .header-section {
-            padding: 0.75rem 1rem;
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 1rem;
+            padding: 1rem 0.5rem;
         }
-        .desktop-only {
-            display: none;
-        }
-        .carousel-item {
-            width: 160px;
-        }
-        .content.flex-grid {
-            grid-template-columns: repeat(2, 1fr);
-            gap: 0.75rem;
-            padding-right: 1rem;
-        }
-        .hub-section {
-            padding-left: 1rem;
-        }
+
         .left-controls {
-            padding-left: 0rem;
+            padding-left: 3rem; /* Toggle button space */
+            width: 100%;
+            overflow-x: auto; /* Enable horizontal scroll for long tabs */
+            overflow-y: hidden;
+            -webkit-overflow-scrolling: touch;
+            padding-bottom: 0.5rem; /* Space for scrollbar if any */
+            white-space: nowrap;
+        }
+
+        .left-controls::-webkit-scrollbar {
+            display: none;
         }
 
         .nav-tabs {
