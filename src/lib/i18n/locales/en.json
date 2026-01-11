@@ -687,5 +687,23 @@
     "subtitle": "Charge Neurons to interact with more personas!",
     "buyNow": "Buy Now",
     "neuron_pack": "{count} Neurons"
+  },
+  "install": {
+    "title": "Install App",
+    "description": "Install PersonaXi as a native app for fullscreen access and better performance.",
+    "ios": "iOS",
+    "android": "Android",
+    "iosSteps": {
+      "1": "Tap the <strong>Share</strong> button",
+      "2": "Select <strong>Add to Home Screen</strong>",
+      "3": "Tap <strong>Add</strong>"
+    },
+    "androidSteps": {
+      "1": "Tap the <strong>Menu</strong> (three dots)",
+      "2": "Select <strong>Install App</strong> or <strong>Add to Home screen</strong>",
+      "3": "Tap <strong>Install</strong>"
+    },
+    "benefit": "Benefits: Fullscreen & Faster",
+    "notice": "📢 Not available on official stores yet.<br>Install this PWA to enjoy the service at a <strong>better price</strong> without store fees!"
   }
 }
