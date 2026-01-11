@@ -247,6 +247,11 @@
             } else {
                 p.image_metadatas = [];
             }
+
+            if (!(p.contentType === "character" || p.contentType === "story")) {
+                p.contentType = "character";
+            }
+
             persona = p;
             if (!persona.one_liner) persona.one_liner = "";
             firstSceneJson = p.first_scene;
@@ -259,7 +264,6 @@
                 loadLive2DMetadata(persona.live2d_model_url);
             }
 
-            // // console.log("Loaded persona:", persona);
             return p;
         } catch (err) {
             console.error("페르소나를 불러오는 데 실패했습니다:", err);
@@ -270,7 +274,8 @@
         const id = $page.url.searchParams.get("c");
         if (id !== last_id) {
             last_id = id;
-            if (id) load_persona(id);
+            console.log("##[URL] Loading persona:", id);
+            if (id !== persona.id) load_persona(id);
         }
     }
 
@@ -349,12 +354,6 @@
         if (!(await api.isLoggedIn())) {
             goto("/login");
             return;
-        }
-
-        const urlParams = new URLSearchParams(window.location.search);
-        const id = urlParams.get("c");
-        if (id) {
-            load_persona(id);
         }
 
         try {
@@ -944,6 +943,7 @@
                                     hasReceivedFirstCreationReward = false;
                                 }
                             } else {
+                                console.log("##[Save] Loading persona:", id);
                                 load_persona(id);
                             }
                         }

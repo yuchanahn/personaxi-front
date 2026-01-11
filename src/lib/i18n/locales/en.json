@@ -435,7 +435,7 @@
     "profileImageLabel": "Profile Image",
     "fileSelect": "Select File",
     "assetSectionTitle": "Additional Images",
-    "assetSectionDescription": "Add images for different expressions or situations. (Max 10)",
+    "assetSectionDescription": "Add images for different expressions or situations.",
     "imageSelect": "Change Image",
     "assetDescriptionPlaceholder": "Describe when this image should be used...",
     "assets": {

@@ -900,21 +900,34 @@
             gap: 1rem;
             padding: 1rem 0.5rem;
         }
+        .content.flex-grid {
+            grid-template-columns: repeat(2, 1fr);
+            gap: 0.3rem;
+            padding-right: 1rem;
+        }
 
+        .hub-section {
+            padding-left: 1rem;
+        }
         .left-controls {
-            padding-left: 3rem; /* Toggle button space */
+            padding-left: 1rem;
             width: 100%;
-            overflow-x: auto; /* Enable horizontal scroll for long tabs */
+            overflow-x: auto;
             overflow-y: hidden;
             -webkit-overflow-scrolling: touch;
-            padding-bottom: 0.5rem; /* Space for scrollbar if any */
+            padding-bottom: 0.5rem;
             white-space: nowrap;
+        }
+
+        .right-controls {
+            width: 100%;
+            justify-content: flex-end;
+            padding-right: 0.5rem;
         }
 
         .left-controls::-webkit-scrollbar {
             display: none;
         }
-
         .nav-tabs {
             gap: 0.5rem;
             margin-left: 0.25rem;

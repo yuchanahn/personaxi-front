@@ -41,7 +41,9 @@
 <!-- svelte-ignore a11y_click_events_have_key_events -->
 <div class="tile" on:click={() => dispatch("click")}>
     <div class="image-container">
-        <AssetPreview asset={meta} />
+        <div class="media-wrapper">
+            <AssetPreview asset={meta} />
+        </div>
 
         {#if content.creator_name}
             <div class="creator-tag" on:click={goToCreatorPage}>
@@ -49,8 +51,12 @@
             </div>
         {/if}
 
-        {#if !isSpecialType}
-            <div class="overlay-stats">
+        <div class="overlay-stats">
+            <span class="stat">
+                <Icon icon="mdi:heart" />
+                {content.likes_count}
+            </span>
+            {#if !isSpecialType}
                 <span class="stat">
                     <Icon icon="mdi:chat" />
                     {content.chat_count}
@@ -59,12 +65,7 @@
                     <Icon icon="mdi:image-multiple" />
                     {assetCount}
                 </span>
-            </div>
-        {/if}
-
-        <div class="like-overlay">
-            <Icon icon="mdi:heart" />
-            {content.likes_count}
+            {/if}
         </div>
 
         {#if content.tags && content.tags.includes("1001")}
@@ -80,20 +81,20 @@
                 <span>Live2D</span>
             </div>
         {/if}
-    </div>
 
-    <div class="tile-info">
-        <div class="title-line">{content.name}</div>
-        <div class="tags-line">
-            {#if content.tags}
-                {#each content.tags as tag}
-                    <span
-                        >#{$t(
-                            `${allCategories.find((category) => category.id.toString() === tag)?.nameKey || "tags.untagged"}`,
-                        )}</span
-                    >
-                {/each}
-            {/if}
+        <div class="tile-info">
+            <div class="title-line">{content.name}</div>
+            <div class="tags-line">
+                {#if content.tags}
+                    {#each content.tags as tag}
+                        <span
+                            >#{$t(
+                                `${allCategories.find((category) => category.id.toString() === tag)?.nameKey || "tags.untagged"}`,
+                            )}</span
+                        >
+                    {/each}
+                {/if}
+            </div>
         </div>
     </div>
 </div>
@@ -112,6 +113,7 @@
         overflow: hidden;
         display: flex;
         flex-direction: column;
+        position: relative; /* Ensure stacking context */
     }
 
     .tile:hover {
@@ -122,47 +124,49 @@
     .image-container {
         position: relative;
         width: 100%;
-        aspect-ratio: 1 / 1;
+        aspect-ratio: 9 / 11; /* Slightly taller for portrait feel */
         overflow: hidden;
     }
 
-    .portrait-image {
+    .media-wrapper {
         width: 100%;
         height: 100%;
-        object-fit: cover;
-        display: block;
+        transition: transform 0.5s ease;
+    }
+
+    .tile:hover .media-wrapper {
+        transform: scale(1.05); /* Subtle zoom effect */
     }
 
     .creator-tag {
         position: absolute;
-        bottom: 0.5rem;
-        right: 0.5rem;
-        background-color: rgba(0, 0, 0, 0.6);
+        top: 0.5rem;
+        left: 0.5rem;
+        background-color: rgba(0, 0, 0, 0.4);
         color: white;
         padding: 0.2rem 0.5rem;
         border-radius: var(--radius-button);
         font-size: 0.7rem;
-        font-weight: 600;
+        font-weight: 500;
         z-index: 2;
-        border: 1px solid rgba(255, 255, 255, 0.2);
+        border: 1px solid rgba(255, 255, 255, 0.1);
         backdrop-filter: blur(4px);
-        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
         cursor: pointer;
         transition: background-color 0.2s;
     }
 
     .creator-tag:hover {
-        background-color: rgba(0, 0, 0, 0.8);
+        background-color: rgba(0, 0, 0, 0.6);
     }
 
     .overlay-stats {
         position: absolute;
-        top: 0.1rem;
-        right: 0.1rem;
+        top: 0.5rem;
+        right: 0.5rem;
         display: flex;
-        flex-direction: column;
+        flex-direction: column; /* Stack vertically for cleaner look */
         align-items: flex-end;
-        gap: 0.1rem;
+        gap: 0.25rem;
         z-index: 2;
     }
 
@@ -170,47 +174,41 @@
         display: flex;
         align-items: center;
         gap: 0.3rem;
-        font-size: 0.75rem;
+        font-size: 0.7rem;
         color: white;
-        background-color: rgba(0, 0, 0, 0.6);
+        background-color: rgba(0, 0, 0, 0.4);
         padding: 0.2rem 0.4rem;
         border-radius: var(--radius-button);
         font-weight: 600;
-        border: 1px solid rgba(255, 255, 255, 0.2);
+        border: 1px solid rgba(255, 255, 255, 0.1);
         backdrop-filter: blur(4px);
-        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
     }
 
-    .like-overlay {
-        position: absolute;
-        bottom: 0.5rem;
-        left: 0.5rem;
-        display: flex;
-        align-items: center;
-        gap: 0.3rem;
-        font-size: 0.75rem;
-        color: white;
-        background-color: rgba(0, 0, 0, 0.6);
-        padding: 0.2rem 0.4rem;
-        border-radius: var(--radius-button);
-        font-weight: 600;
-        z-index: 2;
-        border: 1px solid rgba(255, 255, 255, 0.2);
-        backdrop-filter: blur(4px);
-        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
-    }
-
+    /* Merged info into overlay */
     .tile-info {
-        padding: 0.8rem;
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        padding: 2rem 0.8rem 0.8rem 0.8rem; /* Top padding for gradient transition */
         display: flex;
         flex-direction: column;
-        gap: 0.5rem;
+        gap: 0.2rem;
+        background: linear-gradient(
+            to top,
+            rgba(0, 0, 0, 0.9) 0%,
+            rgba(0, 0, 0, 0.6) 50%,
+            transparent 100%
+        );
+        z-index: 2;
+        box-sizing: border-box;
     }
 
     .title-line {
-        font-size: 1rem;
-        font-weight: bold;
-        color: var(--foreground);
+        font-size: 1.1rem;
+        font-weight: 800;
+        color: white;
+        text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8);
         overflow: hidden;
         white-space: nowrap;
         text-overflow: ellipsis;
@@ -220,49 +218,55 @@
         overflow: hidden;
         white-space: nowrap;
         text-overflow: ellipsis;
-        font-size: 0.7rem;
-        color: var(--muted-foreground);
+        font-size: 0.75rem;
+        color: rgba(255, 255, 255, 0.8);
+        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
     }
-
-    .tags-line span {
-        margin-right: 0.3rem;
-    }
-
     @media (max-width: 600px) {
         .creator-tag {
-            font-size: 0.5rem;
-            bottom: 0.2rem;
-            right: 0.2rem;
-        }
-        .tags-line {
             font-size: 0.6rem;
-            padding: 0.15rem 0.3rem;
+            /* Adjust for mobile */
+            top: 0.3rem;
+            left: 0.3rem;
+            padding: 0.15rem 0.4rem;
         }
-        .overlay-stats .stat,
-        .like-overlay {
-            font-size: 0.65rem;
-            padding: 0.15rem 0.3rem;
+
+        .overlay-stats {
+            top: 0.3rem;
+            right: 0.3rem;
             gap: 0.2rem;
         }
-        .badge-vrm,
-        .badge-live2d {
+        .overlay-stats .stat {
             font-size: 0.6rem;
-            padding: 0.15rem 0.4rem;
+            padding: 0.15rem 0.3rem;
+        }
+
+        .tile-info {
+            padding: 1.5rem 0.6rem 0.6rem 0.6rem;
+        }
+        .title-line {
+            font-size: 0.95rem;
         }
     }
 
     .badge-vrm {
         position: absolute;
-        top: 0.5rem;
-        right: 0.5rem; /* Changed to right */
+        top: 2rem; /* Moved down slightly to avoid overlap with stats if needed, or keep at top? Stats are right. Badges? */
+        /* Actually stats are Top Right. Creator is Top Left. 
+           Badges should probably be Top Right BELOW stats? Or Top Left BELOW creator?
+           Badges are currently Top Right in CSS (lines 323, 343).
+           Stats are Top Right. They overlap!
+        */
+        right: 0.5rem;
+        top: 2.5rem; /* Push below stats */
         display: flex;
         align-items: center;
-        gap: 0.2rem; /* Reduced gap */
-        font-size: 0.65rem; /* Reduced font size */
+        gap: 0.2rem;
+        font-size: 0.65rem;
         font-weight: 700;
         color: white;
         background: linear-gradient(135deg, #6366f1, #8b5cf6);
-        padding: 0.2rem 0.5rem; /* Reduced padding */
+        padding: 0.2rem 0.5rem;
         border-radius: 12px;
         box-shadow: 0 2px 8px rgba(99, 102, 241, 0.4);
         z-index: 3;
@@ -273,16 +277,16 @@
 
     .badge-live2d {
         position: absolute;
-        top: 0.5rem;
-        right: 0.5rem; /* Changed to right */
+        right: 0.5rem;
+        top: 2.5rem; /* Push below stats */
         display: flex;
         align-items: center;
-        gap: 0.2rem; /* Reduced gap */
-        font-size: 0.65rem; /* Reduced font size */
+        gap: 0.2rem;
+        font-size: 0.65rem;
         font-weight: 700;
         color: white;
         background: linear-gradient(135deg, #ec4899, #f43f5e);
-        padding: 0.2rem 0.5rem; /* Reduced padding */
+        padding: 0.2rem 0.5rem;
         border-radius: 12px;
         box-shadow: 0 2px 8px rgba(236, 72, 153, 0.4);
         z-index: 3;

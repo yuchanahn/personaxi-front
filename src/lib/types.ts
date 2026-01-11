@@ -15,7 +15,7 @@ export interface Persona {
     owner_id: string[];
     name: string;
     personaType: string; // 3D, 2D, text
-    contentType?: 'character' | 'story' | 'all'; // Default: character
+    contentType?: 'character' | 'story' | ''; // Default: character
     instructions: string[];
     promptExamples: string[];
     tags: string[];
@@ -51,7 +51,7 @@ export interface PersonaDTO {
     dislikes_count: number;
     chat_count: number;
     personaType: string;
-    contentType?: 'character' | 'story' | 'all'; // Default: character
+    contentType?: 'character' | 'story' | ''; // Default: character
     image_metadatas: ImageMetadata[];
     image_count: number;
     owner_id: string[];
