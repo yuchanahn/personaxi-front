@@ -89,7 +89,7 @@
     let allVoices: any[] = []; // ElevenLabs에서 받아온 전체 목소리 목록
     let selectedVoiceId = ""; // 사용자가 선택한 voice_id
 
-    $: selectedVoice = allVoices.find((v) => v.voice_id === selectedVoiceId);
+    $: selectedVoice = allVoices.find((v) => v._id === selectedVoiceId);
     $: if (selectedVoiceId) {
         persona.voice_id = selectedVoiceId;
     } else {
@@ -272,7 +272,7 @@
 
     $: {
         const id = $page.url.searchParams.get("c");
-        if (id !== last_id) {
+        if (id && id !== last_id) {
             last_id = id;
             console.log("##[URL] Loading persona:", id);
             if (id !== persona.id) load_persona(id);
@@ -357,10 +357,10 @@
         }
 
         try {
-            const response = await fetch("/voices.json"); // static/voices.json
+            const response = await fetch("/voices2.json"); // static/voices2.json
             if (response.ok) {
                 const data = await response.json();
-                allVoices = data.voices;
+                allVoices = data.items;
             }
         } catch (e) {
             console.error("Failed to load voices.json", e);
@@ -1456,24 +1456,12 @@
                                                 "editPage.voiceSelectDefault",
                                             )}</option
                                         >
-                                        {#each allVoices as voice (voice.voice_id)}
-                                            <option value={voice.voice_id}
-                                                >{voice.name}</option
+                                        {#each allVoices as voice (voice._id)}
+                                            <option value={voice._id}
+                                                >{voice.title} - {voice.description}</option
                                             >
                                         {/each}
                                     </select>
-
-                                    {#if selectedVoice}
-                                        {#key selectedVoice.voice_id}
-                                            <audio
-                                                controls
-                                                src={selectedVoice.preview_url}
-                                            >
-                                                Your browser does not support
-                                                the audio element.
-                                            </audio>
-                                        {/key}
-                                    {/if}
                                 </div>
                             {:else}
                                 <p>{$t("editPage.voiceLoading")}</p>
@@ -2180,27 +2168,6 @@
         display: flex;
         align-items: center;
         gap: 1rem;
-    }
-
-    .voice-selector select {
-        flex: 1;
-    }
-
-    .voice-selector audio {
-        height: 42px;
-    }
-
-    .voice-selector audio::-webkit-media-controls-panel {
-        background-color: var(--muted);
-        color: var(--foreground);
-    }
-    .voice-selector audio::-webkit-media-controls-play-button,
-    .voice-selector audio::-webkit-media-controls-timeline,
-    .voice-selector audio::-webkit-media-controls-current-time-display,
-    .voice-selector audio::-webkit-media-controls-time-remaining-display,
-    .voice-selector audio::-webkit-media-controls-volume-slider,
-    .voice-selector audio::-webkit-media-controls-mute-button {
-        filter: invert(1) grayscale(1) brightness(1.5);
     }
 
     .asset-section {
