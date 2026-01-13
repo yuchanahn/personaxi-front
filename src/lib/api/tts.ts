@@ -51,7 +51,7 @@ function stopHeartbeat() {
     }
 }
 
-export async function connectTTSSocket(speek?: (audio: ArrayBuffer) => void): Promise<WebSocket> {
+export async function connectTTSSocket(speek?: (audio: ArrayBuffer | null) => void): Promise<WebSocket> {
     try {
         // api.ws() returns a Promise<WebSocket>, so we await it
         const newSocket = await api.ws('/ws/tts', {});
@@ -82,6 +82,13 @@ export async function connectTTSSocket(speek?: (audio: ArrayBuffer) => void): Pr
             try {
                 const message = JSON.parse(event.data);
                 if (message.type === 'pong') {
+                    return;
+                }
+                if (message.type === 'error') {
+                    console.warn(`TTS Error: ${message.code} - ${message.message}`);
+                    if (speek) {
+                        speek(null); // Signal error/no-audio
+                    }
                     return;
                 }
             } catch (e) {

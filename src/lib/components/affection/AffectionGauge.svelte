@@ -226,10 +226,12 @@
         prevScore = score;
     }
 
-    $: {
-        const t = clamp(score, 0, 100) / 100;
+    $: visualScore = score <= 0 ? 1 : score;
 
-        activeColor = getColorContinuous(score);
+    $: {
+        const t = clamp(visualScore, 0, 100) / 100;
+
+        activeColor = getColorContinuous(visualScore);
         glowColor = mixHex(activeColor, "#ffffff", 0.45);
 
         gradA = mixHex(activeColor, "#ffffff", 0.55);
@@ -339,7 +341,8 @@
                 stroke-width="4"
                 stroke={"url(#" + gradId + ")"}
                 stroke-dasharray={CIRC}
-                stroke-dashoffset={CIRC - (CIRC * clamp(score, 0, 100)) / 100}
+                stroke-dashoffset={CIRC -
+                    (CIRC * clamp(visualScore, 0, 100)) / 100}
                 transform="rotate(-90 32 32)"
                 style="filter: drop-shadow(0 0 6px {glowColor});"
             />

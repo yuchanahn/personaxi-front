@@ -9,6 +9,7 @@
   import { connectTTSSocket, disconnectTTSSocket } from "$lib/api/tts";
   import TtsStatusModal from "$lib/components/modal/TTSStatusModal.svelte";
   import { messages } from "$lib/stores/messages";
+  import { toast } from "$lib/stores/toast";
 
   let lastSessionId: string | null = null;
   let persona: Persona | null = null;
@@ -27,7 +28,7 @@
     pinkOpacity = t * 0.45;
   }
 
-  onMount(async () => {
+  onMount(() => {
     // Listen for Affection Updates
     const handleAffection = (e: CustomEvent) => {
       if (e.detail?.score !== undefined) {
@@ -44,20 +45,28 @@
         handleAffection as EventListener,
       );
 
-    const sessionId = $page.url.searchParams.get("c");
-    lastSessionId = sessionId;
-    $messages = [];
-    if (sessionId) {
-      // Data loading is handled by the reactive block below
+    (async () => {
+      const sessionId = $page.url.searchParams.get("c");
+      lastSessionId = sessionId;
+      $messages = [];
+      if (sessionId) {
+        // Data loading is handled by the reactive block below
 
-      await connectTTSSocket(async (audio: ArrayBuffer) => {
-        if (Viewer && Viewer.speek) {
-          Viewer.speek(audio);
-        } else {
-          console.warn("Viewer not ready for TTS audio.");
-        }
-      });
-    }
+        await connectTTSSocket(async (audio: ArrayBuffer | null) => {
+          if (!audio) {
+            toast.error("TTS Server Busy");
+            console.warn("TTS Failed (3D).");
+            return;
+          }
+
+          if (Viewer && Viewer.speek) {
+            Viewer.speek(audio);
+          } else {
+            console.warn("Viewer not ready for TTS audio.");
+          }
+        });
+      }
+    })();
 
     return removeListener;
   });
@@ -93,7 +102,11 @@
   {#if persona}
     <TtsStatusModal
       impl_connectTTS={async () => {
-        await connectTTSSocket(async (audio: ArrayBuffer) => {
+        await connectTTSSocket(async (audio: ArrayBuffer | null) => {
+          if (!audio) {
+            toast.error("TTS Server Busy");
+            return;
+          }
           // Copy same logic as onMount or refactor to function
           if (Viewer && Viewer.speek) {
             Viewer.speek(audio);

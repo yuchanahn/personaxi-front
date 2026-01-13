@@ -19,6 +19,8 @@
     import { pricingStore } from "$lib/stores/pricing";
     import { get } from "svelte/store";
     import { chatSessions } from "$lib/stores/chatSessions";
+    import { toast } from "$lib/stores/toast";
+    import { t } from "svelte-i18n";
 
     let lastSessionId: string | null = null;
     let persona: Persona | null = null;
@@ -126,7 +128,56 @@
                 persona = p;
             });
 
-            await connectTTSSocket(async (audio: ArrayBuffer) => {
+            await connectTTSSocket(async (audio: ArrayBuffer | null) => {
+                if (!audio) {
+                    // TTS Failed - Fallback to Text Only
+                    toast.error("TTS Server Busy (Fallback to Text)");
+
+                    // Reset thoughts
+                    isSpeaking = false;
+                    showThought2 = false;
+                    showThought1 = false;
+
+                    // Parse Speech Text (Logic from handleThoughtEnded)
+                    const lastMsg = $messages[$messages.length - 1];
+                    let content = "";
+                    if (lastMsg && lastMsg.role === "assistant") {
+                        content = lastMsg.content;
+                        content = content.replace(/\([^)]*\)/g, ""); // Remove thoughts ( )
+                        content = content.replace(/\[[^\]]*\]/g, ""); // Remove actions [ ]
+                        speechText = content;
+                    }
+
+                    // Immediately show speech bubble since we have text but no audio
+                    showSpeech = true;
+
+                    // Simulate reading time (e.g. 150ms per character + 1s base)
+                    const textLen = content.trim().length;
+                    const simulatedDuration =
+                        textLen > 0 ? textLen * 100 + 1500 : 2000;
+
+                    isSpeaking = true; // Act as if speaking
+
+                    setTimeout(() => {
+                        console.log("Text-only mode ended: Showing Thought 2");
+                        isSpeaking = false;
+                        showThought1 = false;
+                        showSpeech = false; // Hide speech bubble when done
+
+                        if (thought2) {
+                            const delay =
+                                Math.floor(Math.random() * 1000) + 2000;
+                            setTimeout(() => {
+                                showThought2 = true;
+                                setTimeout(() => {
+                                    showThought2 = false;
+                                }, 8000);
+                            }, delay);
+                        }
+                    }, simulatedDuration);
+
+                    return;
+                }
                 if (Viewer && Viewer.speak) {
                     const blob = new Blob([audio], { type: "audio/mp3" });
                     const url = URL.createObjectURL(blob);
@@ -386,7 +437,58 @@
     {#if persona}
         <TtsStatusModal
             impl_connectTTS={async () => {
-                await connectTTSSocket(async (audio: ArrayBuffer) => {
+                await connectTTSSocket(async (audio: ArrayBuffer | null) => {
+                    if (!audio) {
+                        toast.error("TTS Server Busy (Fallback to Text)");
+                        console.warn("TTS Failed (Modal).");
+
+                        // Reset thoughts
+                        isSpeaking = false;
+                        showThought2 = false;
+                        showThought1 = false;
+
+                        // Parse Speech Text (Logic from handleThoughtEnded)
+                        const lastMsg = $messages[$messages.length - 1];
+                        let content = "";
+                        if (lastMsg && lastMsg.role === "assistant") {
+                            content = lastMsg.content;
+                            content = content.replace(/\([^)]*\)/g, ""); // Remove thoughts ( )
+                            content = content.replace(/\[[^\]]*\]/g, ""); // Remove actions [ ]
+                            speechText = content;
+                        }
+
+                        // Immediately show speech bubble since we have text but no audio
+                        showSpeech = true;
+
+                        // Simulate reading time
+                        const textLen = content.trim().length;
+                        const simulatedDuration =
+                            textLen > 0 ? textLen * 100 + 1500 : 2000;
+
+                        isSpeaking = true; // Act as if speaking
+
+                        setTimeout(() => {
+                            console.log(
+                                "Text-only mode ended: Showing Thought 2",
+                            );
+                            isSpeaking = false;
+                            showThought1 = false;
+                            showSpeech = false;
+
+                            if (thought2) {
+                                const delay =
+                                    Math.floor(Math.random() * 1000) + 2000;
+                                setTimeout(() => {
+                                    showThought2 = true;
+                                    setTimeout(() => {
+                                        showThought2 = false;
+                                    }, 8000);
+                                }, delay);
+                            }
+                        }, simulatedDuration);
+
+                        return;
+                    }
                     if (Viewer && Viewer.speak) {
                         const blob = new Blob([audio], { type: "audio/mp3" });
                         const url = URL.createObjectURL(blob);
@@ -477,14 +579,12 @@
         <ThoughtBubble
             text={thought1}
             visible={showThought1}
-            type="thought1"
             customStyle="top: 5vh; left: 50%; transform: translateX(-50%); z-index: 20;"
             onEnded={handleThoughtEnded}
         />
         <ThoughtBubble
             text={thought2}
             visible={showThought2}
-            type="thought2"
             customStyle="top: 5vh; left: 50%; transform: translateX(-50%); z-index: 20;"
         />
 
