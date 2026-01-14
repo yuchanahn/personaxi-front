@@ -364,8 +364,8 @@
   "settingModal": {
     "title": "Chat Settings",
     "guidanceText": "* Changes affect the current chat session.",
-    "llmTitle": "AI Model",
-    "llmDescription": "Choose the AI model for this chat. Different models have unique personalities and costs.",
+    "llmTitle": "Response Mode",
+    "llmDescription": "Choose the response mode for this chat.",
     "feedbackTitle": "Feedback",
     "like": "Like",
     "liked": "Liked",
@@ -705,5 +705,11 @@
     },
     "benefit": "Benefits: Fullscreen & Faster",
     "notice": "📢 Not available on official stores yet.<br>Install this PWA to enjoy the service at a <strong>better price</strong> without store fees!"
+  },
+  "models": {
+    "title": "Response Mode",
+    "light": "Light Mode",
+    "standard": "Standard Mode",
+    "premium": "Premium Mode"
   }
 }

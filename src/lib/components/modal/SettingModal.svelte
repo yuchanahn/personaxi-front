@@ -45,18 +45,18 @@
     $: availableLLMs = [
         {
             id: "gemini-flash",
-            name: "Gemini Flash",
+            name: $t("models.standard"),
             multiplier: $pricingStore.model_multipliers["gemini-flash"] || 1.5,
         },
         {
             id: "gemini-flash-lite",
-            name: "Gemini Flash Lite",
+            name: $t("models.light"),
             multiplier:
                 $pricingStore.model_multipliers["gemini-flash-lite"] || 1.0,
         },
         {
             id: "gemini-pro",
-            name: "Gemini Pro",
+            name: $t("models.premium"),
             multiplier: $pricingStore.model_multipliers["gemini-pro"] || 2.0,
         },
     ].map((llm) => ({

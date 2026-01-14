@@ -141,8 +141,8 @@
   "settingModal": {
     "title": "채팅 설정",
     "guidanceText": "* 모든 설정은 현재 채팅 세션에만 영향을 줍니다.",
-    "llmTitle": "AI 모델",
-    "llmDescription": "이 채팅에서 사용할 AI 모델을 선택하세요. 모델마다 다른 개성과 비용이 발생할 수 있습니다.",
+    "llmTitle": "응답 모드",
+    "llmDescription": "이 채팅에서 사용할 응답 모드를 선택하세요.",
     "feedbackTitle": "피드백",
     "like": "좋아요",
     "liked": "좋아요 함",
@@ -658,5 +658,11 @@
     },
     "benefit": "앱 설치 혜택: 전체화면 몰입감, 더 빠른 로딩",
     "notice": "📢 아직 공식 스토어에는 출시되지 않았습니다.<br>이 웹 앱(PWA)을 설치하면 <strong>스토어 수수료 없이</strong> 더 합리적인 가격으로 서비스를 이용하실 수 있습니다!"
+  },
+  "models": {
+    "title": "응답 모드",
+    "light": "라이트 모드",
+    "standard": "스탠다드 모드",
+    "premium": "프리미엄 모드"
   }
 }

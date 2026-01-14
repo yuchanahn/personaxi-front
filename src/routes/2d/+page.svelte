@@ -12,6 +12,9 @@
   import { chatSessions } from "$lib/stores/chatSessions";
   import { get } from "svelte/store";
 
+  import ModelSelector from "$lib/components/chat/ModelSelector.svelte";
+  import { messages } from "$lib/stores/messages";
+
   let lastSessionId: string | null = null;
   let persona: Persona | null = null;
 
@@ -29,13 +32,23 @@
     currentCost = Math.round(baseCost * multiplier);
   }
 
-  const loadChatData = () => {
+  let showModelSelector = false;
+
+  const loadChatData = async () => {
     const sessionId = $page.url.searchParams.get("c");
     lastSessionId = sessionId;
 
-    loadChatHistory(sessionId ?? "");
-
     if (sessionId) {
+      await loadChatHistory(sessionId ?? "");
+
+      // Show Model Selector only if it's a new session (empty chat)
+      // and if we haven't already selected a specific logic (implied by just checking messages for now)
+      if ($messages.length === 1) {
+        showModelSelector = true;
+      } else {
+        showModelSelector = false;
+      }
+
       loadPersona(sessionId).then((p) => {
         fetchAndSetAssetTypes(p.image_metadatas).then((imgs) => {
           p.image_metadatas = imgs;
@@ -74,6 +87,26 @@
 
   let isSettingsModalOpen = false;
   let showImage = true; // 기본값: 이미지 보이기
+
+  const handleModelConfirm = (e: CustomEvent<string>) => {
+    const selected = e.detail;
+    const newUrl = new URL(window.location.href);
+    newUrl.searchParams.set("llmType", selected);
+    window.history.replaceState({}, "", newUrl);
+
+    const s = $chatSessions.find((s) => s.id === lastSessionId);
+    if (s) {
+      s.llmType = selected;
+      chatSessions.update((sess) =>
+        sess.map((x) =>
+          x.id === lastSessionId ? { ...x, llmType: selected } : x,
+        ),
+      );
+    }
+    llmType = selected;
+
+    showModelSelector = false;
+  };
 </script>
 
 {#if isSettingsModalOpen && persona}
@@ -86,6 +119,13 @@
     on:close={() => (isSettingsModalOpen = false)}
   />
 {/if}
+
+<ModelSelector
+  isOpen={showModelSelector}
+  selectedModel={llmType}
+  on:close={() => (showModelSelector = false)}
+  on:confirm={handleModelConfirm}
+/>
 
 <main class="chat-layout">
   <div class="settings-button-2d">
