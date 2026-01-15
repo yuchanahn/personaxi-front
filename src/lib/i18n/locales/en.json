@@ -366,25 +366,30 @@
     "currentNeurons": "Current: {count} Neurons"
   },
   "settingModal": {
-    "title": "Chat Settings",
-    "guidanceText": "* Changes affect the current chat session.",
-    "llmTitle": "Response Mode",
-    "llmDescription": "Choose the response mode for this chat.",
-    "feedbackTitle": "Feedback",
-    "like": "Like",
-    "liked": "Liked",
-    "share": "Share",
+    "title": "Settings",
+    "neuronBalance": "Balance:",
+    "llmTitle": "Select AI Model",
+    "llmDescription": "Choose an AI model. Neuron consumption varies by model.",
+    "costDisplay": "Base Cost:",
+    "neuronsConsumed": "Neurons",
     "chatManagement": "Chat Management",
     "resetChat": "Reset Chat",
     "deleteChat": "Delete Chat",
-    "confirmReset": "Are you sure you want to reset the chat history? This cannot be undone.",
-    "confirmDelete": "Are you sure you want to permanently delete this chat session?",
-    "includeAllUtterances": "Include All Utterances",
-    "neuronsConsumed": "neurons consumed per response",
-    "costDisplay": "Cost:",
-    "neuronBalance": "Neuron Balance: ",
+    "confirmReset": "Reset conversation?",
+    "confirmDelete": "Delete conversation?",
+    "userNote": "User Note",
+    "userNotePlaceholder": "Write a note about this character or session...",
+    "outputLength": "Output Length",
+    "outputLengthShort": "Short",
+    "outputLengthLong": "Long",
+    "sessionImages": "Session Images",
+    "viewAllImages": "View All Images",
+    "hideImages": "Hide Images",
+    "noImages": "No images generated in this session.",
     "showImage": "Show Image",
-    "hideImage": "Hide",
+    "hideImage": "Hide Image",
+    "showGeneratedImages": "Show Generated Images",
+    "hideGeneratedImages": "Hide Generated Images",
     "report": "Report"
   },
   "reportModal": {
@@ -712,8 +717,8 @@
   },
   "models": {
     "title": "Response Mode",
-    "light": "Light Mode",
-    "standard": "Standard Mode",
-    "premium": "Premium Mode"
+    "light": "Light",
+    "standard": "Standard",
+    "premium": "Premium"
   }
 }

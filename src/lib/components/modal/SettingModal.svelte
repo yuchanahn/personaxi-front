@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { fade, fly } from "svelte/transition";
+    import { fade, fly, slide } from "svelte/transition";
     import { createEventDispatcher, onDestroy, onMount } from "svelte";
     import { t } from "svelte-i18n";
     import Icon from "@iconify/svelte";
@@ -17,6 +17,7 @@
     import { toast } from "$lib/stores/toast";
     import { confirmStore } from "$lib/stores/confirm";
     import { pricingStore } from "$lib/stores/pricing";
+    import { messages } from "$lib/stores/messages";
 
     export let isOpen: boolean = false;
     export let persona: Persona;
@@ -32,14 +33,33 @@
     let showReportModal = false;
 
     let user: User | null = null;
-
-    // ✅ declare explicitly (reactive assignment만으로는 타입/컴파일 이슈 나기 쉬움)
     let isLiked = false;
-
-    // status timer cleanup
     let statusTimer: ReturnType<typeof setTimeout> | null = null;
 
+    // --- New Features State ---
+    let userNote = "";
+    let outputLength = 100; // Default UI value
+    let showSessionImages = false;
+    let sessionImages: string[] = [];
+    let selectedImage: string | null = null; // Full Screen Viewer State
+
     $: isLiked = persona?.is_liked || false;
+
+    // --- Session Images Logic ---
+    $: {
+        if (isOpen && $messages) {
+            // Extract markdown images ![](url)
+            const regex = /!\[.*?\]\((.*?)\)/g;
+            const imgs: string[] = [];
+            $messages.forEach((msg) => {
+                let match;
+                while ((match = regex.exec(msg.content)) !== null) {
+                    imgs.push(match[1]);
+                }
+            });
+            sessionImages = imgs;
+        }
+    }
 
     $: baseCost =
         mode === "3d"
@@ -70,7 +90,6 @@
 
     let selectedLLM_id = llmType;
 
-    // llmType prop이 바뀌면 select도 따라가게
     $: if (llmType && llmType !== selectedLLM_id) {
         selectedLLM_id = llmType;
     }
@@ -81,7 +100,6 @@
 
     function changeLLMType(newType: string) {
         selectedLLM_id = newType;
-
         chatSessions.update((sessions) =>
             sessions.map((session) => {
                 if (session.id === persona.id)
@@ -89,7 +107,6 @@
                 return session;
             }),
         );
-
         const currentPage = get(page);
         const params = new URLSearchParams(currentPage.url.searchParams);
         params.set("llmType", newType);
@@ -121,49 +138,17 @@
         }
     }
 
-    async function handleLikeToggle() {
-        if (!persona?.id) return;
-
-        isLoading = true;
-        const newLikeStatus = !isLiked;
-        const endpoint = newLikeStatus ? "like" : "dislike";
-        const url = `/api/persona/${endpoint}?id=${persona.id}`;
-
-        try {
-            const res = await api.get(url);
-            if (!res.ok) throw new Error(await res.text());
-
-            persona.is_liked = newLikeStatus;
-            dispatch("like-updated", {
-                personaId: persona.id,
-                isLiked: newLikeStatus,
-            });
-
-            await showStatus(newLikeStatus ? "👍 Liked!" : "Like removed.");
-        } catch (error) {
-            console.error("Like toggle failed:", error);
-            await showStatus("❌ Error!", 2000);
-        } finally {
-            isLoading = false;
-        }
-    }
-
-    // ✅ await로 제대로 처리 (안 그러면 Saved가 먼저 뜨거나, 에러가 catch로 안 들어옴)
     async function handleLLMChange() {
         if (!persona?.id) return;
-
         isLoading = true;
         await showStatus("Saving...", 0);
-
         try {
             const res = await api.post(`/api/chat/char/sessions/edit`, {
                 cssid: persona.id,
                 llmType: selectedLLM_id,
             });
-
             if (!res.ok) throw new Error(await res.text());
             await res.json();
-
             changeLLMType(selectedLLM_id);
             await showStatus("✅ Saved!");
         } catch (error) {
@@ -181,10 +166,8 @@
             }))
         )
             return;
-
         isLoading = true;
         await showStatus("Resetting chat...", 0);
-
         try {
             await resetChatHistory(persona.id);
             await showStatus("✅ Chat Reset!");
@@ -200,7 +183,6 @@
     async function handleDeleteChat() {
         isLoading = true;
         await showStatus("Deleting chat...", 0);
-
         try {
             await deleteChatHistory(persona.id);
             await showStatus("✅ Chat Deleted!");
@@ -215,18 +197,24 @@
     }
 
     function handleKeydown(event: KeyboardEvent) {
-        if (event.key === "Escape") dispatch("close");
+        if (event.key === "Escape") {
+            if (selectedImage) {
+                selectedImage = null;
+            } else {
+                dispatch("close");
+            }
+        }
     }
-
     function handleBackdropClick(event: MouseEvent) {
         if (event.target === event.currentTarget) dispatch("close");
     }
 
-    // 모달이 닫힐 때 상태 초기화 + 열릴 때 사용자 로드
     $: if (!isOpen) {
         isConfirmingDelete = false;
         statusMessage = "";
         user = null;
+        showSessionImages = false;
+        selectedImage = null;
     } else {
         (async () => {
             try {
@@ -257,7 +245,6 @@
                         {user?.credits ?? 0} ⚡️
                     </span>
                 </div>
-
                 <button
                     class="icon-button"
                     on:click={() => dispatch("close")}
@@ -267,120 +254,250 @@
                 </button>
             </div>
 
-            <!-- ✅ 2D일 때만 모델 선택 UI 렌더링 -->
-            {#if mode === "2d"}
-                <div class="settings-card">
-                    <h3 class="section-title">
-                        <Icon icon="ph:robot-duotone" />
-                        <span>{$t("settingModal.llmTitle")}</span>
-                    </h3>
-
-                    <div class="select-wrapper">
-                        <select
-                            bind:value={selectedLLM_id}
-                            on:change={handleLLMChange}
-                            disabled={isLoading}
-                            aria-label="Select model"
-                        >
-                            {#each availableLLMs as llm}
-                                <option value={llm.id}>
-                                    {llm.name} - ⚡️{llm.cost}
-                                </option>
-                            {/each}
-                        </select>
-
-                        <div class="select-arrow" aria-hidden="true">
-                            <Icon icon="ph:caret-down-bold" />
+            <div class="scroll-container">
+                <!-- 1. LLM Model Selection -->
+                {#if mode === "2d"}
+                    <div class="settings-card">
+                        <div class="card-header">
+                            <Icon icon="ph:robot-duotone" />
+                            <span>{$t("settingModal.llmTitle")}</span>
                         </div>
+                        <div class="select-wrapper">
+                            <select
+                                bind:value={selectedLLM_id}
+                                on:change={handleLLMChange}
+                                disabled={isLoading}
+                                aria-label="Select model"
+                            >
+                                {#each availableLLMs as llm}
+                                    <option value={llm.id}
+                                        >{llm.name} - ⚡️{llm.cost}</option
+                                    >
+                                {/each}
+                            </select>
+                            <div class="select-arrow" aria-hidden="true">
+                                <Icon icon="ph:caret-down-bold" />
+                            </div>
+                        </div>
+                        <p class="section-description">
+                            {$t("settingModal.costDisplay")} ⚡️{selectedLLM.cost}
+                        </p>
+                    </div>
+                {/if}
+
+                <!-- 2. User Note (UI Only) -->
+                <div class="settings-card">
+                    <div class="card-header">
+                        <Icon icon="ph:note-pencil-duotone" />
+                        <span>{$t("settingModal.userNote")}</span>
+                    </div>
+                    <textarea
+                        class="memo-area"
+                        bind:value={userNote}
+                        placeholder={$t("settingModal.userNotePlaceholder")}
+                        rows="3"
+                    ></textarea>
+                </div>
+
+                <!-- 3. Output Length (UI Only) -->
+                <div class="settings-card">
+                    <div class="card-header">
+                        <Icon icon="ph:ruler-duotone" />
+                        <span>{$t("settingModal.outputLength")}</span>
+                        <span class="value-badge">{outputLength}%</span>
+                    </div>
+                    <div class="range-wrapper">
+                        <span class="label-min"
+                            >{$t("settingModal.outputLengthShort")}</span
+                        >
+                        <input
+                            type="range"
+                            min="10"
+                            max="200"
+                            step="10"
+                            bind:value={outputLength}
+                            class="range-input"
+                        />
+                        <span class="label-max"
+                            >{$t("settingModal.outputLengthLong")}</span
+                        >
+                    </div>
+                </div>
+
+                <!-- 4. Session Images -->
+                {#if mode === "2d"}
+                    <div class="settings-card">
+                        <div class="card-header">
+                            <Icon icon="ph:image-duotone" />
+                            <span>{$t("settingModal.sessionImages")}</span>
+                            <span class="count-badge"
+                                >{sessionImages.length}</span
+                            >
+                        </div>
+
+                        {#if sessionImages.length > 0}
+                            <button
+                                class="view-images-btn"
+                                on:click={() =>
+                                    (showSessionImages = !showSessionImages)}
+                            >
+                                <span
+                                    >{showSessionImages
+                                        ? $t("settingModal.hideImages")
+                                        : $t(
+                                              "settingModal.viewAllImages",
+                                          )}</span
+                                >
+                                <Icon
+                                    icon={showSessionImages
+                                        ? "ph:caret-up-bold"
+                                        : "ph:caret-down-bold"}
+                                />
+                            </button>
+
+                            {#if showSessionImages}
+                                <div
+                                    class="image-grid"
+                                    transition:slide={{ duration: 200 }}
+                                >
+                                    {#each sessionImages as img}
+                                        <!-- svelte-ignore a11y_click_events_have_key_events -->
+                                        <!-- svelte-ignore a11y_no_static_element_interactions -->
+                                        <div
+                                            class="grid-item"
+                                            on:click={() =>
+                                                (selectedImage = img)}
+                                        >
+                                            <img
+                                                src={img}
+                                                alt="Session Image"
+                                                loading="lazy"
+                                            />
+                                        </div>
+                                    {/each}
+                                </div>
+                            {/if}
+                        {:else}
+                            <div class="no-data">
+                                {$t("settingModal.noImages")}
+                            </div>
+                        {/if}
+                    </div>
+                {/if}
+
+                <!-- 5. Chat Settings -->
+                <div class="settings-card">
+                    <div class="card-header">
+                        <Icon icon="ph:gear-duotone" />
+                        <span>{$t("settingModal.chatManagement")}</span>
                     </div>
 
-                    <p class="section-description">
-                        {$t("settingModal.llmDescription")}
-                        <span class="chip">
-                            {$t("settingModal.costDisplay")} ⚡️{selectedLLM.cost}
-                            {$t("settingModal.neuronsConsumed")}
-                        </span>
-                    </p>
-                </div>
-            {/if}
-
-            <!-- Feedback Section Removed -->
-
-            <div class="settings-card">
-                <h3 class="section-title">
-                    <Icon icon="ph:chats-duotone" />
-                    <span>{$t("settingModal.chatManagement")}</span>
-                </h3>
-
-                <div class="button-grid">
-                    {#if mode === "2d"}
-                        <button
-                            class="btn"
-                            on:click={() => (showImage = !showImage)}
-                            disabled={isLoading}
-                        >
-                            <Icon
-                                icon={showImage
-                                    ? "ph:image-bold"
-                                    : "ph:image-square-bold"}
-                            />
-                            <span>
-                                {showImage
-                                    ? $t("settingModal.hideImage") ||
-                                      "Hide Image"
-                                    : $t("settingModal.showImage") ||
-                                      "Show Image"}
-                            </span>
-
-                            <span
-                                class="toggle"
-                                class:on={showImage}
-                                aria-hidden="true"
+                    <div class="actions-list">
+                        {#if mode === "2d"}
+                            <button
+                                class="action-item"
+                                on:click={() => (showImage = !showImage)}
+                                disabled={isLoading}
                             >
-                                <span class="knob"></span>
-                            </span>
-                        </button>
-                    {/if}
+                                <div class="action-left">
+                                    <Icon
+                                        icon={showImage
+                                            ? "ph:image-square-bold"
+                                            : "ph:image-bold"}
+                                    />
+                                    <span
+                                        >{showImage
+                                            ? $t(
+                                                  "settingModal.hideGeneratedImages",
+                                              )
+                                            : $t(
+                                                  "settingModal.showGeneratedImages",
+                                              )}</span
+                                    >
+                                </div>
+                                <span class="toggle" class:on={showImage}
+                                    ><span class="knob"></span></span
+                                >
+                            </button>
+                        {/if}
 
-                    <button
-                        class="btn"
-                        on:click={handleResetChat}
-                        disabled={isLoading}
-                    >
-                        <Icon icon="ph:arrow-counter-clockwise-bold" />
-                        <span>{$t("settingModal.resetChat")}</span>
-                    </button>
-
-                    {#if !isConfirmingDelete}
                         <button
-                            class="btn btnDangerOutline"
-                            on:click={() => (isConfirmingDelete = true)}
+                            class="action-item"
+                            on:click={handleResetChat}
                             disabled={isLoading}
                         >
-                            <Icon icon="ph:trash-bold" />
-                            <span>{$t("settingModal.deleteChat")}</span>
+                            <div class="action-left">
+                                <Icon icon="ph:arrow-counter-clockwise-bold" />
+                                <span>{$t("settingModal.resetChat")}</span>
+                            </div>
+                            <Icon
+                                icon="ph:caret-right-bold"
+                                class="action-arrow"
+                            />
                         </button>
-                    {:else}
-                        <button
-                            class="btn btnDanger"
-                            on:click={handleDeleteChat}
-                            disabled={isLoading}
-                        >
-                            <Icon icon="ph:warning-bold" />
-                            <span>{$t("settingModal.confirmDelete")}</span>
-                        </button>
-                    {/if}
+
+                        {#if !isConfirmingDelete}
+                            <button
+                                class="action-item destructive"
+                                on:click={() => (isConfirmingDelete = true)}
+                                disabled={isLoading}
+                            >
+                                <div class="action-left">
+                                    <Icon icon="ph:trash-bold" />
+                                    <span>{$t("settingModal.deleteChat")}</span>
+                                </div>
+                                <Icon
+                                    icon="ph:caret-right-bold"
+                                    class="action-arrow"
+                                />
+                            </button>
+                        {:else}
+                            <button
+                                class="action-item destructive confirm"
+                                on:click={handleDeleteChat}
+                                disabled={isLoading}
+                            >
+                                <div class="action-left">
+                                    <Icon icon="ph:warning-bold" />
+                                    <span
+                                        >{$t(
+                                            "settingModal.confirmDelete",
+                                        )}</span
+                                    >
+                                </div>
+                            </button>
+                        {/if}
+                    </div>
                 </div>
             </div>
 
             <div class="modal-footer">
                 {#if statusMessage}
                     <span class="status-chip">{statusMessage}</span>
-                {:else}
-                    <span class="footer-spacer"></span>
                 {/if}
             </div>
         </div>
+    </div>
+{/if}
+
+<!-- Full Screen Image Viewer -->
+{#if selectedImage}
+    <!-- svelte-ignore a11y_click_events_have_key_events -->
+    <!-- svelte-ignore a11y_no_static_element_interactions -->
+    <div
+        class="fullscreen-overlay"
+        on:click={() => (selectedImage = null)}
+        transition:fade={{ duration: 200 }}
+    >
+        <button
+            class="close-fullscreen-btn"
+            aria-label="Close full screen"
+            on:click|stopPropagation={() => (selectedImage = null)}
+        >
+            <Icon icon="ph:x-bold" />
+        </button>
+        <!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
+        <img src={selectedImage} alt="Full Screen" on:click|stopPropagation />
     </div>
 {/if}
 
@@ -393,7 +510,6 @@
 {/if}
 
 <style>
-    /* ✅ 메인 테마 변수를 그대로 사용: var(--background), var(--card), var(--popover), var(--border) ... */
     .modal-backdrop {
         position: fixed;
         inset: 0;
@@ -403,264 +519,311 @@
         z-index: 1000;
         backdrop-filter: blur(10px);
     }
-
     .modal-content {
-        width: min(92vw, 420px);
+        width: min(92vw, 400px);
+        max-height: 85vh;
         background: var(--popover);
         color: var(--foreground);
         border: 1px solid var(--border);
         border-radius: var(--radius-card, 16px);
         box-shadow: var(--shadow-popover);
-        padding: 16px;
         display: flex;
         flex-direction: column;
-        gap: 12px;
+        overflow: hidden;
     }
-
     .modal-header {
         display: flex;
-        align-items: flex-start;
+        align-items: center;
         justify-content: space-between;
-        gap: 12px;
-        padding-bottom: 10px;
+        padding: 16px;
         border-bottom: 1px solid var(--border);
+        background: var(--card);
     }
-
-    .header-left {
-        display: flex;
-        flex-direction: column;
-        gap: 6px;
-        min-width: 0;
-    }
-
-    .modal-header h2 {
-        font-family: var(--font-display, "Cal Sans", sans-serif);
+    .header-left h2 {
         font-size: 18px;
         font-weight: 600;
-        margin: 0;
-        line-height: 1.15;
-        letter-spacing: 0.2px;
+        margin: 0 0 4px 0;
     }
-
     .neuron-balance {
         display: inline-flex;
         align-items: center;
-        gap: 8px;
-        width: fit-content;
-        padding: 5px 10px;
-        border-radius: 999px;
-        background: var(--card);
-        border: 1px solid var(--border);
-        box-shadow: var(--shadow-mini);
-        color: var(--muted-foreground);
+        gap: 6px;
         font-size: 12px;
-    }
-
-    .icon-button {
-        width: 36px;
-        height: 36px;
-        border-radius: var(--radius-button, 8px);
-        border: 1px solid transparent;
-        background: transparent;
         color: var(--muted-foreground);
+    }
+    .icon-button {
+        width: 32px;
+        height: 32px;
+        background: transparent;
+        border: none;
+        color: var(--muted-foreground);
+        cursor: pointer;
         display: grid;
         place-items: center;
-        cursor: pointer;
-        transition:
-            transform 150ms ease,
-            background 150ms ease,
-            border-color 150ms ease;
+        border-radius: 50%;
     }
-
     .icon-button:hover {
         background: var(--muted);
-        border-color: var(--border);
-        transform: rotate(6deg);
         color: var(--foreground);
+    }
+
+    .scroll-container {
+        flex: 1;
+        overflow-y: auto;
+        padding: 16px;
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
     }
 
     .settings-card {
         background: var(--card);
         border: 1px solid var(--border);
-        border-radius: var(--radius-card, 16px);
-        box-shadow: var(--shadow-card);
+        border-radius: 12px;
         padding: 12px;
         display: flex;
         flex-direction: column;
         gap: 10px;
     }
-
-    .section-title {
+    .card-header {
         display: flex;
         align-items: center;
         gap: 8px;
         font-size: 14px;
         font-weight: 600;
-        margin: 0;
         color: var(--foreground);
     }
-
     .section-description {
         font-size: 12px;
-        line-height: 1.55;
         color: var(--muted-foreground);
         margin: 0;
     }
 
-    .chip {
-        display: inline-flex;
-        align-items: center;
-        gap: 6px;
-        margin-left: 6px;
-        padding: 2px 8px;
-        border-radius: 999px;
-        background: var(--muted);
-        border: 1px solid var(--border);
-        color: var(--foreground);
-        white-space: nowrap;
-    }
-
+    /* Inputs */
     .select-wrapper {
         position: relative;
     }
-
     select {
         width: 100%;
-        padding: 10px 36px 10px 10px;
-        border-radius: var(--radius-input, 10px);
+        padding: 8px 10px;
+        border-radius: 8px;
         border: 1px solid var(--border);
         background: var(--background);
         color: var(--foreground);
-        box-shadow: var(--shadow-mini);
         appearance: none;
-        cursor: pointer;
     }
-
     .select-arrow {
         position: absolute;
         right: 10px;
         top: 50%;
         transform: translateY(-50%);
-        color: var(--muted-foreground);
         pointer-events: none;
+        color: var(--muted-foreground);
     }
 
-    .button-grid {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 10px;
-    }
-
-    @media (max-width: 360px) {
-        .button-grid {
-            grid-template-columns: 1fr;
-        }
-    }
-
-    .btn {
+    .memo-area {
         width: 100%;
-        padding: 10px 10px;
-        border-radius: var(--radius-button, 10px);
+        padding: 8px;
+        border-radius: 8px;
         border: 1px solid var(--border);
-        background: var(--secondary);
-        color: var(--secondary-foreground);
-        box-shadow: var(--shadow-mini);
+        background: var(--background);
+        color: var(--foreground);
+        resize: vertical;
+        font-size: 13px;
+        min-height: 60px;
+    }
+
+    .range-wrapper {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-size: 12px;
+        color: var(--muted-foreground);
+    }
+    .range-input {
+        flex: 1;
+        accent-color: var(--primary);
+    }
+    .value-badge {
+        margin-left: auto;
+        font-size: 11px;
+        background: var(--muted);
+        padding: 2px 6px;
+        border-radius: 4px;
+        color: var(--foreground);
+    }
+
+    /* Image Grid & Full Screen */
+    .count-badge {
+        margin-left: auto;
+        font-size: 11px;
+        background: var(--primary);
+        color: var(--primary-foreground);
+        padding: 2px 8px;
+        border-radius: 999px;
+    }
+    .view-images-btn {
+        width: 100%;
+        padding: 8px;
+        background: var(--muted);
+        border: none;
+        border-radius: 8px;
+        font-size: 12px;
+        font-weight: 600;
+        color: var(--foreground);
         cursor: pointer;
-        display: inline-flex;
+        display: flex;
         align-items: center;
         justify-content: center;
+        gap: 6px;
+    }
+    .image-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
         gap: 8px;
-        font-weight: 600;
-        transition:
-            transform 150ms ease,
-            filter 150ms ease,
-            background 150ms ease;
+        margin-top: 4px;
     }
-
-    .btn:hover:not(:disabled) {
-        transform: translateY(-1px);
-        filter: brightness(1.03);
-    }
-
-    .btn:disabled {
-        opacity: 0.6;
-        cursor: not-allowed;
-    }
-
-    /* liked state */
-    /* .btnPrimary removed */
-
-    /* .btnWarn removed */
-
-    .btnDangerOutline {
-        background: transparent;
-        border-color: var(--destructive);
-        color: var(--destructive);
-    }
-
-    .btnDanger {
-        grid-column: 1 / -1;
-        background: var(--destructive);
-        color: var(--destructive-foreground);
-        border-color: transparent;
-    }
-
-    .toggle {
-        margin-left: auto;
-        width: 36px;
-        height: 20px;
-        border-radius: 999px;
-        background: var(--muted);
-        border: 1px solid var(--border);
+    .grid-item {
+        aspect-ratio: 1;
+        border-radius: 8px;
+        overflow: hidden;
+        background: var(--background);
+        cursor: pointer;
         position: relative;
-        flex: none;
+    }
+    .grid-item img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 0.2s;
+    }
+    .grid-item:hover img {
+        transform: scale(1.05); /* Zoom effect on hover */
+    }
+    .no-data {
+        font-size: 12px;
+        color: var(--muted-foreground);
+        text-align: center;
+        padding: 8px;
     }
 
-    .toggle .knob {
-        width: 16px;
-        height: 16px;
-        border-radius: 999px;
-        background: var(--foreground);
+    .fullscreen-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.9);
+        z-index: 2000; /* Higher than modal */
+        display: grid;
+        place-items: center;
+        padding: 20px;
+        cursor: zoom-out;
+    }
+    .fullscreen-overlay img {
+        max-width: 100%;
+        max-height: 100%;
+        object-fit: contain;
+        border-radius: 8px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+        cursor: default;
+    }
+    .close-fullscreen-btn {
         position: absolute;
-        top: 50%;
-        left: 2px;
-        transform: translateY(-50%);
-        transition:
-            transform 150ms ease,
-            background 150ms ease;
+        top: 20px;
+        right: 20px;
+        background: rgba(255, 255, 255, 0.2);
+        color: white;
+        border: none;
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        font-size: 24px;
+        display: grid;
+        place-items: center;
+        cursor: pointer;
+        transition: background 0.2s;
+        z-index: 2001;
+    }
+    .close-fullscreen-btn:hover {
+        background: rgba(255, 255, 255, 0.4);
     }
 
-    .toggle.on {
-        background: color-mix(in oklab, var(--primary) 25%, var(--muted));
-        border-color: color-mix(in oklab, var(--primary) 40%, var(--border));
-    }
-
-    .toggle.on .knob {
-        transform: translate(16px, -50%);
-        background: var(--primary-foreground);
-    }
-
-    .modal-footer {
-        padding-top: 10px;
-        border-top: 1px solid var(--border);
+    /* Action List */
+    .actions-list {
         display: flex;
-        justify-content: center;
-        min-height: 24px;
+        flex-direction: column;
+        gap: 6px;
     }
-
-    .status-chip {
-        padding: 4px 10px;
-        border-radius: 999px;
+    .action-item {
+        width: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 10px;
+        background: transparent;
+        border: 1px solid transparent;
+        border-radius: 8px;
+        cursor: pointer;
+        color: var(--foreground);
+        font-size: 13px;
+        transition: background 0.2s;
+    }
+    .action-item:hover:not(:disabled) {
         background: var(--muted);
-        border: 1px solid var(--border);
+    }
+    .action-left {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    .action-arrow {
         color: var(--muted-foreground);
         font-size: 12px;
     }
+    .action-item.destructive {
+        color: var(--destructive);
+    }
+    .action-item.destructive:hover {
+        background: rgba(239, 68, 68, 0.1); /* example red tint */
+    }
+    .action-item.confirm {
+        background: var(--destructive);
+        color: var(--destructive-foreground);
+        justify-content: center;
+    }
 
-    .footer-spacer {
-        display: block;
-        height: 1px;
-        width: 1px;
-        opacity: 0;
+    /* Toggle */
+    .toggle {
+        width: 32px;
+        height: 18px;
+        border-radius: 999px;
+        background: var(--border);
+        position: relative;
+        transition: background 0.2s;
+    }
+    .toggle .knob {
+        position: absolute;
+        width: 14px;
+        height: 14px;
+        background: white;
+        border-radius: 50%;
+        top: 2px;
+        left: 2px;
+        transition: transform 0.2s;
+    }
+    .toggle.on {
+        background: var(--primary);
+    }
+    .toggle.on .knob {
+        transform: translateX(14px);
+    }
+
+    .modal-footer {
+        padding: 12px;
+        border-top: 1px solid var(--border);
+        text-align: center;
+        background: var(--card);
+    }
+    .status-chip {
+        font-size: 11px;
+        color: var(--muted-foreground);
     }
 </style>

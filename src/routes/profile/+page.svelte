@@ -811,6 +811,25 @@
         width: 28px;
         height: 28px;
     }
+
+    /* Mobile Responsive Fixes */
+    @media (max-width: 640px) {
+        .stats-container {
+            padding: 0.75rem 0.5rem;
+            gap: 0.25rem;
+        }
+        .stat-item {
+            padding: 6px 8px;
+            font-size: 1rem;
+        }
+        .stat-item :global(svg) {
+            width: 24px;
+            height: 24px;
+        }
+        .stat-divider {
+            margin: 0 0.25rem;
+        }
+    }
     .scroll-container {
         height: 100%;
         background-color: var(--background);
