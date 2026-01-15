@@ -143,9 +143,6 @@
     }
 
     async function handleLLMChange() {
-        console.log("Selected LLM:", selectedLLM_id);
-        console.log("Selected LLM:", selectedLLM);
-
         if (!persona?.id) return;
         isLoading = true;
         await showStatus("Saving...", 0);

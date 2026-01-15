@@ -14,6 +14,7 @@
 
   import ModelSelector from "$lib/components/chat/ModelSelector.svelte";
   import { messages } from "$lib/stores/messages";
+  import { api } from "$lib/api";
 
   let lastSessionId: string | null = null;
   let persona: Persona | null = null;
@@ -88,7 +89,7 @@
   let isSettingsModalOpen = false;
   let showImage = true; // 기본값: 이미지 보이기
 
-  const handleModelConfirm = (e: CustomEvent<string>) => {
+  const handleModelConfirm = async (e: CustomEvent<string>) => {
     const selected = e.detail;
     const newUrl = new URL(window.location.href);
     newUrl.searchParams.set("llmType", selected);
@@ -104,6 +105,18 @@
       );
     }
     llmType = selected;
+
+    if (persona?.id) {
+      try {
+        await api.post(`/api/chat/char/sessions/edit`, {
+          cssid: persona.id,
+          llmType: selected,
+        });
+        console.log("Saved LLM preference:", selected);
+      } catch (e) {
+        console.error("Failed to save LLM preference:", e);
+      }
+    }
 
     showModelSelector = false;
   };

@@ -509,7 +509,7 @@
 
             <div>
                 <span class="label">{$t("settingPage.creatorPoints")}</span>
-                <span class="value">{user.data.creator_points || 0} P</span>
+                <span class="value">{user.creator_points || 0} P</span>
             </div>
 
             <button

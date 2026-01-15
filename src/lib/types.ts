@@ -66,6 +66,7 @@ export interface User {
     profile: string;
     email: string;
     state: string;
+    creator_points?: number;
     data: {
         nickname: string;
         language: string;
@@ -73,7 +74,6 @@ export interface User {
         createdAt: string;
         hasReceivedFirstCreationReward: boolean;
         lastLoginIP: string;
-        creator_points?: number;
     };
 }
 
