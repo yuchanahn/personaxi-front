@@ -1,8 +1,15 @@
 <script lang="ts">
     import DOMPurify from "isomorphic-dompurify";
     import { marked } from "marked";
+    import TypewriterHtml from "../common/TypewriterHtml.svelte";
+    import { createEventDispatcher } from "svelte";
 
     export let content: string;
+    export let typewriter: boolean = false;
+    export let active: boolean = true;
+    export let instant: boolean = false;
+
+    const dispatch = createEventDispatcher();
 
     let htmlContent = "";
     let styleContent = "";
@@ -33,7 +40,18 @@
 </svelte:head>
 
 <div class="narration-block markdown-body">
-    {@html htmlContent}
+    {#if typewriter}
+        <TypewriterHtml
+            content={htmlContent}
+            speed={30}
+            {active}
+            {instant}
+            on:complete={() => dispatch("complete")}
+            on:type={() => dispatch("type")}
+        />
+    {:else}
+        {@html htmlContent}
+    {/if}
 </div>
 
 <!-- 

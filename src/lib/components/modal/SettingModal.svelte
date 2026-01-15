@@ -24,6 +24,7 @@
     export let llmType: string = "Error";
     export let mode: "2d" | "3d" = "3d";
     export let showImage: boolean = true;
+    export let autoScroll: boolean = true;
 
     const dispatch = createEventDispatcher();
 
@@ -390,10 +391,34 @@
                 {/if}
 
                 <!-- 5. Chat Settings -->
+
                 <div class="settings-card">
                     <div class="card-header">
                         <Icon icon="ph:gear-duotone" />
                         <span>{$t("settingModal.chatManagement")}</span>
+                    </div>
+
+                    <!-- 자동스크롤 -->
+                    <div class="actions-list">
+                        <button
+                            class="action-item"
+                            on:click={() => (
+                                (autoScroll = !autoScroll),
+                                console.log(autoScroll)
+                            )}
+                        >
+                            <div class="action-left">
+                                <Icon
+                                    icon={autoScroll
+                                        ? "ph:check-bold"
+                                        : "ph:check-bold"}
+                                />
+                                <span>{$t("settingModal.autoScroll")}</span>
+                            </div>
+                            <span class="toggle" class:on={autoScroll}
+                                ><span class="knob"></span></span
+                            >
+                        </button>
                     </div>
 
                     <div class="actions-list">
@@ -424,7 +449,6 @@
                                 >
                             </button>
                         {/if}
-
                         <button
                             class="action-item"
                             on:click={handleResetChat}

@@ -394,6 +394,7 @@
     "showImage": "Show Image",
     "hideImage": "Hide Image",
     "showGeneratedImages": "Show Generated Images",
+    "autoScroll": "Auto Scroll",
     "hideGeneratedImages": "Hide Generated Images",
     "report": "Report"
   },

@@ -91,6 +91,7 @@
 
   let isSettingsModalOpen = false;
   let showImage = true; // 기본값: 이미지 보이기
+  let autoScroll = true; // Default: Auto scroll enabled
 
   const handleModelConfirm = async (e: CustomEvent<string>) => {
     const selected = e.detail;
@@ -132,6 +133,7 @@
     {llmType}
     mode="2d"
     bind:showImage
+    bind:autoScroll
     on:close={() => (isSettingsModalOpen = false)}
   />
 {/if}
@@ -154,6 +156,7 @@
       {isLoading}
       {persona}
       {showImage}
+      {autoScroll}
       SendMessage={send}
     />
     <ChatInput

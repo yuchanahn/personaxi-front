@@ -12,12 +12,14 @@
   import { interactiveChat } from "$lib/actions/interactiveChat";
   import { toast } from "$lib/stores/toast";
   import { api } from "$lib/api";
+  import TypewriterHtml from "../common/TypewriterHtml.svelte";
 
   export let isLoading: boolean = false;
   export let cssid: string;
   export let showChat: boolean = true;
   export let persona: Persona | null = null;
   export let showImage: boolean = true;
+  export let autoScroll: boolean = true;
 
   export let SendMessage: (msg: string) => void = (msg: string) => {
     console.log("SendMessage not implemented:", msg);
@@ -264,6 +266,84 @@
   }
 
   let chatLog: ChatLogItem[] = [];
+
+  // SEQUENTIAL TYPING STATE
+  let typingIndex = 0;
+  let lastLogLength = 0;
+
+  // Image Timing Timer
+  let imageTimer: ReturnType<typeof setTimeout> | null = null;
+
+  // Whenever chatLog updates (message arriving or history loading)
+  $: {
+    if (chatLog.length > lastLogLength) {
+      // If bulk update (more than 2 items), assume history or initial load -> skip all
+      // OR if it's the very first load
+      if (chatLog.length - lastLogLength > 2 || lastLogLength === 0) {
+        typingIndex = chatLog.length;
+      } else {
+        // Incremental update (streaming).
+        // Ensure typingIndex is at least at the *start* of the new items?
+        // Actually, if we were at index K, and K finishes, we go to K+1.
+        // If K+1 is added, we naturally go there.
+        // We don't need to force change typingIndex unless it was 'caught up'.
+      }
+      lastLogLength = chatLog.length;
+    }
+
+    // Auto-advance logic
+    // We skip items that should appear INSTANTLY.
+    // We STOP at items that require Time (Typewriter or Image Wait).
+    while (typingIndex < chatLog.length) {
+      const item = chatLog[typingIndex];
+      const isTypewriter =
+        item.type === "narration" || item.type === "dialogue";
+      const isImage =
+        (item.type === "image" || item.type === "markdown_image") && showImage;
+
+      if (!isTypewriter && !isImage) {
+        // Instant item (User, Situation Trigger, or Hidden Image) -> Skip
+        typingIndex++;
+      } else {
+        // It's a Typewriter or Image -> Stop skipping, let the specific logic handle it.
+        break;
+      }
+    }
+  }
+
+  // Handle Image Timing
+  $: {
+    if (typingIndex < chatLog.length) {
+      const item = chatLog[typingIndex];
+      const isImage =
+        (item.type === "image" || item.type === "markdown_image") && showImage;
+
+      if (isImage) {
+        if (!imageTimer) {
+          // Sequence:
+          // 1. Image is rendered (because i <= typingIndex)
+          // 2. Perform smooth scroll to bottom.
+          // 3. WAIT for scroll to finish.
+          // 4. Advance index.
+
+          imageTimer = setTimeout(() => {
+            if (autoScroll) {
+              scrollToBottom();
+            }
+            typingIndex++;
+            imageTimer = null;
+          }, 100); // Small delay to ensure DOM render before scroll starts
+        }
+      }
+    }
+  }
+
+  function handleTypewriterComplete(index: number) {
+    if (index === typingIndex) {
+      typingIndex++;
+    }
+  }
+
   $: {
     chatLog = $messages.flatMap((msg, i) => {
       const messageId = `msg-${i}`;
@@ -298,11 +378,22 @@
     });
   }
 
+  // Scroll Logic
   $: if ($messages && chatWindowEl) {
     tick().then(() => {
-      scrollToBottom();
+      // Smart Scroll:
+      // 1. If User sent checking, scroll immediately.
+      // 2. If it's initial load (typingIndex caught up), scroll.
+      // 3. If AI is typing (typingIndex < length), DON'T scroll here; let Typewriter/ImageTimer handle it sequentially.
+      const lastMsg = $messages[$messages.length - 1];
+      if (lastMsg?.role === "user" || typingIndex >= chatLog.length) {
+        scrollToBottom();
+      }
     });
+  }
 
+  // Loading State Logic
+  $: if ($messages) {
     if ($messages.length > 0) {
       const lastMessage = $messages[$messages.length - 1];
       isLoading = lastMessage.role === "user";
@@ -313,6 +404,7 @@
 
   function scrollToBottom() {
     if (!chatWindowEl) return;
+    if (!autoScroll) return;
     chatWindowEl.scrollTo({
       top: chatWindowEl.scrollHeight,
       behavior: "smooth",
@@ -389,31 +481,55 @@
     </div>
   {/if}
 
-  {#each chatLog as item (item.id)}
+  {#each chatLog as item, i (item.id)}
     {#if item.type === "user"}
       <div class="message user">
         {item.content}
       </div>
     {:else if item.type === "narration"}
-      <HtmlRenderer content={item.content} />
+      {#if i > typingIndex}
+        <!-- Hidden waiting for turn -->
+      {:else}
+        <HtmlRenderer
+          content={item.content}
+          typewriter={true}
+          active={i === typingIndex}
+          instant={i < typingIndex}
+          on:complete={() => handleTypewriterComplete(i)}
+          on:type={scrollToBottom}
+        />
+      {/if}
     {:else if item.type === "dialogue"}
-      <div class="message assistant">
-        <div class="speaker-name">{item.speaker}</div>
-        <div class="dialogue-bubble">
-          {@html item.content.replace(
-            /\*(.*?)\*/g,
-            '<i class="custom-italic">$1</i>',
-          )}
+      {#if i <= typingIndex}
+        <div class="message assistant">
+          <div class="speaker-name">{item.speaker}</div>
+          <div class="dialogue-bubble">
+            <TypewriterHtml
+              content={item.content.replace(
+                /\*(.*?)\*/g,
+                '<i class="custom-italic">$1</i>',
+              )}
+              speed={30}
+              active={i === typingIndex}
+              instant={i < typingIndex}
+              on:complete={() => handleTypewriterComplete(i)}
+              on:type={scrollToBottom}
+            />
+          </div>
         </div>
-      </div>
+      {/if}
     {:else if item.type === "image" && showImage}
-      <div class="image-block">
-        <ChatImage {persona} metadata={item.metadata} index={item.index} />
-      </div>
+      {#if i <= typingIndex}
+        <div class="image-block">
+          <ChatImage {persona} metadata={item.metadata} index={item.index} />
+        </div>
+      {/if}
     {:else if item.type === "markdown_image" && showImage}
-      <div class="image-block situation-image">
-        <img src={item.url} alt={item.alt} loading="lazy" />
-      </div>
+      {#if i <= typingIndex}
+        <div class="image-block situation-image">
+          <img src={item.url} alt={item.alt} loading="lazy" />
+        </div>
+      {/if}
     {:else if item.type === "situation_trigger"}
       <div class="situation-trigger-wrapper">
         {#if !showRatioOptions && !isGeneratingImage}
