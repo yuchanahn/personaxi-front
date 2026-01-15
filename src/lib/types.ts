@@ -73,6 +73,7 @@ export interface User {
         createdAt: string;
         hasReceivedFirstCreationReward: boolean;
         lastLoginIP: string;
+        creator_points?: number;
     };
 }
 

@@ -293,7 +293,7 @@
                 {/if}
 
                 <!-- 2. User Note (UI Only) -->
-                <div class="settings-card">
+                <!-- <div class="settings-card">
                     <div class="card-header">
                         <Icon icon="ph:note-pencil-duotone" />
                         <span>{$t("settingModal.userNote")}</span>
@@ -304,10 +304,10 @@
                         placeholder={$t("settingModal.userNotePlaceholder")}
                         rows="3"
                     ></textarea>
-                </div>
+                </div> -->
 
                 <!-- 3. Output Length (UI Only) -->
-                <div class="settings-card">
+                <!-- <div class="settings-card">
                     <div class="card-header">
                         <Icon icon="ph:ruler-duotone" />
                         <span>{$t("settingModal.outputLength")}</span>
@@ -329,7 +329,7 @@
                             >{$t("settingModal.outputLengthLong")}</span
                         >
                     </div>
-                </div>
+                </div> -->
 
                 <!-- 4. Session Images -->
                 {#if mode === "2d"}
