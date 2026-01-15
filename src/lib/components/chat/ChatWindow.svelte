@@ -296,8 +296,9 @@
       for (let i = typingIndex; i >= 0; i--) {
         if (i < chatLog.length) {
           const item = chatLog[i];
-          if (item.type === "image" && item.url) {
+          if (item.type === "markdown_image" && item.url) {
             foundUrl = item.url;
+            meta.type = "image";
 
             console.log("ChatWindow: found image", item.url);
 
@@ -774,18 +775,42 @@
     left: 0;
 
     width: 100%;
-    min-height: 100vh;
+    height: 100vh; /* min-height 대신 height로 고정하는 것이 배경 제어에 유리합니다 */
 
-    background-size: cover;
-    background-position: center;
+    /* 핵심 변경 사항 */
+    background-size: contain; /* 이미지가 잘리지 않고 다 들어감 */
+    /* 만약 '무조건 세로만 꽉 채우고 좌우는 잘려도 된다'면 -> background-size: auto 100%; */
+
+    background-position: center center; /* 정중앙 정렬 */
     background-repeat: no-repeat;
-    object-fit: cover; /* For video element */
+
     z-index: 0;
-    opacity: 0.4; /* Dim it slightly so text is readable */
+    opacity: 0.4;
     pointer-events: none;
     transition: background-image 0.5s ease-in-out;
-    /* Ensure it doesn't shrink */
-    flex-shrink: 0;
+
+    /* 배경색 지정 (이미지 비율이 안 맞을 때 빈 공간 색상) */
+    background-color: rgba(0, 0, 0, 0.5);
+  }
+
+  /* 뒤에서 꽉 채우고 흐리게 깔아주는 녀석 */
+  .chat-bg-blur {
+    position: fixed;
+    inset: 0;
+    background-size: cover; /* 얘는 잘려도 됨 */
+    background-position: center;
+    filter: blur(20px) brightness(0.7); /* 흐림 효과 */
+    z-index: -1;
+  }
+
+  /* 앞에서 짤리지 않고 선명하게 보여주는 녀석 */
+  .chat-bg-main {
+    position: fixed;
+    inset: 0;
+    background-size: contain; /* 잘리지 않음 */
+    background-position: center;
+    background-repeat: no-repeat;
+    z-index: 0;
   }
 
   /* Ensure messages are above background */
