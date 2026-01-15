@@ -2,12 +2,14 @@
     import { api } from "$lib/api";
     import type { ImageMetadata, Persona } from "$lib/types";
     import AssetPreview from "../AssetPreview.svelte";
-    import { onMount } from "svelte";
+    import { createEventDispatcher, onMount } from "svelte";
     import { t } from "svelte-i18n";
 
     export let persona: Persona | null;
     export let metadata: ImageMetadata;
     export let index: number;
+
+    const dispatch = createEventDispatcher();
 
     let currentMetadata: ImageMetadata = { ...metadata };
     let isLoading = false;

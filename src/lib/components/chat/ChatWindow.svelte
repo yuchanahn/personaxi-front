@@ -521,13 +521,27 @@
     {:else if item.type === "image" && showImage}
       {#if i <= typingIndex}
         <div class="image-block">
-          <ChatImage {persona} metadata={item.metadata} index={item.index} />
+          <ChatImage
+            {persona}
+            metadata={item.metadata}
+            index={item.index}
+            on:load={() => {
+              if (autoScroll) scrollToBottom();
+            }}
+          />
         </div>
       {/if}
     {:else if item.type === "markdown_image" && showImage}
       {#if i <= typingIndex}
         <div class="image-block situation-image">
-          <img src={item.url} alt={item.alt} loading="lazy" />
+          <img
+            src={item.url}
+            alt={item.alt}
+            loading="lazy"
+            on:load={() => {
+              if (autoScroll) scrollToBottom();
+            }}
+          />
         </div>
       {/if}
     {:else if item.type === "situation_trigger"}
