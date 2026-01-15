@@ -10,6 +10,10 @@
 
     const dispatch = createEventDispatcher();
 
+    onMount(() => {
+        dispatch("confirm", selectedModel);
+    });
+
     // Available models (matching SettingModal.svelte) with renamed "Modes"
     $: models = [
         {
