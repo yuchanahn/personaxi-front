@@ -92,6 +92,7 @@
   let isSettingsModalOpen = false;
   let showImage = true; // 기본값: 이미지 보이기
   let autoScroll = true; // Default: Auto scroll enabled
+  let showBackground = false; // Background Image Mode
 
   const handleModelConfirm = async (e: CustomEvent<string>) => {
     const selected = e.detail;
@@ -134,6 +135,7 @@
     mode="2d"
     bind:showImage
     bind:autoScroll
+    bind:showBackground
     on:close={() => (isSettingsModalOpen = false)}
   />
 {/if}
@@ -158,6 +160,7 @@
       {showImage}
       {autoScroll}
       SendMessage={send}
+      {showBackground}
     />
     <ChatInput
       onSend={send}

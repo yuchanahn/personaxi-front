@@ -274,6 +274,49 @@
   // Image Timing Timer
   let imageTimer: ReturnType<typeof setTimeout> | null = null;
 
+  export let showBackground: boolean = false;
+  let activeBackgroundImage: string | null = null;
+  // Map to store URLs of loaded images by index to support background mode even for lazy-loaded assets
+  let loadedImageUrls: Record<number, string> = {};
+
+  function handleImageLoad(index: number, url: string) {
+    loadedImageUrls[index] = url;
+    if (autoScroll) scrollToBottom();
+  }
+
+  let meta: ImageMetadata = {
+    url: "",
+    description: "",
+  };
+
+  $: {
+    if (showBackground) {
+      let foundUrl: string | null = null;
+      // Find the latest image that has been "typed" (revealed)
+      for (let i = typingIndex; i >= 0; i--) {
+        if (i < chatLog.length) {
+          const item = chatLog[i];
+          if (item.type === "image" && item.url) {
+            foundUrl = item.url;
+
+            console.log("ChatWindow: found image", item.url);
+
+            break;
+          }
+          // For 'image' type (assets), we check our loaded map
+          if (item.type === "image" && loadedImageUrls[i]) {
+            foundUrl = loadedImageUrls[i];
+            break;
+          }
+        }
+      }
+      activeBackgroundImage = foundUrl;
+      meta.url = foundUrl || "";
+    } else {
+      activeBackgroundImage = null;
+    }
+  }
+
   // Whenever chatLog updates (message arriving or history loading)
   $: {
     if (chatLog.length > lastLogLength) {
@@ -473,6 +516,12 @@
     SendMessage(payload);
   }}
 >
+  {#if activeBackgroundImage}
+    <div class="chat-background-layer">
+      <AssetPreview asset={meta} />
+    </div>
+  {/if}
+
   {#if chatLog.length === 0}
     <div class="empty-message" role="status">
       {$t("chatWindow.noConversation", {
@@ -518,29 +567,34 @@
           </div>
         </div>
       {/if}
-    {:else if item.type === "image" && showImage}
+    {:else if item.type === "image" && showImage && !showBackground}
       {#if i <= typingIndex}
         <div class="image-block">
           <ChatImage
             {persona}
             metadata={item.metadata}
             index={item.index}
-            on:load={() => {
-              if (autoScroll) scrollToBottom();
+            on:load={(e) => {
+              // Expect e.detail.url from ChatImage
+              if (e.detail?.url) {
+                handleImageLoad(i, e.detail.url);
+              } else {
+                // Fallback if no URL passed (legacy), maybe try to refetch?
+                // or just trigger scroll for now.
+                if (autoScroll) scrollToBottom();
+              }
             }}
           />
         </div>
       {/if}
-    {:else if item.type === "markdown_image" && showImage}
+    {:else if item.type === "markdown_image" && showImage && !showBackground}
       {#if i <= typingIndex}
         <div class="image-block situation-image">
           <img
             src={item.url}
             alt={item.alt}
             loading="lazy"
-            on:load={() => {
-              if (autoScroll) scrollToBottom();
-            }}
+            on:load={() => handleImageLoad(i, item.url)}
           />
         </div>
       {/if}
@@ -711,6 +765,37 @@
     position: relative;
     padding-top: 50px;
     scroll-behavior: smooth;
+  }
+
+  /* Background Mode Layer */
+  .chat-background-layer {
+    position: fixed;
+    top: 0;
+    left: 0;
+
+    width: 100%;
+    min-height: 100vh;
+
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    object-fit: cover; /* For video element */
+    z-index: 0;
+    opacity: 0.4; /* Dim it slightly so text is readable */
+    pointer-events: none;
+    transition: background-image 0.5s ease-in-out;
+    /* Ensure it doesn't shrink */
+    flex-shrink: 0;
+  }
+
+  /* Ensure messages are above background */
+  .message,
+  .image-block,
+  .situation-trigger-wrapper,
+  .code-block,
+  .empty-message {
+    position: relative;
+    z-index: 1;
   }
 
   .image-block {
@@ -927,5 +1012,8 @@
     gap: 0.5rem;
     font-size: 0.9rem;
     color: var(--muted-foreground);
+  }
+  .hidden-inline {
+    display: none !important;
   }
 </style>

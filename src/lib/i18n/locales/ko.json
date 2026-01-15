@@ -165,6 +165,7 @@
     "hideImage": "이미지 숨김",
     "showGeneratedImages": "생성된 이미지 표시",
     "hideGeneratedImages": "생성된 이미지 숨김",
+    "showBackground": "배경 모드",
     "autoScroll": "자동 스크롤",
     "report": "신고하기"
   },

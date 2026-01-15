@@ -25,6 +25,7 @@
     export let mode: "2d" | "3d" = "3d";
     export let showImage: boolean = true;
     export let autoScroll: boolean = true;
+    export let showBackground: boolean = false;
 
     const dispatch = createEventDispatcher();
 
@@ -425,8 +426,36 @@
                         {#if mode === "2d"}
                             <button
                                 class="action-item"
-                                on:click={() => (showImage = !showImage)}
+                                on:click={() => {
+                                    showBackground = !showBackground;
+                                    console.log(
+                                        "Modal toggled bg:",
+                                        showBackground,
+                                    );
+                                }}
                                 disabled={isLoading}
+                            >
+                                <div class="action-left">
+                                    <Icon
+                                        icon={showBackground
+                                            ? "ph:monitor-play-bold"
+                                            : "ph:monitor-bold"}
+                                    />
+                                    <span
+                                        >{$t(
+                                            "settingModal.showBackground",
+                                        )}</span
+                                    >
+                                </div>
+                                <span class="toggle" class:on={showBackground}
+                                    ><span class="knob"></span></span
+                                >
+                            </button>
+
+                            <button
+                                class="action-item"
+                                on:click={() => (showImage = !showImage)}
+                                disabled={isLoading || showBackground}
                             >
                                 <div class="action-left">
                                     <Icon
