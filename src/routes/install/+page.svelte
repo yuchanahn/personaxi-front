@@ -12,27 +12,20 @@
     let deferredPrompt: any = null;
     let showInstallButton = false;
 
+    // 반응형 QR 코드 URL
     $: qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(currentUrl)}`;
 
     function setTab(tab: string) {
         activeTab = tab;
     }
 
-    // PWA 설치 트리거 함수
     async function triggerInstall() {
         if (!deferredPrompt) return;
-
-        // 브라우저 설치 프롬프트 실행
         deferredPrompt.prompt();
-
-        // 사용자의 응답 대기
         const { outcome } = await deferredPrompt.userChoice;
-
         if (outcome === "accepted") {
-            console.log("User accepted the install prompt");
-            showInstallButton = false; // 설치 수락시 버튼 숨김
+            showInstallButton = false;
         }
-
         deferredPrompt = null;
     }
 
@@ -40,7 +33,7 @@
         currentUrl = window.location.href;
         const ua = navigator.userAgent.toLowerCase();
 
-        // 1. OS 감지
+        // OS 감지 로직
         if (/iphone|ipad|ipod/.test(ua)) {
             activeTab = "ios";
         } else if (/android/.test(ua)) {
@@ -49,154 +42,206 @@
             isDesktop = true;
         }
 
-        // 2. PWA 설치 이벤트 리스너 (안드로이드/데스크톱 크롬)
         window.addEventListener("beforeinstallprompt", (e) => {
-            // 기본 미니 인포바가 바로 뜨지 않게 막음
             e.preventDefault();
-            // 이벤트를 저장해둠 (나중에 버튼 클릭시 트리거)
             deferredPrompt = e;
-            // 설치 버튼 활성화
             showInstallButton = true;
-
-            // 설치 가능 상태면 탭을 안드로이드(또는 현재 탭)로 유지하며 강조
+            // 안드로이드 감지 시 탭 전환 (데스크탑이 아닐 때만)
             if (!isDesktop && activeTab !== "android") {
-                // 상황에 따라 탭을 전환하거나 유지
+                // activeTab = "android"; // 원하면 자동 전환
             }
         });
 
-        // 이미 설치된 앱인지 확인 (선택 사항)
         window.addEventListener("appinstalled", () => {
             showInstallButton = false;
             deferredPrompt = null;
-            console.log("PWA was installed");
         });
     });
 </script>
 
 <div class="install-page">
     <div class="content-wrapper">
-        <h1>{$t("install.title")}</h1>
+        <div class="header-section">
+            <h1>{$t("install.title") || "앱 설치하기"}</h1>
+            <p class="description">
+                {$t("install.description") ||
+                    "홈 화면에 추가하여 앱처럼 사용하세요."}
+            </p>
+        </div>
 
         {#if isDesktop}
             <div class="qr-section" transition:slide>
                 <div class="qr-card">
                     <img src={qrCodeUrl} alt="Scan to install" class="qr-img" />
                     <div class="qr-text">
-                        <h3>모바일로 바로 연결하기</h3>
-                        <p>카메라로 QR을 스캔하여<br />앱을 설치하세요.</p>
+                        <h3>모바일로 접속하기</h3>
+                        <p>카메라로 QR을 스캔하세요.</p>
                     </div>
                 </div>
-                <div class="section-divider">
-                    <span>OR</span>
-                </div>
+            </div>
+        {:else}
+            <div class="tabs">
+                <button
+                    class="tab"
+                    class:active={activeTab === "ios"}
+                    on:click={() => setTab("ios")}
+                >
+                    <Icon icon="fa6-brands:apple" width="20" />
+                    <span>iOS</span>
+                </button>
+                <button
+                    class="tab"
+                    class:active={activeTab === "android"}
+                    on:click={() => setTab("android")}
+                >
+                    <Icon icon="fa6-brands:android" width="20" />
+                    <span>Android</span>
+                </button>
+            </div>
+
+            <div class="guide-container">
+                {#if activeTab === "ios"}
+                    <div class="guide-ios" transition:fade={{ duration: 200 }}>
+                        <div class="step-row">
+                            <span class="step-num">1</span>
+                            <div class="step-detail">
+                                <p>
+                                    브라우저 하단(또는 상단)의 <br /><strong
+                                        >공유 버튼</strong
+                                    >을 누르세요.
+                                </p>
+                                <div class="mock-icon-box">
+                                    <Icon
+                                        icon="ion:share-outline"
+                                        width="28"
+                                        class="ios-blue"
+                                    />
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="arrow-divider">
+                            <Icon
+                                icon="mdi:chevron-down"
+                                width="24"
+                                color="var(--muted-foreground)"
+                            />
+                        </div>
+
+                        <div class="step-row">
+                            <span class="step-num">2</span>
+                            <div class="step-detail">
+                                <p>
+                                    메뉴에서 <strong>'홈 화면에 추가'</strong>를
+                                    <br />찾아서 선택하세요.
+                                </p>
+                                <div class="safari-menu-item">
+                                    <div class="menu-row">
+                                        <span>홈 화면에 추가</span>
+                                        <Icon
+                                            icon="fluent:add-square-24-regular"
+                                            width="24"
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="arrow-divider">
+                            <Icon
+                                icon="mdi:chevron-down"
+                                width="24"
+                                color="var(--muted-foreground)"
+                            />
+                        </div>
+
+                        <div class="step-row">
+                            <span class="step-num">3</span>
+                            <div class="step-detail">
+                                <p>
+                                    우측 상단의 <strong>'추가'</strong> 버튼을 누르면
+                                    설치가 완료됩니다.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                {:else}
+                    <div
+                        class="guide-android"
+                        transition:fade={{ duration: 200 }}
+                    >
+                        {#if showInstallButton}
+                            <div class="install-action" transition:slide>
+                                <button
+                                    class="install-btn"
+                                    on:click={triggerInstall}
+                                >
+                                    <Icon icon="mdi:google-play" width="24" />
+                                    <span>앱 설치하기 (클릭)</span>
+                                </button>
+                                <p class="sub-text">
+                                    위 버튼을 누르면 바로 설치됩니다.
+                                </p>
+                            </div>
+                        {:else}
+                            <div class="manual-android">
+                                <div class="step-row">
+                                    <span class="step-num">1</span>
+                                    <div class="step-detail">
+                                        <p>
+                                            브라우저 메뉴 버튼 <Icon
+                                                icon="mdi:dots-vertical"
+                                                inline
+                                                width="18"
+                                            /> 을 누르세요.
+                                        </p>
+                                    </div>
+                                </div>
+                                <div class="step-row">
+                                    <span class="step-num">2</span>
+                                    <div class="step-detail">
+                                        <p>
+                                            <strong>'앱 설치'</strong> 또는
+                                            <strong>'홈 화면에 추가'</strong>를
+                                            선택하세요.
+                                        </p>
+                                        <div class="android-menu-item">
+                                            <Icon
+                                                icon="mdi:cellphone-arrow-down"
+                                                width="24"
+                                            />
+                                            <span>앱 설치</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        {/if}
+                    </div>
+                {/if}
             </div>
         {/if}
 
         <div class="notice-box">
             <Icon
                 icon="mdi:information-outline"
-                width="24"
                 class="notice-icon"
+                width="20"
             />
-            <p>{@html $t("install.notice")}</p>
-        </div>
-
-        <p class="description">{$t("install.description")}</p>
-
-        <div class="tabs">
-            <button
-                class="tab"
-                class:active={activeTab === "ios"}
-                on:click={() => setTab("ios")}
+            <span
+                >앱 스토어 방문 없이 무료로 설치되며, <br />자동 업데이트를
+                지원합니다.</span
             >
-                <Icon icon="mdi:apple" width="24" />
-                {$t("install.ios")}
-            </button>
-            <button
-                class="tab"
-                class:active={activeTab === "android"}
-                on:click={() => setTab("android")}
-            >
-                <Icon icon="mdi:android" width="24" />
-                {$t("install.android")}
-            </button>
-        </div>
-
-        <div class="guide-container">
-            {#if activeTab === "ios"}
-                <div class="guide-step" transition:fade={{ duration: 200 }}>
-                    <div class="step-num">1</div>
-                    <div class="step-content">
-                        <div class="step-icon">
-                            <Icon icon="mdi:share-variant" width="32" />
-                        </div>
-                        <p>{@html $t("install.iosSteps.1")}</p>
-                    </div>
-                </div>
-                <div class="guide-step" transition:fade={{ duration: 200 }}>
-                    <div class="step-num">2</div>
-                    <div class="step-content">
-                        <div class="step-icon">
-                            <Icon icon="mdi:plus-box-outline" width="32" />
-                        </div>
-                        <p>{@html $t("install.iosSteps.2")}</p>
-                    </div>
-                </div>
-                <div class="guide-step" transition:fade={{ duration: 200 }}>
-                    <div class="step-num">3</div>
-                    <div class="step-content">
-                        <div class="step-text-only">Add / 추가</div>
-                        <p>{@html $t("install.iosSteps.3")}</p>
-                    </div>
-                </div>
-            {:else}
-                {#if showInstallButton}
-                    <div class="pwa-install-area" transition:slide>
-                        <button class="install-btn" on:click={triggerInstall}>
-                            <Icon icon="mdi:download" width="24" />
-                            <span>앱 간편 설치하기</span>
-                        </button>
-                        <div class="text-divider">혹은 수동으로 설치</div>
-                    </div>
-                {/if}
-
-                <div class="guide-step" transition:fade={{ duration: 200 }}>
-                    <div class="step-num">1</div>
-                    <div class="step-content">
-                        <div class="step-icon">
-                            <Icon icon="mdi:dots-vertical" width="32" />
-                        </div>
-                        <p>{@html $t("install.androidSteps.1")}</p>
-                    </div>
-                </div>
-                <div class="guide-step" transition:fade={{ duration: 200 }}>
-                    <div class="step-num">2</div>
-                    <div class="step-content">
-                        <div class="step-icon">
-                            <Icon icon="mdi:download-box-outline" width="32" />
-                        </div>
-                        <p>{@html $t("install.androidSteps.2")}</p>
-                    </div>
-                </div>
-                <div class="guide-step" transition:fade={{ duration: 200 }}>
-                    <div class="step-num">3</div>
-                    <div class="step-content">
-                        <div class="step-text-only">Install / 설치</div>
-                        <p>{@html $t("install.androidSteps.3")}</p>
-                    </div>
-                </div>
-            {/if}
-        </div>
-
-        <div class="benefit-box">
-            <Icon icon="mdi:rocket-launch" width="20" />
-            <span>{$t("install.benefit")}</span>
         </div>
     </div>
 </div>
 
 <style>
-    /* 기존 스타일 유지 */
+    /* 색상 변수 (프로젝트 테마에 맞게 조정 필요) */
+    :root {
+        --ios-blue: #007aff;
+        --bg-safari-item: #f2f2f7; /* 다크모드 대응 필요 */
+    }
+
     .install-page {
         min-height: 100vh;
         background-color: var(--background);
@@ -208,7 +253,7 @@
     }
 
     .content-wrapper {
-        max-width: 600px;
+        max-width: 500px;
         width: 100%;
         display: flex;
         flex-direction: column;
@@ -217,283 +262,183 @@
     }
 
     h1 {
-        font-size: 2rem;
-        font-weight: 800;
-        margin: 0;
-        text-align: center;
-        background: var(--primary-gradient);
-        -webkit-background-clip: text;
-        background-clip: text;
-        -webkit-text-fill-color: transparent;
-    }
-
-    .description {
-        text-align: center;
-        color: var(--muted-foreground);
-        line-height: 1.6;
-        margin: 0;
-    }
-
-    /* QR Section */
-    .qr-section {
-        width: 100%;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: 1.5rem;
-    }
-
-    .qr-card {
-        display: flex;
-        align-items: center;
-        gap: 1.5rem;
-        background: var(--card);
-        padding: 1.5rem;
-        border-radius: var(--radius-card);
-        border: 1px solid var(--border);
-        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-    }
-
-    .qr-img {
-        width: 100px;
-        height: 100px;
-        border-radius: 8px;
-        background: white;
-        padding: 4px;
-    }
-
-    .qr-text h3 {
         margin: 0 0 0.5rem 0;
-        font-size: 1.1rem;
-        font-weight: 700;
-        color: var(--foreground);
+        text-align: center;
+        font-size: 1.8rem;
     }
-
-    .qr-text p {
+    .description {
         margin: 0;
-        font-size: 0.9rem;
+        text-align: center;
         color: var(--muted-foreground);
-        line-height: 1.4;
-    }
-
-    .section-divider {
-        display: flex;
-        align-items: center;
-        width: 100%;
-        color: var(--border);
-        font-weight: 600;
-        font-size: 0.8rem;
-    }
-    .section-divider::before,
-    .section-divider::after {
-        content: "";
-        flex: 1;
-        height: 1px;
-        background: var(--border);
-    }
-    .section-divider span {
-        padding: 0 1rem;
-        color: var(--muted-foreground);
-    }
-
-    /* Notice Box */
-    .notice-box {
-        display: flex;
-        gap: 0.8rem;
-        align-items: center;
-        background: var(--secondary);
-        border: 1px solid var(--border);
-        padding: 1rem 1.25rem;
-        border-radius: var(--radius-card);
-        font-size: 0.9rem;
-        line-height: 1.5;
-        color: var(--foreground);
-        max-width: 100%;
-        text-align: left;
-    }
-
-    :global(.notice-icon) {
-        color: var(--primary);
-        flex-shrink: 0;
     }
 
     /* Tabs */
     .tabs {
         display: flex;
-        gap: 1rem;
         background: var(--secondary);
-        padding: 0.5rem;
-        border-radius: 999px;
-    }
-
-    .tab {
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-        padding: 0.75rem 1.5rem;
-        border-radius: 999px;
-        border: none;
-        background: none;
-        color: var(--muted-foreground);
-        font-weight: 600;
-        cursor: pointer;
-        transition: all 0.2s;
-    }
-
-    .tab.active {
-        background: var(--card);
-        color: var(--foreground);
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-    }
-
-    /* Guide Container */
-    .guide-container {
+        padding: 4px;
+        border-radius: 12px;
         width: 100%;
-        display: flex;
-        flex-direction: column;
-        gap: 1.5rem;
-        background: var(--card);
-        padding: 2rem;
-        border-radius: var(--radius-card);
-        border: 1px solid var(--border-card);
+        max-width: 320px;
     }
-
-    /* PWA Install Button Area */
-    .pwa-install-area {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: 1.5rem;
-        margin-bottom: 1rem;
-    }
-
-    .install-btn {
+    .tab {
+        flex: 1;
         display: flex;
         align-items: center;
         justify-content: center;
-        gap: 0.5rem;
-        width: 100%;
-        padding: 1rem;
-        background: var(--primary);
-        color: white; /* 혹은 var(--primary-foreground) */
+        gap: 8px;
+        padding: 10px;
         border: none;
-        border-radius: var(--radius-card);
-        font-size: 1rem;
-        font-weight: 700;
+        background: none;
+        border-radius: 8px;
+        font-weight: 600;
+        color: var(--muted-foreground);
         cursor: pointer;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-        transition:
-            transform 0.2s,
-            box-shadow 0.2s;
+        transition: all 0.2s;
     }
-
-    .install-btn:active {
-        transform: scale(0.98);
-    }
-
-    .text-divider {
-        font-size: 0.85rem;
-        color: var(--muted-foreground);
-        position: relative;
-        width: 100%;
-        text-align: center;
-    }
-    .text-divider::before {
-        content: "";
-        position: absolute;
-        top: 50%;
-        left: 0;
-        width: 100%;
-        height: 1px;
-        background: var(--border);
-        z-index: 0;
-    }
-    .text-divider::after {
-        /* 텍스트 뒤 배경을 덮어서 선 가리기 */
-        content: "혹은 수동으로 설치";
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
+    .tab.active {
         background: var(--card);
-        padding: 0 1rem;
-        z-index: 1;
-        color: var(--muted-foreground);
+        color: var(--foreground);
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     }
 
-    /* Guide Steps */
-    .guide-step {
+    /* Guide Common */
+    .guide-container {
+        width: 100%;
+        background: var(--card);
+        border-radius: 24px;
+        padding: 2rem;
+        border: 1px solid var(--border);
+        box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.1);
+    }
+
+    .step-row {
         display: flex;
-        gap: 1.5rem;
+        gap: 1rem;
         align-items: flex-start;
     }
-
     .step-num {
-        width: 2rem;
-        height: 2rem;
-        flex-shrink: 0;
-        background: var(--secondary);
-        color: var(--foreground);
+        background: var(--primary);
+        color: white; /* var(--primary-foreground) */
+        width: 24px;
+        height: 24px;
         border-radius: 50%;
         display: flex;
         align-items: center;
         justify-content: center;
-        font-weight: 700;
-        font-size: 0.9rem;
+        font-size: 0.85rem;
+        font-weight: bold;
+        flex-shrink: 0;
+        margin-top: 2px;
     }
-
-    .step-content {
+    .step-detail {
         flex: 1;
         display: flex;
         flex-direction: column;
-        gap: 0.5rem;
+        gap: 0.8rem;
     }
-
-    .step-icon {
-        width: fit-content;
-        padding: 0.5rem;
-        background: var(--background);
-        border-radius: 0.5rem;
-        border: 1px solid var(--border);
-        color: var(--primary);
-    }
-
-    .step-text-only {
-        font-weight: 700;
-        color: var(--primary);
-        font-size: 1.1rem;
-    }
-
-    .step-content p {
+    .step-detail p {
         margin: 0;
-        color: var(--foreground);
         line-height: 1.5;
+        font-size: 0.95rem;
+    }
+    .step-detail strong {
+        color: var(--primary);
     }
 
-    .benefit-box {
+    .arrow-divider {
         display: flex;
+        justify-content: center;
+        padding: 1rem 0;
+        opacity: 0.5;
+    }
+
+    /* iOS Specific Styles */
+    :global(.ios-blue) {
+        color: #007aff; /* Safari Default Blue */
+    }
+    .mock-icon-box {
+        display: flex;
+        justify-content: center;
+        padding: 1rem;
+        background: var(--secondary);
+        border-radius: 12px;
+    }
+
+    /* Safari Menu Simulation */
+    .safari-menu-item {
+        background: var(--secondary); /* 사파리 메뉴 배경색 느낌 */
+        border-radius: 12px;
+        padding: 0 1rem;
+    }
+    .menu-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 12px 0;
+        font-size: 1rem;
+        font-weight: 500;
+    }
+
+    /* Android Install Button */
+    .install-action {
+        display: flex;
+        flex-direction: column;
         align-items: center;
         gap: 0.5rem;
-        padding: 1rem 1.5rem;
-        background: var(--card);
-        border: 1px solid var(--primary);
-        color: var(--primary);
-        border-radius: var(--radius-card);
-        font-weight: 600;
-        font-size: 0.9rem;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        padding: 1rem 0;
+    }
+    .install-btn {
+        width: 100%;
+        padding: 1rem;
+        border-radius: 12px;
+        border: none;
+        background: var(--primary);
+        color: white;
+        font-weight: bold;
+        font-size: 1rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        cursor: pointer;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    }
+    .sub-text {
+        font-size: 0.8rem;
+        color: var(--muted-foreground);
     }
 
-    @media (max-width: 480px) {
-        .guide-container {
-            padding: 1.5rem;
-        }
-        .tab {
-            padding: 0.6rem 1rem;
-            font-size: 0.9rem;
-        }
-        .qr-section {
-            display: none;
-        }
+    /* Android Manual Menu */
+    .android-menu-item {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        background: var(--secondary);
+        padding: 1rem;
+        border-radius: 8px;
+    }
+
+    /* QR / Notice */
+    .qr-card {
+        text-align: center;
+        background: white;
+        padding: 1.5rem;
+        border-radius: 16px;
+        color: black;
+    }
+    .notice-box {
+        display: flex;
+        gap: 10px;
+        font-size: 0.85rem;
+        color: var(--muted-foreground);
+        background: var(--secondary);
+        padding: 1rem;
+        border-radius: 12px;
+        line-height: 1.4;
+    }
+    :global(.notice-icon) {
+        flex-shrink: 0;
+        margin-top: 2px;
     }
 </style>

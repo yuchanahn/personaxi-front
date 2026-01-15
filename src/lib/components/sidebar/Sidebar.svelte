@@ -120,6 +120,15 @@
     </div>
 
     <div class="sidebar-footer">
+        <a href="/install" class="sidebar-link">
+            <Icon
+                icon="material-symbols:download-rounded"
+                width="24"
+                height="24"
+            />
+            <span>{$t("sidebar.install")}</span>
+        </a>
+
         <a
             href="https://discord.gg/pyPb9Pp6"
             target="_blank"
@@ -143,7 +152,7 @@
         --sidebar-width: 250px;
         --sidebar-transition-duration: 0.3s;
         --sidebar-header-height: 230px; /* 이건 헤더 높이 */
-        --sidebar-footer-height: 100px; /* 푸터 높이를 늘려서 새 링크 공간 확보! */
+        --sidebar-footer-height: 156px; /* 푸터 높이를 늘려서 새 링크 공간 확보! */
     }
 
     /* 사이드바 본체 스타일 */

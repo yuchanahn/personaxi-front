@@ -90,6 +90,7 @@
                     "/",
                     "/test",
                     "/suspended",
+                    "/install",
                 ];
                 if (!publicRoutes.includes($page.url.pathname)) {
                     goto("/login");

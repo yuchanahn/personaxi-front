@@ -89,9 +89,11 @@
     }));
 
     let selectedLLM_id = llmType;
+    let prevLLMType = llmType;
 
-    $: if (llmType && llmType !== selectedLLM_id) {
+    $: if (llmType && llmType !== prevLLMType) {
         selectedLLM_id = llmType;
+        prevLLMType = llmType;
     }
 
     $: selectedLLM =
@@ -115,6 +117,8 @@
             noScroll: true,
             keepFocus: true,
         });
+
+        console.log("LLM type changed to:", newType);
     }
 
     onMount(async () => {
@@ -131,25 +135,28 @@
     });
 
     async function showStatus(message: string, duration: number = 2000) {
-        statusMessage = message;
-        if (statusTimer) clearTimeout(statusTimer);
-        if (duration > 0) {
-            statusTimer = setTimeout(() => (statusMessage = ""), duration);
-        }
+        //statusMessage = message;
+        //if (statusTimer) clearTimeout(statusTimer);
+        //if (duration > 0) {
+        //    statusTimer = setTimeout(() => (statusMessage = ""), duration);
+        //}
     }
 
     async function handleLLMChange() {
+        console.log("Selected LLM:", selectedLLM_id);
+        console.log("Selected LLM:", selectedLLM);
+
         if (!persona?.id) return;
         isLoading = true;
         await showStatus("Saving...", 0);
         try {
             const res = await api.post(`/api/chat/char/sessions/edit`, {
                 cssid: persona.id,
-                llmType: selectedLLM_id,
+                llmType: selectedLLM.id,
             });
             if (!res.ok) throw new Error(await res.text());
             await res.json();
-            changeLLMType(selectedLLM_id);
+            changeLLMType(selectedLLM.id);
             await showStatus("✅ Saved!");
         } catch (error) {
             console.error("Failed to save LLM preference:", error);
@@ -269,9 +276,9 @@
                                 disabled={isLoading}
                                 aria-label="Select model"
                             >
-                                {#each availableLLMs as llm}
+                                {#each availableLLMs as llm (llm.id)}
                                     <option value={llm.id}
-                                        >{llm.name} - ⚡️{llm.cost}</option
+                                        >{llm.name}⚡️{llm.cost}</option
                                     >
                                 {/each}
                             </select>

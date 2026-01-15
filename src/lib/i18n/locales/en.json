@@ -48,7 +48,8 @@
     "exitFullscreen": "Exit Fullscreen",
     "enterFullscreen": "Enter Fullscreen",
     "tutorial": "Tutorial",
-    "community": "Join the Community"
+    "community": "Join the Community",
+    "install": "Install App"
   },
   "chatInput": {
     "placeholder": "Talk to {name}...",
@@ -368,7 +369,7 @@
   "settingModal": {
     "title": "Settings",
     "neuronBalance": "Balance:",
-    "llmTitle": "Select AI Model",
+    "llmTitle": "Response Mode",
     "llmDescription": "Choose an AI model. Neuron consumption varies by model.",
     "costDisplay": "Base Cost:",
     "neuronsConsumed": "Neurons",
@@ -713,7 +714,9 @@
       "3": "Tap <strong>Install</strong>"
     },
     "benefit": "Benefits: Fullscreen & Faster",
-    "notice": "📢 Not available on official stores yet.<br>Install this PWA to enjoy the service at a <strong>better price</strong> without store fees!"
+    "notice": "📢 Not available on official stores yet.<br>Install this PWA to enjoy the service at a <strong>better price</strong> without store fees!",
+    "promptTitle": "Experience the App!",
+    "promptDesc": "Install for fullscreen & better performance."
   },
   "models": {
     "title": "Response Mode",

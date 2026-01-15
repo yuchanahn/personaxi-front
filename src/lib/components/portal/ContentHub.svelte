@@ -16,6 +16,7 @@
     import Icon from "@iconify/svelte";
     import { allCategories } from "$lib/constants";
     import { slide } from "svelte/transition";
+    import InstallPrompt from "$lib/components/common/InstallPrompt.svelte";
 
     // --- 상수 ---
     const visibleCategories = allCategories.filter(
@@ -544,6 +545,7 @@
             </section>
         {/if}
     </div>
+    <InstallPrompt />
 </div>
 
 <style>

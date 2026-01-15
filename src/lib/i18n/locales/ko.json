@@ -78,7 +78,8 @@
     "exitFullscreen": "전체화면 종료",
     "enterFullscreen": "전체화면 시작",
     "tutorial": "튜토리얼",
-    "community": "커뮤니티 참여"
+    "community": "커뮤니티 참여",
+    "install": "앱 설치"
   },
   "chatInput": {
     "placeholder": "{name}에게 말을 걸어보세요...",
@@ -141,7 +142,7 @@
   "settingModal": {
     "title": "설정",
     "neuronBalance": "남은 뉴런:",
-    "llmTitle": "AI 모델 선택",
+    "llmTitle": "응답 모드",
     "llmDescription": "사용할 AI 모델을 선택하세요. 모델에 따라 소모되는 뉴런이 다릅니다.",
     "costDisplay": "기본 비용:",
     "neuronsConsumed": "뉴런 소모",
@@ -666,7 +667,9 @@
       "3": "팝업에서 <strong>설치</strong>를 누르면 완료!"
     },
     "benefit": "앱 설치 혜택: 전체화면 몰입감, 더 빠른 로딩",
-    "notice": "📢 아직 공식 스토어에는 출시되지 않았습니다.<br>이 웹 앱(PWA)을 설치하면 <strong>스토어 수수료 없이</strong> 더 합리적인 가격으로 서비스를 이용하실 수 있습니다!"
+    "notice": "📢 아직 공식 스토어에는 출시되지 않았습니다.<br>이 웹 앱(PWA)을 설치하면 <strong>스토어 수수료 없이</strong> 더 합리적인 가격으로 서비스를 이용하실 수 있습니다!",
+    "promptTitle": "앱으로 더 쾌적하게!",
+    "promptDesc": "전체화면으로 몰입감 있게 즐겨보세요."
   },
   "models": {
     "title": "응답 모드",
