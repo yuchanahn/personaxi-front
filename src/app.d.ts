@@ -6,8 +6,11 @@ declare global {
 		// interface Locals {}
 		// interface PageData {}
 		// interface PageState {}
+		// interface PageData {}
+		// interface PageState {}
 		// interface Platform {}
 	}
+	var PIXI: any;
 }
 
-export {};
+export { };

@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { onDestroy, onMount } from "svelte";
+    import { onDestroy } from "svelte";
     import { SpeechToText } from "$lib/stores/sttStore.svelte";
     import Icon from "@iconify/svelte";
     import { fade } from "svelte/transition";
@@ -46,7 +46,7 @@
         if (timer) {
             clearTimeout(timer);
         }
-        timer = setTimeout(() => {
+        timer = window.setTimeout(() => {
             text = "";
         }, duration);
     }

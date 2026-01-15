@@ -2,6 +2,7 @@ export const SpeechRecognition = window.SpeechRecognition || window.webkitSpeech
 
 export class SpeechToText {
     private sr: SpeechRecognition | null = null
+    private stream: MediaStream | null = null
     private speechTimer: number = 0
     private speechTimeout: number = 1.5 * 1000
     private speechTimeoutCallback: () => void
@@ -39,20 +40,29 @@ export class SpeechToText {
 
     public async start() {
         if (this.sr) {
-            const stream = await navigator.mediaDevices.getUserMedia({
-                audio: {
-                    echoCancellation: true,
-                    noiseSuppression: true,
-                    autoGainControl: true
-                }
-            });
+            try {
+                this.stream = await navigator.mediaDevices.getUserMedia({
+                    audio: {
+                        echoCancellation: true,
+                        noiseSuppression: true,
+                        autoGainControl: true
+                    }
+                });
 
-            const audioTrack = stream.getAudioTracks()[0];
+                // Experimental support for passing track
+                const audioTrack = this.stream.getAudioTracks()[0];
 
-            clearTimeout(this.speechTimer)
-            this.speechTimer = setTimeout(() => this.onSpeechTimeout(), this.speechTimeout)
-            this.sr.start(audioTrack)
-            //this.sr.start()
+                clearTimeout(this.speechTimer)
+                this.speechTimer = window.setTimeout(() => this.onSpeechTimeout(), this.speechTimeout)
+
+                this.sr.start(audioTrack)
+            } catch (e) {
+                console.error("Mic Error or SR Start Error:", e);
+                // Fallback if getUserMedia fails or whatever
+                try {
+                    this.sr.start();
+                } catch (e2) { }
+            }
         }
     }
 
@@ -61,11 +71,15 @@ export class SpeechToText {
             clearTimeout(this.speechTimer)
             this.sr.stop()
         }
+        if (this.stream) {
+            this.stream.getTracks().forEach(track => track.stop());
+            this.stream = null;
+        }
     }
 
     private onResult(event: SpeechRecognitionEvent) {
         clearTimeout(this.speechTimer)
-        this.speechTimer = setTimeout(() => this.onSpeechTimeout(), this.speechTimeout)
+        this.speechTimer = window.setTimeout(() => this.onSpeechTimeout(), this.speechTimeout)
         this.speechCurrent = event.results[0][0].transcript
         if (event.results[0].isFinal) {
             this.speechFull += ' ' + this.speechCurrent

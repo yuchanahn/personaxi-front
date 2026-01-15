@@ -187,7 +187,7 @@
         <Sidebar /> <!-- 모바일에선 아예 렌더하지 않는다 -->
     {/if}
 
-    <main class:no-padding-bottom={isChatPage}>
+    <main class:no-padding-bottom={isChatPage} class="no-scrollbar">
         <slot />
 
         <CheatConsole

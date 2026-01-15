@@ -934,6 +934,9 @@
     onDestroy(() => {
         if (idleInterval) clearInterval(idleInterval);
         window.removeEventListener("resize", onResize);
+        //마이크 연결 종료
+
+        stopNeuroMotion();
         if (currentModel)
             try {
                 currentModel.destroy();
@@ -946,7 +949,6 @@
                     baseTexture: true,
                 });
             } catch (e) {}
-        stopNeuroMotion();
     });
 </script>
 
