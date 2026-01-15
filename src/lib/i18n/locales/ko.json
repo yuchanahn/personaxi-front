@@ -385,7 +385,11 @@
     },
     "defaultProfile": "기본 프로필",
     "spoilerWarning": "스포일러 주의! 첫 장면을 보시겠습니까?",
-    "characterIntel": "캐릭터 정보"
+    "characterIntel": "캐릭터 정보",
+    "totalImages": "전체 {count}",
+    "hiddenImages": "숨김 {count}",
+    "linkCopied": "링크가 복사되었습니다!",
+    "linkCopyFailed": "링크 복사에 실패했습니다."
   },
   "editPage": {
     "title": "페르소나 편집",

@@ -40,42 +40,27 @@
     export async function speak(audioUrl: string) {
         if (!currentModel) return;
 
-        // 1. 기존 오디오 정리 (중복 재생 방지)
         if (currentAudio) {
             currentAudio.pause();
             currentAudio = null;
         }
 
-        // 2. 새로운 오디오 객체 생성
         const audio = new Audio(audioUrl);
-        audio.crossOrigin = "anonymous"; // CORS 필수
+        audio.crossOrigin = "anonymous";
 
-        // 3. 🔥 여기서 연결해야 합니다! (분석기에 꽂기)
         setAudio(audio);
 
-        // 4. 모션 엔진 가동
         startNeuroMotion();
 
-        // 5. 재생 시작
         try {
             await audio.play();
-
-            // (선택사항) 라이브러리 립싱크도 같이 쓰고 싶으면
-            // currentModel.speak(audioUrl) 대신
-            // 립싱크용 볼륨을 startNeuroMotion 안에서 ParamMouthOpenY에 넣어주는게 베스트입니다.
-            // 하지만 일단 기존 speak와 병행하려면 아래처럼 꼼수로 동시에 틀거나,
-            // 라이브러리 speak 기능을 끄고 직접 구현해야 합니다.
-
-            // 일단 '모션'이 목적이므로 audio.play()로 소리는 나옵니다.
         } catch (e) {
             console.error("Audio play failed:", e);
         }
 
-        // 6. 끝나면 정리
         audio.onended = () => {
             console.log("Audio Finished");
-            // 모션 멈추기 (필요하면)
-            // app.ticker.remove(neuroTicker);
+            app.ticker.remove(neuroTicker);
         };
     }
 
@@ -961,6 +946,7 @@
                     baseTexture: true,
                 });
             } catch (e) {}
+        stopNeuroMotion();
     });
 </script>
 

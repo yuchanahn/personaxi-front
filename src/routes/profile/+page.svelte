@@ -16,12 +16,14 @@
     import { slide } from "svelte/transition";
     import { st_user } from "$lib/stores/user";
     import { toast } from "$lib/stores/toast";
+    import ReportModal from "$lib/components/modal/ReportModal.svelte";
 
     let persona: Persona | null = null;
     let comments: Comment[] = [];
     let isLoading = true;
     let newCommentText = "";
     let showFirstScene = false;
+    let showReportModal = false;
 
     let galleryImages: ImageMetadata[] = [];
     let currentImageIndex = 0;
@@ -169,22 +171,58 @@
     }
 
     async function handleLike(p: Persona) {
-        if (p.is_liked) return;
-        await LikeBtn(
-            p,
-            () => {
+        if (!p || !p.id) return;
+
+        const newLikeStatus = !p.is_liked;
+        const endpoint = newLikeStatus ? "like" : "dislike";
+        const url = `/api/persona/${endpoint}?id=${p.id}`;
+
+        try {
+            const res = await api.get(url);
+
+            if (res.ok) {
                 if (persona && persona.id === p.id) {
                     persona = {
                         ...persona,
-                        is_liked: true,
-                        likes_count: persona.likes_count + 1,
+                        is_liked: newLikeStatus,
+                        likes_count:
+                            persona.likes_count + (newLikeStatus ? 1 : -1),
                     };
                 }
-            },
-            (errorMessage) => {
-                toast.error(`좋아요 처리에 실패했습니다: ${errorMessage}`);
-            },
-        );
+            } else {
+                const errorText = await res.text();
+                toast.error(
+                    $t("profilePage.likeFailed", {
+                        values: { message: errorText },
+                    }),
+                );
+            }
+        } catch (error) {
+            console.error("Like toggle failed:", error);
+            toast.error(
+                $t("profilePage.likeFailed", {
+                    values: { message: "Network error" },
+                }),
+            );
+        }
+    }
+
+    async function handleShare() {
+        if (!persona || !persona.id) return;
+
+        const shareUrl = `${window.location.origin}/profile?c=${persona.id}`;
+
+        try {
+            await navigator.clipboard.writeText(shareUrl);
+            toast.success(
+                $t("profilePage.linkCopied") || "Link copied to clipboard!",
+            );
+        } catch (err) {
+            console.error("Failed to copy link:", err);
+            toast.error(
+                $t("profilePage.linkCopyFailed") || "Failed to copy link.",
+            );
+        }
     }
 
     function showPrevImage() {
@@ -545,8 +583,8 @@
                             on:click={() => {
                                 if (persona) handleLike(persona);
                             }}
-                            disabled={persona.is_liked}
                             aria-label={$t("profilePage.likeButtonLabel")}
+                            title={$t("profilePage.likeButtonLabel")}
                         >
                             <Icon
                                 icon={persona.is_liked
@@ -556,20 +594,71 @@
                                     ? "color: #ff79c6;"
                                     : ""}
                             />
-                            <span class="stat-label"
-                                >{$t("profilePage.likeButtonLabel")}</span
-                            >
                             <span class="stat-value">{persona.likes_count}</span
                             >
                         </button>
-                        <div class="stat-item non-clickable">
+
+                        <div class="stat-divider"></div>
+
+                        <div
+                            class="stat-item non-clickable"
+                            title={$t("profilePage.interactionLabel")}
+                        >
                             <Icon icon="ph:chat-circle-dots-bold" />
-                            <span class="stat-label"
-                                >{$t("profilePage.interactionLabel")}</span
-                            >
                             <span class="stat-value">{persona.chat_count}</span>
                         </div>
+
+                        <div class="stat-divider"></div>
+
+                        <!-- Share Button -->
+                        <button
+                            class="stat-item"
+                            on:click={handleShare}
+                            title={$t("settingModal.share") || "Share"}
+                        >
+                            <Icon icon="ph:share-network-bold" />
+                        </button>
+
+                        <div class="stat-divider"></div>
+
+                        <!-- Report Button -->
+                        <button
+                            class="stat-item destructive"
+                            on:click={() => (showReportModal = true)}
+                            title={$t("settingModal.report") || "Report"}
+                        >
+                            <Icon icon="ph:flag-bold" />
+                        </button>
                     </div>
+
+                    <!-- Image Stats (New) -->
+                    {#if galleryImages.length > 0}
+                        <div class="image-stats-row">
+                            <div class="image-stat">
+                                <Icon icon="ph:image-square-bold" />
+                                <span
+                                    >{$t("profilePage.totalImages", {
+                                        values: { count: galleryImages.length },
+                                    }) || `Total ${galleryImages.length}`}</span
+                                >
+                            </div>
+                            {#if galleryImages.filter((img) => img.is_secret).length > 0}
+                                <div class="image-stat secret">
+                                    <Icon icon="ph:lock-key-fill" />
+                                    <span
+                                        >{$t("profilePage.hiddenImages", {
+                                            values: {
+                                                count: galleryImages.filter(
+                                                    (img) => img.is_secret,
+                                                ).length,
+                                            },
+                                        }) ||
+                                            `Hidden ${galleryImages.filter((img) => img.is_secret).length}`}</span
+                                    >
+                                </div>
+                            {/if}
+                        </div>
+                    {/if}
                     <button
                         class="chat-start-button"
                         on:click={handleStartChat}
@@ -642,6 +731,14 @@
             <p class="error-text">{$t("profilePage.personaNotFound")}</p>
         {/if}
     </div>
+
+    {#if showReportModal && persona}
+        <ReportModal
+            personaId={persona.id}
+            personaName={persona.name}
+            on:close={() => (showReportModal = false)}
+        />
+    {/if}
 </div>
 
 <style>
@@ -655,6 +752,35 @@
         border-radius: var(--radius-card);
         padding: 1rem;
         margin-bottom: 2.5rem;
+        gap: 0.5rem;
+    }
+    .stat-divider {
+        width: 1px;
+        height: 40px;
+        background-color: var(--border);
+        margin: 0 0.5rem;
+    }
+    .image-stats-row {
+        display: flex;
+        justify-content: center;
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+        margin-top: -1.5rem;
+    }
+    .image-stat {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 0.9rem;
+        color: var(--muted-foreground);
+        background: var(--muted);
+        padding: 4px 10px;
+        border-radius: 999px;
+    }
+    .image-stat.secret {
+        color: #fbbf24;
+        background: rgba(251, 191, 36, 0.1);
+        border: 1px solid rgba(251, 191, 36, 0.2);
     }
     .stat-item {
         display: flex;
@@ -664,6 +790,21 @@
         font-size: 1.2rem;
         font-weight: 600;
         color: var(--foreground);
+        padding: 8px 16px;
+        border-radius: 12px;
+        transition: background-color 0.2s;
+        border: none;
+        background: transparent;
+    }
+    .stat-item:hover:not(:disabled):not(.non-clickable) {
+        background-color: var(--muted);
+        cursor: pointer;
+    }
+    .stat-item.destructive {
+        color: var(--destructive);
+    }
+    .stat-item.destructive:hover {
+        background-color: var(--destructive-foreground);
     }
     .stat-item :global(svg) {
         color: var(--muted-foreground);
@@ -754,13 +895,7 @@
         backdrop-filter: blur(4px);
         border: 1px solid rgba(251, 191, 36, 0.3);
     }
-    .profile-portrait-square {
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-        display: block;
-        transition: opacity 0.3s ease-in-out;
-    }
+    /* .profile-portrait-square removed */
     .nav-arrow {
         position: absolute;
         top: 50%;

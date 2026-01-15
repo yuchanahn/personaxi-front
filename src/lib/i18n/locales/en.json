@@ -317,6 +317,8 @@
     "registerButton": "Register",
     "personaNotFound": "Character information not found. (T_T)",
     "likeFailed": "Failed to process like: {message}",
+    "linkCopied": "Link copied to clipboard!",
+    "linkCopyFailed": "Failed to copy link.",
     "dummyComments": {
       "author1": "Story Explorer",
       "text1": "I love this character setting! I'm curious about the background story.",
@@ -330,7 +332,9 @@
     },
     "defaultProfile": "Default Profile",
     "spoilerWarning": "Spoiler Alert! View first scene?",
-    "characterIntel": "Character Info"
+    "characterIntel": "Character Info",
+    "totalImages": "Total {count}",
+    "hiddenImages": "Hidden {count}"
   },
   "auctionModal": {
     "createFailed": "Auction creation failed"
