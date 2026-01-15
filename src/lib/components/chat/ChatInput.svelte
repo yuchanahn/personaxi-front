@@ -87,6 +87,7 @@
         class:over-limit={isOverLimit}
         rows="1"
         maxlength={MAX_CHARS}
+        disabled={isDisabled}
         use:autoResize={180}
         on:keydown={handleSubmit}
         on:input={() => onChangeInput(prompt)}
@@ -94,15 +95,20 @@
     {/if}
     {#if prompt.trim() === ""}
       <div class="chat-send-button" title="음성 입력" aria-label="음성 입력">
-        <SttComponent bind:isListening onSpeechComplete={onSend} />
+        <SttComponent
+          bind:isListening
+          onSpeechComplete={(text) => {
+            if (!isDisabled) onSend(text);
+          }}
+        />
       </div>
     {:else}
       <button
         class="chat-send-button"
         class:is-disabled={isDisabled || isOverLimit}
-        disabled={isOverLimit}
+        disabled={isOverLimit || isDisabled}
         on:click={() => {
-          if (prompt.trim() === "" || isOverLimit) return;
+          if (prompt.trim() === "" || isOverLimit || isDisabled) return;
           onSend(prompt);
           prompt = "";
         }}

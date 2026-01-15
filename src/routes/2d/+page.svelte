@@ -69,6 +69,8 @@
   let isLoading = false;
   let isDisabled = false;
   const send = async (prompt: string) => {
+    if (isLoading || isDisabled) return;
+
     const sessionId = $page.url.searchParams.get("c");
 
     // Optimistic Credit Deduction
@@ -83,6 +85,7 @@
     isDisabled = true;
     await sendPromptStream(sessionId ?? "", prompt, "2d", () => {
       isDisabled = false;
+      isLoading = false;
     });
   };
 
