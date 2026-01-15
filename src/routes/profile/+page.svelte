@@ -632,7 +632,7 @@
                     </div>
 
                     <!-- Image Stats (New) -->
-                    {#if galleryImages.length > 0}
+                    {#if galleryImages.length > 1}
                         <div class="image-stats-row">
                             <div class="image-stat">
                                 <Icon icon="ph:image-square-bold" />
