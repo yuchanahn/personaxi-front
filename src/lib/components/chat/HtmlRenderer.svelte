@@ -99,10 +99,15 @@
 </style> -->
 
 <style>
+    .narration-block {
+        font-family: "Pretendard", "Batang", serif;
+        font-size: 0.97rem;
+        color: var(--text-color);
+    }
+
     .narration-block :global(p) {
         margin: 0 0 1em 0;
     }
-
     .narration-block :global(ul),
     .narration-block :global(ol) {
         padding-left: 1.5em;

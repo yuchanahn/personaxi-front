@@ -298,12 +298,16 @@
       const lastImage = images[images.length - 1];
 
       if (lastImage) {
-        meta.url = lastImage.url;
-        meta.description = lastImage.alt;
-        meta.type =
-          lastImage.type === "markdown_image"
-            ? "image"
-            : (lastImage as ImageBlock).metadata.type;
+        // Use immutable assignment to trigger Svelte reactivity in child components
+        meta = {
+          ...meta,
+          url: lastImage.url,
+          description: lastImage.alt || "",
+          type:
+            lastImage.type === "markdown_image"
+              ? "image"
+              : (lastImage as ImageBlock).metadata.type,
+        };
       }
 
       activeBackgroundImage = meta.url;
@@ -776,25 +780,6 @@
     pointer-events: none;
     transition: background-image 0.5s ease-in-out;
     background-color: rgba(0, 0, 0, 0.5);
-  }
-
-  .bg-blur {
-    position: absolute;
-    width: 100%;
-    height: 100%;
-    object-fit: cover; /* Fill screen */
-    filter: blur(40px) brightness(0.4); /* Darkened blur */
-    transform: scale(1.2); /* Hide blur edges */
-    z-index: 1;
-  }
-
-  .bg-main {
-    position: absolute;
-    width: 100%;
-    height: 100%;
-    object-fit: contain; /* Show full image */
-    z-index: 2;
-    opacity: 0.6; /* Slight transparency for text readability */
   }
 
   /* Ensure messages are above background */

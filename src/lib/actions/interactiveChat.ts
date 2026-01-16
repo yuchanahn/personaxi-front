@@ -203,9 +203,14 @@ export function interactiveChat(node: HTMLElement, callback: (payload: string) =
             callback("<system-input>" + queue.join("\n") + "</system-input>");
             queue = [];
 
-            choiceCounter.classList.add("used");
 
-            const counterParent = choiceCounter.closest("div, p");
+            if (choiceCounter) {
+                choiceCounter.classList.add("used");
+            }
+
+            const referenceNode = choiceCounter || choiceButton;
+            const counterParent = referenceNode.closest("div, p");
+
             if (counterParent) {
                 counterParent.querySelectorAll(".game-choice:not(.used)").forEach(btn => {
                     btn.classList.add("used");
