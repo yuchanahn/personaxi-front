@@ -2,17 +2,28 @@
     import { fetchAndSetAssetTypes } from "$lib/api/edit_persona";
     import type { ImageMetadata } from "$lib/types";
     import Icon from "@iconify/svelte";
-    import { onDestroy } from "svelte";
+    import { onDestroy, onMount } from "svelte";
 
     export let asset: ImageMetadata;
 
     let isFetching = false;
     let fetchAborted = false;
 
-    // 컴포넌트 unmount 시 플래그 설정
+    // 캐시 키 접두사 (충돌 방지)
+    const CACHE_PREFIX = "asset_type_cache:";
+
     onDestroy(() => {
         fetchAborted = true;
     });
+
+    // LocalStorage 헬퍼 함수
+    const getCachedType = (url: string): string | null => {
+        return localStorage.getItem(CACHE_PREFIX + url);
+    };
+
+    const setCachedType = (url: string, type: string) => {
+        localStorage.setItem(CACHE_PREFIX + url, type);
+    };
 
     $: {
         const shouldFetchType =
@@ -21,31 +32,47 @@
             !(asset.is_secret && !asset.url) &&
             !isFetching;
 
-        if (shouldFetchType) {
-            isFetching = true;
-            fetchAborted = false;
+        if (shouldFetchType && asset.url) {
+            // 1. LocalStorage 체크 (새로고침 해도 유지됨)
+            const cachedType = getCachedType(asset.url);
 
-            (async () => {
-                try {
-                    const assetsWithType = await fetchAndSetAssetTypes([asset]);
+            if (cachedType) {
+                // 캐시 히트: 즉시 적용
+                asset = { ...asset, type: cachedType as any };
+            } else {
+                // 2. 캐시 미스: API 요청
+                isFetching = true;
+                fetchAborted = false;
 
-                    // 컴포넌트가 unmount되었으면 업데이트 스킵
-                    if (fetchAborted) return;
+                (async () => {
+                    try {
+                        const assetsWithType = await fetchAndSetAssetTypes([
+                            asset,
+                        ]);
 
-                    if (assetsWithType[0]?.type) {
-                        asset = { ...asset, type: assetsWithType[0].type };
-                    } else {
-                        asset = { ...asset, type: "unknown" };
+                        if (fetchAborted) return;
+
+                        if (assetsWithType[0]?.type) {
+                            const newType = assetsWithType[0].type;
+
+                            // 성공 시 LocalStorage에 영구 저장
+                            if (asset.url) {
+                                setCachedType(asset.url, newType);
+                            }
+                            asset = { ...asset, type: newType };
+                        } else {
+                            asset = { ...asset, type: "unknown" };
+                        }
+                    } catch (error) {
+                        console.error("Failed to fetch asset type:", error);
+                        if (!fetchAborted) {
+                            asset = { ...asset, type: "unknown" };
+                        }
+                    } finally {
+                        isFetching = false;
                     }
-                } catch (error) {
-                    console.error("Failed to fetch asset type:", error);
-                    if (!fetchAborted) {
-                        asset = { ...asset, type: "unknown" };
-                    }
-                } finally {
-                    isFetching = false;
-                }
-            })();
+                })();
+            }
         }
     }
 </script>

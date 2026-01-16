@@ -291,28 +291,22 @@
 
   $: {
     if (showBackground) {
-      let foundUrl: string | null = null;
-      // Find the latest image that has been "typed" (revealed)
-      for (let i = typingIndex; i >= 0; i--) {
-        if (i < chatLog.length) {
-          const item = chatLog[i];
-          if (item.type === "markdown_image" && item.url) {
-            foundUrl = item.url;
-            meta.type = "image";
+      const images = chatLog.filter(
+        (item) => item.type === "image" || item.type === "markdown_image",
+      );
 
-            console.log("ChatWindow: found image", item.url);
+      const lastImage = images[images.length - 1];
 
-            break;
-          }
-          // For 'image' type (assets), we check our loaded map
-          if (item.type === "image" && loadedImageUrls[i]) {
-            foundUrl = loadedImageUrls[i];
-            break;
-          }
-        }
+      if (lastImage) {
+        meta.url = lastImage.url;
+        meta.description = lastImage.alt;
+        meta.type =
+          lastImage.type === "markdown_image"
+            ? "image"
+            : (lastImage as ImageBlock).metadata.type;
       }
-      activeBackgroundImage = foundUrl;
-      meta.url = foundUrl || "";
+
+      activeBackgroundImage = meta.url;
     } else {
       activeBackgroundImage = null;
     }
@@ -768,49 +762,39 @@
     scroll-behavior: smooth;
   }
 
-  /* Background Mode Layer */
   .chat-background-layer {
     position: fixed;
     top: 0;
     left: 0;
-
     width: 100%;
-    height: 100vh; /* min-height 대신 height로 고정하는 것이 배경 제어에 유리합니다 */
-
-    /* 핵심 변경 사항 */
-    background-size: contain; /* 이미지가 잘리지 않고 다 들어감 */
-    /* 만약 '무조건 세로만 꽉 채우고 좌우는 잘려도 된다'면 -> background-size: auto 100%; */
-
-    background-position: center center; /* 정중앙 정렬 */
+    height: 100vh;
+    background-size: contain;
+    background-position: center center;
     background-repeat: no-repeat;
-
     z-index: 0;
     opacity: 0.4;
     pointer-events: none;
     transition: background-image 0.5s ease-in-out;
-
-    /* 배경색 지정 (이미지 비율이 안 맞을 때 빈 공간 색상) */
     background-color: rgba(0, 0, 0, 0.5);
   }
 
-  /* 뒤에서 꽉 채우고 흐리게 깔아주는 녀석 */
-  .chat-bg-blur {
-    position: fixed;
-    inset: 0;
-    background-size: cover; /* 얘는 잘려도 됨 */
-    background-position: center;
-    filter: blur(20px) brightness(0.7); /* 흐림 효과 */
-    z-index: -1;
+  .bg-blur {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    object-fit: cover; /* Fill screen */
+    filter: blur(40px) brightness(0.4); /* Darkened blur */
+    transform: scale(1.2); /* Hide blur edges */
+    z-index: 1;
   }
 
-  /* 앞에서 짤리지 않고 선명하게 보여주는 녀석 */
-  .chat-bg-main {
-    position: fixed;
-    inset: 0;
-    background-size: contain; /* 잘리지 않음 */
-    background-position: center;
-    background-repeat: no-repeat;
-    z-index: 0;
+  .bg-main {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    object-fit: contain; /* Show full image */
+    z-index: 2;
+    opacity: 0.6; /* Slight transparency for text readability */
   }
 
   /* Ensure messages are above background */
