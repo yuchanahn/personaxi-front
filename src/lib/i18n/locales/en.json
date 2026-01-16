@@ -29,6 +29,19 @@
     "makePrivate": "Make character private",
     "makePublic": "Make character public"
   },
+  "pointConvertModal": {
+    "title": "Convert Transactions",
+    "infoTitle": "Conversion Info",
+    "infoDesc": "Convert Creator Points into Neurons to use for chatting or other features.",
+    "cashoutNotice": "Cash withdrawal feature will be supported in the future.",
+    "convertAmount": "Amount to Convert",
+    "max": "Max",
+    "insufficientPoints": "Insufficient points.",
+    "exchangeRate": "Exchange Rate",
+    "fee": "Conversion Fee",
+    "receiveAmount": "You Receive",
+    "convertAction": "Convert"
+  },
   "tts": {
     "connectionFailed": "TTS WebSocket connection failed",
     "connectedMessage": "Voice connection established.",
@@ -652,7 +665,10 @@
   "common": {
     "back": "Back",
     "hide": "Hide",
-    "show": "Show"
+    "show": "Show",
+    "cancel": "Cancel",
+    "confirm": "Confirm",
+    "close": "Close"
   },
   "creatorPage": {
     "personas": "AI Personas",

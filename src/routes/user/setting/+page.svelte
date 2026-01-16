@@ -8,6 +8,7 @@
     import { fetchLivePersonas, setLiveStatus } from "$lib/services/live";
     import { locale, t } from "svelte-i18n";
     import AuctionModal from "$lib/components/modal/AuctionModal.svelte";
+    import PointConvertModal from "$lib/components/modal/PointConvertModal.svelte";
     import NeedMoreNeuronsModal from "$lib/components/modal/NeedMoreNeuronsModal.svelte";
     import NeuronIcon from "$lib/components/icons/NeuronIcon.svelte";
     import { get } from "svelte/store";
@@ -47,6 +48,15 @@
     let liveIds: string[] = [];
 
     let showAuctionModal = false;
+    let showPointConvertModal = false;
+
+    function handleConvertConfirm(e: CustomEvent) {
+        // Mock success for now
+        alert(
+            `${e.detail.amount} 포인트가 전환 신청되었습니다. (기능 구현 중)`,
+        );
+    }
+
     let selectedPersona: Persona | null = null;
 
     let isEditingProfile = false;
@@ -522,7 +532,7 @@
                 </div>
                 <button
                     class="btn btn-primary"
-                    on:click={() => alert("준비 중입니다.")}
+                    on:click={() => (showPointConvertModal = true)}
                 >
                     {$t("settingPage.transfer")}
                 </button>
@@ -697,6 +707,15 @@
         <AuctionModal
             persona={selectedPersona}
             on:close={() => (showAuctionModal = false)}
+        />
+    {/if}
+
+    {#if user}
+        <PointConvertModal
+            isOpen={showPointConvertModal}
+            userPoints={user.creator_points || 0}
+            on:close={() => (showPointConvertModal = false)}
+            on:confirm={handleConvertConfirm}
         />
     {/if}
     <NeedMoreNeuronsModal
