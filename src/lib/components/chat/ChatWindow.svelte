@@ -15,7 +15,6 @@
   import TypewriterHtml from "../common/TypewriterHtml.svelte";
 
   export let isLoading: boolean = false;
-  export let cssid: string;
   export let showChat: boolean = true;
   export let persona: Persona | null = null;
   export let showImage: boolean = true;

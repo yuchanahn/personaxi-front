@@ -154,7 +154,6 @@
 
   <div class="chat-container">
     <ChatWindow
-      cssid={lastSessionId ?? ""}
       {isLoading}
       {persona}
       {showImage}
@@ -173,38 +172,6 @@
 </main>
 
 <style>
-  .character-background {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    z-index: 0;
-    overflow: hidden;
-    pointer-events: none; /* 클릭 방해 금지 */
-  }
-
-  .character-background img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    opacity: 0.6; /* 배경으로 은은하게 깔기 */
-    filter: blur(5px); /* 약간 흐리게 처리 (선택사항) */
-  }
-
-  .gradient-overlay {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(
-      to bottom,
-      rgba(0, 0, 0, 0.3),
-      rgba(0, 0, 0, 0.8)
-    );
-  }
-
   .chat-layout {
     position: fixed;
     top: 0;
@@ -247,12 +214,6 @@
     .chat-container {
       /* 오른쪽 영역이 남은 공간 모두 차지 */
       flex: 1;
-    }
-
-    /* PC에서는 이미지를 오른쪽이나 중앙에 배치하는 스타일 변경 가능 */
-    .character-background img {
-      filter: blur(0); /* PC에서는 선명하게? */
-      opacity: 0.3;
     }
   }
 

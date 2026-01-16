@@ -563,7 +563,7 @@
   -->
   <div class="chat-container select-none">
     <div class="chat-content">
-      <ChatWindow cssid={cssid ?? ""} showChat={show} {isLoading} {persona} />
+      <ChatWindow showChat={show} {isLoading} {persona} />
       <ChatInput
         onSend={send}
         onChangeInput={handleInputChange}

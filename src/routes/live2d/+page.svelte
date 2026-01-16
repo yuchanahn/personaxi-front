@@ -554,11 +554,7 @@
 
         <div class="chat-overlay">
             <div class="chat-content">
-                <ChatWindow
-                    cssid={lastSessionId ?? ""}
-                    {showChat}
-                    {isLoading}
-                />
+                <ChatWindow {showChat} {isLoading} />
                 <ChatInput
                     onSend={send}
                     onChangeInput={handleInputChange}
