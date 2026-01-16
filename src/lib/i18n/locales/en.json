@@ -37,6 +37,7 @@
     "convertAmount": "Amount to Convert",
     "max": "Max",
     "insufficientPoints": "Insufficient points.",
+    "minAmountError": "Minimum conversion amount is {min} points.",
     "exchangeRate": "Exchange Rate",
     "fee": "Conversion Fee",
     "receiveAmount": "You Receive",

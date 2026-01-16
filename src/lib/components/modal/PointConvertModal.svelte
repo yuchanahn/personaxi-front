@@ -15,10 +15,11 @@
     // Configuration (Mock)
     const FEE_RATE = 0.1; // 10% fee
     const EXCHANGE_RATE = 1; // 1 Point = 1 Neuron
+    const MIN_AMOUNT = 100;
 
     $: fee = amount ? Math.floor(amount * FEE_RATE) : 0;
     $: resultNeurons = amount ? Math.floor((amount - fee) * EXCHANGE_RATE) : 0;
-    $: isValid = amount && amount > 0 && amount <= userPoints;
+    $: isValid = amount && amount >= MIN_AMOUNT && amount <= userPoints;
 
     function handleClose() {
         dispatch("close");
@@ -40,7 +41,9 @@
     }
 </script>
 
+<!-- svelte-ignore a11y_no_static_element_interactions -->
 {#if isOpen}
+    <!-- svelte-ignore a11y_click_events_have_key_events -->
     <div
         class="modal-backdrop"
         on:click={handleClose}
@@ -91,6 +94,12 @@
                     {#if amount && amount > userPoints}
                         <p class="error-msg">
                             {$t("pointConvertModal.insufficientPoints")}
+                        </p>
+                    {:else if amount && amount < MIN_AMOUNT}
+                        <p class="error-msg">
+                            {$t("pointConvertModal.minAmountError", {
+                                values: { min: MIN_AMOUNT },
+                            })}
                         </p>
                     {/if}
                 </div>

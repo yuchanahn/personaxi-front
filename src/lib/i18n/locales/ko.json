@@ -64,6 +64,7 @@
     "convertAmount": "전환할 포인트",
     "max": "최대",
     "insufficientPoints": "보유 포인트가 부족합니다.",
+    "minAmountError": "최소 {min} 포인트부터 전환할 수 있습니다.",
     "exchangeRate": "교환 비율",
     "fee": "전환 수수료",
     "receiveAmount": "받을 뉴런",
