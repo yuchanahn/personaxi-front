@@ -68,7 +68,9 @@
     "exchangeRate": "교환 비율",
     "fee": "전환 수수료",
     "receiveAmount": "받을 뉴런",
-    "convertAction": "전환하기"
+    "convertAction": "전환하기",
+    "success": "전환이 완료되었습니다.",
+    "fail": "전환 실패: {error}"
   },
   "settingPageModal": {
     "deleteAccount": "회원 탈퇴",

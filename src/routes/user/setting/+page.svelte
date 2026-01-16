@@ -15,6 +15,7 @@
     import type { User } from "$lib/types";
     import Icon from "@iconify/svelte";
     import { api } from "$lib/api";
+    import { toast } from "$lib/stores/toast";
     import {
         getUploadUrl,
         uploadFileWithProgress,
@@ -50,11 +51,25 @@
     let showAuctionModal = false;
     let showPointConvertModal = false;
 
-    function handleConvertConfirm(e: CustomEvent) {
-        // Mock success for now
-        alert(
-            `${e.detail.amount} 포인트가 전환 신청되었습니다. (기능 구현 중)`,
-        );
+    async function handleConvertConfirm(e: CustomEvent) {
+        const amount = e.detail.amount;
+        try {
+            await api.convertPoints(amount);
+
+            const $t = get(t); // Access store value
+            toast.success($t("pointConvertModal.success"));
+
+            // Refresh user data
+            const userRes = await getCurrentUser();
+            if (userRes) user = userRes as User;
+        } catch (err: any) {
+            const $t = get(t);
+            toast.error(
+                $t("pointConvertModal.fail", {
+                    values: { error: err.message },
+                }),
+            );
+        }
     }
 
     let selectedPersona: Persona | null = null;

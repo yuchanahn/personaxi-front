@@ -41,7 +41,9 @@
     "exchangeRate": "Exchange Rate",
     "fee": "Conversion Fee",
     "receiveAmount": "You Receive",
-    "convertAction": "Convert"
+    "convertAction": "Convert",
+    "success": "Conversion successful.",
+    "fail": "Conversion failed: {error}"
   },
   "tts": {
     "connectionFailed": "TTS WebSocket connection failed",

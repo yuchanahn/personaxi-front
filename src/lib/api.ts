@@ -138,4 +138,22 @@ export const api = {
         return !!user;
     },
 
+    convertPoints: async (amount: number) => {
+        const { data: { session } } = await supabase.auth.getSession();
+        const token = session?.access_token;
+        const res = await fetch(`${API_BASE_URL}/api/user/convert-points`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify({ amount }),
+        });
+        if (!res.ok) {
+            const errData = await res.json().catch(() => ({}));
+            throw new Error(errData.error || errData.message || "Failed to convert points");
+        }
+        return res.json();
+    },
+
 };
