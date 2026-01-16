@@ -289,52 +289,14 @@
   };
 
   $: {
-    if (showBackground) {
-      const images = chatLog.filter(
-        (item) => item.type === "image" || item.type === "markdown_image",
-      );
-
-      const lastImage = images[images.length - 1];
-
-      if (lastImage) {
-        // Use immutable assignment to trigger Svelte reactivity in child components
-        meta = {
-          ...meta,
-          url: lastImage.url,
-          description: lastImage.alt || "",
-          type:
-            lastImage.type === "markdown_image"
-              ? "image"
-              : (lastImage as ImageBlock).metadata.type,
-        };
-      }
-
-      activeBackgroundImage = meta.url;
-    } else {
-      activeBackgroundImage = null;
-    }
-  }
-
-  // Whenever chatLog updates (message arriving or history loading)
-  $: {
     if (chatLog.length > lastLogLength) {
-      // If bulk update (more than 2 items), assume history or initial load -> skip all
-      // OR if it's the very first load
       if (chatLog.length - lastLogLength > 2 || lastLogLength === 0) {
         typingIndex = chatLog.length;
       } else {
-        // Incremental update (streaming).
-        // Ensure typingIndex is at least at the *start* of the new items?
-        // Actually, if we were at index K, and K finishes, we go to K+1.
-        // If K+1 is added, we naturally go there.
-        // We don't need to force change typingIndex unless it was 'caught up'.
       }
       lastLogLength = chatLog.length;
     }
 
-    // Auto-advance logic
-    // We skip items that should appear INSTANTLY.
-    // We STOP at items that require Time (Typewriter or Image Wait).
     while (typingIndex < chatLog.length) {
       const item = chatLog[typingIndex];
       const isTypewriter =
@@ -343,16 +305,13 @@
         (item.type === "image" || item.type === "markdown_image") && showImage;
 
       if (!isTypewriter && !isImage) {
-        // Instant item (User, Situation Trigger, or Hidden Image) -> Skip
         typingIndex++;
       } else {
-        // It's a Typewriter or Image -> Stop skipping, let the specific logic handle it.
         break;
       }
     }
   }
 
-  // Handle Image Timing
   $: {
     if (typingIndex < chatLog.length) {
       const item = chatLog[typingIndex];
@@ -361,19 +320,13 @@
 
       if (isImage) {
         if (!imageTimer) {
-          // Sequence:
-          // 1. Image is rendered (because i <= typingIndex)
-          // 2. Perform smooth scroll to bottom.
-          // 3. WAIT for scroll to finish.
-          // 4. Advance index.
-
           imageTimer = setTimeout(() => {
             if (autoScroll) {
               scrollToBottom();
             }
             typingIndex++;
             imageTimer = null;
-          }, 100); // Small delay to ensure DOM render before scroll starts
+          }, 100);
         }
       }
     }
@@ -401,8 +354,8 @@
       } else if (msg.role === "assistant") {
         const blocks = parseAssistantContent(msg.content, messageId, persona);
 
-        // Add Situation Trigger Button to the LAST message if it's a 2D persona
-        // PersonaType check: "2D", "2.5D" (usually "2D" in internal type, but let's be safe)
+        // Check for images in this message to update background (REMOVED)
+
         const is2D =
           persona?.personaType === "2D" || persona?.personaType === "2.5D";
         const isLastMessage = i === $messages.length - 1;
@@ -419,13 +372,45 @@
     });
   }
 
-  // Scroll Logic
+  // Background Image Sync (Synced with Typing)
+  $: {
+    if (showBackground) {
+      // Find the last image that has been "revealed" (index <= typingIndex)
+      let foundImg: ImageBlock | MarkdownImageBlock | null = null;
+      // Search backwards from current typing position
+      // Check bounds first
+      const searchLimit = Math.min(typingIndex, chatLog.length - 1);
+
+      for (let i = searchLimit; i >= 0; i--) {
+        const item = chatLog[i];
+        if (item && (item.type === "image" || item.type === "markdown_image")) {
+          foundImg = item as ImageBlock | MarkdownImageBlock;
+          break;
+        }
+      }
+
+      if (foundImg) {
+        const newUrl = foundImg.url;
+        if (activeBackgroundImage !== newUrl) {
+          activeBackgroundImage = newUrl;
+          meta = {
+            ...meta,
+            url: newUrl,
+            description: foundImg.alt || "",
+            type:
+              foundImg.type === "markdown_image"
+                ? "image"
+                : (foundImg as ImageBlock).metadata?.type || "image",
+          };
+        }
+      }
+    } else {
+      activeBackgroundImage = null;
+    }
+  }
+
   $: if ($messages && chatWindowEl) {
     tick().then(() => {
-      // Smart Scroll:
-      // 1. If User sent checking, scroll immediately.
-      // 2. If it's initial load (typingIndex caught up), scroll.
-      // 3. If AI is typing (typingIndex < length), DON'T scroll here; let Typewriter/ImageTimer handle it sequentially.
       const lastMsg = $messages[$messages.length - 1];
       if (lastMsg?.role === "user" || typingIndex >= chatLog.length) {
         scrollToBottom();
@@ -433,7 +418,6 @@
     });
   }
 
-  // Loading State Logic
   $: if ($messages) {
     if ($messages.length > 0) {
       const lastMessage = $messages[$messages.length - 1];
@@ -452,7 +436,6 @@
     });
   }
 
-  // --- Situation Image Generation ---
   let isGeneratingImage = false;
   let showRatioOptions = false;
 

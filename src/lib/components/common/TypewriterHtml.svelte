@@ -12,21 +12,38 @@
     let interval: number | null = null;
     let currentProcessingContent = "";
 
-    // Track if we are currently typing to avoid race conditions
+    // Track visual progress
     let isTyping = false;
+    let visibleCharCount = 0;
 
     // React to content/active/instant changes
     $: {
         if (instant) {
             stopTyping();
-            if (container) container.innerHTML = content;
+            if (container) {
+                container.innerHTML = content;
+                dispatch("type");
+                dispatch("complete");
+            }
         } else if (active) {
-            if (content !== currentProcessingContent || !isTyping) {
+            if (content !== currentProcessingContent) {
+                // Trust that if we are active and content updates, it's the same message streaming.
+                // We do NOT reset visibleCharCount.
+                // We let the Fast Forward logic (in startTypingEffect) match what it can.
+                // This handles Markdown transformation (e.g. *italic* -> <i>italic</i>) gracefully
+                // because visibleCharCount just tracks "how much text we showed".
+
                 currentProcessingContent = content;
+                startTypingEffect();
+            } else if (!isTyping && active) {
+                // Active but not typing (maybe re-enabled?)
                 startTypingEffect();
             }
         } else {
-            // Not active, not instant -> Clear or keep empty
+            // Not active
+            stopTyping();
+            visibleCharCount = 0;
+            currentProcessingContent = "";
             if (container) container.innerHTML = "";
         }
     }
@@ -37,23 +54,10 @@
 
         isTyping = true;
 
-        // Reset container with full content invisible first (or process logic)
-        // NOTE: If we re-run this due to content change (streaming), we should try to preserve what was typed?
-        // For simplicity, we restart typing structure but fast-forward if needed?
-        // Actually, streaming appends text.
-        // If we just reset, it flickers.
-        // Better strategy: Only add NEW text nodes? Complex.
-        // Simplify: Since streaming updates content rapidly, let's just let it type.
-        // If we restart, the user sees re-typing of the *whole block*? That's bad.
-
-        // FIX: If content startsWith currentProcessingContent (streaming), preserve visible?
-        // A simple Typewriter is hard with full HTML replacement.
-        // Given the constraints and the user's "just sequential" request:
-        // Maybe we just allow resetting for now. The chunks are usually small blocks (Narration, Dialogue).
-
+        // 1. Draw Full HTML (invisible state management via JS)
         container.innerHTML = content;
 
-        // Walker logic
+        // 2. Extract Text Nodes
         const textNodes: { node: Node; text: string }[] = [];
         const walker = document.createTreeWalker(
             container,
@@ -62,24 +66,72 @@
 
         let currentNode: Node | null;
         while ((currentNode = walker.nextNode())) {
-            if (
-                currentNode.textContent &&
-                currentNode.textContent.trim().length > -1
-            ) {
+            // Only non-empty text
+            if (currentNode.textContent) {
                 textNodes.push({
                     node: currentNode,
                     text: currentNode.textContent,
                 });
-                currentNode.textContent = "";
             }
         }
 
+        // 3. Fast Forward & Restore Logic
         let nodeIndex = 0;
         let charIndex = 0;
+        let currentGlobalChar = 0;
 
+        // Clamp visibleCharCount to avoid glitches if content shrank
+        // (Though usually we reset if content shrank/changed branch)
+
+        // Restore visibility state
+        textNodes.forEach((item, idx) => {
+            const len = item.text.length;
+
+            if (currentGlobalChar + len <= visibleCharCount) {
+                // This node was fully visible
+                // leave item.node.textContent as is (full text)
+                currentGlobalChar += len;
+
+                // If we exactly finished here, next char starts at next node
+                nodeIndex = idx + 1;
+                charIndex = 0;
+            } else if (currentGlobalChar < visibleCharCount) {
+                // Partially visible
+                const visiblePart = visibleCharCount - currentGlobalChar;
+                item.node.textContent = item.text.slice(0, visiblePart);
+
+                currentGlobalChar += visiblePart;
+                nodeIndex = idx;
+                charIndex = visiblePart;
+            } else {
+                // Not visible at all yet
+                item.node.textContent = "";
+
+                // If we haven't set start indices yet (first invisible node), set them
+                if (
+                    currentGlobalChar === visibleCharCount &&
+                    nodeIndex === 0 &&
+                    idx > 0
+                ) {
+                    nodeIndex = idx;
+                    charIndex = 0;
+                }
+            }
+        });
+
+        // Safety: If completely done?
+        if (visibleCharCount >= content.length && textNodes.length > 0) {
+            // Just make sure everything is visible?
+            // Logic above should handle it (leaves textContent alone).
+            nodeIndex = textNodes.length;
+        }
+
+        // ensure nodeIndex is valid ref
+        if (nodeIndex > textNodes.length) nodeIndex = textNodes.length;
+
+        // 4. Typing Loop
         interval = window.setInterval(() => {
             if (nodeIndex >= textNodes.length) {
-                // Check if truly done
                 stopTyping();
                 dispatch("complete");
                 return;
@@ -89,8 +141,16 @@
             const targetText = currentItem.text;
 
             if (charIndex < targetText.length) {
-                currentItem.node.textContent += targetText[charIndex];
+                // Append next char
+                // Using slice ensures we don't duplicate if we used += on a potentially modified node
+                // But efficient way: Just append one char?
+                // node.textContent is reliable here.
+                // Resetting it via slice is safer against drifts.
+                const nextChar = targetText[charIndex];
+                currentItem.node.textContent += nextChar;
+
                 charIndex++;
+                visibleCharCount++;
                 dispatch("type");
             } else {
                 nodeIndex++;
