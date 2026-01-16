@@ -38,28 +38,74 @@
         }
     }
 
-    function startTypewriter(fullText: string) {
-        clearTimeout(typeTimeout); // 기존 예약된 타이핑 올킬
+    function splitSentences(text: string): string[] {
+        // 1. 문장 부호(. ? ! ~) 또는 줄바꿈을 기준으로 1차 분할
+        const regex = /([^.?!~\n]+[.?!~\n]*)/g;
+        const matches = text.match(regex);
+        if (!matches) return [text];
 
-        isTyping = true;
-        displayedText = ""; // 즉시 비움 (잔상 제거)
-        lastTriggeredText = fullText; // 현재 작업 중인 텍스트 기록
+        const rawChunks = matches
+            .map((m) => m.trim())
+            .filter((m) => m.length > 0);
+        const merged: string[] = [];
+        let buffer = "";
 
-        let i = 0;
-
-        const typeNextChar = () => {
-            // visible이 false로 바뀌었어도, 타이핑 중이면 끝까지 수행함
-            if (i < fullText.length) {
-                displayedText = fullText.slice(0, i + 1);
-                i++;
-                typeTimeout = setTimeout(typeNextChar, speed);
+        // 2. 너무 짧은 문장은 다음 문장과 합치기 (최소 10글자 기준)
+        for (const chunk of rawChunks) {
+            if (buffer) {
+                buffer += " " + chunk;
             } else {
-                isTyping = false; // 타이핑 종료 선언 -> 이때 visible이 false라면 말풍선 사라짐
-                onEnded();
+                buffer = chunk;
             }
+
+            // 버퍼가 충분히 길면 확정 (10글자 미만이면 다음 문장과 합침)
+            if (buffer.length >= 10) {
+                merged.push(buffer);
+                buffer = "";
+            }
+        }
+
+        // 남은 버퍼 처리
+        if (buffer) {
+            merged.push(buffer);
+        }
+
+        return merged;
+    }
+
+    function startTypewriter(fullText: string) {
+        clearTimeout(typeTimeout);
+        isTyping = true;
+        lastTriggeredText = fullText;
+
+        const sentences = splitSentences(fullText);
+        let currentIndex = 0;
+
+        const loop = () => {
+            // 강제 종료 조건
+            if (!visible && !wasVisible) {
+                isTyping = false;
+                return;
+            }
+
+            if (currentIndex >= sentences.length) {
+                isTyping = false;
+                onEnded();
+                return;
+            }
+
+            const chunk = sentences[currentIndex];
+            displayedText = chunk;
+
+            // 읽는 시간 계산 (자막 리듬감)
+            // 기본 1.2초 + 글자당 0.12초
+            const duration = Math.max(1200, chunk.length * 120);
+
+            currentIndex++;
+            typeTimeout = setTimeout(loop, duration);
         };
 
-        typeNextChar(); // 대기 없이 즉시 실행
+        loop();
     }
 
     onDestroy(() => {

@@ -75,41 +75,76 @@
         startTypewriter(cleanText, rawText);
     }
 
+    function splitSentences(text: string): string[] {
+        // 1. 문장 부호(. ? ! ~) 또는 줄바꿈을 기준으로 1차 분할
+        const regex = /([^.?!~\n]+[.?!~\n]*)/g;
+        const matches = text.match(regex);
+        if (!matches) return [text];
+
+        const rawChunks = matches
+            .map((m) => m.trim())
+            .filter((m) => m.length > 0);
+        const merged: string[] = [];
+        let buffer = "";
+
+        // 2. 너무 짧은 문장은 다음 문장과 합치기 (최소 10글자 기준)
+        for (const chunk of rawChunks) {
+            if (buffer) {
+                buffer += " " + chunk;
+            } else {
+                buffer = chunk;
+            }
+
+            if (buffer.length >= 10) {
+                merged.push(buffer);
+                buffer = "";
+            }
+        }
+
+        if (buffer) {
+            merged.push(buffer);
+        }
+
+        return merged;
+    }
+
     function startTypewriter(cleanText: string, rawText: string) {
-        isTyping = true;
+        // Init
         displayedText = "";
         lastTriggeredText = rawText;
+        isTyping = true;
 
-        let i = 0;
+        const sentences = splitSentences(cleanText);
+        let currentIndex = 0;
 
-        const tick = () => {
-            if (!visible && !wasVisible) return; // 혹시 모를 유령 타이핑 방지
-
-            if (i < cleanText.length) {
-                displayedText = cleanText.slice(0, i + 1);
-                const char = cleanText[i];
-                i++;
-
-                let delay = speed;
-
-                // 문장부호/줄바꿈에서 더 오래 멈추기
-                if ([".", "?", "!", "\n", ",", "…"].includes(char))
-                    delay += pausePunct;
-                // 공백은 살짝 빠르게
-                if (char === " ") delay = Math.max(8, Math.floor(speed * 0.55));
-
-                typeTimeout = setTimeout(tick, delay);
-            } else {
+        const loop = () => {
+            // 강제 종료 조건
+            if (!visible && !wasVisible) {
                 isTyping = false;
-                // 끝난 뒤 잠깐 보여주고 콜백
+                return;
+            }
+
+            if (currentIndex >= sentences.length) {
+                isTyping = false;
+                // 끝난 뒤 잠깐 보여주고 콜백 (holdMs)
                 endTimeout = setTimeout(() => {
-                    // 중간에 숨겨졌으면 호출하지 않음
                     if (visible || wasVisible) onEnded();
                 }, holdMs);
+                return;
             }
+
+            const chunk = sentences[currentIndex];
+            displayedText = chunk;
+
+            // 읽는 시간 계산 (자막 리듬감)
+            // 기본 1.2초 + 글자당 0.12초
+            const duration = Math.max(1200, chunk.length * 120);
+
+            currentIndex++;
+            typeTimeout = setTimeout(loop, duration);
         };
 
-        tick();
+        loop();
     }
 
     onDestroy(() => clearTimers());
