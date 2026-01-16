@@ -495,28 +495,38 @@
         </div>
 
         <div class="profile-details">
-            <div>
-                <span class="label">{$t("settingPage.credits")}</span>
-
-                <div style="display: flex; align-items: center;">
-                    <NeuronIcon size={24} color={"#a0a0a0"} />
-
-                    <span class="value"
-                        >{$st_user?.credits || user.credits}</span
-                    >
+            <!-- Row 1: Neurons -->
+            <div class="profile-detail-row">
+                <div class="info-group">
+                    <span class="label">{$t("settingPage.credits")}</span>
+                    <div class="value-wrapper">
+                        <NeuronIcon size={24} color={"#a0a0a0"} />
+                        <span class="value"
+                            >{$st_user?.credits || user.credits}</span
+                        >
+                    </div>
                 </div>
+                <button
+                    class="btn btn-primary"
+                    on:click={() => (paymentModalOpen = true)}
+                >
+                    {$t("settingPage.charge")}
+                </button>
             </div>
 
-            <div>
-                <span class="label">{$t("settingPage.creatorPoints")}</span>
-                <span class="value">{user.creator_points || 0} P</span>
+            <!-- Row 2: Creator Points -->
+            <div class="profile-detail-row">
+                <div class="info-group">
+                    <span class="label">{$t("settingPage.creatorPoints")}</span>
+                    <span class="value">{user.creator_points || 0} P</span>
+                </div>
+                <button
+                    class="btn btn-primary"
+                    on:click={() => alert("준비 중입니다.")}
+                >
+                    {$t("settingPage.transfer")}
+                </button>
             </div>
-
-            <button
-                class="btn btn-primary"
-                on:click={() => (paymentModalOpen = true)}
-                >{$t("settingPage.charge")}</button
-            >
         </div>
 
         <!-- Follow Stats -->
@@ -897,13 +907,39 @@
     }
     .profile-details {
         background-color: var(--secondary);
-        padding: 1rem;
+        padding: 1.5rem;
         border-radius: var(--radius-input);
-        flex-wrap: wrap;
-    }
-    .profile-details > div {
         display: flex;
         flex-direction: column;
+        gap: 1.5rem;
+    }
+
+    .profile-detail-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 1rem;
+        width: 100%;
+    }
+
+    @media (min-width: 768px) {
+        .profile-details {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 3rem;
+            align-items: center;
+        }
+    }
+
+    .info-group {
+        display: flex;
+        flex-direction: column;
+        gap: 0.25rem;
+    }
+    .value-wrapper {
+        display: flex;
+        align-items: center;
+        gap: 0.25rem;
     }
     .profile-details .label {
         font-size: 0.8rem;
