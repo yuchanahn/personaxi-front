@@ -79,7 +79,7 @@ export async function LikeBtn(persona: Persona, onOk: () => void, onError: (mess
     }
 }
 
-export async function loadContentWithTags(tags: string[], page: number, limit: number, sort: string = 'latest') {
+export async function loadContentWithTags(tags: string[], page: number, limit: number, sort: string = 'latest', contentType: string = 'character') {
 
     // tags가 숫자가 아닌 경우, allCategories에서 매핑하여 숫자 ID로 변환
     const numericTags = tags.map(tag => {
@@ -88,7 +88,7 @@ export async function loadContentWithTags(tags: string[], page: number, limit: n
     });
 
     const offset = (page - 1) * limit;
-    const res = await api.get2(`/api/contents/t?t=${numericTags.join(",")}&offset=${offset}&limit=${limit}&sort=${sort}&locale=${get(settings).language}`);
+    const res = await api.get2(`/api/contents/t?t=${numericTags.join(",")}&offset=${offset}&limit=${limit}&sort=${sort}&type=${contentType}&locale=${get(settings).language}`);
     if (res.ok) {
         const data = await res.json();
         if (data === null) {

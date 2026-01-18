@@ -218,7 +218,14 @@
         isLoading.set(true);
         let data: PersonaDTO[] = [];
 
-        if (category === null) {
+        // Determine additional tags based on activeTab
+        let tags: string[] = [];
+        if (activeTab === "2d") tags.push("tags.live2d");
+        if (activeTab === "3d") tags.push("tags.vrm");
+
+        if (category) tags.push(category);
+
+        if (category === null && tags.length === 0) {
             data = await loadContent(
                 page,
                 limit,
@@ -230,11 +237,13 @@
         } else if (category === "liked") {
             data = await loadLikedContent();
         } else {
+            // Use loadContentWithTags if we have any tags (category or context tags)
             data = await loadContentWithTags(
-                [category],
+                tags,
                 page,
                 limit,
                 currentSort,
+                currentContentType,
             );
         }
         contents.set(data);
@@ -248,18 +257,49 @@
         isLoading.set(true);
         let data: PersonaDTO[] = [];
 
-        if (selectedCategory === null) {
+        // Determine additional tags based on activeTab
+        let tags: string[] = [];
+        if (activeTab === "2d") tags.push("tags.live2d");
+        if (activeTab === "3d") tags.push("tags.vrm");
+
+        if (
+            selectedCategory &&
+            selectedCategory !== "following" &&
+            selectedCategory !== "liked" &&
+            selectedCategory !== "search"
+        ) {
+            tags.push(selectedCategory);
+        }
+
+        if (selectedCategory === null && tags.length === 0) {
             data = await loadContent(page, limit, sort, currentContentType);
         } else if (selectedCategory === "following") {
             data = await loadFollowedContent();
         } else if (selectedCategory === "liked") {
             data = await loadLikedContent();
+        } else if (selectedCategory === "search") {
+            // Keep search logic? Or is search separate?
+            // Search uses executeSearch. changeSort called during search?
+            // If search is active, executeSearch handles loading?
+            // But changeSort re-triggers loading.
+            // Existing logic: if selectedCategory is search, we might need to re-run search with new sort?
+            // The API loadContentWithName doesn't seem to support sort?
+            // Inspecting loadContentWithName: just q and locale.
+            // So sort might not work for search results yet.
+            // Let's implement basics first.
+            if (searchType === "name") {
+                data = await loadContentWithName(query);
+            } else {
+                // Fallback
+                data = await loadContent(page, limit, sort, currentContentType);
+            }
         } else {
             data = await loadContentWithTags(
-                [selectedCategory],
+                tags,
                 page,
                 limit,
                 sort,
+                currentContentType,
             );
         }
         contents.set(data);
