@@ -79,7 +79,7 @@ export async function LikeBtn(persona: Persona, onOk: () => void, onError: (mess
     }
 }
 
-export async function loadContentWithTags(tags: string[], page: number, limit: number, sort: string = 'latest', contentType: string = 'character') {
+export async function loadContentWithTags(tags: string[], page: number, limit: number, sort: string = 'latest', contentType: string = 'character', excludedTags: string[] = []) {
 
     // tags가 숫자가 아닌 경우, allCategories에서 매핑하여 숫자 ID로 변환
     const numericTags = tags.map(tag => {
@@ -87,8 +87,19 @@ export async function loadContentWithTags(tags: string[], page: number, limit: n
         return category ? category.id.toString() : tag; // 매핑된 ID가 없으면 원래 태그 사용
     });
 
+    const numericExcludedTags = excludedTags.map(tag => {
+        const category = allCategories.find(cat => cat.nameKey === tag);
+        return category ? category.id.toString() : tag;
+    });
+
     const offset = (page - 1) * limit;
-    const res = await api.get2(`/api/contents/t?t=${numericTags.join(",")}&offset=${offset}&limit=${limit}&sort=${sort}&type=${contentType}&locale=${get(settings).language}`);
+    let url = `/api/contents/t?t=${numericTags.join(",")}&offset=${offset}&limit=${limit}&sort=${sort}&type=${contentType}&locale=${get(settings).language}`;
+
+    if (numericExcludedTags.length > 0) {
+        url += `&exclude=${numericExcludedTags.join(",")}`;
+    }
+
+    const res = await api.get2(url);
     if (res.ok) {
         const data = await res.json();
         if (data === null) {

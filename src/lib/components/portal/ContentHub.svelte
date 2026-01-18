@@ -225,25 +225,46 @@
 
         if (category) tags.push(category);
 
+        // Define excluded tags
+        let excludedTags: string[] = [];
+        if (activeTab === "character") {
+            excludedTags.push("tags.live2d", "tags.vrm");
+        }
+
         if (category === null && tags.length === 0) {
-            data = await loadContent(
-                page,
-                limit,
-                currentSort,
-                currentContentType,
-            );
+            // Using loadContentWithTags if we have excludedTags to enforce consistency,
+            // although loadContent might be sufficient if backend handles default exclusions.
+            // But strict control is better.
+            if (excludedTags.length > 0) {
+                data = await loadContentWithTags(
+                    tags,
+                    page,
+                    limit,
+                    currentSort,
+                    currentContentType,
+                    excludedTags,
+                );
+            } else {
+                data = await loadContent(
+                    page,
+                    limit,
+                    currentSort,
+                    currentContentType,
+                );
+            }
         } else if (category === "following") {
             data = await loadFollowedContent();
         } else if (category === "liked") {
             data = await loadLikedContent();
         } else {
-            // Use loadContentWithTags if we have any tags (category or context tags)
+            // Use loadContentWithTags
             data = await loadContentWithTags(
                 tags,
                 page,
                 limit,
                 currentSort,
                 currentContentType,
+                excludedTags,
             );
         }
         contents.set(data);
@@ -271,8 +292,24 @@
             tags.push(selectedCategory);
         }
 
+        let excludedTags: string[] = [];
+        if (activeTab === "character") {
+            excludedTags.push("tags.live2d", "tags.vrm");
+        }
+
         if (selectedCategory === null && tags.length === 0) {
-            data = await loadContent(page, limit, sort, currentContentType);
+            if (excludedTags.length > 0) {
+                data = await loadContentWithTags(
+                    tags, // empty
+                    page,
+                    limit,
+                    sort,
+                    currentContentType,
+                    excludedTags,
+                );
+            } else {
+                data = await loadContent(page, limit, sort, currentContentType);
+            }
         } else if (selectedCategory === "following") {
             data = await loadFollowedContent();
         } else if (selectedCategory === "liked") {
@@ -300,6 +337,7 @@
                 limit,
                 sort,
                 currentContentType,
+                excludedTags,
             );
         }
         contents.set(data);
