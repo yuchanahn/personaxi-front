@@ -25,6 +25,13 @@
         localStorage.setItem(CACHE_PREFIX + url, type);
     };
 
+    let videoEl: HTMLVideoElement | null = null;
+
+    $: if (asset.type === "video" && videoEl && asset.url) {
+        videoEl.load();
+        videoEl.play?.().catch(() => {});
+    }
+
     $: {
         const shouldFetchType =
             asset &&
@@ -33,14 +40,11 @@
             !isFetching;
 
         if (shouldFetchType && asset.url) {
-            // 1. LocalStorage 체크 (새로고침 해도 유지됨)
             const cachedType = getCachedType(asset.url);
 
             if (cachedType) {
-                // 캐시 히트: 즉시 적용
                 asset = { ...asset, type: cachedType as any };
             } else {
-                // 2. 캐시 미스: API 요청
                 isFetching = true;
                 fetchAborted = false;
 
@@ -91,6 +95,7 @@
         muted
         playsinline
         class="asset-preview-media gif-like-video"
+        bind:this={videoEl}
     >
         <source src={asset.url} type="video/mp4" />
         <track kind="captions" />

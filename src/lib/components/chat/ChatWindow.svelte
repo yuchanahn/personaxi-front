@@ -263,6 +263,51 @@
   // Sync visibleMessages with global messages
   $: updateVisibleMessages($messages);
 
+  function updateBackground() {
+    if (!showBackground) {
+      activeBackgroundImage = null;
+      return;
+    }
+
+    let foundImg: ImageBlock | MarkdownImageBlock | null = null;
+    for (let i = chatLog.length - 1; i >= 0; i--) {
+      const item = chatLog[i];
+      if (item && (item.type === "image" || item.type === "markdown_image")) {
+        foundImg = item as ImageBlock | MarkdownImageBlock;
+        break;
+      }
+    }
+
+    if (foundImg) {
+      const newUrl = foundImg.url;
+      const newDesc = foundImg.alt || "";
+      const newType =
+        foundImg.type === "markdown_image"
+          ? "image"
+          : (foundImg as ImageBlock).metadata?.type || "image";
+
+      // Check for inequality to avoid redundant updates/renders
+      if (
+        meta.url !== newUrl ||
+        meta.description !== newDesc ||
+        meta.type !== newType
+      ) {
+        activeBackgroundImage = newUrl;
+        meta = {
+          url: newUrl,
+          description: newDesc,
+          type: newType,
+        };
+      }
+    }
+  }
+
+  $: if (chatLog && showBackground) {
+    updateBackground();
+  } else if (!showBackground) {
+    if (activeBackgroundImage) activeBackgroundImage = null;
+  }
+
   function getCommonPrefixLength(s1: string, s2: string): number {
     let i = 0;
     while (i < s1.length && i < s2.length && s1[i] === s2[i]) i++;
@@ -481,37 +526,6 @@
     }
     return [];
   });
-
-  $: {
-    if (showBackground) {
-      let foundImg: ImageBlock | MarkdownImageBlock | null = null;
-      for (let i = chatLog.length - 1; i >= 0; i--) {
-        const item = chatLog[i];
-        if (item && (item.type === "image" || item.type === "markdown_image")) {
-          foundImg = item as ImageBlock | MarkdownImageBlock;
-          break;
-        }
-      }
-
-      if (foundImg) {
-        const newUrl = foundImg.url;
-        if (activeBackgroundImage !== newUrl) {
-          activeBackgroundImage = newUrl;
-          meta = {
-            ...meta,
-            url: newUrl,
-            description: foundImg.alt || "",
-            type:
-              foundImg.type === "markdown_image"
-                ? "image"
-                : (foundImg as ImageBlock).metadata?.type || "image",
-          };
-        }
-      }
-    } else {
-      activeBackgroundImage = null;
-    }
-  }
 
   $: if ($messages && chatWindowEl) {
     tick().then(() => {
