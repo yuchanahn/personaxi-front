@@ -353,11 +353,38 @@
     return s;
   }
 
+  function calculateBlockSkipIndex(
+    content: string,
+    startIndex: number,
+  ): number {
+    const sliceForCheck = content.slice(startIndex);
+    if (!sliceForCheck.startsWith("<")) return -1;
+
+    const match = sliceForCheck.match(/^<([a-z0-9-]+)/i);
+    if (!match) return -1;
+
+    const tagName = match[1].toLowerCase();
+    const SKIP_TAGS = ["style"];
+
+    if (!SKIP_TAGS.includes(tagName)) return -1;
+
+    const isSelfClosing = ["img", "br", "hr", "input"].includes(tagName);
+
+    if (isSelfClosing) {
+      const closeIdx = content.indexOf(">", startIndex);
+      return closeIdx !== -1 ? closeIdx + 1 : -1;
+    } else {
+      const closingTag = `</${tagName}>`;
+      const closeIdx = content.indexOf(closingTag, startIndex);
+      return closeIdx !== -1 ? closeIdx + closingTag.length : -1;
+    }
+  }
+
   function startThrottleLoop() {
     if (throttleFrame) return;
 
     let lastTime: number | null = null;
-    const CHARS_PER_SECOND = 30;
+    const CHARS_PER_SECOND = 90;
 
     function loop(timestamp: number) {
       if (!lastTime) lastTime = timestamp;
@@ -384,6 +411,13 @@
 
         let nextLen = Math.floor(currentThrottleCharIndex);
         if (nextLen > targetContent.length) nextLen = targetContent.length;
+
+        const jumpIdx = calculateBlockSkipIndex(targetContent, nextLen);
+        if (jumpIdx !== -1) {
+          nextLen = jumpIdx;
+          if (currentThrottleCharIndex < nextLen)
+            currentThrottleCharIndex = nextLen;
+        }
 
         const slice = targetContent.slice(0, nextLen);
         const lastOpen = slice.lastIndexOf("<");
