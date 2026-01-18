@@ -8,11 +8,11 @@
   import ChatImage from "./ChatImage.svelte";
   import { get } from "svelte/store";
   import { st_user } from "$lib/stores/user";
-  import HtmlRenderer from "./HtmlRenderer.svelte";
+  import ChatRenderer from "./ChatRenderer.svelte";
   import { interactiveChat } from "$lib/actions/interactiveChat";
+  import { type Message } from "$lib/stores/messages";
   import { toast } from "$lib/stores/toast";
   import { api } from "$lib/api";
-  import TypewriterHtml from "../common/TypewriterHtml.svelte";
 
   export let isLoading: boolean = false;
   export let showChat: boolean = true;
@@ -94,7 +94,6 @@
   ): ChatLogItem[] {
     const FIRST_SCENE_TAG_REGEX = /<first_scene>/g;
     const CODE_BLOCK_REGEX = /```(?<lang>\w*)\s*\n?(?<code>[\s\S]+?)\s*```/;
-    const MARKDOWN_IMAGE_REGEX = /!\[(?<alt>.*?)\]\((?<url>.*?)\)/;
 
     const ALL_TAGS_REGEX =
       /<(dialogue) speaker="([^"]+)">([\s\S]*?)<\/dialogue>|<(img) (\d+)>|<(Action) type="([^"]+)" question="([^"]+)" variable="([^"]+)"(?: max="(\d+)")? \/>|!\[(.*?)\]\((.*?)\)/g;
@@ -125,11 +124,10 @@
     parts.forEach((part, i) => {
       if (!part) return;
 
-      const isCodeBlock = i % 3 === 2; // code는 두 번째 캡처 그룹입니다.
+      const isCodeBlock = i % 3 === 2;
 
       if (isCodeBlock) {
-        // 2. 코드 블록인 경우
-        const lang = parts[i - 1] || ""; // lang은 첫 번째 캡처 그룹입니다.
+        const lang = parts[i - 1] || "";
         blocks.push({
           type: "code",
           language: lang,
@@ -155,29 +153,7 @@
             });
           }
 
-          const [
-            fullMatch,
-            tagDia,
-            speaker,
-            diaContent, // dialogue 캡처 그룹
-            tagImg,
-            imgIndexStr, // img 캡처 그룹
-            tagAct,
-            actType,
-            actQ,
-            actVar,
-            actMax, // Action 캡처 그룹
-            mdAlt, // Markdown Image Alt (capture group 11) - wait, regex above has standard groups?
-            // The consolidated regex structure needs careful index checks or use named groups if possible, but exec result array is easier to map if we know the order.
-            // <dialogue>... groups: 2, 3
-            // <img ...> groups: 4, 5
-            // <Action ...> groups: 6, 7, 8, 9, 10
-            // ![...]... groups: 11, 12
-          ] = match;
-
-          // Manual index check because the destructuring above might be off depending on browser/engine regex support for empty groups,
-          // but `exec` returns `undefined` for non-participating groups.
-          // Let's rely on checking the string parts or checking which group is defined.
+          const [fullMatch] = match;
 
           if (fullMatch.startsWith("<dialogue")) {
             const m = fullMatch.match(
@@ -217,7 +193,6 @@
               }
             }
           } else if (fullMatch.startsWith("<Action")) {
-            // ... existing action parsing logic if needed ...
             const m = fullMatch.match(
               /type="([^"]+)" question="([^"]+)" variable="([^"]+)"(?: max="(\d+)")?/,
             );
@@ -232,8 +207,6 @@
               });
             }
           } else if (fullMatch.startsWith("![")) {
-            // Markdown Image
-            // Groups 11 and 12 from original big regex, or just re-match
             const m = fullMatch.match(/!\[(.*?)\]\((.*?)\)/);
             if (m) {
               blocks.push({
@@ -266,13 +239,6 @@
 
   let chatLog: ChatLogItem[] = [];
 
-  // SEQUENTIAL TYPING STATE
-  let typingIndex = 0;
-  let lastLogLength = 0;
-
-  // Image Timing Timer
-  let imageTimer: ReturnType<typeof setTimeout> | null = null;
-
   export let showBackground: boolean = false;
   let activeBackgroundImage: string | null = null;
   // Map to store URLs of loaded images by index to support background mode even for lazy-loaded assets
@@ -288,100 +254,204 @@
     description: "",
   };
 
-  $: {
-    if (chatLog.length > lastLogLength) {
-      if (chatLog.length - lastLogLength > 2 || lastLogLength === 0) {
-        typingIndex = chatLog.length;
-      } else {
-      }
-      lastLogLength = chatLog.length;
-    }
+  // --- Throttling Logic ---
+  let visibleMessages: Message[] = [];
+  let throttleFrame: number;
+  let currentThrottleIndex = -1;
+  let currentThrottleCharIndex = 0;
 
-    while (typingIndex < chatLog.length) {
-      const item = chatLog[typingIndex];
-      const isTypewriter =
-        item.type === "narration" || item.type === "dialogue";
-      const isImage =
-        (item.type === "image" || item.type === "markdown_image") && showImage;
+  // Sync visibleMessages with global messages
+  $: updateVisibleMessages($messages);
 
-      if (!isTypewriter && !isImage) {
-        typingIndex++;
-      } else {
-        break;
-      }
-    }
+  function getCommonPrefixLength(s1: string, s2: string): number {
+    let i = 0;
+    while (i < s1.length && i < s2.length && s1[i] === s2[i]) i++;
+    return i;
   }
 
-  $: {
-    if (typingIndex < chatLog.length) {
-      const item = chatLog[typingIndex];
-      const isImage =
-        (item.type === "image" || item.type === "markdown_image") && showImage;
+  function updateVisibleMessages(globalMsgs: Message[]) {
+    if (globalMsgs.length === 0) {
+      visibleMessages = [];
+      cancelThrottle();
+      return;
+    }
 
-      if (isImage) {
-        if (!imageTimer) {
-          imageTimer = setTimeout(() => {
-            if (autoScroll) {
-              scrollToBottom();
-            }
-            typingIndex++;
-            imageTimer = null;
-          }, 100);
+    if (globalMsgs.length < visibleMessages.length) {
+      visibleMessages = globalMsgs;
+      cancelThrottle();
+      return;
+    }
+
+    if (visibleMessages.length === 0 && globalMsgs.length > 0) {
+      visibleMessages = [...globalMsgs];
+      tick().then(() => scrollToBottom());
+      return;
+    }
+
+    if (globalMsgs.length > visibleMessages.length) {
+      const newIndex = visibleMessages.length;
+      const newMsg = globalMsgs[newIndex];
+
+      cancelThrottle();
+
+      if (newMsg.role === "user") {
+        visibleMessages = [...globalMsgs];
+        tick().then(() => scrollToBottom());
+        return;
+      }
+
+      visibleMessages = [...visibleMessages, { ...newMsg, content: "" }];
+      currentThrottleIndex = newIndex;
+      currentThrottleCharIndex = 0;
+      startThrottleLoop();
+    } else if (globalMsgs.length === visibleMessages.length) {
+      const idx = globalMsgs.length - 1;
+      const gLast = globalMsgs[idx];
+      const vLast = visibleMessages[idx];
+
+      if (gLast.role === "assistant" && gLast.content !== vLast.content) {
+        if (currentThrottleIndex !== idx) {
+          currentThrottleIndex = idx;
+          currentThrottleCharIndex = getCommonPrefixLength(
+            gLast.content,
+            vLast.content,
+          );
+          startThrottleLoop();
+        } else {
+          startThrottleLoop();
         }
       }
     }
   }
 
-  function handleTypewriterComplete(index: number) {
-    if (index === typingIndex) {
-      typingIndex++;
-    }
+  function cancelThrottle() {
+    if (throttleFrame) cancelAnimationFrame(throttleFrame);
+    throttleFrame = 0;
   }
 
-  $: {
-    chatLog = $messages.flatMap((msg, i) => {
-      const messageId = `msg-${i}`;
+  export function patchUnclosedDialogueForParse(raw: string): string {
+    const DIALOGUE_OPEN_COMPLETE_RE = /<dialogue\b[^>]*>/g;
+    const DIALOGUE_CLOSE_RE = /<\/dialogue>/g;
+    const DIALOGUE_OPEN_PARTIAL_AT_END_RE = /<dialogue\b[^>]*$/;
+    const SPEAKER_ATTR_PARTIAL_RE = /speaker="[^"]*$/;
+
+    let s = raw;
+
+    if (DIALOGUE_OPEN_PARTIAL_AT_END_RE.test(s)) {
+      if (SPEAKER_ATTR_PARTIAL_RE.test(s)) s += `"`;
+      s += `>`;
+    }
+
+    const openCount = (s.match(DIALOGUE_OPEN_COMPLETE_RE) ?? []).length;
+    const closeCount = (s.match(DIALOGUE_CLOSE_RE) ?? []).length;
+
+    const missing = openCount - closeCount;
+    if (missing > 0) {
+      s += `</dialogue>`.repeat(missing);
+    }
+
+    return s;
+  }
+
+  function startThrottleLoop() {
+    if (throttleFrame) return;
+
+    let lastTime: number | null = null;
+    const CHARS_PER_SECOND = 30;
+
+    function loop(timestamp: number) {
+      if (!lastTime) lastTime = timestamp;
+      const deltaTime = timestamp - lastTime;
+      lastTime = timestamp;
+
+      throttleFrame = requestAnimationFrame(loop);
+
+      const globalMsgs = get(messages);
+      if (
+        currentThrottleIndex < 0 ||
+        currentThrottleIndex >= globalMsgs.length
+      ) {
+        cancelThrottle();
+        return;
+      }
+
+      const targetContent = globalMsgs[currentThrottleIndex].content;
+      let currentContent = visibleMessages[currentThrottleIndex].content;
+
+      if (currentContent.length < targetContent.length) {
+        const charsToAdd = (CHARS_PER_SECOND * deltaTime) / 1000;
+        currentThrottleCharIndex += charsToAdd;
+
+        let nextLen = Math.floor(currentThrottleCharIndex);
+        if (nextLen > targetContent.length) nextLen = targetContent.length;
+
+        const slice = targetContent.slice(0, nextLen);
+        const lastOpen = slice.lastIndexOf("<");
+        const lastClose = slice.lastIndexOf(">");
+
+        if (lastOpen > lastClose) {
+          nextLen = lastOpen;
+        }
+
+        let nextContent = targetContent.slice(0, nextLen);
+
+        nextContent = patchUnclosedDialogueForParse(nextContent);
+
+        if (nextContent !== currentContent) {
+          visibleMessages[currentThrottleIndex] = {
+            ...visibleMessages[currentThrottleIndex],
+            content: nextContent,
+          };
+          visibleMessages = [...visibleMessages];
+          scrollToBottom();
+        }
+      } else {
+        if (Math.floor(currentThrottleCharIndex) >= targetContent.length) {
+          cancelThrottle();
+        }
+      }
+    }
+
+    throttleFrame = requestAnimationFrame(loop);
+  }
+
+  // Generate ChatLog from visibleMessages (Throttled)
+  $: chatLog = visibleMessages.flatMap((msg, i) => {
+    const messageId = `msg-${i}`;
+    if (msg.role === "user") {
       if (msg.role === "user") {
-        if (msg.role === "user") {
-          const tagRegex = /<system-input>[\s\S]*?<\/system-input>/g;
-          const sanitizedContent = msg.content.replace(tagRegex, "[상호작용]");
-          return {
-            type: "user",
-            content: sanitizedContent,
-            id: messageId,
-          } as ChatLogItem;
-        }
-      } else if (msg.role === "assistant") {
-        const blocks = parseAssistantContent(msg.content, messageId, persona);
-
-        // Check for images in this message to update background (REMOVED)
-
-        const is2D =
-          persona?.personaType === "2D" || persona?.personaType === "2.5D";
-        const isLastMessage = i === $messages.length - 1;
-
-        if (is2D && isLastMessage && !isLoading && $messages.length > 1) {
-          blocks.push({
-            type: "situation_trigger",
-            id: `${messageId}-trigger`,
-          });
-        }
-        return blocks;
+        const tagRegex = /<system-input>[\s\S]*?<\/system-input>/g;
+        const sanitizedContent = msg.content.replace(tagRegex, "[상호작용]");
+        return {
+          type: "user",
+          content: sanitizedContent,
+          id: messageId,
+        } as ChatLogItem;
       }
-      return [];
-    });
-  }
+    } else if (msg.role === "assistant") {
+      const blocks = parseAssistantContent(msg.content, messageId, persona);
 
-  // Background Image Sync (Synced with Typing)
+      // Check for images in this message to update background (REMOVED)
+
+      const is2D =
+        persona?.personaType === "2D" || persona?.personaType === "2.5D";
+      const isLastMessage = i === $messages.length - 1;
+
+      if (is2D && isLastMessage && !isLoading && $messages.length > 1) {
+        blocks.push({
+          type: "situation_trigger",
+          id: `${messageId}-trigger`,
+        });
+      }
+      return blocks;
+    }
+    return [];
+  });
+
   $: {
     if (showBackground) {
-      // Find the last image that has been "revealed" (index <= typingIndex)
       let foundImg: ImageBlock | MarkdownImageBlock | null = null;
-      // Search backwards from current typing position
-      // Check bounds first
-      const searchLimit = Math.min(typingIndex, chatLog.length - 1);
-
-      for (let i = searchLimit; i >= 0; i--) {
+      for (let i = chatLog.length - 1; i >= 0; i--) {
         const item = chatLog[i];
         if (item && (item.type === "image" || item.type === "markdown_image")) {
           foundImg = item as ImageBlock | MarkdownImageBlock;
@@ -412,7 +482,7 @@
   $: if ($messages && chatWindowEl) {
     tick().then(() => {
       const lastMsg = $messages[$messages.length - 1];
-      if (lastMsg?.role === "user" || typingIndex >= chatLog.length) {
+      if (lastMsg?.role === "user") {
         scrollToBottom();
       }
     });
@@ -442,8 +512,7 @@
   async function generateSituationImage(ratio: string) {
     if (isGeneratingImage || !persona) return;
     isGeneratingImage = true;
-    showRatioOptions = false; // Hide options after selection
-
+    showRatioOptions = false;
     try {
       const response = await api.post("/api/chat/2d/generate-image", {
         personaId: persona.id,
@@ -464,7 +533,6 @@
       const data = await response.json();
       const imageUrl = data.imageUrl;
 
-      // Update store
       const msgs = get(messages);
       if (msgs.length > 0) {
         const lastMsg = msgs[msgs.length - 1];
@@ -517,68 +585,41 @@
         {item.content}
       </div>
     {:else if item.type === "narration"}
-      {#if i > typingIndex}
-        <!-- Hidden waiting for turn -->
-      {:else}
-        <HtmlRenderer
-          content={item.content}
-          typewriter={true}
-          active={i === typingIndex}
-          instant={i < typingIndex}
-          on:complete={() => handleTypewriterComplete(i)}
-          on:type={scrollToBottom}
-        />
-      {/if}
+      <ChatRenderer content={item.content} />
     {:else if item.type === "dialogue"}
-      {#if i <= typingIndex}
-        <div class="message assistant">
-          <div class="speaker-name">{item.speaker}</div>
-          <div class="dialogue-bubble">
-            <TypewriterHtml
-              content={item.content.replace(
-                /\*(.*?)\*/g,
-                '<i class="custom-italic">$1</i>',
-              )}
-              speed={30}
-              active={i === typingIndex}
-              instant={i < typingIndex}
-              on:complete={() => handleTypewriterComplete(i)}
-              on:type={scrollToBottom}
-            />
-          </div>
+      <div class="message assistant">
+        <div class="speaker-name">{item.speaker}</div>
+        <div class="dialogue-bubble">
+          {item.content.replace(
+            /\*(.*?)\*/g,
+            '<i class="custom-italic">$1</i>',
+          )}
         </div>
-      {/if}
+      </div>
     {:else if item.type === "image" && showImage && !showBackground}
-      {#if i <= typingIndex}
-        <div class="image-block">
-          <ChatImage
-            {persona}
-            metadata={item.metadata}
-            index={item.index}
-            on:load={(e) => {
-              // Expect e.detail.url from ChatImage
-              if (e.detail?.url) {
-                handleImageLoad(i, e.detail.url);
-              } else {
-                // Fallback if no URL passed (legacy), maybe try to refetch?
-                // or just trigger scroll for now.
-                if (autoScroll) scrollToBottom();
-              }
-            }}
-          />
-        </div>
-      {/if}
+      <div class="image-block">
+        <ChatImage
+          {persona}
+          metadata={item.metadata}
+          index={item.index}
+          on:load={(e) => {
+            if (e.detail?.url) {
+              handleImageLoad(i, e.detail.url);
+            } else {
+              if (autoScroll) scrollToBottom();
+            }
+          }}
+        />
+      </div>
     {:else if item.type === "markdown_image" && showImage && !showBackground}
-      {#if i <= typingIndex}
-        <div class="image-block situation-image">
-          <img
-            src={item.url}
-            alt={item.alt}
-            loading="lazy"
-            on:load={() => handleImageLoad(i, item.url)}
-          />
-        </div>
-      {/if}
+      <div class="image-block situation-image">
+        <img
+          src={item.url}
+          alt={item.alt}
+          loading="lazy"
+          on:load={() => handleImageLoad(i, item.url)}
+        />
+      </div>
     {:else if item.type === "situation_trigger"}
       <div class="situation-trigger-wrapper">
         {#if !showRatioOptions && !isGeneratingImage}
@@ -849,6 +890,7 @@
     color: var(--secondary-foreground);
     margin-left: 0.5rem;
   }
+
   .dialogue-bubble {
     background-color: var(--secondary);
     color: var(--secondary-foreground);
@@ -856,6 +898,7 @@
     padding: 0.75rem 1rem;
     border-radius: 16px;
   }
+
   :global(.custom-italic) {
     font-style: italic;
   }

@@ -811,7 +811,7 @@
 
 <div class="container">
     <div class="header">
-        <h1>{$t("editPage.title")}</h1>
+        <div class="header-title">{$t("editPage.title")}</div>
         <div class="header-actions">
             {#if persona.id}
                 <button
@@ -1831,7 +1831,11 @@
         margin-bottom: 0.75rem;
     }
     /* ----------------------------------- */
-
+    .header-title {
+        font-size: 1.5rem;
+        font-weight: 600;
+        margin-left: 3rem;
+    }
     .portrait-preview {
         margin-top: 1rem;
         width: 150px;
