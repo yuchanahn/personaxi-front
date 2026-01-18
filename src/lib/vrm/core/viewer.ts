@@ -234,12 +234,14 @@ export class Viewer {
       console.log("VRM model removed from scene.");
     }
 
+    if (this.model) {
+      this.model.dispose();
+      console.log("VRM model disposed.");
+    }
+
     this.renderer.dispose();
     console.log("Renderer disposed.");
 
-    if (this.model) {
-      this.model.vrm = null;
-    }
     console.log("Viewer stopped successfully.");
   }
 }

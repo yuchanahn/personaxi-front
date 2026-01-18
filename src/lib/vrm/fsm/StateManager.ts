@@ -321,6 +321,65 @@ class AnimationPoolManager {
         return !!this.currentClipName && !this.isBlending;
     }
 
+    public stop(fadeOutTime: number = 0.0): void {
+        // 1) 타이머 정리
+        if (this.gestureFadeTimer) {
+            clearTimeout(this.gestureFadeTimer);
+            this.gestureFadeTimer = null;
+        }
+        if (this.gestureEndTimer) {
+            clearTimeout(this.gestureEndTimer);
+            this.gestureEndTimer = null;
+        }
+
+        // 2) 상태 플래그 정리
+        this.isGesturePlaying = false;
+        this.gestureEndTime = 0;
+        this.isBlending = false;
+        this.blendTimer = 0;
+        this.clipTimer = 0;
+        this.nextChangeTime = 0;
+        this.currentTransitionTime = 0;
+
+        // 3) 액션 정지 (background + gesture 포함)
+        // model.actions는 같은 mixer를 공유할 수도 있어서 stopAllAction도 같이 해줌
+        const actions = Object.values(this.model.actions);
+
+        if (fadeOutTime > 0) {
+            for (const a of actions) {
+                try {
+                    a.fadeOut(fadeOutTime);
+                } catch { }
+            }
+            // fadeOut 후 stop을 걸고 싶으면 setTimeout으로 처리 가능하지만,
+            // 여기서는 "정지" 목적이니 즉시 stop도 같이 걸어버림(안정 우선)
+            for (const a of actions) {
+                try {
+                    a.stop();
+                    a.reset();
+                } catch { }
+            }
+        } else {
+            for (const a of actions) {
+                try {
+                    a.stop();
+                    a.reset();
+                } catch { }
+            }
+        }
+
+        // 4) gestureMixer도 정리
+        try {
+            this.gestureMixer.stopAllAction();
+            const root = this.model.vrm?.scene;
+            if (root) this.gestureMixer.uncacheRoot(root);
+        } catch { }
+
+        // 5) 현재 풀/클립 정보 초기화
+        this.currentClipName = '';
+        this.currentPoolName = '';
+    }
+
 }
 
 //------------------------------------------------------------------
@@ -858,4 +917,58 @@ export class CharacterStateManager {
             isSpeaking: this.isSpeaking
         };
     }
+
+    public stop(fadeOutTime: number = 0.2): void {
+        // 1) 외부 트리거/큐 정리
+        this.isListening = false;
+        this.isSpeaking = false;
+        this.gestureQueue.length = 0;
+
+        // 2) 상태머신 정리
+        this.isTransitioning = false;
+        this.transitionTimer = 0;
+        this.stateTimer = 0;
+
+        // 3) 시선/인터랙션 정지
+        try {
+            this.model.stopMouseFollowing();
+        } catch { }
+
+        // 4) 포즈 원복 (캐시해둔 originalPoses로 되돌리기)
+        try {
+            for (const [bone, originalQuat] of this.originalPoses) {
+                bone.quaternion.copy(originalQuat);
+                bone.updateMatrixWorld(true);
+            }
+        } catch { }
+
+        // 5) 애니메이션 풀/제스처 타이머 포함 전체 정지
+        this.animationPoolManager.stop(fadeOutTime);
+
+        // 6) 혹시 남아있는 액션들도 안전하게 정리 (이중 안전장치)
+        try {
+            for (const action of Object.values(this.model.actions)) {
+                action.fadeOut(fadeOutTime);
+                action.stop();
+                action.reset();
+            }
+        } catch { }
+
+        // 7) (선택) 표정 리셋 - 지금 applyExpressions가 return이라 실사용은 아니지만,
+        // expressionManager를 실제로 쓰는 경우엔 아래를 켜는 게 맞음
+        /*
+        try {
+            if (this.vrm.expressionManager) {
+                for (const preset of this.vrm.expressionManager.expressions) {
+                    this.vrm.expressionManager.setValue(preset.name, 0);
+                }
+                this.vrm.expressionManager.setValue('neutral', 1.0);
+            }
+        } catch {}
+        */
+
+        // 8) 기본 상태로 돌리고 싶으면(선택)
+        // this.currentState = CharacterState.IDLE;
+    }
+
 }

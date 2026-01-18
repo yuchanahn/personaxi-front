@@ -626,8 +626,25 @@ export class Model {
     // 해제
     //----------------------------------------------------------------
     dispose() {
+        if (this.mouseFollowTimer) {
+            clearTimeout(this.mouseFollowTimer);
+            this.mouseFollowTimer = null;
+        }
+        this.stateManager?.stop(0.2);
+        this.mixer?.stopAllAction();
+        if (this.vrm?.scene) this.mixer?.uncacheRoot(this.vrm.scene);
+        this.mixer = undefined;
+        this.actions = {};
+
         if (!this.vrm) return;
-        VRMUtils.deepDispose(this.vrm.scene);
+
+        try {
+            VRMUtils.deepDispose(this.vrm.scene);
+        } catch (e) {
+            console.error(e);
+        }
+
         this.vrm = null;
     }
+
 }
