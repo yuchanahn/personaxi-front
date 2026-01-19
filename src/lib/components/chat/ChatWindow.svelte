@@ -403,6 +403,15 @@
     startIndex: number,
   ): number {
     const sliceForCheck = content.slice(startIndex);
+
+    // Markdown Image Skip: ![alt](src)
+    if (sliceForCheck.startsWith("![")) {
+      const match = sliceForCheck.match(/^!\[.*?\]\(.*?\)/);
+      if (match) {
+        return startIndex + match[0].length;
+      }
+    }
+
     if (!sliceForCheck.startsWith("<")) return -1;
 
     const match = sliceForCheck.match(/^<([a-z0-9-]+)/i);
