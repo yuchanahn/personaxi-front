@@ -38,41 +38,68 @@
     let dragPhysicsY = 0;
     let isDragging = false;
 
+    // --- Audio State ---
+    let currentAudio: HTMLAudioElement | null = null;
+    // Persistent Audio Context/Analyzer for Lip Sync (created once)
+    let lipSyncContext: AudioContext | null = null;
+    let lipSyncAnalyzer: AnalyserNode | null = null;
+    let neuroTicker: any;
+
     export async function speak(audioUrl: string) {
-        if (!currentModel) return;
+        if (!currentModel || !currentAudio) return;
 
-        if (currentAudio) {
-            currentAudio.pause();
-            currentAudio = null;
+        // Stop previous
+        currentAudio.pause();
+        currentAudio.currentTime = 0;
+
+        // Play new
+        currentAudio.src = audioUrl;
+
+        // 🔗 Inject Audio & Analyzer into Library (Native Lip Sync)
+        if (currentModel.internalModel.motionManager) {
+            const mgr = currentModel.internalModel.motionManager;
+            const PIXI = (window as any).PIXI;
+
+            // 1. One-time Setup of Analyzer for currentAudio
+            if (
+                !lipSyncContext &&
+                PIXI &&
+                PIXI.live2d &&
+                PIXI.live2d.SoundManager
+            ) {
+                try {
+                    const SM = PIXI.live2d.SoundManager;
+                    // Use SoundManager helpers to wire up the persistent audio element
+                    lipSyncContext = SM.addContext(currentAudio);
+                    lipSyncAnalyzer = SM.addAnalyzer(
+                        currentAudio,
+                        lipSyncContext,
+                    );
+                    console.log("🔊 LipSync Analyzer Setup Complete");
+                } catch (e) {
+                    console.error("Failed to setup LipSync Analyzer:", e);
+                }
+            }
+
+            // 2. Inject into MotionManager
+            mgr.currentAudio = currentAudio;
+            if (lipSyncContext) mgr.currentContext = lipSyncContext;
+            if (lipSyncAnalyzer) mgr.currentAnalyzer = lipSyncAnalyzer;
         }
+
+        startNeuroMotion(); // Start motion loop
+
         try {
-            currentModel.speak(audioUrl, {
-                volume: 1.0,
-                resetExpression: false,
-                crossOrigin: "anonymous",
-            });
+            await currentAudio.play();
         } catch (e) {
-            toast.error("Audio play failed: " + e);
+            console.error("Audio Play Failed:", e);
+            toast.error("Audio Failed: " + e);
         }
 
-        //const audio = new Audio(audioUrl);
-        //audio.crossOrigin = "anonymous";
-        //
-        //setAudio(audio);
-
-        //startNeuroMotion();
-
-        // try {
-        //     await audio.play();
-        // } catch (e) {
-        //     console.error("Audio play failed:", e);
-        //     toast.error("Audio play failed: " + e);
-        // }
-
-        //audio.onended = () => {
-        //    console.log("Audio Finished");
-        //    app.ticker.remove(neuroTicker);
-        //};
+        currentAudio.onended = () => {
+            console.log("Audio Finished");
+            stopNeuroMotion();
+        };
     }
 
     export function toggleDebug() {
@@ -534,42 +561,6 @@
         }
     }
 
-    let audioContext: AudioContext | null = null;
-    let analyser: AnalyserNode | null = null;
-    let dataArray: Uint8Array | null = null;
-    let audioSource: MediaElementAudioSourceNode | null = null;
-    let currentAudio: HTMLAudioElement | null = null;
-
-    let neuroTicker: any;
-
-    export function setAudio(audio: HTMLAudioElement) {
-        if (!currentModel) return;
-
-        const audioSrc = audio.src;
-        console.log(`Debug: Calling model.speak() with ${audioSrc}`);
-
-        // 🔊 Mute the original HTMLAudioElement to prevent double audio (echo)
-        // because model.speak() plays the audio internally for lip sync.
-        //audio.muted = true;
-
-        // Stop any previous speak to avoid overlap
-        if (currentModel.speak) {
-            currentModel
-                .speak(audioSrc, {
-                    volume: 1.0,
-                    resetExpression: false,
-                })
-                .then(() => {
-                    console.log("Debug: speak() completed");
-                })
-                .catch((e: any) => {
-                    console.error("Debug: speak() failed", e);
-                });
-        } else {
-            console.warn("Debug: model.speak() is not available!");
-        }
-    }
-
     function startNeuroMotion() {
         if (!currentModel || !app || neuroTicker) return;
 
@@ -604,22 +595,20 @@
         // Physics State
         let currentBodyX = 0;
         let currentBodyY = 0;
-        let velX = 0;
-        let velY = 0;
 
         neuroTicker = () => {
-            // 1. Get Volume from MotionManager
+            // 🔊 Get Volume from Library (for Body Reaction only)
+            // The library handles Lip Sync automatically after we injected currentAudio
             let volume = 0;
             if (
                 internal.motionManager &&
-                // @ts-ignore
                 typeof internal.motionManager.mouthSync === "function"
             ) {
-                // @ts-ignore
-                volume = internal.motionManager.mouthSync() * 100;
+                // mouthSync() returns 0~1 value based on audio
+                volume = internal.motionManager.mouthSync();
             }
 
-            const inputIntensity = Math.max(0, (volume - 10) / 40);
+            const inputIntensity = Math.max(0, (volume * 10 - 1) / 4); // Adjusted for reaction sensitivity
             bodyVol += (inputIntensity - bodyVol) * 0.1;
 
             const t = (Date.now() - startTime) / 1000;
@@ -690,27 +679,38 @@
     }
 
     onMount(async () => {
+        // --- Single Audio Element Setup ---
+        // We create a single audio element and reuse it.
+        // For Library Lip Sync to work on Mobile Safari, we must also unlock the
+        // Library's internal AudioContext (SoundManager.context).
+        currentAudio = new Audio();
+        currentAudio.crossOrigin = "anonymous";
+        currentAudio.autoplay = true;
+
         // 🔊 iOS/Safari Audio Unlock
-        // 첫 터치 시 AudioContext를 강제로 깨워야 이후 speak()가 정상 동작함
         const unlockAudio = () => {
-            const AudioContext =
-                window.AudioContext || (window as any).webkitAudioContext;
-            if (AudioContext) {
-                const ctx = new AudioContext();
-                const resume = () => {
-                    if (ctx.state === "suspended") ctx.resume();
-                };
-                resume();
-
-                // Play silent buffer
-                const buffer = ctx.createBuffer(1, 1, 22050);
-                const source = ctx.createBufferSource();
-                source.buffer = buffer;
-                source.connect(ctx.destination);
-                source.start(0);
-
-                console.log("🔊 Audio Unlock Triggered");
+            // 1. Unlock Standard Audio Element
+            if (currentAudio) {
+                currentAudio
+                    .play()
+                    .then(() => {
+                        currentAudio!.pause();
+                        currentAudio!.currentTime = 0;
+                    })
+                    .catch((e) => console.log("Unlock play failed", e));
             }
+
+            // 2. Unlock Library Audio Context
+            const PIXI = (window as any).PIXI;
+            if (PIXI && PIXI.live2d && PIXI.live2d.SoundManager) {
+                const ctx = PIXI.live2d.SoundManager.context;
+                if (ctx && ctx.state === "suspended") {
+                    ctx.resume();
+                    console.log("🔊 Library AudioContext Resumed");
+                }
+            }
+
+            console.log("🔊 Audio Unlock Triggered");
 
             // Remove listeners
             document.removeEventListener("touchstart", unlockAudio);
