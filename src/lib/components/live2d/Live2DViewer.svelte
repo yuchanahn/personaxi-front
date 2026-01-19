@@ -46,24 +46,29 @@
             currentAudio = null;
         }
 
-        const audio = new Audio(audioUrl);
-        audio.crossOrigin = "anonymous";
+        currentModel.speak(audioUrl, {
+            volume: 1.0,
+            resetExpression: false,
+        });
 
-        setAudio(audio);
+        //const audio = new Audio(audioUrl);
+        //audio.crossOrigin = "anonymous";
+        //
+        //setAudio(audio);
 
-        startNeuroMotion();
+        //startNeuroMotion();
 
-        try {
-            await audio.play();
-        } catch (e) {
-            console.error("Audio play failed:", e);
-            toast.error("Audio play failed: " + e);
-        }
+        // try {
+        //     await audio.play();
+        // } catch (e) {
+        //     console.error("Audio play failed:", e);
+        //     toast.error("Audio play failed: " + e);
+        // }
 
-        audio.onended = () => {
-            console.log("Audio Finished");
-            app.ticker.remove(neuroTicker);
-        };
+        //audio.onended = () => {
+        //    console.log("Audio Finished");
+        //    app.ticker.remove(neuroTicker);
+        //};
     }
 
     export function toggleDebug() {
@@ -523,7 +528,7 @@
 
         // 🔊 Mute the original HTMLAudioElement to prevent double audio (echo)
         // because model.speak() plays the audio internally for lip sync.
-        audio.muted = true;
+        //audio.muted = true;
 
         // Stop any previous speak to avoid overlap
         if (currentModel.speak) {
