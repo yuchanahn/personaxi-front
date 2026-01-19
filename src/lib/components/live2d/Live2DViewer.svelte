@@ -2,6 +2,7 @@
     import { onMount, onDestroy } from "svelte";
     import { loadLive2DScripts } from "$lib/utils/live2dLoader";
     import Icon from "@iconify/svelte";
+    import { toast } from "$lib/stores/toast";
 
     export let modelUrl: string;
     export let scale: number = 0.3;
@@ -56,6 +57,7 @@
             await audio.play();
         } catch (e) {
             console.error("Audio play failed:", e);
+            toast.error("Audio play failed: " + e);
         }
 
         audio.onended = () => {

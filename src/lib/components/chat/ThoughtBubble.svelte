@@ -119,10 +119,7 @@
             <div class="glow-effect"></div>
             <div class="content-row">
                 <span class="icon">💭</span>
-                <p>
-                    {displayedText}
-                    {#if isTyping}<span class="cursor">|</span>{/if}
-                </p>
+                <p>{displayedText}</p>
             </div>
         </div>
         <div class="bubble-tail"></div>

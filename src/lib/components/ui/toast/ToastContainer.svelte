@@ -25,7 +25,8 @@
     /* Mobile adjustments */
     @media (max-width: 600px) {
         .toast-container {
-            bottom: 20px;
+            top: 20px;
+            bottom: auto;
             left: 20px;
             right: 20px;
             align-items: center;
