@@ -49,6 +49,7 @@
             currentModel.speak(audioUrl, {
                 volume: 1.0,
                 resetExpression: false,
+                crossOrigin: "anonymous",
             });
         } catch (e) {
             toast.error("Audio play failed: " + e);
