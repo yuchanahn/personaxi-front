@@ -663,6 +663,38 @@
     }
 
     onMount(async () => {
+        // 🔊 iOS/Safari Audio Unlock
+        // 첫 터치 시 AudioContext를 강제로 깨워야 이후 speak()가 정상 동작함
+        const unlockAudio = () => {
+            const AudioContext =
+                window.AudioContext || (window as any).webkitAudioContext;
+            if (AudioContext) {
+                const ctx = new AudioContext();
+                const resume = () => {
+                    if (ctx.state === "suspended") ctx.resume();
+                };
+                resume();
+
+                // Play silent buffer
+                const buffer = ctx.createBuffer(1, 1, 22050);
+                const source = ctx.createBufferSource();
+                source.buffer = buffer;
+                source.connect(ctx.destination);
+                source.start(0);
+
+                console.log("🔊 Audio Unlock Triggered");
+            }
+
+            // Remove listeners
+            document.removeEventListener("touchstart", unlockAudio);
+            document.removeEventListener("click", unlockAudio);
+            document.removeEventListener("keydown", unlockAudio);
+        };
+
+        document.addEventListener("touchstart", unlockAudio);
+        document.addEventListener("click", unlockAudio);
+        document.addEventListener("keydown", unlockAudio);
+
         setTimeout(async () => {
             try {
                 await loadLive2DScripts();
