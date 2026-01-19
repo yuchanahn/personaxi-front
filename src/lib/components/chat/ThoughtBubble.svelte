@@ -206,14 +206,6 @@
         min-width: 10px;
     }
 
-    .cursor {
-        display: inline-block;
-        color: #0984e3;
-        font-weight: 400;
-        margin-left: 2px;
-        animation: blink 0.8s infinite;
-    }
-
     .bubble-tail {
         width: 12px;
         height: 12px;

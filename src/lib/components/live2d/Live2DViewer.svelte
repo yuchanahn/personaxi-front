@@ -328,23 +328,41 @@
 
     function draggable(model: any) {
         model.buttonMode = true;
+        let startX = 0;
+        let startY = 0;
+        const dragThreshold = 10; // 10px threshold
+
         model.on("pointerdown", (e: any) => {
-            isDragging = true;
+            startX = e.data.global.x;
+            startY = e.data.global.y;
+            // Do NOT set isDragging = true immediately
             dragPhysicsX = 0;
             dragPhysicsY = 0;
             updateDragTarget(e);
         });
+
         model.on("pointermove", (e: any) => {
+            if (!isDragging && startX !== 0 && startY !== 0) {
+                // Check threshold
+                const dx = Math.abs(e.data.global.x - startX);
+                const dy = Math.abs(e.data.global.y - startY);
+                if (dx > dragThreshold || dy > dragThreshold) {
+                    isDragging = true;
+                }
+            }
+
             if (isDragging) {
                 updateDragTarget(e);
             }
         });
+
         const stopDrag = () => {
             isDragging = false;
+            startX = 0; // Reset
+            startY = 0;
             // Smoothly return to center (handled by lerp in ticker)
             dragTargetX = 0;
             dragTargetY = 0;
-            // model.internalModel.focusController.focus(0, 0); // Disable default focus
         };
         model.on("pointerupoutside", stopDrag);
         model.on("pointerup", stopDrag);

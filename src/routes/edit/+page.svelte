@@ -1124,18 +1124,43 @@
                         <label for="visibility"
                             >{$t("editPage.visibilityLabel")}</label
                         >
-                        <select
-                            id="visibility"
-                            bind:value={persona.visibility}
-                            required
-                        >
-                            <option value="public"
-                                >{$t("editPage.public")}</option
+                        <div class="content-type-selector">
+                            <button
+                                class:active={persona.visibility === "public"}
+                                on:click={() => (persona.visibility = "public")}
+                                type="button"
                             >
-                            <option value="private"
-                                >{$t("editPage.private")}</option
+                                <Icon icon="ph:globe-duotone" width="24" />
+                                <div class="text">
+                                    <span class="title"
+                                        >{$t("editPage.public")}</span
+                                    >
+                                    <span class="desc"
+                                        >{$t("editPage.publicDesc", {
+                                            default: "Anyone can see and chat",
+                                        })}</span
+                                    >
+                                </div>
+                            </button>
+                            <button
+                                class:active={persona.visibility === "private"}
+                                on:click={() =>
+                                    (persona.visibility = "private")}
+                                type="button"
                             >
-                        </select>
+                                <Icon icon="ph:lock-key-duotone" width="24" />
+                                <div class="text">
+                                    <span class="title"
+                                        >{$t("editPage.private")}</span
+                                    >
+                                    <span class="desc"
+                                        >{$t("editPage.privateDesc", {
+                                            default: "Only you can access",
+                                        })}</span
+                                    >
+                                </div>
+                            </button>
+                        </div>
                     </div>
                 </div>
 

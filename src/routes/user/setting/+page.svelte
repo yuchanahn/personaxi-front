@@ -743,12 +743,18 @@
         on:close={() => (isNotificationDrawerOpen = false)}
     />
     <SettingsModal bind:isOpen={showSettingsModal} />
-    <UserListModal
-        bind:isOpen={showUserListModal}
-        initialTab={userListTab}
-        userId={user.id}
-        on:close={() => (showUserListModal = false)}
-    />
+
+    <div class="footer-links">
+        <a href="/policy"
+            >{$t("settingPage.privacyPolicy", { default: "Privacy Policy" })}</a
+        >
+        <span class="divider">|</span>
+        <a href="/terms"
+            >{$t("settingPage.termsOfService", {
+                default: "Terms of Service",
+            })}</a
+        >
+    </div>
 </div>
 
 <style>
@@ -797,6 +803,33 @@
         padding: 0 1.5rem;
         height: 100%;
         box-sizing: border-box;
+        padding-bottom: 2rem;
+    }
+
+    .footer-links {
+        margin-top: auto;
+        padding: 2rem 0 1rem;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 1rem;
+        font-size: 0.85rem;
+        color: var(--muted-foreground);
+    }
+
+    .footer-links a {
+        color: var(--muted-foreground);
+        text-decoration: none;
+        transition: color 0.2s;
+    }
+
+    .footer-links a:hover {
+        color: var(--foreground);
+        text-decoration: underline;
+    }
+
+    .footer-links .divider {
+        color: var(--border);
     }
     .header {
         flex-shrink: 0;

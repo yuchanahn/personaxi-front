@@ -126,6 +126,19 @@
                     p.live2d_model_url = TEST_MODEL_URL;
                 }
                 persona = p;
+
+                // Initialize Affection Score Logic (Fix for background bug)
+                // If persona has affection/score data, use it. Otherwise trigger default update.
+                // Assuming starting at 100 or previous state.
+                // Currently forcing a reactive update by self-assignment or log.
+                console.log(
+                    "Initialized Persona, Affection Score:",
+                    affectionScore,
+                );
+
+                // TODO: Fetch real affection score from backend if available
+                // For now, ensure the vignette system is active
+                if (affectionScore === undefined) affectionScore = 100;
             });
 
             await connectTTSSocket(async (audio: ArrayBuffer | null) => {
@@ -702,7 +715,7 @@
 
     /* Make messages and interactive elements capture events again */
     .chat-content :global(.chat-window > *) {
-        pointer-events: none;
+        pointer-events: auto;
     }
 
     .chat-content :global(.chat-input-wrapper) {
