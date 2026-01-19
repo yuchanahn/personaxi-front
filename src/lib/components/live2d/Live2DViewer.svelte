@@ -45,11 +45,14 @@
             currentAudio.pause();
             currentAudio = null;
         }
-
-        currentModel.speak(audioUrl, {
-            volume: 1.0,
-            resetExpression: false,
-        });
+        try {
+            currentModel.speak(audioUrl, {
+                volume: 1.0,
+                resetExpression: false,
+            });
+        } catch (e) {
+            toast.error("Audio play failed: " + e);
+        }
 
         //const audio = new Audio(audioUrl);
         //audio.crossOrigin = "anonymous";
