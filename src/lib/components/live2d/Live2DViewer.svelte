@@ -76,8 +76,10 @@
                         lipSyncContext,
                     );
                     console.log("🔊 LipSync Analyzer Setup Complete");
+                    toast.success("Audio Ready");
                 } catch (e) {
                     console.error("Failed to setup LipSync Analyzer:", e);
+                    toast.error("Audio Failed: " + e);
                 }
             }
 
@@ -679,48 +681,13 @@
     }
 
     onMount(async () => {
-        // --- Single Audio Element Setup ---
-        // We create a single audio element and reuse it.
-        // For Library Lip Sync to work on Mobile Safari, we must also unlock the
-        // Library's internal AudioContext (SoundManager.context).
+        const silentAudio =
+            "data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRhAgAAAAEA";
+
         currentAudio = new Audio();
         currentAudio.crossOrigin = "anonymous";
-        currentAudio.autoplay = true;
-
-        // 🔊 iOS/Safari Audio Unlock
-        const unlockAudio = () => {
-            // 1. Unlock Standard Audio Element
-            if (currentAudio) {
-                currentAudio
-                    .play()
-                    .then(() => {
-                        currentAudio!.pause();
-                        currentAudio!.currentTime = 0;
-                    })
-                    .catch((e) => console.log("Unlock play failed", e));
-            }
-
-            // 2. Unlock Library Audio Context
-            const PIXI = (window as any).PIXI;
-            if (PIXI && PIXI.live2d && PIXI.live2d.SoundManager) {
-                const ctx = PIXI.live2d.SoundManager.context;
-                if (ctx && ctx.state === "suspended") {
-                    ctx.resume();
-                    console.log("🔊 Library AudioContext Resumed");
-                }
-            }
-
-            console.log("🔊 Audio Unlock Triggered");
-
-            // Remove listeners
-            document.removeEventListener("touchstart", unlockAudio);
-            document.removeEventListener("click", unlockAudio);
-            document.removeEventListener("keydown", unlockAudio);
-        };
-
-        document.addEventListener("touchstart", unlockAudio);
-        document.addEventListener("click", unlockAudio);
-        document.addEventListener("keydown", unlockAudio);
+        currentAudio.src = silentAudio;
+        currentAudio.preload = "auto"; // 미리 로드 설정
 
         setTimeout(async () => {
             try {
@@ -995,7 +962,6 @@
     onDestroy(() => {
         if (idleInterval) clearInterval(idleInterval);
         window.removeEventListener("resize", onResize);
-        //마이크 연결 종료
 
         stopNeuroMotion();
         if (currentModel)
