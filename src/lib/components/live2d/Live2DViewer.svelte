@@ -687,7 +687,7 @@
         currentAudio = new Audio();
         currentAudio.crossOrigin = "anonymous";
         currentAudio.src = silentAudio;
-        currentAudio.preload = "auto"; // 미리 로드 설정
+        currentAudio.preload = "auto";
 
         setTimeout(async () => {
             try {
@@ -1159,6 +1159,17 @@
             {/if}
         </div>
     {/if}
+
+    <button
+        class="test-tts-btn"
+        style="position: absolute; top: 50px; right: 10px; z-index: 9999; pointer-events: auto; padding: 8px 16px; background: #ff0055; color: white; border-radius: 20px; border: 2px solid white; font-weight: bold; box-shadow: 0 4px 10px rgba(0,0,0,0.3); cursor: pointer; transition: transform 0.1s;"
+        on:click={() => speak("/TTS_Sample.mp3")}
+        on:mousedown={(e) => (e.currentTarget.style.transform = "scale(0.95)")}
+        on:mouseup={(e) => (e.currentTarget.style.transform = "scale(1)")}
+        on:mouseleave={(e) => (e.currentTarget.style.transform = "scale(1)")}
+    >
+        🗣️ Test TTS LipSync
+    </button>
 </div>
 
 <style>
