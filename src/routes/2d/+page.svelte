@@ -186,6 +186,15 @@
     background-color: var(--background);
   }
 
+  @media (display-mode: standalone) {
+    .chat-layout {
+      height: 100vh;
+    }
+    .chat-container {
+      height: 100vh;
+    }
+  }
+
   .chat-container {
     flex: 1; /* 남은 공간 모두 차지 */
     height: 100vh; /* 화면 높이의 40% 차지 (조절 가능) */

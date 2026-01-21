@@ -620,6 +620,12 @@
     flex-direction: column;
     z-index: 2;
   }
+
+  @media (display-mode: standalone) {
+    .chat-container {
+      height: 100vh;
+    }
+  }
   .chat-content {
     position: relative;
     display: flex;

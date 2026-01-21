@@ -158,6 +158,12 @@
     overflow: hidden;
   }
 
+  @media (display-mode: standalone) {
+    main {
+      height: 100vh;
+    }
+  }
+
   .vignette-overlay {
     position: absolute;
     inset: 0;
