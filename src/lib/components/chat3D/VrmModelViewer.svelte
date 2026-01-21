@@ -580,6 +580,7 @@
     left: 0;
     width: 100vw;
     height: 100vh;
+    height: 100dvh;
     overflow: hidden;
     background-color: #000;
   }
@@ -609,6 +610,7 @@
     bottom: 0;
     width: 100%;
     height: 100vh;
+    height: 100dvh;
 
     padding-bottom: env(safe-area-inset-bottom, 0px);
 

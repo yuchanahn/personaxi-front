@@ -178,6 +178,7 @@
     left: 0;
     display: flex;
     height: 100vh;
+    height: 100dvh;
     width: 100vw;
     overflow: hidden;
     /* 모바일 기본: 세로 배치 */
@@ -188,6 +189,7 @@
   .chat-container {
     flex: 1; /* 남은 공간 모두 차지 */
     height: 100vh; /* 화면 높이의 40% 차지 (조절 가능) */
+    height: 100dvh;
     display: flex;
     flex-direction: column;
     min-height: 0;

@@ -167,6 +167,14 @@
       box-shadow 0.2s;
   }
 
+  .chat-input:focus {
+    outline: none; /* 브라우저 기본 파란색/검은색 강조 테두리 제거 */
+    border-color: var(
+      --border-input
+    ); /* (중요) 포커스 시 색상이 변하지 않도록 기존 색상 유지 */
+    box-shadow: none; /* 혹시 그림자로 효과가 들어가 있다면 제거 */
+  }
+
   .chat-input.over-limit {
     border-color: #ef4444;
   }
