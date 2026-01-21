@@ -3,6 +3,7 @@
     import { loadLive2DScripts } from "$lib/utils/live2dLoader";
     import Icon from "@iconify/svelte";
     import { toast } from "$lib/stores/toast";
+    import { SafeAudioManager } from "$lib/utils/safeAudioManager";
 
     export let modelUrl: string;
     export let scale: number = 0.3;
@@ -45,7 +46,7 @@
     let lipSyncAnalyzer: AnalyserNode | null = null;
     let neuroTicker: any;
 
-    export async function speak(audioUrl: string) {
+    export async function speak2(audioUrl: string) {
         if (!currentModel || !currentAudio) return;
 
         // Stop previous
@@ -60,38 +61,52 @@
             const mgr = currentModel.internalModel.motionManager;
             const PIXI = (window as any).PIXI;
 
+            console.log("1");
+
+            try {
+                const SM = PIXI.live2d.SoundManager;
+                // Use SoundManager helpers to wire up the persistent audio element
+                lipSyncContext = SM.addContext(currentAudio);
+                lipSyncAnalyzer = SM.addAnalyzer(currentAudio, lipSyncContext);
+                console.log("🔊 LipSync Analyzer Setup Complete");
+                toast.success("Audio Ready");
+            } catch (e) {
+                console.error("Failed to setup LipSync Analyzer:", e);
+                toast.error("Audio Failed: " + e);
+            }
+
             // 1. One-time Setup of Analyzer for currentAudio
             if (
-                !lipSyncContext &&
+                lipSyncContext !== null &&
                 PIXI &&
                 PIXI.live2d &&
                 PIXI.live2d.SoundManager
             ) {
-                try {
-                    const SM = PIXI.live2d.SoundManager;
-                    // Use SoundManager helpers to wire up the persistent audio element
-                    lipSyncContext = SM.addContext(currentAudio);
-                    lipSyncAnalyzer = SM.addAnalyzer(
-                        currentAudio,
-                        lipSyncContext,
-                    );
-                    console.log("🔊 LipSync Analyzer Setup Complete");
-                    toast.success("Audio Ready");
-                } catch (e) {
-                    console.error("Failed to setup LipSync Analyzer:", e);
-                    toast.error("Audio Failed: " + e);
-                }
+            } else {
+                console.log("🔊 LipSync Analyzer Setup Failed");
+                console.log("🔊 PIXI:", PIXI);
+                console.log("🔊 PIXI.live2d:", PIXI.live2d);
+                console.log(
+                    "🔊 PIXI.live2d.SoundManager:",
+                    PIXI.live2d.SoundManager,
+                );
+
+                console.log("🔊 lipSyncContext:", lipSyncContext);
             }
 
+            console.log("2");
             // 2. Inject into MotionManager
             mgr.currentAudio = currentAudio;
             if (lipSyncContext) mgr.currentContext = lipSyncContext;
             if (lipSyncAnalyzer) mgr.currentAnalyzer = lipSyncAnalyzer;
         }
 
+        console.log("3");
         startNeuroMotion(); // Start motion loop
 
+        console.log("4");
         try {
+            console.log("5");
             await currentAudio.play();
         } catch (e) {
             console.error("Audio Play Failed:", e);
@@ -102,6 +117,23 @@
             console.log("Audio Finished");
             stopNeuroMotion();
         };
+    }
+
+    export async function speak(audioUrl: string) {
+        if (!currentModel) return;
+
+        startNeuroMotion();
+
+        await SafeAudioManager.speak(currentModel, audioUrl, {
+            onFinish: () => {
+                console.log("### TTS Finished");
+                stopNeuroMotion();
+            },
+            onError: (e) => {
+                console.error("### TTS Error", e);
+                stopNeuroMotion();
+            },
+        });
     }
 
     export function toggleDebug() {
@@ -689,6 +721,17 @@
         currentAudio.src = silentAudio;
         currentAudio.preload = "auto";
 
+        const wakeUpAudio = () => {
+            SafeAudioManager.init();
+            // 한 번 실행됐으면 리스너 제거 (불필요한 호출 방지)
+            window.removeEventListener("click", wakeUpAudio);
+            window.removeEventListener("touchstart", wakeUpAudio);
+            console.log("👆 User interacted, Audio System initialized.");
+        };
+
+        window.addEventListener("click", wakeUpAudio);
+        window.addEventListener("touchstart", wakeUpAudio);
+
         setTimeout(async () => {
             try {
                 await loadLive2DScripts();
@@ -1162,13 +1205,13 @@
 
     <button
         class="test-tts-btn"
-        style="position: absolute; top: 50px; right: 10px; z-index: 9999; pointer-events: auto; padding: 8px 16px; background: #ff0055; color: white; border-radius: 20px; border: 2px solid white; font-weight: bold; box-shadow: 0 4px 10px rgba(0,0,0,0.3); cursor: pointer; transition: transform 0.1s;"
+        style="position: absolute; top: 50px; right: 70px; z-index: 9999; pointer-events: auto; padding: 8px 16px; background: #ff0055; color: white; border-radius: 20px; border: 2px solid white; font-weight: bold; box-shadow: 0 4px 10px rgba(0,0,0,0.3); cursor: pointer; transition: transform 0.1s;"
         on:click={() => speak("/TTS_Sample.mp3")}
         on:mousedown={(e) => (e.currentTarget.style.transform = "scale(0.95)")}
         on:mouseup={(e) => (e.currentTarget.style.transform = "scale(1)")}
         on:mouseleave={(e) => (e.currentTarget.style.transform = "scale(1)")}
     >
-        🗣️ Test TTS LipSync
+        🗣️ Test TTS
     </button>
 </div>
 

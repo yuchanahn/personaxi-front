@@ -78,25 +78,16 @@
 
     let affectionScore = 100;
 
-    // Vignette System: Dual Layer
-    // Layer 1 (Black): Intense at 0 score, Transparent at 100
-    // Layer 2 (Pink): Transparent at 0 score, Visible at 100
-
     let blackOpacity = 1;
     let pinkOpacity = 0;
 
     $: {
         const t = Math.max(0, Math.min(100, affectionScore)) / 100;
-
-        // Black: 0.95 -> 0.0
         blackOpacity = 0.95 - t * 0.95;
-
-        // Pink: 0.0 -> 0.45
         pinkOpacity = t * 0.45;
     }
 
     onMount(async () => {
-        // Listen for Affection Updates
         const handleAffection = (e: CustomEvent) => {
             if (e.detail?.score !== undefined) {
                 affectionScore = e.detail.score;
@@ -120,38 +111,24 @@
             persona = null;
             loadChatHistory(sessionId);
             loadPersona(sessionId).then((p) => {
-                // Fallback to test model if live2d_model_url is missing
                 if (!p.live2d_model_url) {
-                    console.warn("No Live2D URL found, using test model.");
+                    console.error("Live2D URL not found, using test model.");
+                    toast.error("Live2D URL not found, using test model.");
                     p.live2d_model_url = TEST_MODEL_URL;
                 }
                 persona = p;
 
-                // Initialize Affection Score Logic (Fix for background bug)
-                // If persona has affection/score data, use it. Otherwise trigger default update.
-                // Assuming starting at 100 or previous state.
-                // Currently forcing a reactive update by self-assignment or log.
-                console.log(
-                    "Initialized Persona, Affection Score:",
-                    affectionScore,
-                );
-
-                // TODO: Fetch real affection score from backend if available
-                // For now, ensure the vignette system is active
                 if (affectionScore === undefined) affectionScore = 100;
             });
 
             await connectTTSSocket(async (audio: ArrayBuffer | null) => {
                 if (!audio) {
-                    // TTS Failed - Fallback to Text Only
                     toast.error("TTS Server Busy (Fallback to Text)");
 
-                    // Reset thoughts
                     isSpeaking = false;
                     showThought2 = false;
                     showThought1 = false;
 
-                    // Parse Speech Text (Logic from handleThoughtEnded)
                     const lastMsg = $messages[$messages.length - 1];
                     let content = "";
                     if (lastMsg && lastMsg.role === "assistant") {
@@ -161,21 +138,19 @@
                         speechText = content;
                     }
 
-                    // Immediately show speech bubble since we have text but no audio
                     showSpeech = true;
 
-                    // Simulate reading time (e.g. 150ms per character + 1s base)
                     const textLen = content.trim().length;
                     const simulatedDuration =
                         textLen > 0 ? textLen * 100 + 1500 : 2000;
 
-                    isSpeaking = true; // Act as if speaking
+                    isSpeaking = true;
 
                     setTimeout(() => {
                         console.log("Text-only mode ended: Showing Thought 2");
                         isSpeaking = false;
                         showThought1 = false;
-                        showSpeech = false; // Hide speech bubble when done
+                        showSpeech = false;
 
                         if (thought2) {
                             const delay =
@@ -195,39 +170,28 @@
                     const blob = new Blob([audio], { type: "audio/mp3" });
                     const url = URL.createObjectURL(blob);
 
-                    // Calculate duration
                     const tempAudio = new Audio(url);
                     await new Promise((resolve) => {
                         tempAudio.onloadedmetadata = () => resolve(true);
-                        // Fallback if metadata fails
                         setTimeout(() => resolve(true), 1000);
                     });
-                    const durationMs = tempAudio.duration * 1000 || 3000; // Default to 3s if unknown
-                    // console.log(`Audio Duration: ${durationMs}ms`);
+                    const durationMs = tempAudio.duration * 1000 || 3000;
+                    console.log(`Audio Duration: ${durationMs}ms`);
 
-                    // Audio Start
-                    // console.log("Audio Start: Resetting thoughts");
                     isSpeaking = true;
                     showThought2 = false;
                     showThought1 = false;
-
-                    // Start speaking (don't await if it resolves early, we use duration)
                     Viewer.speak(url);
 
-                    // Wait for audio to finish
                     setTimeout(() => {
-                        // Audio End
-                        // console.log("Audio End: Showing Thought 2");
                         isSpeaking = false;
-                        showThought1 = false; // Ensure thought1 is gone
+                        showThought1 = false;
 
                         if (thought2) {
-                            // Random delay between 2000ms and 3000ms
                             const delay =
                                 Math.floor(Math.random() * 1000) + 2000;
                             setTimeout(() => {
-                                showThought2 = true; // Show thought 2
-                                // Hide thought 2 after 8 seconds
+                                showThought2 = true;
                                 setTimeout(() => {
                                     showThought2 = false;
                                 }, 8000);
@@ -243,7 +207,7 @@
 
     let motionMap: Record<string, string> = {};
     let motionExprMap: Record<string, string> = {};
-    let hitMotionMap: Record<string, string> = {}; // New
+    let hitMotionMap: Record<string, string> = {};
     let expressionMap: Record<string, string> = {};
     let lastTriggeredAction: string = "";
 
@@ -310,9 +274,6 @@
         if (lastMsg.role === "assistant") {
             const text = lastMsg.content;
 
-            // console.log("Debug: Last message content:", text);
-
-            // Regex to find [ActionName]
             const actionMatch = text.match(/\[(.*?)\]/);
 
             if (actionMatch) {
@@ -330,8 +291,6 @@
                                 "Debug: Triggering action:",
                                 actionName,
                             );
-                            // Check if it's an expression
-                            // Heuristic: Check against known availableExpressions OR file extension
                             const isExpression =
                                 (Viewer.getAvailableExpressions &&
                                     Viewer.getAvailableExpressions().includes(
@@ -358,10 +317,7 @@
                         );
                     }
                 } else if (actionName === lastTriggeredAction) {
-                    // Skipping duplicate action
                 }
-            } else {
-                // No action tag found in text
             }
         }
     }
@@ -369,7 +325,6 @@
     const send = async (prompt: string) => {
         if (!persona || !lastSessionId) return;
 
-        // Optimistic Credit Deduction
         st_user.update((u) => {
             if (u && u.credits >= currentCost) {
                 u.credits -= currentCost;
@@ -379,14 +334,12 @@
 
         isLoading = true;
 
-        // Reset thoughts for new turn
         thought1 = "";
         thought2 = "";
         showThought1 = false;
         showThought2 = false;
         lastTriggeredAction = "";
 
-        // Use "3d" type to leverage existing 3D backend logic (TTS, Emotion, etc.)
         await sendPromptStream(
             lastSessionId,
             prompt,
@@ -395,8 +348,6 @@
                 isLoading = false;
             },
             (emotion) => {
-                // Handle emotion detection via Viewer logic
-                // console.log("Raw API Emotion:", emotion);
                 if (Viewer && Viewer.setExpression) {
                     Viewer.setExpression(emotion);
                 }
@@ -405,7 +356,7 @@
     };
 
     const handleInputChange = (text: string) => {
-        // Optional: Add lip sync or idle animation changes on input
+        // TODO: Add lip sync or idle animation changes on input
     };
 
     onDestroy(() => {
@@ -515,7 +466,10 @@
                         const durationMs = tempAudio.duration * 1000 || 3000;
 
                         // Audio Start
-                        console.log("Audio Start (Modal): Resetting thoughts");
+                        console.log(
+                            "Audio Start (Modal): Resetting thoughts, durationMs : ",
+                            durationMs,
+                        );
                         isSpeaking = true;
                         showThought2 = false;
 
