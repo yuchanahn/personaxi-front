@@ -2,14 +2,15 @@
     import { onMount, onDestroy } from "svelte";
     import { loadLive2DScripts } from "$lib/utils/live2dLoader";
     import Icon from "@iconify/svelte";
-    import { toast } from "$lib/stores/toast";
     import { SafeAudioManager } from "$lib/utils/safeAudioManager";
+    import { Live2DAutonomy } from "$lib/utils/live2d/Live2DAutonomy";
 
     export let modelUrl: string;
     export let scale: number = 0.3;
     export let x: number = 0;
     export let y: number = 0;
     export let expressionMap: Record<string, string> = {};
+    // svelte-ignore export_let_unused
     export let hitMotionMap: Record<string, string> = {};
     export let backgroundImage: string | null = null;
 
@@ -17,7 +18,7 @@
     let app: any;
     let currentModel: any | null = null;
     let isLoaded = false;
-    let idleInterval: any;
+    let autonomy: Live2DAutonomy | null = null;
 
     // Debug State
     let showDebug = false;
@@ -30,108 +31,21 @@
         availableMotionGroups: [] as string[],
         fileMotions: [] as string[],
         error: "",
+        manualParamId: "",
+        manualParamValue: 0,
     };
 
-    // --- Tactile Physics State ---
-    let dragTargetX = 0;
-    let dragTargetY = 0;
-    let dragPhysicsX = 0;
-    let dragPhysicsY = 0;
     let isDragging = false;
-
-    // --- Audio State ---
-    let currentAudio: HTMLAudioElement | null = null;
-    // Persistent Audio Context/Analyzer for Lip Sync (created once)
-    let lipSyncContext: AudioContext | null = null;
-    let lipSyncAnalyzer: AnalyserNode | null = null;
-    let neuroTicker: any;
-
-    export async function speak2(audioUrl: string) {
-        if (!currentModel || !currentAudio) return;
-
-        // Stop previous
-        currentAudio.pause();
-        currentAudio.currentTime = 0;
-
-        // Play new
-        currentAudio.src = audioUrl;
-
-        // 🔗 Inject Audio & Analyzer into Library (Native Lip Sync)
-        if (currentModel.internalModel.motionManager) {
-            const mgr = currentModel.internalModel.motionManager;
-            const PIXI = (window as any).PIXI;
-
-            console.log("1");
-
-            try {
-                const SM = PIXI.live2d.SoundManager;
-                // Use SoundManager helpers to wire up the persistent audio element
-                lipSyncContext = SM.addContext(currentAudio);
-                lipSyncAnalyzer = SM.addAnalyzer(currentAudio, lipSyncContext);
-                console.log("🔊 LipSync Analyzer Setup Complete");
-                toast.success("Audio Ready");
-            } catch (e) {
-                console.error("Failed to setup LipSync Analyzer:", e);
-                toast.error("Audio Failed: " + e);
-            }
-
-            // 1. One-time Setup of Analyzer for currentAudio
-            if (
-                lipSyncContext !== null &&
-                PIXI &&
-                PIXI.live2d &&
-                PIXI.live2d.SoundManager
-            ) {
-            } else {
-                console.log("🔊 LipSync Analyzer Setup Failed");
-                console.log("🔊 PIXI:", PIXI);
-                console.log("🔊 PIXI.live2d:", PIXI.live2d);
-                console.log(
-                    "🔊 PIXI.live2d.SoundManager:",
-                    PIXI.live2d.SoundManager,
-                );
-
-                console.log("🔊 lipSyncContext:", lipSyncContext);
-            }
-
-            console.log("2");
-            // 2. Inject into MotionManager
-            mgr.currentAudio = currentAudio;
-            if (lipSyncContext) mgr.currentContext = lipSyncContext;
-            if (lipSyncAnalyzer) mgr.currentAnalyzer = lipSyncAnalyzer;
-        }
-
-        console.log("3");
-        startNeuroMotion(); // Start motion loop
-
-        console.log("4");
-        try {
-            console.log("5");
-            await currentAudio.play();
-        } catch (e) {
-            console.error("Audio Play Failed:", e);
-            toast.error("Audio Failed: " + e);
-        }
-
-        currentAudio.onended = () => {
-            console.log("Audio Finished");
-            stopNeuroMotion();
-        };
-    }
 
     export async function speak(audioUrl: string) {
         if (!currentModel) return;
 
-        startNeuroMotion();
-
         await SafeAudioManager.speak(currentModel, audioUrl, {
             onFinish: () => {
                 console.log("### TTS Finished");
-                stopNeuroMotion();
             },
             onError: (e) => {
                 console.error("### TTS Error", e);
-                stopNeuroMotion();
             },
         });
     }
@@ -142,6 +56,7 @@
             (currentModel as any).hitAreaFrames.visible = showDebug;
         }
     }
+    // [TEST] Reset to Default
     export function resetToDefault() {
         if (!currentModel || !currentModel.internalModel) return;
 
@@ -396,15 +311,14 @@
         model.on("pointerdown", (e: any) => {
             startX = e.data.global.x;
             startY = e.data.global.y;
-            // Do NOT set isDragging = true immediately
-            dragPhysicsX = 0;
-            dragPhysicsY = 0;
-            updateDragTarget(e);
+            // updateDragTarget will be called by pointermove
+            if (autonomy) {
+                updateDragTarget(e);
+            }
         });
 
         model.on("pointermove", (e: any) => {
             if (!isDragging && startX !== 0 && startY !== 0) {
-                // Check threshold
                 const dx = Math.abs(e.data.global.x - startX);
                 const dy = Math.abs(e.data.global.y - startY);
                 if (dx > dragThreshold || dy > dragThreshold) {
@@ -419,26 +333,24 @@
 
         const stopDrag = () => {
             isDragging = false;
-            startX = 0; // Reset
+            startX = 0;
             startY = 0;
-            // Smoothly return to center (handled by lerp in ticker)
-            dragTargetX = 0;
-            dragTargetY = 0;
+            if (autonomy) {
+                autonomy.handleDrag(0, 0);
+            }
         };
         model.on("pointerupoutside", stopDrag);
         model.on("pointerup", stopDrag);
     }
 
     function updateDragTarget(e: any) {
-        if (!app) return;
+        if (!app || !autonomy) return;
         const x = e.data.global.x;
         const y = e.data.global.y;
 
         const centerX = app.screen.width / 2;
         const centerY = app.screen.height / 2;
 
-        // Normalized Target (-1 ~ 1)
-        // Clamp to avoid extreme rotation
         const clamp = (val: number, min: number, max: number) =>
             Math.min(Math.max(val, min), max);
 
@@ -448,21 +360,7 @@
             -1,
             1,
         );
-
-        // Calculate Velocity Impulse (Delta)
-        // Add "kick" to physics
-        const deltaX = (newTargetX - dragTargetX) * 20; // Sensitivity
-        const deltaY = (newTargetY - dragTargetY) * 20;
-
-        dragPhysicsX += deltaX;
-        dragPhysicsY += deltaY;
-
-        // Clamp Physics to prevent explosion
-        dragPhysicsX = clamp(dragPhysicsX, -30, 30);
-        dragPhysicsY = clamp(dragPhysicsY, -30, 30);
-
-        dragTargetX = newTargetX;
-        dragTargetY = newTargetY;
+        autonomy.handleDrag(newTargetX, newTargetY);
     }
 
     // Motion Presets Configuration
@@ -510,220 +408,11 @@
         },
     };
 
-    let currentPresetName = "idle";
-    let bounceTicker: any;
-
-    function startBouncing(presetName: string = "idle") {
-        if (!currentModel || !app) return;
-
-        // Prevent duplicate ticker if already running same preset?
-        // Or just restart to apply new preset instantly.
-        if (bounceTicker) {
-            app.ticker.remove(bounceTicker);
-            bounceTicker = null;
-        }
-
-        currentPresetName = presetName;
-        const preset = MOTION_PRESETS[presetName] || MOTION_PRESETS["idle"];
-        console.log(`🚀 Starting Motion Preset: ${presetName}`, preset);
-
-        let startTime = Date.now();
-        const internal = currentModel.internalModel;
-        const core = internal.coreModel;
-        const ids = core._parameterIds;
-        const values = core._parameterValues;
-
-        if (!ids || !values) {
-            console.error("❌ No parameter IDs found.");
-            return;
-        }
-
-        // Map indices
-        const indices = {
-            bodyX: ids.indexOf("ParamBodyAngleX"),
-            bodyY: ids.indexOf("ParamBodyAngleY"),
-            bodyZ: ids.indexOf("ParamBodyAngleZ"),
-            headX: ids.indexOf("ParamAngleX"),
-            headY: ids.indexOf("ParamAngleY"),
-        };
-
-        bounceTicker = () => {
-            const now = Date.now();
-            const elapsed = now - startTime;
-
-            // Apply each axis if defined in preset AND exists in model
-            if (preset.bodyX && indices.bodyX !== -1) {
-                values[indices.bodyX] =
-                    Math.sin((elapsed * preset.bodyX.speed) / 1000) *
-                    preset.bodyX.intensity;
-            }
-            if (preset.bodyY && indices.bodyY !== -1) {
-                values[indices.bodyY] =
-                    Math.sin((elapsed * preset.bodyY.speed) / 1000) *
-                    preset.bodyY.intensity;
-            }
-            if (preset.bodyZ && indices.bodyZ !== -1) {
-                values[indices.bodyZ] =
-                    Math.sin((elapsed * preset.bodyZ.speed) / 1000) *
-                    preset.bodyZ.intensity;
-            }
-            if (preset.headX && indices.headX !== -1) {
-                values[indices.headX] =
-                    Math.sin((elapsed * preset.headX.speed) / 1000) *
-                    preset.headX.intensity;
-            }
-            if (preset.headY && indices.headY !== -1) {
-                values[indices.headY] =
-                    Math.sin((elapsed * preset.headY.speed) / 1000) *
-                    preset.headY.intensity;
-            }
-        };
-
-        app.ticker.add(bounceTicker, null, PIXI.UPDATE_PRIORITY.UTILITY);
-    }
-
-    function stopBouncing() {
-        if (app && bounceTicker) {
-            app.ticker.remove(bounceTicker);
-            bounceTicker = null;
-
-            const core = currentModel?.internalModel?.coreModel;
-            if (core) {
-                core.setParameterValueById("ParamBodyAngleY", 0);
-                core.setParameterValueById("ParamAngleY", 0);
-            }
-        }
-    }
-
-    function startNeuroMotion() {
-        if (!currentModel || !app || neuroTicker) return;
-
-        const internal = currentModel.internalModel;
-        const core = internal.coreModel;
-        const ids = core._parameterIds;
-        const values = core._parameterValues;
-
-        // Helper: Find first matching parameter index
-        const findParam = (candidates: string[]) => {
-            for (const c of candidates) {
-                const idx = ids.indexOf(c);
-                if (idx !== -1) return idx;
-            }
-            return -1;
-        };
-
-        const idxBodyY = findParam([
-            "ParamBodyAngleY",
-            "ParamBodyAngle",
-            "ParamBodyY",
-        ]);
-        const idxBodyZ = findParam(["ParamBodyAngleZ", "ParamBodyZ"]);
-        const idxBodyX = findParam(["ParamBodyAngleX", "ParamBodyX"]); // Added BodyX
-        const idxHeadY = findParam(["ParamAngleY"]);
-        const idxHeadZ = findParam(["ParamAngleZ"]);
-        const idxHeadX = findParam(["ParamAngleX"]); // Added HeadX
-
-        let startTime = Date.now();
-        let bodyVol = 0;
-
-        // Physics State
-        let currentBodyX = 0;
-        let currentBodyY = 0;
-
-        neuroTicker = () => {
-            // 🔊 Get Volume from Library (for Body Reaction only)
-            // The library handles Lip Sync automatically after we injected currentAudio
-            let volume = 0;
-            if (
-                internal.motionManager &&
-                typeof internal.motionManager.mouthSync === "function"
-            ) {
-                // mouthSync() returns 0~1 value based on audio
-                volume = internal.motionManager.mouthSync();
-            }
-
-            const inputIntensity = Math.max(0, (volume * 10 - 1) / 4); // Adjusted for reaction sensitivity
-            bodyVol += (inputIntensity - bodyVol) * 0.1;
-
-            const t = (Date.now() - startTime) / 1000;
-            const sway = (Math.sin(t * 1.5) + Math.cos(t * 0.9)) * 0.5;
-
-            // --- Tactile Physics Interaction ---
-            // Goal: Smoothly interpolate towards dragTarget (Posture) + Add Velocity Impulse (Sweep)
-
-            // 1. Spring Physics for Body X/Y
-            // Target is dragTargetX/Y * Multiplier (e.g., 10 degrees)
-            const targetX = dragTargetX * 10;
-            const targetY = dragTargetY * 10;
-
-            // Simple Lerp for Posture
-            currentBodyX += (targetX - currentBodyX) * 0.1;
-            currentBodyY += (targetY - currentBodyY) * 0.1;
-
-            // Velocity Decay
-            dragPhysicsX *= 0.9;
-            dragPhysicsY *= 0.9;
-
-            // Combine Posture + Impulse
-            const finalBodyX = currentBodyX + dragPhysicsX;
-            const finalBodyY = currentBodyY + dragPhysicsY;
-
-            // Apply to Parameters
-            if (idxHeadX !== -1) {
-                // Head looks at mouse + slight physics
-                values[idxHeadX] = dragTargetX * 30 + dragPhysicsX * 0.5;
-            }
-
-            if (idxHeadY !== -1) {
-                const base = Math.sin(t * 2) * 2;
-                const talk = bodyVol * 15;
-                // Head looks at mouse Y + talk + breathing
-                values[idxHeadY] =
-                    base + talk + dragTargetY * 30 + dragPhysicsY * 0.5;
-            }
-
-            if (idxBodyX !== -1) {
-                // Body twists to follow
-                values[idxBodyX] = finalBodyX;
-            }
-
-            if (idxBodyZ !== -1) {
-                // Body tilts based on X movement (natural balance)
-                // -X twist usually means -Z tilt slightly
-                values[idxBodyZ] = finalBodyX * 0.5 + sway;
-            }
-
-            if (idxBodyY !== -1) {
-                // Body leans forward/back
-                values[idxBodyY] = finalBodyY + bodyVol * 5;
-            }
-        };
-
-        app.ticker.add(neuroTicker, null, PIXI.UPDATE_PRIORITY.UTILITY);
-    }
-
-    function stopNeuroMotion() {
-        if (app && neuroTicker) {
-            app.ticker.remove(neuroTicker);
-            neuroTicker = null;
-
-            // 멈출 때 서서히 돌아오게 하려면 별도 로직 필요하지만, 일단 0으로 초기화
-            // (파라미터 초기화 코드는 생략, 필요시 추가)
-        }
-    }
+    let DestroyAudio = () => {};
 
     onMount(async () => {
-        const silentAudio =
-            "data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRhAgAAAAEA";
-
-        currentAudio = new Audio();
-        currentAudio.crossOrigin = "anonymous";
-        currentAudio.src = silentAudio;
-        currentAudio.preload = "auto";
-
         const wakeUpAudio = () => {
             SafeAudioManager.init();
-            // 한 번 실행됐으면 리스너 제거 (불필요한 호출 방지)
             window.removeEventListener("click", wakeUpAudio);
             window.removeEventListener("touchstart", wakeUpAudio);
             console.log("👆 User interacted, Audio System initialized.");
@@ -731,6 +420,10 @@
 
         window.addEventListener("click", wakeUpAudio);
         window.addEventListener("touchstart", wakeUpAudio);
+        DestroyAudio = () => {
+            window.removeEventListener("click", wakeUpAudio);
+            window.removeEventListener("touchstart", wakeUpAudio);
+        };
 
         setTimeout(async () => {
             try {
@@ -757,7 +450,6 @@
 
                 draggable(model);
 
-                // Add Hit Area Frames for Debug
                 try {
                     if (
                         PIXI.live2d.HitAreaFrames &&
@@ -780,9 +472,7 @@
                     console.error("Failed to add HitAreaFrames:", e);
                 }
 
-                // Inspect Hit Data
                 console.log("Debug: Inspecting Model Hit Areas...");
-                // @ts-ignore
                 const hitAreaKeys = model.hitAreas
                     ? Object.keys(model.hitAreas)
                     : [];
@@ -795,7 +485,7 @@
                     debugInfo.error =
                         "No Hit Areas detected in this model! (Check .model3.json)";
                 } else {
-                    debugInfo.fileMotions = hitAreaKeys; // Temporary re-use to show in debug panel if needed
+                    debugInfo.fileMotions = hitAreaKeys;
                 }
 
                 model.scale.set(1);
@@ -809,67 +499,10 @@
                 const finalScale = x === 0 && y === 0 ? autoScale : scale;
                 model.scale.set(finalScale);
 
-                // Hit Interaction
-                // Since autoInteract is false, we manually handle tap to trigger hit events
                 model.on("pointertap", (e: any) => {
                     const point = e.data.global;
                     model.tap(point.x, point.y);
                 });
-
-                // model.on("hit", (hitAreas: string[]) => {
-                //     console.log("Hit detected:", hitAreas);
-                //     hitAreas.forEach((area) => {
-                //         console.log(`Checking hit area: ${area}`);
-
-                //         // 1. Custom Map
-                //         if (hitMotionMap[area]) {
-                //             const motionFile = hitMotionMap[area];
-                //             console.log(
-                //                 `Triggering mapped motion for ${area}: ${motionFile}`,
-                //             );
-
-                //             let found = false;
-                //             if (model.internalModel.motionManager.definitions) {
-                //                 for (const [grp, motions] of Object.entries(
-                //                     model.internalModel.motionManager
-                //                         .definitions,
-                //                 )) {
-                //                     // @ts-ignore
-                //                     motions.forEach((m, i) => {
-                //                         if (
-                //                             m.File === motionFile ||
-                //                             (m.File &&
-                //                                 m.File.endsWith(motionFile))
-                //                         ) {
-                //                             console.log(
-                //                                 `Found motion ${motionFile} in group ${grp} at index ${i}`,
-                //                             );
-                //                             model.motion(grp, i, 3); // Priority 3 = FORCE
-                //                             found = true;
-                //                         }
-                //                     });
-                //                 }
-                //             }
-                //             if (!found) {
-                //                 // Maybe it's just a group name?
-                //                 model.motion(motionFile, undefined, 3);
-                //             }
-                //         } else {
-                //             // 2. Default Fallback: Tap + Area (e.g. TapBody)
-                //             const defaultMotion = "Tap" + area;
-                //             console.log(
-                //                 `Trying default hit motion: ${defaultMotion}`,
-                //             );
-                //             model
-                //                 .motion(defaultMotion, undefined, 3)
-                //                 .catch(() => {});
-
-                //             // Lowercase fallback
-                //             const lower = "tap_" + area.toLowerCase();
-                //             model.motion(lower, undefined, 3).catch(() => {});
-                //         }
-                //     });
-                // });
 
                 model.x = x;
                 model.y = y;
@@ -882,8 +515,13 @@
 
                 app.stage.addChild(model);
                 currentModel = model;
+
+                // Initialize Autonomy
+                autonomy = new Live2DAutonomy(model, app);
+                autonomy.start();
+
                 //startBouncing();
-                startNeuroMotion();
+                //startNeuroMotion();
 
                 isLoaded = true;
                 debugInfo.modelUrl = modelUrl;
@@ -965,18 +603,18 @@
                 debugInfo.availableMotionGroups = Array.from(foundMotionGroups);
                 debugInfo = debugInfo;
 
-                idleInterval = setInterval(() => {
-                    if (!currentModel?.internalModel?.motionManager) return;
-                    if (Math.random() > 0.5) {
-                        const motionManager =
-                            currentModel.internalModel.motionManager;
-                        if (motionManager.definitions["Idle"]) {
-                            currentModel.motion("Idle");
-                            debugInfo.lastMotion = "Idle (Random)";
-                            debugInfo = debugInfo;
-                        }
-                    }
-                }, 8000);
+                //idleInterval = setInterval(() => {
+                //    if (!currentModel?.internalModel?.motionManager) return;
+                //    if (Math.random() > 0.5) {
+                //        const motionManager =
+                //            currentModel.internalModel.motionManager;
+                //        if (motionManager.definitions["Idle"]) {
+                //            currentModel.motion("Idle");
+                //            debugInfo.lastMotion = "Idle (Random)";
+                //            debugInfo = debugInfo;
+                //        }
+                //    }
+                //}, 8000);
 
                 window.addEventListener("resize", onResize);
             } catch (e: any) {
@@ -1003,10 +641,13 @@
     }
 
     onDestroy(() => {
-        if (idleInterval) clearInterval(idleInterval);
+        //if (idleInterval) clearInterval(idleInterval);
         window.removeEventListener("resize", onResize);
 
-        stopNeuroMotion();
+        //audio
+        DestroyAudio();
+        //stopNeuroMotion();
+
         if (currentModel)
             try {
                 currentModel.destroy();
@@ -1105,9 +746,77 @@
                 </div>
             </div>
 
+            <!-- Manual Parameter Control -->
+            <div class="info-section">
+                <label
+                    style="display: flex; align-items: center; gap: 5px; margin-bottom: 5px; color: #fab;"
+                >
+                    <input
+                        type="checkbox"
+                        on:change={(e) => {
+                            if (autonomy) {
+                                if (e.currentTarget.checked) autonomy.start();
+                                else autonomy.stop();
+                            }
+                        }}
+                        checked={true}
+                    />
+                    Enable Autonomy (Uncheck to test manually)
+                </label>
+
+                <strong>🔧 Manual Parameter Test:</strong>
+                <div style="display: flex; gap: 5px; margin-top: 5px;">
+                    <input
+                        type="text"
+                        placeholder="Param ID (e.g. ParamEyeLOpen)"
+                        style="flex: 2; padding: 4px; border-radius: 4px; border: 1px solid #444; background: #222; color: #fff; font-size: 12px;"
+                        bind:value={debugInfo.manualParamId}
+                    />
+                    <input
+                        type="number"
+                        placeholder="Val"
+                        step="0.1"
+                        style="flex: 1; padding: 4px; border-radius: 4px; border: 1px solid #444; background: #222; color: #fff; font-size: 12px;"
+                        bind:value={debugInfo.manualParamValue}
+                    />
+                    <button
+                        style="padding: 4px 8px; border-radius: 4px; background: #4caf50; color: white; border: none; cursor: pointer; font-size: 12px;"
+                        on:click={() => {
+                            if (
+                                currentModel &&
+                                currentModel.internalModel &&
+                                debugInfo.manualParamId
+                            ) {
+                                try {
+                                    // Try Set Parameter
+                                    currentModel.internalModel.coreModel.setParameterValueById(
+                                        debugInfo.manualParamId,
+                                        Number(debugInfo.manualParamValue),
+                                    );
+                                    console.log(
+                                        `✅ Set ${debugInfo.manualParamId} to ${debugInfo.manualParamValue}`,
+                                    );
+
+                                    // Force update to see immediate effect
+                                    currentModel.internalModel.coreModel.update();
+                                } catch (e) {
+                                    console.error(
+                                        "❌ Failed to set parameter:",
+                                        e,
+                                    );
+                                    alert("Error setting parameter. Check ID.");
+                                }
+                            }
+                        }}
+                    >
+                        Set
+                    </button>
+                </div>
+            </div>
+
             <div class="info-section">
                 <strong>Motion Presets:</strong>
-                <div
+                <!-- <div
                     class="presets-row"
                     style="display: flex; gap: 5px; flex-wrap: wrap; margin-top: 5px;"
                 >
@@ -1123,7 +832,7 @@
                             {preset}
                         </button>
                     {/each}
-                </div>
+                </div> -->
             </div>
 
             <div class="info-section">
@@ -1203,7 +912,7 @@
         </div>
     {/if}
 
-    <button
+    <!-- <button
         class="test-tts-btn"
         style="position: absolute; top: 50px; right: 70px; z-index: 9999; pointer-events: auto; padding: 8px 16px; background: #ff0055; color: white; border-radius: 20px; border: 2px solid white; font-weight: bold; box-shadow: 0 4px 10px rgba(0,0,0,0.3); cursor: pointer; transition: transform 0.1s;"
         on:click={() => speak("/TTS_Sample.mp3")}
@@ -1212,7 +921,7 @@
         on:mouseleave={(e) => (e.currentTarget.style.transform = "scale(1)")}
     >
         🗣️ Test TTS
-    </button>
+    </button> -->
 </div>
 
 <style>
@@ -1334,14 +1043,6 @@
     .break-all {
         word-break: break-all;
         color: #ccc;
-    }
-
-    .error-msg {
-        color: #ff4444;
-        border: 1px solid #ff4444;
-        padding: 5px;
-        background: rgba(255, 0, 0, 0.1);
-        border-radius: 4px;
     }
 
     .info-section {

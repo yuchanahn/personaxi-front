@@ -29,7 +29,6 @@
     let showChat: boolean = false;
     let isLoading = false;
 
-    // Thought Bubble State
     let thought1 = "";
     let thought2 = "";
     let showThought1 = false;
@@ -573,7 +572,7 @@
                 <div style="font-size: 10px; color: #888;">
                     {blackOpacity} / {pinkOpacity}
                 </div>
-            </div>
+            </div> 
 
             <button
                 class="debug-btn"
