@@ -595,7 +595,8 @@
         top: 0;
         left: 0;
         width: 100vw;
-        height: 100vh;
+        height: 100vh; /* Fallback */
+        height: 100dvh;
         overflow: hidden;
     }
 
@@ -640,7 +641,8 @@
         position: absolute;
         bottom: 0;
         width: 100%;
-        height: 100vh;
+        height: 100vh; /* Fallback */
+        height: 100dvh;
         padding-bottom: env(safe-area-inset-bottom, 0px);
         background-color: rgba(255, 255, 255, 0);
         display: flex;
