@@ -88,6 +88,14 @@
         rows="1"
         maxlength={MAX_CHARS}
         disabled={isDisabled}
+        name="input_xyz_123_random"
+        id="input_xyz_123_random"
+        autocomplete="off"
+        inputmode="search"
+        enterkeyhint="send"
+        autocorrect="off"
+        autocapitalize="off"
+        spellcheck="false"
         use:autoResize={180}
         on:keydown={handleSubmit}
         on:input={() => onChangeInput(prompt)}
