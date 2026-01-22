@@ -75,7 +75,7 @@
         currentCost = Math.round(baseCost * multiplier);
     }
 
-    let affectionScore = 100;
+    let affectionScore = 0;
 
     let blackOpacity = 1;
     let pinkOpacity = 0;
