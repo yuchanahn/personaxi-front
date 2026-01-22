@@ -314,12 +314,17 @@
             startX = e.data.global.x;
             startY = e.data.global.y;
             // updateDragTarget will be called by pointermove
+            showHandCursor = true;
+
             if (autonomy) {
                 updateDragTarget(e);
             }
         });
 
         model.on("pointermove", (e: any) => {
+            if (showHandCursor) {
+                cursorPos = { x: e.data.global.x, y: e.data.global.y };
+            }
             if (!isDragging && startX !== 0 && startY !== 0) {
                 const dx = Math.abs(e.data.global.x - startX);
                 const dy = Math.abs(e.data.global.y - startY);
@@ -335,6 +340,7 @@
 
         const stopDrag = () => {
             isDragging = false;
+            showHandCursor = false;
             startX = 0;
             startY = 0;
             if (autonomy) {
@@ -639,6 +645,10 @@
         // Reactive statement will handle onResize
     }
 
+    // --- Drag Cursor Logic ---
+    let cursorPos = { x: 0, y: 0 };
+    let showHandCursor = false;
+
     $: if (closeupScale || closeupOffset) {
         if (isCloseup) onResize();
     }
@@ -646,8 +656,6 @@
     function onResize() {
         if (app && currentModel && x === 0 && y === 0) {
             const bounds = currentModel.getBounds();
-
-            console.log("Debug: Model bounds", bounds);
 
             // Calculate original dimensions
             const modelWidth = bounds.width / currentModel.scale.x;
@@ -700,7 +708,7 @@
     });
 </script>
 
-<div class="live2d-container">
+<div class="live2d-container" class:hiding-cursor={showHandCursor}>
     {#if backgroundImage}
         <img
             src={backgroundImage}
@@ -710,6 +718,20 @@
         />
     {/if}
     <canvas bind:this={canvasElement} class="live2d-canvas"></canvas>
+
+    {#if showHandCursor}
+        <div
+            class="hand-cursor"
+            style="left: {cursorPos.x}px; top: {cursorPos.y}px;"
+        >
+            <Icon
+                icon="ph:hand-grabbing-fill"
+                width="48"
+                height="48"
+                color="white"
+            />
+        </div>
+    {/if}
 
     {#if !isLoaded}
         <div class="model-loader">
@@ -1227,5 +1249,36 @@
     .stop-btn:hover {
         background: rgba(255, 0, 0, 0.4);
         color: #fff;
+    }
+
+    .live2d-container.hiding-cursor,
+    .live2d-container.hiding-cursor .live2d-canvas {
+        cursor: none !important;
+    }
+
+    .hand-cursor {
+        position: fixed; /* absolute 대신 fixed가 스크롤/뷰포트 이슈에서 안전함 */
+        top: 0;
+        left: 0;
+        pointer-events: none; /* 클릭 방해 금지 */
+        z-index: 99999; /* 최상위 */
+        transform: translate(-50%, -50%); /* 정확히 중앙에 위치 */
+
+        /* 약간의 글로우 효과 */
+        filter: drop-shadow(0 0 5px rgba(0, 0, 0, 0.5));
+
+        /* 나타날 때 팝업 애니메이션 */
+        animation: popIn 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    @keyframes popIn {
+        from {
+            transform: translate(-50%, -50%) scale(0);
+            opacity: 0;
+        }
+        to {
+            transform: translate(-50%, -50%) scale(1);
+            opacity: 1;
+        }
     }
 </style>
