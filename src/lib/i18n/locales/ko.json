@@ -184,7 +184,11 @@
     "hideGeneratedImages": "생성된 이미지 숨김",
     "showBackground": "배경 모드",
     "autoScroll": "자동 스크롤",
-    "report": "신고하기"
+    "report": "신고하기",
+    "showChatWindow": "채팅창 표시",
+    "ttsConnected": "음성 연결됨",
+    "ttsConnecting": "연결 중...",
+    "enableTTS": "음성(TTS) 켜기"
   },
   "reportModal": {
     "title": "신고하기",

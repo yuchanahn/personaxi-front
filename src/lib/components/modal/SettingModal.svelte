@@ -18,14 +18,18 @@
     import { confirmStore } from "$lib/stores/confirm";
     import { pricingStore } from "$lib/stores/pricing";
     import { messages } from "$lib/stores/messages";
+    import { ttsState } from "$lib/stores/ttsStore";
 
     export let isOpen: boolean = false;
     export let persona: Persona;
     export let llmType: string = "Error";
-    export let mode: "2d" | "3d" = "3d";
+    export let mode: "2d" | "3d" | "live2d" = "3d";
     export let showImage: boolean = true;
     export let autoScroll: boolean = true;
     export let showBackground: boolean = false;
+    export let showChat: boolean = true;
+    export let impl_connectTTS: () => void | Promise<void> = () => {};
+    export let impl_disconnectTTS: () => void | Promise<void> = () => {};
 
     const dispatch = createEventDispatcher();
 
@@ -291,45 +295,6 @@
                     </div>
                 {/if}
 
-                <!-- 2. User Note (UI Only) -->
-                <!-- <div class="settings-card">
-                    <div class="card-header">
-                        <Icon icon="ph:note-pencil-duotone" />
-                        <span>{$t("settingModal.userNote")}</span>
-                    </div>
-                    <textarea
-                        class="memo-area"
-                        bind:value={userNote}
-                        placeholder={$t("settingModal.userNotePlaceholder")}
-                        rows="3"
-                    ></textarea>
-                </div> -->
-
-                <!-- 3. Output Length (UI Only) -->
-                <!-- <div class="settings-card">
-                    <div class="card-header">
-                        <Icon icon="ph:ruler-duotone" />
-                        <span>{$t("settingModal.outputLength")}</span>
-                        <span class="value-badge">{outputLength}%</span>
-                    </div>
-                    <div class="range-wrapper">
-                        <span class="label-min"
-                            >{$t("settingModal.outputLengthShort")}</span
-                        >
-                        <input
-                            type="range"
-                            min="10"
-                            max="200"
-                            step="10"
-                            bind:value={outputLength}
-                            class="range-input"
-                        />
-                        <span class="label-max"
-                            >{$t("settingModal.outputLengthLong")}</span
-                        >
-                    </div>
-                </div> -->
-
                 <!-- 4. Session Images -->
                 {#if mode === "2d"}
                     <div class="settings-card">
@@ -399,8 +364,75 @@
                         <span>{$t("settingModal.chatManagement")}</span>
                     </div>
 
-                    <!-- 자동스크롤 -->
                     <div class="actions-list">
+                        <!-- Show/Hide Chat (3D/Live2D Only) -->
+                        {#if mode === "3d" || mode === "live2d"}
+                            <button
+                                class="action-item"
+                                on:click={() => (showChat = !showChat)}
+                            >
+                                <div class="action-left">
+                                    <Icon
+                                        icon={showChat
+                                            ? "ph:chat-circle-dots-bold"
+                                            : "ph:chat-circle-slash-bold"}
+                                    />
+                                    <span
+                                        >{$t(
+                                            "settingModal.showChatWindow",
+                                        )}</span
+                                    >
+                                </div>
+                                <span class="toggle" class:on={showChat}
+                                    ><span class="knob"></span></span
+                                >
+                            </button>
+                        {/if}
+
+                        <!-- TTS Control (3D/Live2D Only) -->
+                        {#if mode === "3d" || mode === "live2d"}
+                            <button
+                                class="action-item"
+                                on:click={() => {
+                                    if ($ttsState === "connected") {
+                                        impl_disconnectTTS();
+                                    } else {
+                                        impl_connectTTS();
+                                    }
+                                }}
+                                disabled={isLoading ||
+                                    $ttsState === "connecting"}
+                            >
+                                <div class="action-left">
+                                    <span
+                                        class:spinning={$ttsState ===
+                                            "connecting"}
+                                    >
+                                        <Icon
+                                            icon={$ttsState === "connected"
+                                                ? "ph:speaker-high-bold"
+                                                : $ttsState === "connecting"
+                                                  ? "ph:spinner-gap-bold"
+                                                  : "ph:speaker-slash-bold"}
+                                        />
+                                    </span>
+                                    <span>
+                                        {$ttsState === "connected"
+                                            ? $t("settingModal.ttsConnected")
+                                            : $ttsState === "connecting"
+                                              ? $t("settingModal.ttsConnecting")
+                                              : $t("settingModal.enableTTS")}
+                                    </span>
+                                </div>
+                                <span
+                                    class="toggle"
+                                    class:on={$ttsState === "connected"}
+                                    ><span class="knob"></span></span
+                                >
+                            </button>
+                        {/if}
+
+                        <!-- 자동스크롤 -->
                         <button
                             class="action-item"
                             on:click={() => (
@@ -882,5 +914,17 @@
     .status-chip {
         font-size: 11px;
         color: var(--muted-foreground);
+    }
+    .spinning {
+        animation: spin 1s linear infinite;
+        display: inline-flex;
+    }
+    @keyframes spin {
+        from {
+            transform: rotate(0deg);
+        }
+        to {
+            transform: rotate(360deg);
+        }
     }
 </style>

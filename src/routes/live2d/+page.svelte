@@ -386,6 +386,101 @@
             showThought2 = false;
         }, 8000);
     }
+
+    const connectTTSImpl = async () => {
+        await connectTTSSocket(async (audio: ArrayBuffer | null) => {
+            if (!audio) {
+                toast.error("TTS Server Busy (Fallback to Text)");
+                console.warn("TTS Failed (Modal).");
+
+                // Reset thoughts
+                isSpeaking = false;
+                showThought2 = false;
+                showThought1 = false;
+
+                // Parse Speech Text (Logic from handleThoughtEnded)
+                const lastMsg = $messages[$messages.length - 1];
+                let content = "";
+                if (lastMsg && lastMsg.role === "assistant") {
+                    content = lastMsg.content;
+                    content = content.replace(/\([^)]*\)/g, ""); // Remove thoughts ( )
+                    content = content.replace(/\[[^\]]*\]/g, ""); // Remove actions [ ]
+                    speechText = content;
+                }
+
+                // Immediately show speech bubble since we have text but no audio
+                showSpeech = true;
+
+                // Simulate reading time
+                const textLen = content.trim().length;
+                const simulatedDuration =
+                    textLen > 0 ? textLen * 100 + 1500 : 2000;
+
+                isSpeaking = true; // Act as if speaking
+
+                setTimeout(() => {
+                    console.log("Text-only mode ended: Showing Thought 2");
+                    isSpeaking = false;
+                    showThought1 = false;
+                    showSpeech = false;
+
+                    if (thought2) {
+                        const delay = Math.floor(Math.random() * 1000) + 2000;
+                        setTimeout(() => {
+                            showThought2 = true;
+                            setTimeout(() => {
+                                showThought2 = false;
+                            }, 8000);
+                        }, delay);
+                    }
+                }, simulatedDuration);
+
+                return;
+            }
+            if (Viewer && Viewer.speak) {
+                const blob = new Blob([audio], { type: "audio/mp3" });
+                const url = URL.createObjectURL(blob);
+
+                // Calculate duration
+                const tempAudio = new Audio(url);
+                await new Promise((resolve) => {
+                    tempAudio.onloadedmetadata = () => resolve(true);
+                    setTimeout(() => resolve(true), 1000);
+                });
+                const durationMs = tempAudio.duration * 1000 || 3000;
+
+                // Audio Start
+                console.log(
+                    "Audio Start (Modal): Resetting thoughts, durationMs : ",
+                    durationMs,
+                );
+                isSpeaking = true;
+                showThought2 = false;
+
+                Viewer.speak(url);
+                showThought1 = false;
+
+                // Wait for audio to finish
+                setTimeout(() => {
+                    // Audio End
+                    console.log("Audio End (Modal): Showing Thought 2");
+                    isSpeaking = false;
+                    showThought1 = false;
+
+                    if (thought2) {
+                        // Random delay between 2000ms and 3000ms
+                        const delay = Math.floor(Math.random() * 1000) + 2000;
+                        setTimeout(() => {
+                            showThought2 = true;
+                            setTimeout(() => {
+                                showThought2 = false;
+                            }, 8000);
+                        }, delay);
+                    }
+                }, durationMs);
+            }
+        });
+    };
 </script>
 
 <main>
@@ -398,110 +493,6 @@
         style="opacity: {pinkOpacity};"
     ></div>
     {#if persona}
-        <TtsStatusModal
-            impl_connectTTS={async () => {
-                await connectTTSSocket(async (audio: ArrayBuffer | null) => {
-                    if (!audio) {
-                        toast.error("TTS Server Busy (Fallback to Text)");
-                        console.warn("TTS Failed (Modal).");
-
-                        // Reset thoughts
-                        isSpeaking = false;
-                        showThought2 = false;
-                        showThought1 = false;
-
-                        // Parse Speech Text (Logic from handleThoughtEnded)
-                        const lastMsg = $messages[$messages.length - 1];
-                        let content = "";
-                        if (lastMsg && lastMsg.role === "assistant") {
-                            content = lastMsg.content;
-                            content = content.replace(/\([^)]*\)/g, ""); // Remove thoughts ( )
-                            content = content.replace(/\[[^\]]*\]/g, ""); // Remove actions [ ]
-                            speechText = content;
-                        }
-
-                        // Immediately show speech bubble since we have text but no audio
-                        showSpeech = true;
-
-                        // Simulate reading time
-                        const textLen = content.trim().length;
-                        const simulatedDuration =
-                            textLen > 0 ? textLen * 100 + 1500 : 2000;
-
-                        isSpeaking = true; // Act as if speaking
-
-                        setTimeout(() => {
-                            console.log(
-                                "Text-only mode ended: Showing Thought 2",
-                            );
-                            isSpeaking = false;
-                            showThought1 = false;
-                            showSpeech = false;
-
-                            if (thought2) {
-                                const delay =
-                                    Math.floor(Math.random() * 1000) + 2000;
-                                setTimeout(() => {
-                                    showThought2 = true;
-                                    setTimeout(() => {
-                                        showThought2 = false;
-                                    }, 8000);
-                                }, delay);
-                            }
-                        }, simulatedDuration);
-
-                        return;
-                    }
-                    if (Viewer && Viewer.speak) {
-                        const blob = new Blob([audio], { type: "audio/mp3" });
-                        const url = URL.createObjectURL(blob);
-
-                        // Calculate duration
-                        const tempAudio = new Audio(url);
-                        await new Promise((resolve) => {
-                            tempAudio.onloadedmetadata = () => resolve(true);
-                            setTimeout(() => resolve(true), 1000);
-                        });
-                        const durationMs = tempAudio.duration * 1000 || 3000;
-
-                        // Audio Start
-                        console.log(
-                            "Audio Start (Modal): Resetting thoughts, durationMs : ",
-                            durationMs,
-                        );
-                        isSpeaking = true;
-                        showThought2 = false;
-
-                        Viewer.speak(url);
-                        showThought1 = false;
-
-                        // Wait for audio to finish
-                        setTimeout(() => {
-                            // Audio End
-                            console.log("Audio End (Modal): Showing Thought 2");
-                            isSpeaking = false;
-                            showThought1 = false;
-
-                            if (thought2) {
-                                // Random delay between 2000ms and 3000ms
-                                const delay =
-                                    Math.floor(Math.random() * 1000) + 2000;
-                                setTimeout(() => {
-                                    showThought2 = true;
-                                    setTimeout(() => {
-                                        showThought2 = false;
-                                    }, 8000);
-                                }, delay);
-                            }
-                        }, durationMs);
-                    }
-                });
-            }}
-            impl_disconnectTTS={() => {
-                disconnectTTSSocket();
-            }}
-        />
-
         <div class="live2d-wrapper">
             {#if persona.live2d_model_url}
                 <Live2DViewer
@@ -536,6 +527,8 @@
             bind:showChat
             {persona}
             llmType={"3d"}
+            impl_connectTTS={connectTTSImpl}
+            impl_disconnectTTS={disconnectTTSSocket}
         />
 
         <ThoughtBubble

@@ -413,7 +413,11 @@
     "showGeneratedImages": "Show Generated Images",
     "autoScroll": "Auto Scroll",
     "hideGeneratedImages": "Hide Generated Images",
-    "report": "Report"
+    "report": "Report",
+    "showChatWindow": "Show Chat Window",
+    "ttsConnected": "TTS Connected",
+    "ttsConnecting": "Connecting...",
+    "enableTTS": "Enable TTS"
   },
   "reportModal": {
     "title": "Report Content",
