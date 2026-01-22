@@ -616,6 +616,8 @@
   class="chat-window"
   bind:this={chatWindowEl}
   style:opacity={showChat ? "0.9" : "0"}
+  style:visibility={showChat ? "visible" : "hidden"}
+  style:pointer-events={showChat ? "auto" : "none"}
   role="log"
   aria-label="채팅 메시지"
   use:interactiveChat={(payload) => {
