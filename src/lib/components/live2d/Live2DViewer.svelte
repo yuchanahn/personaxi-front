@@ -13,6 +13,8 @@
     // svelte-ignore export_let_unused
     export let hitMotionMap: Record<string, string> = {};
     export let backgroundImage: string | null = null;
+    export let closeupScale: number = 2.0;
+    export let closeupOffset: number = 0.2;
 
     let canvasElement: HTMLCanvasElement;
     let app: any;
@@ -625,18 +627,53 @@
         }, 100);
     });
 
+    export let isCloseup = false;
+
+    // Trigger update when isCloseup changes externally or internally
+    $: if (isCloseup !== undefined && app && currentModel) {
+        onResize();
+    }
+
+    export function toggleCamera() {
+        isCloseup = !isCloseup;
+        // Reactive statement will handle onResize
+    }
+
+    $: if (closeupScale || closeupOffset) {
+        if (isCloseup) onResize();
+    }
+
     function onResize() {
         if (app && currentModel && x === 0 && y === 0) {
             const bounds = currentModel.getBounds();
+
+            console.log("Debug: Model bounds", bounds);
+
+            // Calculate original dimensions
             const modelWidth = bounds.width / currentModel.scale.x;
             const modelHeight = bounds.height / currentModel.scale.y;
+
             const paddingFactor = 1.3;
             const scaleX = (app.screen.width * paddingFactor) / modelWidth;
             const scaleY = (app.screen.height * paddingFactor) / modelHeight;
-            const autoScale = Math.min(scaleX, scaleY);
+            let autoScale = Math.min(scaleX, scaleY);
+            let targetY = app.screen.height / 2 + 50;
+
+            if (isCloseup) {
+                autoScale *= closeupScale;
+
+                // Calculate offset based on VISUAL height, not Screen height
+                const visualHeight = modelHeight * autoScale;
+                targetY += visualHeight * closeupOffset;
+            } else {
+                // This ensures consistency across Portrait/Landscape
+                const visualHeight = modelHeight * autoScale;
+                targetY += visualHeight * 0.1;
+            }
+
             currentModel.scale.set(autoScale);
             currentModel.x = app.screen.width / 2;
-            currentModel.y = app.screen.height / 2 + 150;
+            currentModel.y = targetY;
         }
     }
 

@@ -28,6 +28,9 @@
     let Viewer: Live2DViewer;
     let showChat: boolean = false;
     let isLoading = false;
+    let closeupScale: number = 1.5;
+    let closeupOffset: number = 0.1;
+    let isCloseup: boolean = false;
 
     let thought1 = "";
     let thought2 = "";
@@ -498,6 +501,9 @@
                 <Live2DViewer
                     bind:this={Viewer}
                     modelUrl={persona.live2d_model_url}
+                    bind:closeupScale
+                    bind:closeupOffset
+                    bind:isCloseup
                     backgroundImage={persona.static_portrait_url ||
                         "/chat_bg.png"}
                     scale={0.2}
@@ -529,6 +535,10 @@
             llmType={"3d"}
             impl_connectTTS={connectTTSImpl}
             impl_disconnectTTS={disconnectTTSSocket}
+            impl_changeCamera={() => Viewer?.toggleCamera()}
+            bind:closeupScale
+            bind:closeupOffset
+            bind:isCloseup
         />
 
         <ThoughtBubble

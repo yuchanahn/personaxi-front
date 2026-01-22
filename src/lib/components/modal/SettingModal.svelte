@@ -28,8 +28,12 @@
     export let autoScroll: boolean = true;
     export let showBackground: boolean = false;
     export let showChat: boolean = true;
+    export let closeupScale: number = 1.0;
+    export let closeupOffset: number = 0.0;
+    export let isCloseup: boolean = false;
     export let impl_connectTTS: () => void | Promise<void> = () => {};
     export let impl_disconnectTTS: () => void | Promise<void> = () => {};
+    export let impl_changeCamera: () => void | Promise<void> = () => {};
 
     const dispatch = createEventDispatcher();
 
@@ -430,6 +434,76 @@
                                     ><span class="knob"></span></span
                                 >
                             </button>
+                        {/if}
+
+                        <!-- Camera Toggle (3D/Live2D Only) -->
+                        <!-- Camera Toggle (3D/Live2D Only) -->
+                        {#if mode === "3d" || mode === "live2d"}
+                            <button
+                                class="action-item"
+                                on:click={() => {
+                                    isCloseup = !isCloseup;
+                                }}
+                            >
+                                <div class="action-left">
+                                    <Icon icon="ph:camera-bold" />
+                                    <span>{$t("settingModal.closeupMode")}</span
+                                    >
+                                </div>
+                                <span class="toggle" class:on={isCloseup}
+                                    ><span class="knob"></span></span
+                                >
+                            </button>
+
+                            <!-- Closeup Settings Sliders -->
+                            {#if isCloseup}
+                                <div class="slider-group" transition:slide>
+                                    <div class="slider-item">
+                                        <label class="slider-label"
+                                            >{$t(
+                                                "settingModal.closeupZoom",
+                                            )}</label
+                                        >
+                                        <div class="range-wrapper">
+                                            <input
+                                                type="range"
+                                                class="range-input"
+                                                min="0.5"
+                                                max="3.0"
+                                                step="0.1"
+                                                bind:value={closeupScale}
+                                            />
+                                            <span class="value-badge"
+                                                >{closeupScale.toFixed(
+                                                    1,
+                                                )}x</span
+                                            >
+                                        </div>
+                                    </div>
+                                    <div class="slider-item">
+                                        <label class="slider-label"
+                                            >{$t(
+                                                "settingModal.closeupPosition",
+                                            )}</label
+                                        >
+                                        <div class="range-wrapper">
+                                            <input
+                                                type="range"
+                                                class="range-input"
+                                                min="-0.5"
+                                                max="0.5"
+                                                step="0.05"
+                                                bind:value={closeupOffset}
+                                            />
+                                            <span class="value-badge"
+                                                >{closeupOffset.toFixed(
+                                                    2,
+                                                )}</span
+                                            >
+                                        </div>
+                                    </div>
+                                </div>
+                            {/if}
                         {/if}
 
                         <!-- 자동스크롤 -->
@@ -926,5 +1000,67 @@
         to {
             transform: rotate(360deg);
         }
+    }
+
+    /* Sliders */
+    .slider-group {
+        width: 100%;
+        padding: 0 4px;
+        margin-top: 0.5rem;
+        display: flex;
+        flex-direction: column;
+        gap: 0.8rem;
+    }
+
+    .slider-item {
+        display: flex;
+        flex-direction: column;
+        gap: 0.4rem;
+    }
+
+    .slider-label {
+        font-size: 0.8rem;
+        color: var(--muted-foreground);
+        font-weight: 500;
+        margin-left: 2px;
+    }
+
+    .range-wrapper {
+        display: flex;
+        align-items: center;
+        gap: 0.8rem;
+    }
+
+    .range-input {
+        flex: 1;
+        height: 4px;
+        appearance: none;
+        background: var(--border);
+        border-radius: 2px;
+        outline: none;
+    }
+
+    .range-input::-webkit-slider-thumb {
+        appearance: none;
+        width: 14px;
+        height: 14px;
+        background: var(--primary);
+        border-radius: 50%;
+        cursor: pointer;
+        transition: transform 0.2s;
+    }
+
+    .range-input::-webkit-slider-thumb:hover {
+        transform: scale(1.2);
+    }
+
+    .value-badge {
+        font-size: 11px;
+        background: var(--muted);
+        padding: 2px 6px;
+        border-radius: 4px;
+        color: var(--foreground);
+        min-width: 3rem;
+        text-align: center;
     }
 </style>

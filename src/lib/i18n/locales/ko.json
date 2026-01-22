@@ -188,7 +188,11 @@
     "showChatWindow": "채팅창 표시",
     "ttsConnected": "음성 연결됨",
     "ttsConnecting": "연결 중...",
-    "enableTTS": "음성(TTS) 켜기"
+    "enableTTS": "음성(TTS) 켜기",
+    "changeView": "시점 전환",
+    "closeupZoom": "확대 배율",
+    "closeupPosition": "수직 위치",
+    "closeupMode": "시점 바꾸기"
   },
   "reportModal": {
     "title": "신고하기",

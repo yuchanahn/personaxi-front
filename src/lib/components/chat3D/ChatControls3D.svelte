@@ -11,6 +11,10 @@
   export let llmType: string;
   export let impl_connectTTS: () => void = () => {};
   export let impl_disconnectTTS: () => void = () => {};
+  export let impl_changeCamera: () => void = () => {};
+  export let closeupScale: number = 1.0;
+  export let closeupOffset: number = 0.0;
+  export let isCloseup: boolean = false;
 
   let isSettingsModalOpen = false;
   let affectionScore = 0; // Default
@@ -46,7 +50,11 @@
     bind:showChat
     {impl_connectTTS}
     {impl_disconnectTTS}
-    mode="3d"
+    {impl_changeCamera}
+    bind:closeupScale
+    bind:closeupOffset
+    bind:isCloseup
+    mode="live2d"
     on:close={() => (isSettingsModalOpen = false)}
   />
 {/if}

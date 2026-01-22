@@ -275,12 +275,22 @@
     }
   }
   // ▼▼▼ 카메라 컨트롤 변수 수정 ▼▼▼
+  export let closeupScale: number = 1.0;
+  export let closeupOffset: number = 0.0;
+  export let isCloseup: boolean = false;
+
+  // Reactivity for camera
+  $: if (isCloseup !== undefined || closeupScale || closeupOffset) {
+    updateCameraPosition();
+  }
+
+  // Internal offsets (keep them for now, or just use 0)
   let cameraDistanceOffset = 0.2;
   let cameraHeightOffset = -0.45;
-  let cameraRotationOffsetY = -8; // Y축 회전(궤도) 오프셋 추가
+  let cameraRotationOffsetY = -8;
   let cameraRotationOffsetX = 14;
 
-  // $: 블록을 사용해 슬라이더 값이 바뀔 때마다 카메라 위치를 즉시 업데이트
+  // Trigger update when internal debug offsets change (if they still exist)
   $: if (
     cameraDistanceOffset ||
     cameraHeightOffset ||
@@ -303,9 +313,22 @@
     const baseHeight = center.y + (size.y / 2) * 0.9;
     const baseDistance = size.y * 1.5;
 
+    // Apply closeup logic
+    let effectiveDistance = baseDistance + cameraDistanceOffset;
+    let effectiveHeight = baseHeight + cameraHeightOffset;
+
+    if (isCloseup) {
+      // Zoom = Reduce distance
+      effectiveDistance = effectiveDistance / closeupScale;
+
+      // Vertical Position = Offset height
+      // Scale factor for offset to make it feel natural (e.g. relative to model height)
+      effectiveHeight += closeupOffset * size.y;
+    }
+
     // 최종 거리와 기본 높이 계산
-    const finalDistance = baseDistance + cameraDistanceOffset;
-    const lookAtHeight = baseHeight + cameraHeightOffset;
+    const finalDistance = effectiveDistance;
+    const lookAtHeight = effectiveHeight;
 
     // 각도를 라디안으로 변환
     const angleY = cameraRotationOffsetY * (Math.PI / 180); // 좌우 각도

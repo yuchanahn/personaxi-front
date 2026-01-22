@@ -417,7 +417,11 @@
     "showChatWindow": "Show Chat Window",
     "ttsConnected": "TTS Connected",
     "ttsConnecting": "Connecting...",
-    "enableTTS": "Enable TTS"
+    "enableTTS": "Enable TTS",
+    "changeView": "Change View",
+    "closeupZoom": "Zoom Level",
+    "closeupPosition": "Vertical Position",
+    "closeupMode": "Change View"
   },
   "reportModal": {
     "title": "Report Content",

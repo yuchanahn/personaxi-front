@@ -21,6 +21,11 @@
   let blackOpacity = 1;
   let pinkOpacity = 0;
 
+  // Camera State
+  let closeupScale: number = 1.0;
+  let closeupOffset: number = 0.0;
+  let isCloseup: boolean = false;
+
   // Vignette Logic
   $: {
     const t = Math.max(0, Math.min(100, affectionScore)) / 100;
@@ -126,13 +131,20 @@
       backgroundImage={persona.static_portrait_url || "/chat_bg.png"}
       cssid={lastSessionId ?? ""}
       bind:show={showChat}
+      bind:closeupScale
+      bind:closeupOffset
+      bind:isCloseup
     />
 
     <ChatControls3D
       cssid={lastSessionId ?? ""}
       bind:showChat
       {persona}
-      llmType={""}
+      llmType={"3d"}
+      bind:closeupScale
+      bind:closeupOffset
+      bind:isCloseup
+      impl_changeCamera={() => (isCloseup = !isCloseup)}
     />
 
     <!-- Debug UI -->
