@@ -501,6 +501,7 @@
                 <Live2DViewer
                     bind:this={Viewer}
                     modelUrl={persona.live2d_model_url}
+                    startVoiceUrl={persona.start_voice_url}
                     bind:closeupScale
                     bind:closeupOffset
                     bind:isCloseup

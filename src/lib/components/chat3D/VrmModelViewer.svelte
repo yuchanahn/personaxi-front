@@ -21,16 +21,50 @@
   export let cssid: string | null = null;
   export let show: boolean = true;
   export let backgroundImage: string | null = null;
+  export let startVoiceUrl: string | undefined = undefined;
 
   let model: Model | null;
   let listeningTimeout: ReturnType<typeof setTimeout>;
 
   let canvas: HTMLCanvasElement;
   let bubbleElement: HTMLDivElement;
+  let hasPlayedStartVoice = false;
 
   let viewer: Viewer | null = null;
 
   let isModelLoading = true;
+
+  // Autoplay Start Voice (VRM)
+  $: if (
+    !isModelLoading &&
+    viewer &&
+    model &&
+    startVoiceUrl &&
+    !hasPlayedStartVoice
+  ) {
+    console.log("[VRM] Autoplay Start Voice:", startVoiceUrl);
+    hasPlayedStartVoice = true;
+    setTimeout(() => {
+      // VRM viewer usually has a speek or similar method, or uses TTS api directly?
+      // The parent uses `connectTTSSocket` to control it.
+      // But `VrmModelViewer` exposes `speek(audio: ArrayBuffer)`.
+      // We only have a URL here. We need to fetch it as ArrayBuffer.
+
+      fetch(startVoiceUrl as string)
+        .then((res) => res.arrayBuffer())
+        .then((buffer) => {
+          if (model) {
+            // Need to ensure audio context is ready.
+            // Emulate TTS socket receive format if needed?
+            // Or use a direct speak method if available.
+            // Checking VrmModelViewer exports... it doesn't seem to export `speak`?
+            // Wait, in `character/+page.svelte`, it calls `Viewer.speek(audio)`.
+            speek(buffer);
+          }
+        })
+        .catch((e) => console.error("[VRM] Start Voice Fetch Error", e));
+    }, 1000);
+  }
 
   // Thought Bubble State
   let thought1 = "";

@@ -38,6 +38,7 @@ export interface Persona {
     dislikes_count: number;
     is_liked?: boolean; // Optional, as it's only present when fetched with user context
     chat_count: number;
+    start_voice_url?: string;
 }
 
 export interface PersonaDTO {

@@ -15,12 +15,24 @@
     export let backgroundImage: string | null = null;
     export let closeupScale: number = 2.0;
     export let closeupOffset: number = 0.2;
+    export let startVoiceUrl: string | undefined = undefined;
 
     let canvasElement: HTMLCanvasElement;
     let app: any;
     let currentModel: any | null = null;
     let isLoaded = false;
     let autonomy: Live2DAutonomy | null = null;
+    let hasPlayedStartVoice = false;
+
+    // Autoplay Start Voice
+    $: if (isLoaded && currentModel && startVoiceUrl && !hasPlayedStartVoice) {
+        console.log("[Live2D] Autoplay Start Voice:", startVoiceUrl);
+        hasPlayedStartVoice = true;
+        // Delay slightly to ensure model is ready-ready
+        setTimeout(() => {
+            speak(startVoiceUrl as string);
+        }, 500);
+    }
 
     // Debug State
     let showDebug = false;
