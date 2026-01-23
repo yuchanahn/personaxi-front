@@ -562,22 +562,7 @@
         />
 
         <!-- Debug UI - At top level to avoid pointer-events issues -->
-        <!-- <div class="debug-controls">
-            <div class="debug-panel">
-                <label>
-                    Affection: {affectionScore}
-                    <input
-                        type="range"
-                        min="0"
-                        max="100"
-                        bind:value={affectionScore}
-                    />
-                </label>
-                <div style="font-size: 10px; color: #888;">
-                    {blackOpacity} / {pinkOpacity}
-                </div>
-            </div> 
-
+        <div class="debug-controls">
             <button
                 class="debug-btn"
                 on:click={() => {
@@ -588,7 +573,7 @@
             >
                 🔍 Debug
             </button>
-        </div> -->
+        </div>
     {/if}
 </main>
 

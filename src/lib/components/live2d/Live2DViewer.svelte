@@ -383,51 +383,6 @@
         autonomy.handleDrag(newTargetX, newTargetY);
     }
 
-    // Motion Presets Configuration
-    type MotionAxis = {
-        intensity: number; // Amplitude
-        speed: number; // Frequency
-    };
-
-    type MotionPreset = {
-        bodyX?: MotionAxis;
-        bodyY?: MotionAxis;
-        bodyZ?: MotionAxis;
-        headX?: MotionAxis;
-        headY?: MotionAxis;
-    };
-
-    const MOTION_PRESETS: Record<string, MotionPreset> = {
-        idle: {
-            bodyX: { intensity: 2, speed: 5 },
-            bodyY: { intensity: 5, speed: 5 },
-            bodyZ: { intensity: 2, speed: 5 },
-            headX: { intensity: 2, speed: 5 },
-            headY: { intensity: 10, speed: 5 },
-        },
-        joy: {
-            bodyX: { intensity: 5, speed: 5 },
-            bodyY: { intensity: 10, speed: 5 },
-            bodyZ: { intensity: 5, speed: 5 },
-            headX: { intensity: 5, speed: 5 },
-            headY: { intensity: 20, speed: 5 },
-        },
-        sadness: {
-            bodyX: { intensity: 1, speed: 5 },
-            bodyY: { intensity: 2, speed: 5 },
-            bodyZ: { intensity: 0, speed: 5 },
-            headX: { intensity: 1, speed: 5 },
-            headY: { intensity: 5, speed: 5 },
-        },
-        nooo: {
-            bodyX: { intensity: 0, speed: 5 },
-            bodyY: { intensity: 0, speed: 5 },
-            bodyZ: { intensity: 0, speed: 5 },
-            headX: { intensity: 30, speed: 5 },
-            headY: { intensity: 0, speed: 5 },
-        },
-    };
-
     let DestroyAudio = () => {};
 
     onMount(async () => {
@@ -703,6 +658,7 @@
 
         //audio
         DestroyAudio();
+        SafeAudioManager.stop();
         //stopNeuroMotion();
 
         if (currentModel)
@@ -983,7 +939,7 @@
         </div>
     {/if}
 
-    <!-- <button
+    <button
         class="test-tts-btn"
         style="position: absolute; top: 50px; right: 70px; z-index: 9999; pointer-events: auto; padding: 8px 16px; background: #ff0055; color: white; border-radius: 20px; border: 2px solid white; font-weight: bold; box-shadow: 0 4px 10px rgba(0,0,0,0.3); cursor: pointer; transition: transform 0.1s;"
         on:click={() => speak("/TTS_Sample.mp3")}
@@ -992,7 +948,7 @@
         on:mouseleave={(e) => (e.currentTarget.style.transform = "scale(1)")}
     >
         🗣️ Test TTS
-    </button> -->
+    </button>
 </div>
 
 <style>
