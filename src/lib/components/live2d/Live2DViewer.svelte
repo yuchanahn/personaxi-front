@@ -16,6 +16,7 @@
     export let closeupScale: number = 2.0;
     export let closeupOffset: number = 0.2;
     export let startVoiceUrl: string | undefined = undefined;
+    export let persona: any = null;
 
     let canvasElement: HTMLCanvasElement;
     let app: any;
@@ -592,6 +593,111 @@
                 //}, 8000);
 
                 window.addEventListener("resize", onResize);
+
+                // --- NEW: Apply Permanent Expressions ---
+                if (persona && persona.first_scene) {
+                    try {
+                        const data = JSON.parse(persona.first_scene);
+                        if (Array.isArray(data.live2d_permanent_expressions)) {
+                            console.log(
+                                "Applying Permanent Expressions (Hard Lock):",
+                                data.live2d_permanent_expressions,
+                            );
+
+                            const applyHardExpression = async (
+                                exprName: string,
+                            ) => {
+                                try {
+                                    const settings =
+                                        model.internalModel?.settings;
+                                    let file = "";
+
+                                    // 1. Find the file path for the expression name
+                                    if (settings?.FileReferences?.Expressions) {
+                                        const exprEntry =
+                                            settings.FileReferences.Expressions.find(
+                                                (e: any) =>
+                                                    e.Name === exprName ||
+                                                    e.File?.includes(exprName),
+                                            );
+                                        if (exprEntry) file = exprEntry.File;
+                                    } else if (settings?.expressions) {
+                                        const exprEntry =
+                                            settings.expressions.find(
+                                                (e: any) =>
+                                                    e.name === exprName ||
+                                                    e.Name === exprName,
+                                            );
+                                        if (exprEntry)
+                                            file =
+                                                exprEntry.file ||
+                                                exprEntry.File;
+                                    }
+
+                                    if (!file) {
+                                        console.warn(
+                                            `Could not find file for expression: ${exprName}`,
+                                        );
+                                        return;
+                                    }
+
+                                    // 2. Resolve URL
+                                    // modelUrl is usually the model3.json URL
+                                    const baseUrl = modelUrl.substring(
+                                        0,
+                                        modelUrl.lastIndexOf("/") + 1,
+                                    );
+                                    const exprUrl = baseUrl + file;
+
+                                    console.log(
+                                        `Fetching Expression JSON: ${exprUrl}`,
+                                    );
+                                    const resp = await fetch(exprUrl);
+                                    const json = await resp.json();
+
+                                    // 3. Inject Parameters
+                                    if (
+                                        json.Parameters &&
+                                        Array.isArray(json.Parameters)
+                                    ) {
+                                        json.Parameters.forEach((p: any) => {
+                                            if (
+                                                model.internalModel.coreModel
+                                                    .setParameterValueById
+                                            ) {
+                                                model.internalModel.coreModel.setParameterValueById(
+                                                    p.Id,
+                                                    p.Value,
+                                                );
+                                            } else {
+                                                // Fallback for older SDKs if method name differs
+                                                console.warn(
+                                                    "setParameterValueById not found on coreModel",
+                                                );
+                                            }
+                                        });
+                                        console.log(
+                                            `✅ Applied hard-lock for ${exprName}`,
+                                        );
+                                    }
+                                } catch (err) {
+                                    console.error(
+                                        `Failed to apply hard expression ${exprName}:`,
+                                        err,
+                                    );
+                                }
+                            };
+
+                            data.live2d_permanent_expressions.forEach(
+                                (expr: string) => {
+                                    applyHardExpression(expr);
+                                },
+                            );
+                        }
+                    } catch (e) {
+                        // console.warn("Failed to parse first_scene for Expressions", e);
+                    }
+                }
             } catch (e: any) {
                 console.error("Failed to initialize Live2D:", e);
                 debugInfo.error = e.message || e.toString();
@@ -842,24 +948,27 @@
             </div>
 
             <div class="info-section">
-                <strong>Motion Presets:</strong>
-                <!-- <div
+                <strong>Autonomy Emotions:</strong>
+                <div
                     class="presets-row"
                     style="display: flex; gap: 5px; flex-wrap: wrap; margin-top: 5px;"
                 >
-                    {#each Object.keys(MOTION_PRESETS) as preset}
+                    {#each ["NORMAL", "HAPPY", "SAD", "ANGRY", "SURPRISED"] as emotion}
                         <button
                             class="list-item clickable"
-                            style="flex: 1; text-align: center; border: 1px solid #0f0; border-radius: 4px; {currentPresetName ===
-                            preset
-                                ? 'background: rgba(0, 255, 0, 0.4); color: white;'
-                                : ''}"
-                            on:click={() => startBouncing(preset)}
+                            style="flex: 1; text-align: center; border: 1px solid #00AAFF; border-radius: 4px; font-size: 11px;"
+                            on:click={() => {
+                                if (autonomy) {
+                                    // @ts-ignore
+                                    autonomy.setEmotion(emotion);
+                                    console.log("Set Emotion:", emotion);
+                                }
+                            }}
                         >
-                            {preset}
+                            {emotion}
                         </button>
                     {/each}
-                </div> -->
+                </div>
             </div>
 
             <div class="info-section">

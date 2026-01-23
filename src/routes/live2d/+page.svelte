@@ -510,6 +510,7 @@
                     scale={0.2}
                     {expressionMap}
                     {hitMotionMap}
+                    {persona}
                 />
             {:else}
                 <div class="error-message">No Model URL</div>

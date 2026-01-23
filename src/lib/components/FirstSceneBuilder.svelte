@@ -35,6 +35,7 @@
         Body: "",
         Head: "",
     };
+    let permanent_expressions: string[] = []; // NEW: Sticky expressions
 
     let initialized = false;
 
@@ -68,6 +69,7 @@
             live2d_expression_map: expression_map,
             live2d_motion_list: motion_list,
             live2d_hit_motion_map: hit_motion_map,
+            live2d_permanent_expressions: permanent_expressions,
         };
         const jsonStr = JSON.stringify(obj, null, 2);
         onChange(jsonStr);
@@ -99,6 +101,7 @@
             Body: "",
             Head: "",
         };
+        permanent_expressions = [];
 
         generateJson();
     }
@@ -119,6 +122,7 @@
         expression_map,
         motion_list,
         hit_motion_map,
+        permanent_expressions,
         initialized && generateJson();
 
     onMount(() => {
@@ -161,6 +165,9 @@
                         ...hit_motion_map,
                         ...data.live2d_hit_motion_map,
                     };
+                }
+                if (Array.isArray(data.live2d_permanent_expressions)) {
+                    permanent_expressions = data.live2d_permanent_expressions;
                 }
 
                 initialized = true;
@@ -214,6 +221,16 @@
 
     function removeMotion(index: number) {
         motion_list = motion_list.filter((_, i) => i !== index);
+    }
+
+    function togglePermanentExpression(expr: string) {
+        if (permanent_expressions.includes(expr)) {
+            permanent_expressions = permanent_expressions.filter(
+                (e) => e !== expr,
+            );
+        } else {
+            permanent_expressions = [...permanent_expressions, expr];
+        }
     }
 </script>
 
@@ -276,6 +293,41 @@
                                 <option value={expr}>{expr}</option>
                             {/each}
                         </select>
+                    </div>
+                {/each}
+            </div>
+        </div>
+    {/if}
+
+    <!-- Permanent Expression (Toggle) Section -->
+    {#if mode === "live2d" && availableExpressions.length > 0}
+        <div class="form-section">
+            <h3 class="section-title">🔒 Permanent Expressions</h3>
+            <p class="section-desc">
+                Select expressions to be always active (e.g. clothing toggles).
+            </p>
+            <div
+                class="expression-grid"
+                style="grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));"
+            >
+                {#each availableExpressions as expr}
+                    <div
+                        class="expression-item"
+                        style="flex-direction: row; align-items: center; gap: 0.5rem; background: var(--muted); padding: 0.5rem; border-radius: 4px;"
+                    >
+                        <input
+                            type="checkbox"
+                            id="perm-{expr}"
+                            checked={permanent_expressions.includes(expr)}
+                            on:change={() => togglePermanentExpression(expr)}
+                            style="width: auto; margin: 0;"
+                        />
+                        <label
+                            for="perm-{expr}"
+                            style="margin: 0; cursor: pointer; font-size: 0.85rem; word-break: break-all;"
+                        >
+                            {expr}
+                        </label>
                     </div>
                 {/each}
             </div>
