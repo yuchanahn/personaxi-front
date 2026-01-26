@@ -1,4 +1,8 @@
 export class Live2DAutonomy {
+    // ⚙️ SENSITIVITY SETTINGS (0.1 ~ 2.0)
+    // 모델마다 반응이 다르니 이 값으로 전체 모션 크기 조절
+    public sensitivity = 1.0;
+
     private model: any;
     private app: any;
     private ticker: ((ticker: any) => void) | null = null;
@@ -15,8 +19,8 @@ export class Live2DAutonomy {
     // --- State: Blinking ---
     private blinkState: 'OPEN' | 'CLOSING' | 'CLOSED' | 'OPENING' = 'OPEN';
     private nextBlinkTime = 0;
-    private blinkOpenValue = 1.0; // 현재 눈이 떠있는 정도 (게슴츠레함 반영)
-    private blinkValue = 1.0;     // 깜빡임 애니메이션 값 (0~1)
+    private blinkOpenValue = 1.0;
+    private blinkValue = 1.0;
     private blinkDuration = 150;
     private blinkTimer = 0;
 
@@ -26,6 +30,11 @@ export class Live2DAutonomy {
     private gazeCurrentX = 0;
     private gazeCurrentY = 0;
 
+    // ✨ NEW: 마이크로 새카드 (미세한 눈 떨림)
+    private saccadeOffsetX = 0;
+    private saccadeOffsetY = 0;
+    private nextSaccadeTime = 0;
+
     private idleTargetHeadX = 0;
     private idleTargetHeadY = 0;
     private idleTargetHeadZ = 0;
@@ -33,10 +42,15 @@ export class Live2DAutonomy {
     private nextIdleMoveTime = 0;
     private nextGazeMoveTime = 0;
 
+    // ✨ NEW: 제스처 시스템
+    private isGesturePlaying = false;
+    private gestureStartTime = 0;
+    private gestureDuration = 0;
+    private currentGesture: GestureType | null = null;
+
     // --- State: Emotion & Presets ---
     public currentEmotion: 'NORMAL' | 'HAPPY' | 'SAD' | 'ANGRY' | 'SURPRISED' = 'NORMAL';
 
-    // 감정별 행동 지침 (속도, 고개 오프셋, 눈 크기, 호흡 속도, 대기 시간)
     private emotionConfigs = {
         NORMAL: { headYOffset: 0, motionSpeed: 0.05, eyeOpenMin: 1.0, breathRate: 1.0, idleIntervalMin: 1000 },
         HAPPY: { headYOffset: 5, motionSpeed: 0.12, eyeOpenMin: 1.0, breathRate: 1.5, idleIntervalMin: 500 },
@@ -46,29 +60,33 @@ export class Live2DAutonomy {
     };
 
     private activeConfig = this.emotionConfigs.NORMAL;
-
-    // --- Parameter Indices Cache ---
     private paramIndices: Record<string, number> = {};
 
-    constructor(model: any, app: any) {
+    private currentHeadZ = 0;
+    private voiceEnv = 0;
+
+    constructor(model: any, app: any, sensitivity: number = 1.0) {
         this.model = model;
         this.app = app;
+        this.sensitivity = this.clamp(sensitivity, 0.1, 2.0);
         this.cacheParamIndices();
         this.scheduleNextBlink();
+        this.scheduleNextSaccade();
+
+        console.log(`🤖 Autonomy Initialized (Sensitivity: ${this.sensitivity}x)`);
     }
 
     public start() {
         if (this.ticker) return;
 
         this.ticker = (dt: number) => {
-            // PIXI Ticker DeltaMS Safety Check
             let deltaMS = this.app.ticker.deltaMS;
             if (!deltaMS || isNaN(deltaMS)) deltaMS = 16.6;
             this.update(deltaMS);
         };
 
         this.app.ticker.add(this.ticker, null, 0);
-        console.log("🤖 Live2D Autonomy System Started");
+        console.log("🤖 Live2D Autonomy Enhanced Started");
     }
 
     public stop() {
@@ -78,7 +96,70 @@ export class Live2DAutonomy {
         }
     }
 
-    // 감정 상태 변경 (외부 호출용)
+    // ✨ NEW: 감도 변경 (런타임에도 가능)
+    public setSensitivity(value: number) {
+        this.sensitivity = this.clamp(value, 0.1, 2.0);
+        console.log(`⚙️ Sensitivity changed to ${this.sensitivity}x`);
+    }
+
+    // ✨ NEW: 제스처 재생 API
+    public playGesture(gesture: GestureType) {
+        if (this.isGesturePlaying) return; // 이미 재생 중이면 무시
+
+        console.log(`🎭 Playing Gesture: ${gesture}`);
+        this.currentGesture = gesture;
+        this.isGesturePlaying = true;
+        this.gestureStartTime = Date.now();
+
+        switch (gesture) {
+            case 'NOD':
+                this.gestureDuration = 800;
+                break;
+            case 'SHAKE':
+                this.gestureDuration = 1200;
+                break;
+            case 'TILT':
+                this.gestureDuration = 600;
+                break;
+            case 'FIDGET':
+                this.gestureDuration = 2000;
+                break;
+            case 'SIGH':
+                this.gestureDuration = 1500;
+                break;
+            case 'LOOK_DOWN':
+                this.gestureDuration = 1000;
+                break;
+            case 'CLOSE_EYES':
+                this.gestureDuration = 2000;
+                break;
+            case 'WINK':
+                this.gestureDuration = 1000;
+                break;
+            case 'PUFF_CHEEKS':
+                this.gestureDuration = 800;
+                break;
+            case 'STICK_TONGUE':
+                this.gestureDuration = 600;
+                break;
+            case 'SQUINT':
+                this.gestureDuration = 700;
+                break;
+            case 'ROLL_EYES':
+                this.gestureDuration = 1200;
+                break;
+            case 'LOOK_UP_THINK':
+                this.gestureDuration = 1500;
+                break;
+            case 'FLINCH':
+                this.gestureDuration = 300;
+                break;
+            case 'PANT':
+                this.gestureDuration = 2000;
+                break;
+        }
+    }
+
     public setEmotion(emotion: keyof typeof this.emotionConfigs) {
         if (this.currentEmotion === emotion) return;
 
@@ -86,10 +167,8 @@ export class Live2DAutonomy {
         this.currentEmotion = emotion;
         this.activeConfig = this.emotionConfigs[emotion];
 
-        // 즉각 반응을 위해 타이머 리셋
         this.nextIdleMoveTime = Date.now();
 
-        // 놀람/화남 등 격한 감정일 경우 눈을 바로 뜨게 함
         if (emotion === 'SURPRISED' || emotion === 'ANGRY') {
             this.blinkState = 'OPEN';
             this.blinkValue = 1.0;
@@ -98,7 +177,6 @@ export class Live2DAutonomy {
     }
 
     public handleDrag(normalizedX: number, normalizedY: number) {
-        // -1.0 ~ 1.0
         const deltaX = (normalizedX - this.dragTargetX) * 20;
         const deltaY = (normalizedY - this.dragTargetY) * 20;
 
@@ -121,7 +199,205 @@ export class Live2DAutonomy {
 
         this.updateBlinking(deltaMS, values);
         this.updateBreathing(deltaMS, values);
+        this.updateSaccades(deltaMS); // ✨ NEW
+        this.updateGestures(deltaMS); // ✨ NEW
         this.updatePhysics(deltaMS, values, internal);
+    }
+
+    // ✨ NEW: 마이크로 새카드 업데이트
+    private updateSaccades(deltaMS: number) {
+        const now = Date.now();
+
+        if (now >= this.nextSaccadeTime) {
+            // 아주 작은 랜덤 오프셋 생성 (눈 떨림) - 감도 적용
+            this.saccadeOffsetX = (Math.random() - 0.5) * 0.08 * this.sensitivity;
+            this.saccadeOffsetY = (Math.random() - 0.5) * 0.06 * this.sensitivity;
+
+            // 다음 새카드 시간 (50~300ms 사이)
+            this.nextSaccadeTime = now + 50 + Math.random() * 250;
+        }
+
+        // 새카드는 빠르게 감쇠
+        this.saccadeOffsetX *= 0.85;
+        this.saccadeOffsetY *= 0.85;
+    }
+
+    // ✨ NEW: 제스처 애니메이션
+    private updateGestures(deltaMS: number) {
+        if (!this.isGesturePlaying || !this.currentGesture) return;
+
+        const now = Date.now();
+        const elapsed = now - this.gestureStartTime;
+        const progress = Math.min(elapsed / this.gestureDuration, 1.0);
+
+        switch (this.currentGesture) {
+            case 'NOD': // 끄덕끄덕
+                this.gestureNod(progress);
+                break;
+            case 'SHAKE': // 노노
+                this.gestureShake(progress);
+                break;
+            case 'TILT': // 갸웃
+                this.gestureTilt(progress);
+                break;
+            case 'FIDGET': // 안절부절
+                this.gestureFidget(progress);
+                break;
+            case 'SIGH': // 한숨
+                this.gestureSigh(progress);
+                break;
+            case 'LOOK_DOWN': // 눈 내리깔기
+                this.gestureLookDown(progress);
+                break;
+            case 'CLOSE_EYES': // 눈감기
+                this.gestureCloseEyes(progress);
+                break;
+            case 'WINK': // 윙크
+                this.gestureWink(progress);
+                break;
+            case 'PUFF_CHEEKS': // 볼 부풀리기
+                this.gesturePuffCheeks(progress);
+                break;
+            case 'STICK_TONGUE': // 혀내밀기
+                this.gestureStickTongue(progress);
+                break;
+            case 'SQUINT': // 눈 가늘게 뜨기
+                this.gestureSquint(progress);
+                break;
+            case 'ROLL_EYES': // 눈동자 굴리기
+                this.gestureRollEyes(progress);
+                break;
+            case 'LOOK_UP_THINK': // 눈동자 올리고 생각하기
+                this.gestureLookUpThink(progress);
+                break;
+            case 'FLINCH': // 움찔하기
+                this.gestureFlinch(progress);
+                break;
+            case 'PANT': // 가쁜 숨
+                this.gesturePant(progress);
+                break;
+        }
+
+        // 제스처 종료
+        if (progress >= 1.0) {
+            this.isGesturePlaying = false;
+            this.currentGesture = null;
+            console.log("🎭 Gesture Finished");
+        }
+    }
+
+    // [NOD] 끄덕끄덕 (Y축 상하) - 강도 높임, 더 확실하게 (두 번 끄덕이는 느낌으로 사이클 증가)
+    private gestureNod(t: number) {
+        // 0 -> 아래 -> 위 -> 아래 -> 위 -> 원위치 (2.5 사이클로 더 확실하게)
+        const cycle = Math.sin(t * Math.PI * 5) * 30 * this.sensitivity; // 강도 20 -> 30, 사이클 2 -> 5
+        this.idleTargetHeadY = cycle;
+        this.idleTargetHeadX = 0;
+        this.idleTargetHeadZ = 0;
+    }
+
+    // [SHAKE] 고개 젓기 (X축 좌우)
+    private gestureShake(t: number) {
+        // 좌 -> 우 -> 좌 -> 우 (2회 반복)
+        const cycle = Math.sin(t * Math.PI * 4) * 35 * this.sensitivity;
+        this.idleTargetHeadX = cycle;
+        this.idleTargetHeadY = 0;
+        this.idleTargetHeadZ = -cycle * 0.3; // Z도 같이
+    }
+
+    // [TILT] 갸웃 (Z축 회전) - 강도 높임, 더 그럴듯하게 (빠르게 기울이고 천천히 복귀)
+    private gestureTilt(t: number) {
+        // 빠르게 한쪽으로 기울이고 천천히 복귀 (ease-in-out)
+        const easeInOut = t < 0.5 ? 16 * t * t * t * t * t : 1 - Math.pow(-2 * t + 2, 5) / 2;
+        this.idleTargetHeadZ = Math.sin(easeInOut * Math.PI / 2) * 40 * this.sensitivity; // 강도 25 -> 40, 커브 변경
+        this.idleTargetHeadX = Math.sin(easeInOut * Math.PI / 2) * 15 * this.sensitivity; // X도 약간
+        this.idleTargetHeadY = 8 * this.sensitivity; // 약간 위로
+    }
+
+    // [FIDGET] 안절부절 (빠른 시선 이동 + 몸 흔들림)
+    private gestureFidget(t: number) {
+        // 빠르게 랜덤하게 움직임
+        if (Math.random() < 0.1) {
+            this.gazeTargetX = (Math.random() - 0.5) * 2.5 * this.sensitivity;
+            this.gazeTargetY = (Math.random() - 0.5) * 2.0 * this.sensitivity;
+            this.idleTargetHeadX = (Math.random() - 0.5) * 40 * this.sensitivity;
+            this.idleTargetHeadY = (Math.random() - 0.5) * 20 * this.sensitivity;
+        }
+    }
+    private gestureMouthOpen = 0;
+    // ✨ NEW: [SIGH] 한숨 쉬기 (숨 크게 내쉬기 + 고개 약간 숙임)
+    private gestureSigh(t: number) {
+        this.idleTargetHeadY = Math.sin(t * Math.PI) * -15;
+        this.gestureMouthOpen = Math.sin(t * Math.PI) * 0.4;
+    }
+
+    // ✨ NEW: [LOOK_DOWN] 눈 내리깔기 (시선 아래로 + 눈 살짝 감음)
+    private gestureLookDown(t: number) {
+        const ease = Math.sin(t * Math.PI);
+        this.gazeTargetY = -1.5 * ease * this.sensitivity;
+        this.idleEyeOpenMax = 0.7 * (1 - ease * 0.3); // 살짝 감음
+    }
+
+    // ✨ NEW: [CLOSE_EYES] 눈감기 (천천히 감았다 뜸)
+    private gestureCloseEyes(t: number) {
+        const closePhase = t < 0.5 ? t * 2 : (1 - t) * 2;
+        this.blinkValue = 1 - Math.sin(closePhase * Math.PI / 2); // 부드럽게 감음
+    }
+
+    // ✨ NEW: [WINK] 윙크 (한쪽 눈 감음)
+    private gestureWink(t: number) {
+        this.setParamOverride('ParamEyeROpen', t < 0.5 ? 0 : 1.0); // 오른쪽 눈만 (모델에 따라 L/R)
+    }
+
+    // ✨ NEW: [PUFF_CHEEKS] 볼 부풀리기 (입 벌리고 볼 팽창)
+    private gesturePuffCheeks(t: number) {
+        const puff = Math.sin(t * Math.PI);
+        this.setParamOverride('ParamCheek', puff * 1.0 * this.sensitivity); // ParamCheek 가정
+        this.setParamOverride('ParamMouthOpenY', puff * 0.5);
+    }
+
+    // ✨ NEW: [STICK_TONGUE] 혀내밀기 (입 벌리고 혀 앞으로)
+    private gestureStickTongue(t: number) {
+        const stick = Math.sin(t * Math.PI);
+        this.setParamOverride('ParamTongue', stick * 1.0 * this.sensitivity); // ParamTongue 가정
+        this.setParamOverride('ParamMouthOpenY', stick * 0.8);
+    }
+
+    // ✨ NEW: [SQUINT] 눈 가늘게 뜨기 (눈 좁히기 + 눈썹 약간 찌푸림)
+    private gestureSquint(t: number) {
+        const squint = Math.sin(t * Math.PI);
+        this.idleEyeOpenMax = 0.6 + squint * 0.4;
+        this.setParamOverride('ParamBrowLY', -squint * 0.5); // 눈썹 아래로 (가정)
+    }
+
+    // ✨ NEW: [ROLL_EYES] 눈동자 굴리기 (시선 원형으로 돌림)
+    private gestureRollEyes(t: number) {
+        const angle = t * Math.PI * 2;
+        this.gazeTargetX = Math.cos(angle) * 1.5 * this.sensitivity;
+        this.gazeTargetY = Math.sin(angle) * 1.5 * this.sensitivity;
+    }
+
+    // ✨ NEW: [LOOK_UP_THINK] 눈동자 올리고 생각하기 (시선 위로 + 고개 약간 젖힘)
+    private gestureLookUpThink(t: number) {
+        const ease = Math.sin(t * Math.PI);
+        this.gazeTargetY = 1.2 * ease * this.sensitivity;
+        this.gazeTargetX = (Math.random() - 0.5) * 0.5 * ease; // 약간 흔들림
+        this.idleTargetHeadY = 15 * ease * this.sensitivity;
+    }
+
+    // ✨ NEW: [FLINCH] 움찔하기 (빠르게 뒤로 + 눈 감음)
+    private gestureFlinch(t: number) {
+        const flinch = Math.pow(1 - t, 2) * 20 * this.sensitivity;
+        this.idleTargetHeadY = -flinch;
+        this.blinkValue = t < 0.5 ? 0 : 1; // 순간 감음
+    }
+
+    // ✨ NEW: [PANT] 가쁜 숨 (빠른 호흡 + 몸 약간 떨림)
+    private gesturePant(t: number) {
+        const pantRate = 4.0 * 1.8; // 약간 느리게 하여 큰 움직임 강조
+        const breath = (Math.sin(t * Math.PI * 2 * pantRate) + 1) * 0.5;
+        this.idleTargetHeadY = (breath * 50) * this.sensitivity;
+        this.idleTargetHeadX = 0;
+        this.idleTargetHeadZ = breath * 10 * this.sensitivity;
     }
 
     private updateBlinking(deltaMS: number, values: Float32Array) {
@@ -164,15 +440,19 @@ export class Live2DAutonomy {
                 }
                 break;
         }
-
-        // blinkValue는 단순히 0~1 사이의 애니메이션 값. 
-        // 최종 눈 크기는 Physics 단계에서 emotion과 결합하여 적용됨.
     }
+
+    private setBreathOverride: number | null = null; // ✨ NEW: 제스처용 override
 
     private updateBreathing(deltaMS: number, values: Float32Array) {
         const t = Date.now() / 1000;
-        // 감정별 호흡 속도(breathRate) 반영
-        const breathValue = (Math.sin(t * 1.5 * this.activeConfig.breathRate) + 1) * 0.5;
+        let breathValue = (Math.sin(t * 1.5 * this.activeConfig.breathRate) + 1) * 0.5;
+
+        if (this.setBreathOverride !== null) {
+            breathValue = this.setBreathOverride;
+            if (!this.isGesturePlaying) this.setBreathOverride = null; // 종료 후 리셋
+        }
+
         this.setParam(values, 'ParamBreath', breathValue);
     }
 
@@ -185,78 +465,128 @@ export class Live2DAutonomy {
             this.bodyVol = internal.motionManager.mouthSync();
         }
 
-        // --- 2. Idle Behavior Decision (Emotion Based) ---
-        if (now >= this.nextIdleMoveTime) {
+        // --- 2. Idle Behavior (제스처가 재생 중이면 스킵) ---
+        if (!this.isGesturePlaying && now >= this.nextIdleMoveTime) {
             const actionRoll = Math.random();
 
             if (actionRoll < 0.4) {
-                // 좌우 두리번 + 감정별 고개 높이(Offset)
-                this.idleTargetHeadX = (Math.random() - 0.5) * 60;
-                this.idleTargetHeadY = (Math.random() - 0.5) * 10 + config.headYOffset;
+                this.idleTargetHeadX = (Math.random() - 0.5) * 60 * this.sensitivity;
+                this.idleTargetHeadY = (Math.random() - 0.5) * 10 * this.sensitivity + config.headYOffset;
                 this.idleTargetHeadZ = -this.idleTargetHeadX * 0.2;
             } else if (actionRoll < 0.6) {
-                // 끄덕임/젖힘 (감정 오프셋 중심)
                 this.idleTargetHeadX = 0;
-                this.idleTargetHeadY = (Math.random() - 0.5) * 20 + config.headYOffset;
+                this.idleTargetHeadY = (Math.random() - 0.5) * 20 * this.sensitivity + config.headYOffset;
                 this.idleTargetHeadZ = 0;
             } else {
-                // 정면 복귀
-                this.idleTargetHeadX = (Math.random() - 0.5) * 5;
-                this.idleTargetHeadY = (Math.random() - 0.5) * 5 + config.headYOffset;
+                this.idleTargetHeadX = (Math.random() - 0.5) * 5 * this.sensitivity;
+                this.idleTargetHeadY = (Math.random() - 0.5) * 5 * this.sensitivity + config.headYOffset;
                 this.idleTargetHeadZ = 0;
             }
 
-            // 눈 게슴츠레 여부 결정 (Sad 모드 등 반영)
             if (config.eyeOpenMin >= 1.0) {
                 this.idleEyeOpenMax = config.eyeOpenMin;
             } else {
                 this.idleEyeOpenMax = Math.random() < 0.3 ? config.eyeOpenMin : 1.0;
             }
 
-            // 다음 행동 대기시간: 감정별 템포 + 랜덤
             this.nextIdleMoveTime = now + config.idleIntervalMin + Math.random() * 2000;
         }
 
-        // --- 3. Chaotic Gaze ---
-        if (now >= this.nextGazeMoveTime) {
-            this.gazeTargetX = (Math.random() - 0.5) * 2.0;
-            this.gazeTargetY = (Math.random() - 0.5) * 1.5;
+        // --- 3. Chaotic Gaze (제스처 중에도 동작, 단 안절부절/FIDGET 빼고) ---
+        if (this.currentGesture !== 'FIDGET' && this.currentGesture !== 'ROLL_EYES' && this.currentGesture !== 'LOOK_UP_THINK' && now >= this.nextGazeMoveTime) {
+            this.gazeTargetX = (Math.random() - 0.5) * 2.0 * this.sensitivity;
+            this.gazeTargetY = (Math.random() - 0.5) * 1.5 * this.sensitivity;
             this.nextGazeMoveTime = now + 200 + Math.random() * 1300;
         }
 
         // --- 4. Physics Interpolation ---
-        // 감정별 반응 속도(motionSpeed) 적용
         const speed = config.motionSpeed;
 
         this.currentBodyX += (this.idleTargetHeadX - this.currentBodyX) * speed;
         this.currentBodyY += (this.idleTargetHeadY - this.currentBodyY) * speed;
+        this.currentHeadZ += (this.idleTargetHeadZ - this.currentHeadZ) * speed;
 
-        this.gazeCurrentX += (this.gazeTargetX - this.gazeCurrentX) * 0.15;
-        this.gazeCurrentY += (this.gazeTargetY - this.gazeCurrentY) * 0.15;
+        // ✨ 눈동자는 고개보다 빠르게 (0.3 vs 0.05)
+        this.gazeCurrentX += (this.gazeTargetX - this.gazeCurrentX) * 0.3;
+        this.gazeCurrentY += (this.gazeTargetY - this.gazeCurrentY) * 0.3;
 
-        // 눈 떠짐 정도 부드럽게 변경
         this.blinkOpenValue += (this.idleEyeOpenMax - this.blinkOpenValue) * 0.1;
+
+        // --- 4.5 Voice Bob ---
+        const rawVol = this.clamp(this.bodyVol ?? 0, 0, 1);
+        const gate = 0.06;
+        const volGated = rawVol <= gate ? 0 : (rawVol - gate) / (1 - gate);
+
+        const attackMs = 60;
+        const releaseMs = 180;
+        const aAttack = 1 - Math.exp(-deltaMS / attackMs);
+        const aRelease = 1 - Math.exp(-deltaMS / releaseMs);
+
+        const targetEnv = volGated;
+        const a = targetEnv > this.voiceEnv ? aAttack : aRelease;
+        this.voiceEnv += (targetEnv - this.voiceEnv) * a;
+
+        let amp = 6.0 * this.sensitivity; // 감도 적용
+        if (this.currentEmotion === 'HAPPY') amp = 5.0 * this.sensitivity;
+        if (this.currentEmotion === 'SAD') amp = 2.0 * this.sensitivity;
+        if (this.currentEmotion === 'ANGRY') amp = 3.0 * this.sensitivity;
+        if (this.currentEmotion === 'SURPRISED') amp = 6.0 * this.sensitivity;
+
+        const voiceBobY = this.clamp(this.voiceEnv * amp, 0, amp);
 
         // --- 5. Apply Parameters ---
         const finalEyeOpen = this.blinkValue * this.blinkOpenValue;
 
-        this.setParam(values, 'ParamEyeLOpen', finalEyeOpen);
-        this.setParam(values, 'ParamEyeROpen', finalEyeOpen);
+        this.setParam(values, 'ParamEyeLOpen', this.getParamOverride('ParamEyeLOpen', finalEyeOpen));
+        this.setParam(values, 'ParamEyeROpen', this.getParamOverride('ParamEyeROpen', finalEyeOpen));
 
-        this.setParam(values, 'ParamEyeBallX', this.gazeCurrentX);
-        this.setParam(values, 'ParamEyeBallY', this.gazeCurrentY);
+        // ✨ 눈동자에 마이크로 새카드 적용
+        this.setParam(values, 'ParamEyeBallX', this.gazeCurrentX + this.saccadeOffsetX);
+        this.setParam(values, 'ParamEyeBallY', this.gazeCurrentY + this.saccadeOffsetY);
 
-        // Drag Effect 합성
-        const dragX = this.dragTargetX * 70;
-        const dragY = this.dragTargetY * 60;
+        // Drag Effect
+        const dragX = this.dragTargetX * 70 * this.sensitivity;
+        const dragY = this.dragTargetY * 60 * this.sensitivity;
 
-        this.setParam(values, 'ParamAngleX', this.currentBodyX + dragX);
-        this.setParam(values, 'ParamAngleY', this.currentBodyY + dragY);
-        this.setParam(values, 'ParamAngleZ', this.idleTargetHeadZ + (dragX * -0.2));
+        const angleX = this.currentBodyX + dragX;
+        const angleY = this.currentBodyY + dragY + (voiceBobY * 0.35);
+        const angleZ = this.currentHeadZ + (dragX * -0.2);
 
-        this.setParam(values, 'ParamBodyAngleX', (this.currentBodyX + dragX) * 0.5);
-        this.setParam(values, 'ParamBodyAngleY', (this.currentBodyY + dragY) * 0.5);
-        this.setParam(values, 'ParamBodyAngleZ', (this.currentBodyX + dragX) * 0.2);
+        this.setParam(values, 'ParamAngleX', angleX);
+        this.setParam(values, 'ParamAngleY', angleY);
+        this.setParam(values, 'ParamAngleZ', angleZ);
+
+        const bodyX = (this.currentBodyX + dragX) * 0.5;
+        const bodyY = (this.currentBodyY + dragY) * 0.5 + voiceBobY;
+        const bodyZ = (this.currentBodyX + dragX) * 0.2;
+
+        this.setParam(values, 'ParamBodyAngleX', bodyX);
+        this.setParam(values, 'ParamBodyAngleY', bodyY);
+        this.setParam(values, 'ParamBodyAngleZ', bodyZ);
+
+        // ✨ 제스처 오버라이드 적용 (추가 param)
+        this.applyParamOverrides(values);
+
+        if (this.isGesturePlaying) {
+            this.setParam(values, 'ParamMouthOpenY', this.gestureMouthOpen);
+        }
+    }
+
+    private paramOverrides: Record<string, number> = {}; // ✨ NEW: 제스처용 param override
+
+    private setParamOverride(key: string, value: number) {
+        this.paramOverrides[key] = value;
+    }
+
+    private getParamOverride(key: string, defaultValue: number): number {
+        return this.paramOverrides[key] !== undefined ? this.paramOverrides[key] : defaultValue;
+    }
+
+    private applyParamOverrides(values: Float32Array) {
+        for (const [key, value] of Object.entries(this.paramOverrides)) {
+            this.setParam(values, key, value);
+        }
+        if (!this.isGesturePlaying) this.paramOverrides = {}; // 종료 후 클리어
     }
 
     private scheduleNextBlink() {
@@ -264,6 +594,10 @@ export class Live2DAutonomy {
         if (Math.random() < 0.1) {
             this.nextBlinkTime = Date.now() + 150 + Math.random() * 100;
         }
+    }
+
+    private scheduleNextSaccade() {
+        this.nextSaccadeTime = Date.now() + 50 + Math.random() * 250;
     }
 
     private cacheParamIndices() {
@@ -275,13 +609,23 @@ export class Live2DAutonomy {
             'ParamAngleX', 'ParamAngleY', 'ParamAngleZ',
             'ParamBodyAngleX', 'ParamBodyAngleY', 'ParamBodyAngleZ',
             'ParamEyeLOpen', 'ParamEyeROpen', 'ParamBreath',
-            'ParamEyeBallX', 'ParamEyeBallY'
+            'ParamEyeBallX', 'ParamEyeBallY',
+            // ✨ NEW: 추가 파라미터 (모델에 따라 aliases 추가)
+            'ParamMouthOpenY', 'ParamMouthForm',
+            'ParamCheek', 'ParamTongue',
+            'ParamBrowLY', 'ParamBrowRY'
         ];
 
         const aliases: Record<string, string[]> = {
             'ParamBodyAngleX': ['ParamBodyX'],
             'ParamBodyAngleY': ['ParamBodyY', 'ParamBodyAngle'],
             'ParamBodyAngleZ': ['ParamBodyZ'],
+            // ✨ NEW: 추가 aliases (모델별로 다를 수 있음)
+            'ParamMouthOpenY': ['ParamMouthOpen'],
+            'ParamCheek': ['ParamCheekPuff'],
+            'ParamTongue': ['ParamTongueOut'],
+            'ParamBrowLY': ['ParamBrowL', 'ParamBrowY'],
+            'ParamBrowRY': ['ParamBrowR']
         };
 
         targets.forEach(key => {
@@ -311,3 +655,6 @@ export class Live2DAutonomy {
         return Math.min(Math.max(val, min), max);
     }
 }
+
+// ✨ 제스처 타입 정의
+type GestureType = 'NOD' | 'SHAKE' | 'TILT' | 'FIDGET' | 'SIGH' | 'LOOK_DOWN' | 'CLOSE_EYES' | 'WINK' | 'PUFF_CHEEKS' | 'STICK_TONGUE' | 'SQUINT' | 'ROLL_EYES' | 'LOOK_UP_THINK' | 'FLINCH' | 'PANT';

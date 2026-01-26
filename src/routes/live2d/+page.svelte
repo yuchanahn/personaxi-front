@@ -21,6 +21,7 @@
     import { chatSessions } from "$lib/stores/chatSessions";
     import { toast } from "$lib/stores/toast";
     import { t } from "svelte-i18n";
+    import { fade } from "svelte/transition";
 
     let lastSessionId: string | null = null;
     let persona: Persona | null = null;
@@ -28,6 +29,7 @@
     let Viewer: Live2DViewer;
     let showChat: boolean = false;
     let isLoading = false;
+    let showDebugUI = false;
     let closeupScale: number = 1.5;
     let closeupOffset: number = 0.1;
     let isCloseup: boolean = false;
@@ -221,6 +223,11 @@
     let lastTriggeredAction: string = "";
 
     let isStartSpeech = false;
+    let autonomySensitivity = 1.0;
+
+    $: if (Viewer && Viewer.setSensitivity) {
+        Viewer.setSensitivity(autonomySensitivity);
+    }
 
     $: {
         const sessionId = $page.url.searchParams.get("c");
@@ -579,6 +586,7 @@
             <button
                 class="debug-btn"
                 on:click={() => {
+                    showDebugUI = !showDebugUI;
                     if (Viewer && Viewer.toggleDebug) {
                         Viewer.toggleDebug();
                     }
@@ -727,21 +735,5 @@
         background: rgba(0, 255, 0, 0.2);
         box-shadow: 0 0 15px rgba(0, 255, 0, 0.5);
         transform: scale(1.05);
-    }
-
-    .debug-panel {
-        background: rgba(0, 0, 0, 0.8);
-        padding: 10px;
-        border-radius: 8px;
-        color: white;
-        margin-bottom: 10px;
-        display: flex;
-        flex-direction: column;
-        gap: 5px;
-        border: 1px solid #444;
-    }
-    .debug-panel input {
-        width: 100%;
-        cursor: pointer;
     }
 </style>

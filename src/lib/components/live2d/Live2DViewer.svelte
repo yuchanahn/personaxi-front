@@ -215,6 +215,19 @@
         return;
     }
 
+    // ✨ NEW: Expose Autonomy Controls
+    export function playGesture(gesture: string) {
+        if (autonomy) {
+            autonomy.playGesture(gesture as any);
+        }
+    }
+
+    export function setSensitivity(val: number) {
+        if (autonomy) {
+            autonomy.setSensitivity(val);
+        }
+    }
+
     export function setExpression(emotion: string) {
         if (!currentModel) return;
 
@@ -854,10 +867,103 @@
                 <span class="highlight">{debugInfo.lastMotion}</span>
             </div>
 
+            <!-- Autonomy Controls -->
+            <div class="debug-control-group">
+                <div class="slider-row">
+                    <label for="autonomySensitivity">
+                        <span>Sensitivity</span>
+                        <span>{autonomy?.sensitivity.toFixed(1)}x</span>
+                    </label>
+                    <input
+                        id="autonomySensitivity"
+                        type="range"
+                        min="0.1"
+                        max="2.0"
+                        step="0.1"
+                        value={autonomy?.sensitivity || 1.0}
+                        on:input={(e) =>
+                            autonomy?.setSensitivity(
+                                parseFloat(e.currentTarget.value),
+                            )}
+                    />
+                </div>
+                <div class="gesture-grid">
+                    <button
+                        class="gesture-btn"
+                        on:click={() => playGesture("NOD")}>Nod</button
+                    >
+                    <button
+                        class="gesture-btn"
+                        on:click={() => playGesture("SHAKE")}>Shake</button
+                    >
+                    <button
+                        class="gesture-btn"
+                        on:click={() => playGesture("TILT")}>Tilt</button
+                    >
+                    <button
+                        class="gesture-btn"
+                        on:click={() => playGesture("FIDGET")}>Fidget</button
+                    >
+
+                    <button
+                        class="gesture-btn"
+                        on:click={() => playGesture("SIGH")}>Sigh</button
+                    >
+                    <button
+                        class="gesture-btn"
+                        on:click={() => playGesture("LOOK_DOWN")}
+                        >Look Down</button
+                    >
+                    <button
+                        class="gesture-btn"
+                        on:click={() => playGesture("CLOSE_EYES")}
+                        >Close Eyes</button
+                    >
+                    <button
+                        class="gesture-btn"
+                        on:click={() => playGesture("WINK")}>Wink</button
+                    >
+
+                    <button
+                        class="gesture-btn"
+                        on:click={() => playGesture("PUFF_CHEEKS")}>Puff</button
+                    >
+                    <button
+                        class="gesture-btn"
+                        on:click={() => playGesture("STICK_TONGUE")}
+                        >Tongue</button
+                    >
+                    <button
+                        class="gesture-btn"
+                        on:click={() => playGesture("SQUINT")}>Squint</button
+                    >
+
+                    <button
+                        class="gesture-btn"
+                        on:click={() => playGesture("ROLL_EYES")}>Roll</button
+                    >
+                    <button
+                        class="gesture-btn"
+                        on:click={() => playGesture("LOOK_UP_THINK")}
+                        >Think</button
+                    >
+
+                    <button
+                        class="gesture-btn"
+                        on:click={() => playGesture("FLINCH")}>Flinch</button
+                    >
+                    <button
+                        class="gesture-btn"
+                        on:click={() => playGesture("PANT")}>Pant</button
+                    >
+                </div>
+            </div>
+
             <div class="info-section">
                 <strong
                     >Expressions ({debugInfo.availableExpressions
-                        .length}):</strong
+                        ? debugInfo.availableExpressions.length
+                        : 0}) :</strong
                 >
                 <div class="scroll-list">
                     {#each debugInfo.availableExpressions as expr}
@@ -1159,6 +1265,56 @@
         border-bottom: 1px solid #0f0;
         padding-bottom: 5px;
         font-size: 14px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .debug-control-group {
+        border-top: 1px solid #0f0;
+        margin-top: 10px;
+        padding-top: 10px;
+    }
+
+    .slider-row {
+        display: flex;
+        flex-direction: column;
+        margin-bottom: 10px;
+    }
+
+    .slider-row label {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 2px;
+        color: #0ff;
+    }
+
+    .slider-row input {
+        width: 100%;
+        cursor: pointer;
+    }
+
+    .gesture-grid {
+        display: flex;
+        gap: 5px;
+        flex-wrap: wrap;
+    }
+
+    .gesture-btn {
+        background: rgba(0, 255, 0, 0.1);
+        border: 1px solid #0f0;
+        color: #0f0;
+        padding: 4px 8px;
+        font-size: 11px;
+        cursor: pointer;
+        flex: 1;
+        min-width: 50px;
+        text-align: center;
+    }
+
+    .gesture-btn:hover {
+        background: rgba(0, 255, 0, 0.3);
+        color: #fff;
     }
 
     .info-item {
