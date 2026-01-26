@@ -655,7 +655,6 @@
                                     const resp = await fetch(exprUrl);
                                     const json = await resp.json();
 
-                                    // 3. Inject Parameters
                                     if (
                                         json.Parameters &&
                                         Array.isArray(json.Parameters)

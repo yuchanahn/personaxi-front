@@ -76,6 +76,8 @@
     return removeListener;
   });
 
+  let isStartSpeech = false;
+
   $: {
     const sessionId = $page.url.searchParams.get("c");
     if (sessionId !== lastSessionId) {
@@ -84,8 +86,14 @@
         persona = null;
         // Reset state
 
-        loadChatHistory(sessionId);
-        loadPersona(sessionId).then((p) => (persona = p));
+        Promise.all([
+          loadChatHistory(sessionId, (esf) => {
+            isStartSpeech = esf.recent_turns.length < 1;
+          }),
+          loadPersona(sessionId),
+        ]).then(([_, p]) => {
+          persona = p;
+        });
       }
     }
   }
@@ -130,6 +138,7 @@
       {persona}
       backgroundImage={persona.static_portrait_url || "/chat_bg.png"}
       cssid={lastSessionId ?? ""}
+      startVoiceUrl={isStartSpeech ? persona.start_voice_url : ""}
       bind:show={showChat}
       bind:closeupScale
       bind:closeupOffset
@@ -145,6 +154,7 @@
       bind:closeupOffset
       bind:isCloseup
       impl_changeCamera={() => (isCloseup = !isCloseup)}
+      {affectionScore}
     />
 
     <!-- Debug UI -->

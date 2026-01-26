@@ -94,6 +94,7 @@
             if (e.detail?.score !== undefined) {
                 affectionScore = e.detail.score;
             }
+            console.log("[Live2D] Affection Score:", affectionScore);
         };
         window.addEventListener(
             "affection-update",
@@ -111,17 +112,23 @@
         $messages = [];
         if (sessionId) {
             persona = null;
-            loadChatHistory(sessionId);
-            loadPersona(sessionId).then((p) => {
-                if (!p.live2d_model_url) {
-                    console.error("Live2D URL not found, using test model.");
-                    toast.error("Live2D URL not found, using test model.");
-                    p.live2d_model_url = TEST_MODEL_URL;
-                }
-                persona = p;
+            // loadChatHistory(sessionId, (esf) => {
+            //     if (esf.recent_turns.length < 1) {
+            //         console.log("@@@@ Is First Session");
+            //     } else {
+            //         console.log("@@@@ Not First Session: ", esf.recent_turns);
+            //     }
+            // });
+            // loadPersona(sessionId).then((p) => {
+            //     if (!p.live2d_model_url) {
+            //         console.error("Live2D URL not found, using test model.");
+            //         toast.error("Live2D URL not found, using test model.");
+            //         p.live2d_model_url = TEST_MODEL_URL;
+            //     }
+            //     persona = p;
 
-                if (affectionScore === undefined) affectionScore = 100;
-            });
+            //     if (affectionScore === undefined) affectionScore = 100;
+            // });
 
             await connectTTSSocket(async (audio: ArrayBuffer | null) => {
                 if (!audio) {
@@ -213,6 +220,8 @@
     let expressionMap: Record<string, string> = {};
     let lastTriggeredAction: string = "";
 
+    let isStartSpeech = false;
+
     $: {
         const sessionId = $page.url.searchParams.get("c");
         if (sessionId !== lastSessionId) {
@@ -223,13 +232,19 @@
                 motionExprMap = {};
                 expressionMap = {}; // Reset map
                 hitMotionMap = {}; // Reset map
-                loadChatHistory(sessionId);
-                loadPersona(sessionId).then((p) => {
+
+                Promise.all([
+                    loadChatHistory(sessionId, (esf) => {
+                        isStartSpeech = esf.recent_turns.length < 1;
+                    }),
+                    loadPersona(sessionId),
+                ]).then(([_, p]) => {
+                    if (!p) return;
+
                     if (!p.live2d_model_url) {
                         p.live2d_model_url = TEST_MODEL_URL;
                     }
 
-                    // Parse first_scene for mappings
                     try {
                         if (p.first_scene) {
                             const fs = JSON.parse(p.first_scene);
@@ -244,24 +259,20 @@
                                         motionMap[m.name] = m.file;
                                     }
                                 });
-                                // // console.log("Parsed Motion Map:", motionMap);
                             }
 
-                            // Parse Expressions
-                            if (fs.live2d_expression_map) {
-                                expressionMap = fs.live2d_expression_map;
-                            }
-
-                            // Parse Hit Motion Map
+                            // HIT Motions
                             if (fs.live2d_hit_motion_map) {
                                 hitMotionMap = fs.live2d_hit_motion_map;
                             }
+
+                            // Expressions
+                            if (fs.live2d_expression_map) {
+                                expressionMap = fs.live2d_expression_map;
+                            }
                         }
                     } catch (e) {
-                        console.error(
-                            "Failed to parse first_scene for mappings:",
-                            e,
-                        );
+                        console.error("Failed to parse first_scene JSON:", e);
                     }
 
                     persona = p;
@@ -501,7 +512,7 @@
                 <Live2DViewer
                     bind:this={Viewer}
                     modelUrl={persona.live2d_model_url}
-                    startVoiceUrl={persona.start_voice_url}
+                    startVoiceUrl={isStartSpeech ? persona.start_voice_url : ""}
                     bind:closeupScale
                     bind:closeupOffset
                     bind:isCloseup
@@ -541,6 +552,7 @@
             bind:closeupScale
             bind:closeupOffset
             bind:isCloseup
+            {affectionScore}
         />
 
         <ThoughtBubble

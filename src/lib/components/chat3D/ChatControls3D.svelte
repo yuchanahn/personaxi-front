@@ -17,7 +17,7 @@
   export let isCloseup: boolean = false;
 
   let isSettingsModalOpen = false;
-  let affectionScore = 0; // Default
+  export let affectionScore = 0; // Default
 
   function handleAffectionUpdate(e: CustomEvent) {
     if (e.detail.score !== undefined) {

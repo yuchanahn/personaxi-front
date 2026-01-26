@@ -5,6 +5,7 @@ import { goto } from '$app/navigation';
 import { api } from '$lib/api';
 import { showNeedMoreNeuronsModal } from '$lib/stores/modal';
 import { get } from 'svelte/store';
+import type { ESFPrompt, Persona } from '$lib/types';
 
 
 /**
@@ -44,13 +45,16 @@ function parseESFResponse(content: string): string {
     }
 }
 
-export async function loadChatHistory(sessionId: string) {
+export async function loadChatHistory(sessionId: string, callback?: (esfprompt: ESFPrompt) => void) {
     const res = await api.get(`/api/chat/history?CSSID=${sessionId}`);
     if (res.ok) {
         const history = await res.json();
 
-        if (history === null) {
-
+        if (!history || history.length === 0) {
+            const esf: any = {
+                recent_turns: [],
+            };
+            callback?.(esf);
             messages.set([{ role: "assistant", content: "<first_scene>" }]);
             console.warn("No chat history found for session:", sessionId);
             return;
@@ -59,7 +63,10 @@ export async function loadChatHistory(sessionId: string) {
         const lastAssistantMsg = [...history].reverse().find((m: any) => m.role === 'assistant');
         if (lastAssistantMsg) {
             try {
-                const json = JSON.parse(lastAssistantMsg.content);
+                const json = JSON.parse(lastAssistantMsg.content) as ESFPrompt;
+
+                callback?.(json);
+
                 if (typeof json.affection_score === 'number') {
                     console.log("💕 Initialize Affection Score:", json.affection_score);
                     if (typeof window !== 'undefined') {
@@ -70,7 +77,13 @@ export async function loadChatHistory(sessionId: string) {
                 }
             } catch (e) {
                 // Ignore parse errors for legacy text messages
+                const esf: any = { recent_turns: [] };
+                callback?.(esf);
             }
+        } else {
+            console.log("No assistant message found in chat history");
+            const esf: any = { recent_turns: [] };
+            callback?.(esf);
         }
 
         messages.set(

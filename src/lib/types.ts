@@ -41,6 +41,18 @@ export interface Persona {
     start_voice_url?: string;
 }
 
+export interface ESFPrompt {
+    body_desc: string;
+    anim_list: string[];
+    core_desire: string;
+    contradiction: string;
+    last_atmosphere: string;
+    current_emotion: string;
+    last_prompt_tokens: number;
+    recent_turns: string[];
+    affection_score: number;
+}
+
 export interface PersonaDTO {
     id: string;
     name: string;
