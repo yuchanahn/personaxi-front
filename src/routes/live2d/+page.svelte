@@ -303,7 +303,39 @@
                 if (actionName && actionName !== lastTriggeredAction) {
                     lastTriggeredAction = actionName;
 
-                    if (motionMap[actionName] || expressionMap[actionName]) {
+                    // ✨ Check for Autonomy Gestures first
+                    const gestureKey = actionName
+                        .toUpperCase()
+                        .replace(/\s+/g, "_");
+                    const validGestures = [
+                        "NOD",
+                        "SHAKE",
+                        "TILT",
+                        "FIDGET",
+                        "SIGH",
+                        "LOOK_DOWN",
+                        "CLOSE_EYES",
+                        "WINK",
+                        "PUFF_CHEEKS",
+                        "STICK_TONGUE",
+                        "SQUINT",
+                        "ROLL_EYES",
+                        "LOOK_UP_THINK",
+                        "FLINCH",
+                        "PANT",
+                    ];
+
+                    if (validGestures.includes(gestureKey)) {
+                        // Exact match check
+                        console.log(`Debug: Triggering Gesture: ${gestureKey}`);
+                        if (Viewer && Viewer.playGesture) {
+                            Viewer.playGesture(gestureKey);
+                        }
+                    } else if (
+                        motionMap[actionName] ||
+                        expressionMap[actionName]
+                    ) {
+                        // Existing Motion/Expression Logic
                         const mappedFile = motionMap[actionName];
 
                         if (Viewer) {

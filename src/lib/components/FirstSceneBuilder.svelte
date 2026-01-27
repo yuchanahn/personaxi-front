@@ -45,12 +45,30 @@
         if (motion_list.length > 0) {
             generatedAnimList = motion_list
                 .map((m) => {
-                    return `[${m.name}: ${m.desc}]`;
+                    return `[${m.name}] : ${m.desc}`;
                 })
                 .join("\n");
         } else {
             generatedAnimList = anim_list; // Fallback to manual input if list is empty
         }
+
+        generatedAnimList += `
+[NOD] : Nodding (Permission, Agreement)
+[SHAKE] : Shaking head (Denial, Refusal)
+[TILT] : Tilting head (Question, Doubt)
+[FIDGET] : Fidgeting (Anxiety, Restlessness)
+[SIGH] : Sighing (Relief, Disappointment, Tiredness)
+[LOOK_DOWN] : Looking down (Shame, Submission, Sadness)
+[CLOSE_EYES] : Closing eyes (Thinking, Refusal, Sleepy)
+[WINK] : Winking (Teasing, Secret, Agreement)
+[PUFF_CHEEKS] : Puffing cheeks (Pouting, Angry, Cute)
+[STICK_TONGUE] : Sticking tongue out (Teasing, Disgust)
+[SQUINT] : Squinting (Suspicion, Focus, Glare)
+[ROLL_EYES] : Rolling eyes (Sarcasm, Annoyance)
+[LOOK_UP_THINK] : Looking up (Thinking, Remembering)
+[FLINCH] : Flinching (Surprise, Fear, Pain)
+[PANT] : Panting (Exhaustion, Excitement, Heat)
+`;
 
         const obj = {
             body_desc,
