@@ -61,15 +61,14 @@
 [LOOK_DOWN] : Looking down (Shame, Submission, Sadness)
 [CLOSE_EYES] : Closing eyes (Thinking, Refusal, Sleepy)
 [WINK] : Winking (Teasing, Secret, Agreement)
-[PUFF_CHEEKS] : Puffing cheeks (Pouting, Angry, Cute)
 [STICK_TONGUE] : Sticking tongue out (Teasing, Disgust)
 [SQUINT] : Squinting (Suspicion, Focus, Glare)
-[ROLL_EYES] : Rolling eyes (Sarcasm, Annoyance)
 [LOOK_UP_THINK] : Looking up (Thinking, Remembering)
 [FLINCH] : Flinching (Surprise, Fear, Pain)
 [PANT] : Panting (Exhaustion, Excitement, Heat)
 `;
-
+        //[PUFF_CHEEKS] : Puffing cheeks (Pouting, Angry, Cute)
+        //[ROLL_EYES] : Rolling eyes (Sarcasm, Annoyance)
         const obj = {
             body_desc,
             anim_list: generatedAnimList, // Use generated list

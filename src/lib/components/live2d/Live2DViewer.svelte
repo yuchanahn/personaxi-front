@@ -260,6 +260,8 @@
         const emotionLower = emotion.toLowerCase();
         let expressionIndex = 0;
         let category = "neutral";
+        let emotionType: "NORMAL" | "HAPPY" | "SAD" | "ANGRY" | "SURPRISED" =
+            "NORMAL";
 
         switch (emotionLower) {
             case "joy":
@@ -278,6 +280,7 @@
             case "fun":
                 expressionIndex = 1;
                 category = "joy";
+                emotionType = "HAPPY";
                 break;
             case "anger":
             case "annoyance":
@@ -285,6 +288,7 @@
             case "disgust":
                 expressionIndex = 2;
                 category = "anger";
+                emotionType = "ANGRY";
                 break;
             case "sadness":
             case "grief":
@@ -294,6 +298,7 @@
             case "sorrow":
                 expressionIndex = 3;
                 category = "sorrow";
+                emotionType = "SAD";
                 break;
             case "surprise":
             case "realization":
@@ -301,15 +306,18 @@
             case "curiosity":
                 expressionIndex = 4;
                 category = "surprise";
+                emotionType = "SURPRISED";
                 break;
             case "fear":
             case "nervousness":
                 expressionIndex = 5;
                 category = "fear";
+                emotionType = "ANGRY";
                 break;
             case "neutral":
                 category = "neutral";
                 expressionIndex = 0;
+                emotionType = "NORMAL";
                 break;
             default:
                 console.log(`Debug: Unmapped emotion '${emotion}', ignoring.`);
@@ -327,6 +335,10 @@
             return;
         }
 
+        //parse emotion to emotion Type  'NORMAL' | 'HAPPY' | 'SAD' | 'ANGRY' | 'SURPRISED' = 'NORMAL';
+
+        autonomy?.setEmotion(emotionType);
+
         return;
     }
 
@@ -341,7 +353,7 @@
             startY = e.data.global.y;
             // updateDragTarget will be called by pointermove
             showHandCursor = true;
-
+            cursorPos = { x: e.data.global.x, y: e.data.global.y };
             if (autonomy) {
                 updateDragTarget(e);
             }

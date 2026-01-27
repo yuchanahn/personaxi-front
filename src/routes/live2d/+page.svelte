@@ -243,6 +243,7 @@
                 Promise.all([
                     loadChatHistory(sessionId, (esf) => {
                         isStartSpeech = esf.recent_turns.length < 1;
+                        console.log("@@@ isStartSpeech @@@", isStartSpeech);
                     }),
                     loadPersona(sessionId),
                 ]).then(([_, p]) => {
