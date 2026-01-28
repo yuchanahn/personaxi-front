@@ -56,10 +56,20 @@
         if (!currentModel) return;
 
         error_showSpeech = false;
+
+        // ✨ Autonomy Speaking State ON
+        if (autonomy) autonomy.setSpeaking(true);
+
         await SafeAudioManager.speak(currentModel, audioUrl, {
-            onFinish: onFinish,
+            onFinish: () => {
+                // ✨ Autonomy Speaking State OFF
+                if (autonomy) autonomy.setSpeaking(false);
+                if (onFinish) onFinish();
+            },
             onError: (e) => {
                 console.error("### TTS Error", e);
+                // ✨ Autonomy Speaking State OFF
+                if (autonomy) autonomy.setSpeaking(false);
                 error_showSpeech = true;
             },
         });
@@ -326,12 +336,9 @@
         category = mapped.cat;
         emotionType = mapped.type;
 
-        // 1. Check Expression Map (Custom File)
-        // Prioritize NEW EmotionType keys (e.g. "GENTLE", "STERN")
-        // Then fallback to OLD Category keys (e.g. "joy", "anger") for backward compat
         if (expressionMap) {
             let targetExpression = "";
-
+            autonomy?.setEmotion(emotionType);
             if (expressionMap[emotionType]) {
                 targetExpression = expressionMap[emotionType];
             } else if (expressionMap[category]) {
@@ -347,8 +354,6 @@
                 return;
             }
         }
-
-        // autonomy?.setEmotion(emotionType);
 
         return;
     }
@@ -866,9 +871,7 @@
                     height="64"
                 />
                 <span class="loading-text">Live2D 모델 로딩 중...</span>
-                <small class="loading-hint"
-                    >잠시 화면이 멈출 수 있습니다 (정상 동작)</small
-                >
+                <small class="loading-hint">Loading...</small>
             </div>
         </div>
     {/if}

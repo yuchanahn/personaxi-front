@@ -92,7 +92,7 @@ export class SafeAudioManager {
         const {
             volume = 0.5,
             expression,
-            resetExpression = true,
+            resetExpression = false,
             onFinish,
             onError
         } = options;

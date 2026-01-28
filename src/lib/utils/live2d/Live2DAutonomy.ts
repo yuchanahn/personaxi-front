@@ -48,15 +48,49 @@ export class Live2DAutonomy {
     private gestureDuration = 0;
     private currentGesture: GestureType | null = null;
 
+    // ✨ NEW: 말하기 상태 관리
+    private isSpeaking = false;
+
+    public setSpeaking(speaking: boolean) {
+        this.isSpeaking = speaking;
+        console.log(`🗣️ Speaking State: ${speaking}`);
+    }
+
     // --- State: Emotion & Presets ---
-    public currentEmotion: 'NORMAL' | 'HAPPY' | 'SAD' | 'ANGRY' | 'SURPRISED' = 'NORMAL';
+    // --- State: Emotion & Presets ---
+    // Updated to match new EmotionType in Live2DViewer
+    public currentEmotion:
+        | 'NORMAL'
+        | 'HAPPY'
+        | 'SAD'
+        | 'ANGRY'
+        | 'SURPRISED'
+        | 'ELATED'
+        | 'GENTLE'
+        | 'STERN'
+        | 'DEPRESSED'
+        | 'TENSE'
+        | 'ASTONISHED'
+        | 'CALM' = 'NORMAL';
 
     private emotionConfigs = {
+        // Legacy Support
         NORMAL: { headYOffset: 0, motionSpeed: 0.05, eyeOpenMin: 1.0, breathRate: 1.0, idleIntervalMin: 1000 },
         HAPPY: { headYOffset: 5, motionSpeed: 0.12, eyeOpenMin: 1.0, breathRate: 1.5, idleIntervalMin: 500 },
         SAD: { headYOffset: -15, motionSpeed: 0.02, eyeOpenMin: 0.6, breathRate: 0.6, idleIntervalMin: 3000 },
         ANGRY: { headYOffset: -5, motionSpeed: 0.08, eyeOpenMin: 1.2, breathRate: 2.5, idleIntervalMin: 800 },
-        SURPRISED: { headYOffset: 10, motionSpeed: 0.20, eyeOpenMin: 1.5, breathRate: 0.2, idleIntervalMin: 4000 }
+        SURPRISED: { headYOffset: 10, motionSpeed: 0.20, eyeOpenMin: 1.5, breathRate: 0.2, idleIntervalMin: 4000 },
+
+        // New EmotionTypes (Mapped to similar physical responses)
+        ELATED: { headYOffset: 8, motionSpeed: 0.15, eyeOpenMin: 1.0, breathRate: 2.0, idleIntervalMin: 500 },     // Like HAPPY but more energetic
+        GENTLE: { headYOffset: 2, motionSpeed: 0.06, eyeOpenMin: 0.9, breathRate: 1.0, idleIntervalMin: 1200 },    // Warm, calm happy
+        STERN: { headYOffset: -3, motionSpeed: 0.05, eyeOpenMin: 1.0, breathRate: 1.2, idleIntervalMin: 1500 },    // Serious, rigid like ANGRY but controlled
+        DEPRESSED: { headYOffset: -12, motionSpeed: 0.02, eyeOpenMin: 0.5, breathRate: 0.5, idleIntervalMin: 3000 }, // Deep sadness
+        TENSE: { headYOffset: -2, motionSpeed: 0.10, eyeOpenMin: 1.1, breathRate: 2.2, idleIntervalMin: 600 },     // High alert, nervous
+        ASTONISHED: { headYOffset: 10, motionSpeed: 0.18, eyeOpenMin: 1.5, breathRate: 0.3, idleIntervalMin: 3500 }, // Similar to SURPRISED
+        CALM: { headYOffset: 0, motionSpeed: 0.04, eyeOpenMin: 0.8, breathRate: 0.8, idleIntervalMin: 2000 }       // Relaxed neutral
+
+
     };
 
     private activeConfig = this.emotionConfigs.NORMAL;
@@ -502,13 +536,27 @@ export class Live2DAutonomy {
         // --- 4. Physics Interpolation ---
         const speed = config.motionSpeed;
 
-        this.currentBodyX += (this.idleTargetHeadX - this.currentBodyX) * speed;
-        this.currentBodyY += (this.idleTargetHeadY - this.currentBodyY) * speed;
-        this.currentHeadZ += (this.idleTargetHeadZ - this.currentHeadZ) * speed;
+        // ✨ Speaking Damping Logic (Non-destructive)
+        // isSpeaking이 true이면 항상 부드럽게 감쇠 (볼륨 0이어도 유지)
+        const damp = this.isSpeaking ? 0.6 : 1.0; // 말할 때는 60% 정도의 움직임만 허용
+
+        // damped targets
+        const effectiveHeadX = this.idleTargetHeadX * damp;
+        const effectiveHeadY = this.idleTargetHeadY * damp;
+        const effectiveHeadZ = this.idleTargetHeadZ * damp;
+
+        // movement
+        this.currentBodyX += (effectiveHeadX - this.currentBodyX) * speed;
+        this.currentBodyY += (effectiveHeadY - this.currentBodyY) * speed;
+        this.currentHeadZ += (effectiveHeadZ - this.currentHeadZ) * speed;
 
         // ✨ 눈동자는 고개보다 빠르게 (0.3 vs 0.05)
-        this.gazeCurrentX += (this.gazeTargetX - this.gazeCurrentX) * 0.3;
-        this.gazeCurrentY += (this.gazeTargetY - this.gazeCurrentY) * 0.3;
+        // 시선도 Speaking 상태일 때 중앙으로 수렴 (강하게)
+        const effectiveGazeX = this.isSpeaking ? this.gazeTargetX * 0.3 : this.gazeTargetX;
+        const effectiveGazeY = this.isSpeaking ? this.gazeTargetY * 0.3 : this.gazeTargetY;
+
+        this.gazeCurrentX += (effectiveGazeX - this.gazeCurrentX) * 0.3;
+        this.gazeCurrentY += (effectiveGazeY - this.gazeCurrentY) * 0.3;
 
         this.blinkOpenValue += (this.idleEyeOpenMax - this.blinkOpenValue) * 0.1;
 
@@ -527,10 +575,12 @@ export class Live2DAutonomy {
         this.voiceEnv += (targetEnv - this.voiceEnv) * a;
 
         let amp = 6.0 * this.sensitivity; // 감도 적용
-        if (this.currentEmotion === 'HAPPY') amp = 5.0 * this.sensitivity;
-        if (this.currentEmotion === 'SAD') amp = 2.0 * this.sensitivity;
-        if (this.currentEmotion === 'ANGRY') amp = 3.0 * this.sensitivity;
-        if (this.currentEmotion === 'SURPRISED') amp = 6.0 * this.sensitivity;
+        if (this.currentEmotion === 'HAPPY' || this.currentEmotion === 'ELATED') amp = 5.0 * this.sensitivity;
+        if (this.currentEmotion === 'SAD' || this.currentEmotion === 'DEPRESSED') amp = 2.0 * this.sensitivity;
+        if (this.currentEmotion === 'ANGRY' || this.currentEmotion === 'STERN') amp = 3.0 * this.sensitivity;
+        if (this.currentEmotion === 'SURPRISED' || this.currentEmotion === 'ASTONISHED') amp = 6.0 * this.sensitivity;
+        if (this.currentEmotion === 'CALM' || this.currentEmotion === 'GENTLE') amp = 4.0 * this.sensitivity;
+        if (this.currentEmotion === 'TENSE') amp = 3.5 * this.sensitivity;
 
         const voiceBobY = this.clamp(this.voiceEnv * amp, 0, amp);
 
@@ -570,6 +620,9 @@ export class Live2DAutonomy {
         if (this.isGesturePlaying) {
             this.setParam(values, 'ParamMouthOpenY', this.gestureMouthOpen);
         }
+
+        // ✨ 말할 때 오버라이드 적용 (마지막에 적용하여 우선순위 높임)
+        this.applySpeakingExpressions(values);
     }
 
     private paramOverrides: Record<string, number> = {}; // ✨ NEW: 제스처용 param override
@@ -587,6 +640,25 @@ export class Live2DAutonomy {
             this.setParam(values, key, value);
         }
         if (!this.isGesturePlaying) this.paramOverrides = {}; // 종료 후 클리어
+    }
+
+    // ✨ NEW: 말할 때 특수 효과 (눈 살짝 감음) - 위치 고정 로직은 updatePhysics에서 처리
+    private applySpeakingExpressions(values: Float32Array) {
+        // 음성 볼륨이 일정 이상일 때만 발동
+        if (this.voiceEnv > 0.1) {
+            const intensity = Math.min(this.voiceEnv * 1.5, 1.0); // 0.0 ~ 1.0 강도
+
+            // 3. 눈 살짝 감기 (Squint) - 몰입감
+            // intensity가 높을수록 눈을 0.8 ~ 0.9 수준으로 살짝 감음 (기본 1.0)
+            const squintFactor = 1.0 - (intensity * 0.15); // 0.85 ~ 1.0
+
+            // 현재 눈 상태(깜빡임 포함)에 곱해줌
+            const currentBlink = this.blinkValue * this.blinkOpenValue;
+            const finalEyeOpen = currentBlink * squintFactor;
+
+            this.setParam(values, 'ParamEyeLOpen', this.getParamOverride('ParamEyeLOpen', finalEyeOpen));
+            this.setParam(values, 'ParamEyeROpen', this.getParamOverride('ParamEyeROpen', finalEyeOpen));
+        }
     }
 
     private scheduleNextBlink() {
