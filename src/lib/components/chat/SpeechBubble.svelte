@@ -175,10 +175,7 @@
         <div class="bubble">
             <div class="bubble-inner">
                 <p class="text">
-                    {displayedText}{#if showCaret && isTyping}<span
-                            class="caret"
-                            aria-hidden="true">▍</span
-                        >{/if}
+                    {displayedText}
                 </p>
             </div>
         </div>

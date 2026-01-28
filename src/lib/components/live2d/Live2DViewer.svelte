@@ -52,14 +52,12 @@
 
     let isDragging = false;
 
-    export async function speak(audioUrl: string) {
+    export async function speak(audioUrl: string, onFinish?: () => void) {
         if (!currentModel) return;
 
         error_showSpeech = false;
         await SafeAudioManager.speak(currentModel, audioUrl, {
-            onFinish: () => {
-                console.log("### TTS Finished");
-            },
+            onFinish: onFinish,
             onError: (e) => {
                 console.error("### TTS Error", e);
                 error_showSpeech = true;

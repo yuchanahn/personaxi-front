@@ -9,7 +9,6 @@
     import type { Persona } from "$lib/types";
     import { loadPersona } from "$lib/api/edit_persona";
     import { connectTTSSocket, disconnectTTSSocket } from "$lib/api/tts";
-    import TtsStatusModal from "$lib/components/modal/TTSStatusModal.svelte";
 
     import { ttsState } from "$lib/stores/ttsStore";
     import ThoughtBubble from "$lib/components/chat/ThoughtBubble.svelte";
@@ -17,11 +16,8 @@
     import { messages } from "$lib/stores/messages";
     import { st_user } from "$lib/stores/user";
     import { pricingStore } from "$lib/stores/pricing";
-    import { get } from "svelte/store";
     import { chatSessions } from "$lib/stores/chatSessions";
     import { toast } from "$lib/stores/toast";
-    import { t } from "svelte-i18n";
-    import { fade } from "svelte/transition";
     import { settings } from "$lib/stores/settings";
 
     let lastSessionId: string | null = null;
@@ -53,10 +49,8 @@
             const t1Match = text.match(/^\s*\((.*?)\)/);
             if (t1Match) {
                 if (thought1 !== t1Match[1]) {
-                    console.log("Thought 1 detected:", t1Match[1]);
                     thought1 = t1Match[1];
                     if (!isSpeaking && !showThought2) {
-                        console.log("Showing Thought 1");
                         showThought1 = true;
                     }
                 }
@@ -93,131 +87,6 @@
         blackOpacity = 0.95 - t * 0.95;
         pinkOpacity = t * 0.45;
     }
-
-    onMount(async () => {
-        const handleAffection = (e: CustomEvent) => {
-            if (e.detail?.score !== undefined) {
-                affectionScore = e.detail.score;
-            }
-            console.log("[Live2D] Affection Score:", affectionScore);
-        };
-        window.addEventListener(
-            "affection-update",
-            handleAffection as EventListener,
-        );
-
-        const removeListener = () =>
-            window.removeEventListener(
-                "affection-update",
-                handleAffection as EventListener,
-            );
-
-        const sessionId = $page.url.searchParams.get("c");
-        lastSessionId = sessionId;
-        $messages = [];
-        if (sessionId) {
-            persona = null;
-            // loadChatHistory(sessionId, (esf) => {
-            //     if (esf.recent_turns.length < 1) {
-            //         console.log("@@@@ Is First Session");
-            //     } else {
-            //         console.log("@@@@ Not First Session: ", esf.recent_turns);
-            //     }
-            // });
-            // loadPersona(sessionId).then((p) => {
-            //     if (!p.live2d_model_url) {
-            //         console.error("Live2D URL not found, using test model.");
-            //         toast.error("Live2D URL not found, using test model.");
-            //         p.live2d_model_url = TEST_MODEL_URL;
-            //     }
-            //     persona = p;
-
-            //     if (affectionScore === undefined) affectionScore = 100;
-            // });
-
-            await connectTTSSocket(async (audio: ArrayBuffer | null) => {
-                if (!audio) {
-                    toast.error("TTS Server Busy (Fallback to Text)");
-
-                    isSpeaking = false;
-                    showThought2 = false;
-                    showThought1 = false;
-
-                    const lastMsg = $messages[$messages.length - 1];
-                    let content = "";
-                    if (lastMsg && lastMsg.role === "assistant") {
-                        content = lastMsg.content;
-                        content = content.replace(/\([^)]*\)/g, ""); // Remove thoughts ( )
-                        content = content.replace(/\[[^\]]*\]/g, ""); // Remove actions [ ]
-                        speechText = content;
-                    }
-
-                    showSpeech = true;
-
-                    const textLen = content.trim().length;
-                    const simulatedDuration =
-                        textLen > 0 ? textLen * 100 + 1500 : 2000;
-
-                    isSpeaking = true;
-
-                    setTimeout(() => {
-                        console.log("Text-only mode ended: Showing Thought 2");
-                        isSpeaking = false;
-                        showThought1 = false;
-                        showSpeech = false;
-
-                        if (thought2) {
-                            const delay =
-                                Math.floor(Math.random() * 1000) + 2000;
-                            setTimeout(() => {
-                                showThought2 = true;
-                                setTimeout(() => {
-                                    showThought2 = false;
-                                }, 8000);
-                            }, delay);
-                        }
-                    }, simulatedDuration);
-
-                    return;
-                }
-                if (Viewer && Viewer.speak) {
-                    const blob = new Blob([audio], { type: "audio/mp3" });
-                    const url = URL.createObjectURL(blob);
-
-                    const tempAudio = new Audio(url);
-                    await new Promise((resolve) => {
-                        tempAudio.onloadedmetadata = () => resolve(true);
-                        setTimeout(() => resolve(true), 1000);
-                    });
-                    const durationMs = tempAudio.duration * 1000 || 3000;
-                    console.log(`Audio Duration: ${durationMs}ms`);
-
-                    isSpeaking = true;
-                    showThought2 = false;
-                    showThought1 = false;
-                    Viewer.speak(url);
-
-                    setTimeout(() => {
-                        isSpeaking = false;
-                        showThought1 = false;
-
-                        if (thought2) {
-                            const delay =
-                                Math.floor(Math.random() * 1000) + 2000;
-                            setTimeout(() => {
-                                showThought2 = true;
-                                setTimeout(() => {
-                                    showThought2 = false;
-                                }, 8000);
-                            }, delay);
-                        }
-                    }, durationMs);
-                } else {
-                    console.warn("Viewer not ready for TTS audio.");
-                }
-            });
-        }
-    });
 
     let motionMap: Record<string, string> = {};
     let motionExprMap: Record<string, string> = {};
@@ -292,7 +161,13 @@
         }
     }
 
-    // Action Tag Parsing
+    interface Action {
+        name: string;
+        type: string;
+    }
+
+    const actionQueue: Action[] = [];
+
     $: if ($messages.length > 0) {
         const lastMsg = $messages[$messages.length - 1];
         if (lastMsg.role === "assistant") {
@@ -307,7 +182,6 @@
                 if (actionName && actionName !== lastTriggeredAction) {
                     lastTriggeredAction = actionName;
 
-                    // ✨ Check for Autonomy Gestures first
                     const gestureKey = actionName
                         .toUpperCase()
                         .replace(/\s+/g, "_");
@@ -330,11 +204,15 @@
                     ];
 
                     if (validGestures.includes(gestureKey)) {
-                        // Exact match check
                         console.log(`Debug: Triggering Gesture: ${gestureKey}`);
-                        if (Viewer && Viewer.playGesture) {
-                            Viewer.playGesture(gestureKey);
-                        }
+
+                        actionQueue.push({
+                            name: gestureKey,
+                            type: "gesture",
+                        });
+                        //if (Viewer && Viewer.playGesture) {
+                        //    Viewer.playGesture(gestureKey);
+                        //}
                     } else if (
                         motionMap[actionName] ||
                         expressionMap[actionName]
@@ -356,11 +234,19 @@
                                 mappedFile.endsWith(".exp.json"); // legacy check
 
                             if (isExpression) {
-                                if (Viewer.triggerExpression)
-                                    Viewer.triggerExpression(mappedFile);
+                                //if (Viewer.triggerExpression) {
+                                actionQueue.push({
+                                    name: actionName,
+                                    type: "expression",
+                                });
+                                //Viewer.triggerExpression(mappedFile);
                             } else {
-                                if (Viewer.triggerMotion)
-                                    Viewer.triggerMotion(mappedFile);
+                                //if (Viewer.triggerMotion) {
+                                actionQueue.push({
+                                    name: actionName,
+                                    type: "motion",
+                                });
+                                //Viewer.triggerMotion(mappedFile);
                             }
                         } else {
                             console.warn(
@@ -422,7 +308,9 @@
 
     function handleThoughtEnded(): void {
         if ($ttsState == "connected") return;
+
         const lastMsg = $messages[$messages.length - 1];
+
         if (lastMsg.role === "assistant") {
             let content = lastMsg.content;
             content = content.replace(/\([^)]*\)/g, "");
@@ -430,124 +318,101 @@
             console.log("content: ", content);
             speechText = content;
         }
+
+        handleSpeechStarted();
         showSpeech = true;
+
         setTimeout(() => {
             showThought1 = false;
         }, 2000);
+    }
+
+    function handleSpeechStarted(): void {
+        while (actionQueue.length > 0) {
+            const action = actionQueue.shift();
+            if (action && action.type === "gesture") {
+                if (Viewer && Viewer.playGesture) {
+                    Viewer.playGesture(action.name);
+                }
+            } else if (action && action.type === "motion") {
+                if (Viewer && Viewer.triggerMotion) {
+                    Viewer.triggerMotion(action.name);
+                }
+            } else if (action && action.type === "expression") {
+                if (Viewer && Viewer.triggerExpression) {
+                    Viewer.triggerExpression(action.name);
+                }
+            }
+        }
     }
 
     function handleSpeechEnded(): void {
         showSpeech = false;
         showThought1 = false;
         showThought2 = true;
-        setTimeout(() => {
-            showThought2 = false;
-        }, 8000);
-    }
-
-    function playTextFallback() {
-        // Reset thoughts
         isSpeaking = false;
-        showThought2 = false;
-        showThought1 = false;
 
-        // Parse Speech Text
-        const lastMsg = $messages[$messages.length - 1];
-        let content = "";
-        if (lastMsg && lastMsg.role === "assistant") {
-            content = lastMsg.content;
-            content = content.replace(/\([^)]*\)/g, ""); // Remove thoughts ( )
-            content = content.replace(/\[[^\]]*\]/g, ""); // Remove actions [ ]
-            speechText = content;
-        }
-
-        // Immediately show speech bubble
-        showSpeech = true;
-
-        // Simulate reading time
-        const textLen = content.trim().length;
-        const simulatedDuration = textLen > 0 ? textLen * 100 + 1500 : 2000;
-
-        isSpeaking = true;
-
-        setTimeout(() => {
-            console.log("Text-only mode ended: Showing Thought 2");
-            isSpeaking = false;
-            resetIdleTimer();
-            showThought1 = false;
-            showSpeech = false;
-
-            if (thought2) {
-                const delay = Math.floor(Math.random() * 1000) + 2000;
+        if (thought2) {
+            const delay = Math.floor(Math.random() * 1000) + 2000;
+            setTimeout(() => {
+                showThought2 = true;
                 setTimeout(() => {
-                    showThought2 = true;
-                    setTimeout(() => {
-                        showThought2 = false;
-                    }, 8000);
-                }, delay);
-            }
-        }, simulatedDuration);
+                    showThought2 = false;
+                }, 8000);
+            }, delay);
+        }
     }
 
     $: if (error_showSpeech) {
         console.log("Audio Blocked Error Detected: Triggering Fallback");
         error_showSpeech = false;
-        playTextFallback();
+        showSpeech = true;
+        handleSpeechStarted();
     }
 
-    const connectTTSImpl = async () => {
-        await connectTTSSocket(async (audio: ArrayBuffer | null) => {
-            if (!audio) {
-                toast.error("TTS Server Busy (Fallback to Text)");
-                console.warn("TTS Failed (Modal).");
+    const handleTTSResponse = async (audio: ArrayBuffer | null) => {
+        if (!audio) {
+            toast.error("TTS Server Busy (Fallback to Text)");
+            console.warn("TTS Failed (Fallback).");
+            error_showSpeech = true;
+            return;
+        }
 
-                playTextFallback();
+        if (Viewer && Viewer.speak) {
+            const blob = new Blob([audio], { type: "audio/mp3" });
+            const url = URL.createObjectURL(blob);
+
+            // Calculate duration
+            const tempAudio = new Audio(url);
+            await new Promise((resolve) => {
+                tempAudio.onloadedmetadata = () => resolve(true);
+                setTimeout(() => resolve(true), 1000);
+            });
+
+            if (!tempAudio.duration) {
+                console.warn("Audio duration not found.");
+                error_showSpeech = true;
                 return;
             }
-            if (Viewer && Viewer.speak) {
-                const blob = new Blob([audio], { type: "audio/mp3" });
-                const url = URL.createObjectURL(blob);
 
-                // Calculate duration
-                const tempAudio = new Audio(url);
-                await new Promise((resolve) => {
-                    tempAudio.onloadedmetadata = () => resolve(true);
-                    setTimeout(() => resolve(true), 1000);
-                });
-                const durationMs = tempAudio.duration * 1000 || 3000;
+            const durationMs = tempAudio.duration * 1000 || 3000;
+            console.log(`Audio Duration: ${durationMs}ms`);
 
-                // Audio Start
-                console.log(
-                    "Audio Start (Modal): Resetting thoughts, durationMs : ",
-                    durationMs,
-                );
-                isSpeaking = true;
-                showThought2 = false;
+            // Audio Start
+            console.log("Audio Start: Resetting thoughts");
+            isSpeaking = true;
+            showThought2 = false;
+            showThought1 = false;
 
-                Viewer.speak(url);
-                showThought1 = false;
+            Viewer.speak(url, handleSpeechEnded);
+            handleSpeechStarted();
+        } else {
+            console.warn("Viewer not ready for TTS audio.");
+        }
+    };
 
-                // Wait for audio to finish
-                setTimeout(() => {
-                    // Audio End
-                    console.log("Audio End (Modal): Showing Thought 2");
-                    isSpeaking = false;
-                    resetIdleTimer();
-                    showThought1 = false;
-
-                    if (thought2) {
-                        // Random delay between 2000ms and 3000ms
-                        const delay = Math.floor(Math.random() * 1000) + 2000;
-                        setTimeout(() => {
-                            showThought2 = true;
-                            setTimeout(() => {
-                                showThought2 = false;
-                            }, 8000);
-                        }, delay);
-                    }
-                }, durationMs);
-            }
-        });
+    const connectTTSImpl = async () => {
+        await connectTTSSocket(handleTTSResponse);
     };
 
     // --- Interaction & Idle Handlers ---
@@ -595,7 +460,32 @@
         resetIdleTimer();
     }
 
-    onMount(() => {
+    let removeListener: () => void;
+
+    onMount(async () => {
+        const handleAffection = (e: CustomEvent) => {
+            if (e.detail?.score !== undefined) {
+                affectionScore = e.detail.score;
+            }
+        };
+        window.addEventListener(
+            "affection-update",
+            handleAffection as EventListener,
+        );
+        removeListener = () =>
+            window.removeEventListener(
+                "affection-update",
+                handleAffection as EventListener,
+            );
+
+        const sessionId = $page.url.searchParams.get("c");
+        lastSessionId = sessionId;
+        $messages = [];
+        if (sessionId) {
+            persona = null;
+            connectTTSImpl();
+        }
+
         window.addEventListener("mousemove", onUserActivity);
         window.addEventListener("keydown", onUserActivity);
         window.addEventListener("click", onUserActivity);
@@ -609,6 +499,7 @@
         window.removeEventListener("keydown", onUserActivity);
         window.removeEventListener("click", onUserActivity);
         window.removeEventListener("touchstart", onUserActivity);
+        removeListener();
     });
 
     let error_showSpeech = false;
