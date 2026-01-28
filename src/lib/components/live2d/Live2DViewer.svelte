@@ -12,7 +12,6 @@
     export let x: number = 0;
     export let y: number = 0;
     export let expressionMap: Record<string, string> = {};
-    // svelte-ignore export_let_unused
     export let hitMotionMap: Record<string, string> = {};
     export let backgroundImage: string | null = null;
     export let closeupScale: number = 2.0;
@@ -29,17 +28,14 @@
     let autonomy: Live2DAutonomy | null = null;
     let hasPlayedStartVoice = false;
 
-    // Autoplay Start Voice
     $: if (isLoaded && currentModel && startVoiceUrl && !hasPlayedStartVoice) {
         console.log("[Live2D] Autoplay Start Voice:", startVoiceUrl);
         hasPlayedStartVoice = true;
-        // Delay slightly to ensure model is ready-ready
         setTimeout(() => {
             speak(startVoiceUrl as string);
         }, 500);
     }
 
-    // Debug State
     let showDebug = false;
     let debugInfo = {
         modelUrl: "",
@@ -264,86 +260,97 @@
         debugInfo.currentEmotion = emotion;
 
         const emotionLower = emotion.toLowerCase();
-        let expressionIndex = 0;
         let category = "neutral";
-        let emotionType: "NORMAL" | "HAPPY" | "SAD" | "ANGRY" | "SURPRISED" =
-            "NORMAL";
+        type EmotionType =
+            | "ELATED"
+            | "GENTLE"
+            | "STERN"
+            | "DEPRESSED"
+            | "TENSE"
+            | "ASTONISHED"
+            | "CALM";
+        let emotionType: EmotionType;
 
-        switch (emotionLower) {
-            case "joy":
-            case "happy":
-            case "amusement":
-            case "love":
-            case "excitement":
-            case "optimism":
-            case "gratitude":
-            case "pride":
-            case "admiration":
-            case "desire":
-            case "approval":
-            case "caring":
-            case "relief":
-            case "fun":
-                expressionIndex = 1;
-                category = "joy";
-                emotionType = "HAPPY";
-                break;
-            case "anger":
-            case "annoyance":
-            case "disapproval":
-            case "disgust":
-                expressionIndex = 2;
-                category = "anger";
-                emotionType = "ANGRY";
-                break;
-            case "sadness":
-            case "grief":
-            case "disappointment":
-            case "remorse":
-            case "embarrassment":
-            case "sorrow":
-                expressionIndex = 3;
-                category = "sorrow";
-                emotionType = "SAD";
-                break;
-            case "surprise":
-            case "realization":
-            case "confusion":
-            case "curiosity":
-                expressionIndex = 4;
-                category = "surprise";
-                emotionType = "SURPRISED";
-                break;
-            case "fear":
-            case "nervousness":
-                expressionIndex = 5;
-                category = "fear";
-                emotionType = "ANGRY";
-                break;
-            case "neutral":
-                category = "neutral";
-                expressionIndex = 0;
-                emotionType = "NORMAL";
-                break;
-            default:
-                console.log(`Debug: Unmapped emotion '${emotion}', ignoring.`);
-                return;
+        interface EmotionInfo {
+            cat: string;
+            type: EmotionType;
         }
+        const emotionMap: Record<string, EmotionInfo> = {
+            // [joy] 따뜻한 긍정
+            joy: { cat: "joy", type: "GENTLE" },
+            happy: { cat: "joy", type: "GENTLE" },
+            love: { cat: "joy", type: "GENTLE" },
+            gratitude: { cat: "joy", type: "GENTLE" },
+            relief: { cat: "joy", type: "GENTLE" },
+            pride: { cat: "joy", type: "GENTLE" },
 
-        // 1. Check Expression Map (Custom File)
-        if (expressionMap && expressionMap[category]) {
-            const mappedName = expressionMap[category];
-            console.log(
-                `Debug: Found custom mapping for category '${category}' -> '${mappedName}'`,
-            );
-            currentModel.expression(mappedName);
-            debugInfo.currentExpression = mappedName;
+            // [amuse] 에너지가 높은 즐거움
+            amusement: { cat: "amuse", type: "ELATED" },
+            excitement: { cat: "amuse", type: "ELATED" },
+            fun: { cat: "amuse", type: "ELATED" },
+            curiosity: { cat: "amuse", type: "ELATED" },
+
+            // [anger] 날선 부정
+            anger: { cat: "anger", type: "STERN" },
+            annoyance: { cat: "anger", type: "STERN" },
+            disapproval: { cat: "anger", type: "STERN" },
+            disgust: { cat: "anger", type: "STERN" },
+
+            // [sorrow] 가라앉은 부정
+            sadness: { cat: "sorrow", type: "DEPRESSED" },
+            grief: { cat: "sorrow", type: "DEPRESSED" },
+            disappointment: { cat: "sorrow", type: "DEPRESSED" },
+            remorse: { cat: "sorrow", type: "DEPRESSED" },
+
+            // [unease] 불안과 위축
+            fear: { cat: "unease", type: "TENSE" },
+            nervousness: { cat: "unease", type: "TENSE" },
+            embarrassment: { cat: "unease", type: "TENSE" },
+
+            // [surprise] 예기치 못한 인지
+            surprise: { cat: "surprise", type: "ASTONISHED" },
+            realization: { cat: "surprise", type: "ASTONISHED" },
+            confusion: { cat: "surprise", type: "ASTONISHED" },
+
+            // [neutral] 평온함
+            neutral: { cat: "neutral", type: "CALM" },
+            approval: { cat: "neutral", type: "CALM" },
+            caring: { cat: "neutral", type: "CALM" },
+        };
+
+        const mapped = emotionMap[emotionLower];
+
+        if (!mapped) {
+            console.log(`Debug: Unmapped emotion '${emotionLower}', ignoring.`);
             return;
         }
 
-        //parse emotion to emotion Type  'NORMAL' | 'HAPPY' | 'SAD' | 'ANGRY' | 'SURPRISED' = 'NORMAL';
+        category = mapped.cat;
+        emotionType = mapped.type;
 
-        autonomy?.setEmotion(emotionType);
+        // 1. Check Expression Map (Custom File)
+        // Prioritize NEW EmotionType keys (e.g. "GENTLE", "STERN")
+        // Then fallback to OLD Category keys (e.g. "joy", "anger") for backward compat
+        if (expressionMap) {
+            let targetExpression = "";
+
+            if (expressionMap[emotionType]) {
+                targetExpression = expressionMap[emotionType];
+            } else if (expressionMap[category]) {
+                targetExpression = expressionMap[category];
+            }
+
+            if (targetExpression) {
+                console.log(
+                    `Debug: Found custom mapping for '${emotionType}'/'${category}' -> '${targetExpression}'`,
+                );
+                currentModel.expression(targetExpression);
+                debugInfo.currentExpression = targetExpression;
+                return;
+            }
+        }
+
+        // autonomy?.setEmotion(emotionType);
 
         return;
     }
@@ -389,20 +396,15 @@
         });
 
         const stopDrag = () => {
+            if (isDragging) {
+                dispatch("interactionEnd");
+            }
             isDragging = false;
             showHandCursor = false;
             startX = 0;
             startY = 0;
             if (autonomy) {
                 autonomy.handleDrag(0, 0);
-            }
-            if (isDragging) {
-                dispatch("interaction", {
-                    action: "rub",
-                    duration: "long", // logic could be better but simplified
-                    state: "release",
-                    is_ongoing: false,
-                });
             }
         };
         model.on("pointerupoutside", stopDrag);

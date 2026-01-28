@@ -24,11 +24,13 @@
 
     // Live2D Mappings
     let expression_map: Record<string, string> = {
-        joy: "",
-        anger: "",
-        sorrow: "",
-        fun: "",
-        surprise: "",
+        ELATED: "",
+        GENTLE: "",
+        STERN: "",
+        DEPRESSED: "",
+        TENSE: "",
+        ASTONISHED: "",
+        CALM: "",
     };
     let motion_list: { name: string; file: string; desc: string }[] = [];
     let hit_motion_map: Record<string, string> = {
@@ -107,11 +109,13 @@
         internal_monologue = "";
 
         expression_map = {
-            joy: "",
-            anger: "",
-            sorrow: "",
-            fun: "",
-            surprise: "",
+            ELATED: "",
+            GENTLE: "",
+            STERN: "",
+            DEPRESSED: "",
+            TENSE: "",
+            ASTONISHED: "",
+            CALM: "",
         };
         motion_list = [];
         hit_motion_map = {
@@ -169,10 +173,34 @@
                 internal_monologue = data.internal_monologue ?? "";
 
                 if (data.live2d_expression_map) {
-                    expression_map = {
-                        ...expression_map,
-                        ...data.live2d_expression_map,
-                    };
+                    // [Migration] If old keys exist, map them to new keys
+                    const oldMap = data.live2d_expression_map;
+                    const newMap = { ...expression_map };
+
+                    // 1. Direct copy of matching keys (if already updated)
+                    Object.keys(newMap).forEach((k) => {
+                        if (oldMap[k]) newMap[k] = oldMap[k];
+                    });
+
+                    // 2. Migration for legacy keys
+                    if (oldMap["joy"]) newMap["GENTLE"] = oldMap["joy"];
+                    if (oldMap["happy"]) newMap["GENTLE"] = oldMap["happy"];
+
+                    if (oldMap["fun"]) newMap["ELATED"] = oldMap["fun"];
+                    if (oldMap["amuse"]) newMap["ELATED"] = oldMap["amuse"];
+
+                    if (oldMap["anger"]) newMap["STERN"] = oldMap["anger"];
+                    if (oldMap["sorrow"])
+                        newMap["DEPRESSED"] = oldMap["sorrow"];
+
+                    if (oldMap["surprise"])
+                        newMap["ASTONISHED"] = oldMap["surprise"];
+
+                    // (Legacy 'unease' -> TENSE, 'neutral' -> CALM if they existed)
+                    if (oldMap["unease"]) newMap["TENSE"] = oldMap["unease"];
+                    if (oldMap["neutral"]) newMap["CALM"] = oldMap["neutral"];
+
+                    expression_map = newMap;
                 }
                 if (Array.isArray(data.live2d_motion_list)) {
                     motion_list = data.live2d_motion_list;

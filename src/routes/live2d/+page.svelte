@@ -568,14 +568,26 @@
         }
     }
 
+    // 지속시간
+    const INTERACTION_TIMEOUT = 3000;
+
+    let interactionTimer: any;
+
     function handleInteraction(e: CustomEvent) {
         console.log("👆 Interaction:", e.detail);
         resetIdleTimer();
 
-        // Only send if ENABLED and not currently loading
-        if ($settings.enableInteractionTrigger && !isLoading) {
-            send("<interaction>" + JSON.stringify(e.detail));
-        }
+        if (interactionTimer) clearTimeout(interactionTimer);
+        interactionTimer = setTimeout(() => {
+            if ($settings.enableInteractionTrigger && !isLoading) {
+                send("<interaction>" + JSON.stringify(e.detail));
+            }
+        }, INTERACTION_TIMEOUT);
+    }
+
+    function handleInteractionEnd() {
+        console.log("👇 Interaction End");
+        if (interactionTimer) clearTimeout(interactionTimer);
     }
 
     // Global activity listeners
@@ -628,6 +640,7 @@
                     {hitMotionMap}
                     {persona}
                     on:interaction={handleInteraction}
+                    on:interactionEnd={handleInteractionEnd}
                     bind:error_showSpeech
                 />
             {:else}
