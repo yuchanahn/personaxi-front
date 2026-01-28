@@ -22,9 +22,12 @@
     import { toast } from "$lib/stores/toast";
     import { t } from "svelte-i18n";
     import { fade } from "svelte/transition";
+    import { settings } from "$lib/stores/settings";
 
     let lastSessionId: string | null = null;
     let persona: Persona | null = null;
+    let idleTimer: any = null;
+    const IDLE_TIMEOUT = 60000; // 60 seconds
 
     let Viewer: Live2DViewer;
     let showChat: boolean = false;
@@ -399,6 +402,7 @@
             "live2d",
             () => {
                 isLoading = false;
+                resetIdleTimer();
             },
             (emotion) => {
                 if (Viewer && Viewer.setExpression) {
@@ -441,54 +445,63 @@
         }, 8000);
     }
 
+    function playTextFallback() {
+        // Reset thoughts
+        isSpeaking = false;
+        showThought2 = false;
+        showThought1 = false;
+
+        // Parse Speech Text
+        const lastMsg = $messages[$messages.length - 1];
+        let content = "";
+        if (lastMsg && lastMsg.role === "assistant") {
+            content = lastMsg.content;
+            content = content.replace(/\([^)]*\)/g, ""); // Remove thoughts ( )
+            content = content.replace(/\[[^\]]*\]/g, ""); // Remove actions [ ]
+            speechText = content;
+        }
+
+        // Immediately show speech bubble
+        showSpeech = true;
+
+        // Simulate reading time
+        const textLen = content.trim().length;
+        const simulatedDuration = textLen > 0 ? textLen * 100 + 1500 : 2000;
+
+        isSpeaking = true;
+
+        setTimeout(() => {
+            console.log("Text-only mode ended: Showing Thought 2");
+            isSpeaking = false;
+            resetIdleTimer();
+            showThought1 = false;
+            showSpeech = false;
+
+            if (thought2) {
+                const delay = Math.floor(Math.random() * 1000) + 2000;
+                setTimeout(() => {
+                    showThought2 = true;
+                    setTimeout(() => {
+                        showThought2 = false;
+                    }, 8000);
+                }, delay);
+            }
+        }, simulatedDuration);
+    }
+
+    $: if (error_showSpeech) {
+        console.log("Audio Blocked Error Detected: Triggering Fallback");
+        error_showSpeech = false;
+        playTextFallback();
+    }
+
     const connectTTSImpl = async () => {
         await connectTTSSocket(async (audio: ArrayBuffer | null) => {
             if (!audio) {
                 toast.error("TTS Server Busy (Fallback to Text)");
                 console.warn("TTS Failed (Modal).");
 
-                // Reset thoughts
-                isSpeaking = false;
-                showThought2 = false;
-                showThought1 = false;
-
-                // Parse Speech Text (Logic from handleThoughtEnded)
-                const lastMsg = $messages[$messages.length - 1];
-                let content = "";
-                if (lastMsg && lastMsg.role === "assistant") {
-                    content = lastMsg.content;
-                    content = content.replace(/\([^)]*\)/g, ""); // Remove thoughts ( )
-                    content = content.replace(/\[[^\]]*\]/g, ""); // Remove actions [ ]
-                    speechText = content;
-                }
-
-                // Immediately show speech bubble since we have text but no audio
-                showSpeech = true;
-
-                // Simulate reading time
-                const textLen = content.trim().length;
-                const simulatedDuration =
-                    textLen > 0 ? textLen * 100 + 1500 : 2000;
-
-                isSpeaking = true; // Act as if speaking
-
-                setTimeout(() => {
-                    console.log("Text-only mode ended: Showing Thought 2");
-                    isSpeaking = false;
-                    showThought1 = false;
-                    showSpeech = false;
-
-                    if (thought2) {
-                        const delay = Math.floor(Math.random() * 1000) + 2000;
-                        setTimeout(() => {
-                            showThought2 = true;
-                            setTimeout(() => {
-                                showThought2 = false;
-                            }, 8000);
-                        }, delay);
-                    }
-                }, simulatedDuration);
-
+                playTextFallback();
                 return;
             }
             if (Viewer && Viewer.speak) {
@@ -519,6 +532,7 @@
                     // Audio End
                     console.log("Audio End (Modal): Showing Thought 2");
                     isSpeaking = false;
+                    resetIdleTimer();
                     showThought1 = false;
 
                     if (thought2) {
@@ -535,6 +549,57 @@
             }
         });
     };
+
+    // --- Interaction & Idle Handlers ---
+
+    function resetIdleTimer() {
+        if (idleTimer) clearTimeout(idleTimer);
+        // Only trigger idle if ENABLED, and not already speaking or loading
+        if (
+            $settings.enableIdleTrigger &&
+            !isSpeaking &&
+            !isLoading &&
+            !showChat
+        ) {
+            idleTimer = setTimeout(() => {
+                console.log("💤 Triggering Idle...");
+                send("<idle>");
+            }, IDLE_TIMEOUT);
+        }
+    }
+
+    function handleInteraction(e: CustomEvent) {
+        console.log("👆 Interaction:", e.detail);
+        resetIdleTimer();
+
+        // Only send if ENABLED and not currently loading
+        if ($settings.enableInteractionTrigger && !isLoading) {
+            send("<interaction>" + JSON.stringify(e.detail));
+        }
+    }
+
+    // Global activity listeners
+    function onUserActivity() {
+        resetIdleTimer();
+    }
+
+    onMount(() => {
+        window.addEventListener("mousemove", onUserActivity);
+        window.addEventListener("keydown", onUserActivity);
+        window.addEventListener("click", onUserActivity);
+        window.addEventListener("touchstart", onUserActivity);
+        resetIdleTimer();
+    });
+
+    onDestroy(() => {
+        if (idleTimer) clearTimeout(idleTimer);
+        window.removeEventListener("mousemove", onUserActivity);
+        window.removeEventListener("keydown", onUserActivity);
+        window.removeEventListener("click", onUserActivity);
+        window.removeEventListener("touchstart", onUserActivity);
+    });
+
+    let error_showSpeech = false;
 </script>
 
 <main>
@@ -562,6 +627,8 @@
                     {expressionMap}
                     {hitMotionMap}
                     {persona}
+                    on:interaction={handleInteraction}
+                    bind:error_showSpeech
                 />
             {:else}
                 <div class="error-message">No Model URL</div>

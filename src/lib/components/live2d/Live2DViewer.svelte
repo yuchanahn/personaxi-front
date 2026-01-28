@@ -1,9 +1,11 @@
 <script lang="ts">
-    import { onMount, onDestroy } from "svelte";
+    import { onMount, onDestroy, createEventDispatcher } from "svelte";
     import { loadLive2DScripts } from "$lib/utils/live2dLoader";
     import Icon from "@iconify/svelte";
     import { SafeAudioManager } from "$lib/utils/safeAudioManager";
     import { Live2DAutonomy } from "$lib/utils/live2d/Live2DAutonomy";
+
+    const dispatch = createEventDispatcher();
 
     export let modelUrl: string;
     export let scale: number = 0.3;
@@ -17,6 +19,8 @@
     export let closeupOffset: number = 0.2;
     export let startVoiceUrl: string | undefined = undefined;
     export let persona: any = null;
+
+    export let error_showSpeech: boolean = false;
 
     let canvasElement: HTMLCanvasElement;
     let app: any;
@@ -55,12 +59,14 @@
     export async function speak(audioUrl: string) {
         if (!currentModel) return;
 
+        error_showSpeech = false;
         await SafeAudioManager.speak(currentModel, audioUrl, {
             onFinish: () => {
                 console.log("### TTS Finished");
             },
             onError: (e) => {
                 console.error("### TTS Error", e);
+                error_showSpeech = true;
             },
         });
     }
@@ -357,6 +363,12 @@
             if (autonomy) {
                 updateDragTarget(e);
             }
+            dispatch("interaction", {
+                action: "touch_start",
+                duration: "start",
+                state: "contact",
+                is_ongoing: true,
+            });
         });
 
         model.on("pointermove", (e: any) => {
@@ -383,6 +395,14 @@
             startY = 0;
             if (autonomy) {
                 autonomy.handleDrag(0, 0);
+            }
+            if (isDragging) {
+                dispatch("interaction", {
+                    action: "rub",
+                    duration: "long", // logic could be better but simplified
+                    state: "release",
+                    is_ongoing: false,
+                });
             }
         };
         model.on("pointerupoutside", stopDrag);
@@ -500,10 +520,16 @@
                 const finalScale = x === 0 && y === 0 ? autoScale : scale;
                 model.scale.set(finalScale);
 
-                model.on("pointertap", (e: any) => {
-                    const point = e.data.global;
-                    model.tap(point.x, point.y);
-                });
+                //model.on("pointertap", (e: any) => {
+                //    const point = e.data.global;
+                //    model.tap(point.x, point.y);
+                //    dispatch("interaction", {
+                //        action: "tap",
+                //        duration: "point",
+                //        state: "neutral",
+                //        is_ongoing: false,
+                //    });
+                //});
 
                 model.x = x;
                 model.y = y;

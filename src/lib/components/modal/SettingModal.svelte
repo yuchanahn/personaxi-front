@@ -4,6 +4,7 @@
     import { t } from "svelte-i18n";
     import Icon from "@iconify/svelte";
     import ReportModal from "$lib/components/modal/ReportModal.svelte";
+    import { settings } from "$lib/stores/settings";
 
     import { api } from "$lib/api";
     import type { Persona, User } from "$lib/types";
@@ -359,6 +360,51 @@
                         {/if}
                     </div>
                 {/if}
+
+                <!-- Autonomy Settings -->
+                <div class="settings-card">
+                    <div class="card-header">
+                        <Icon icon="ph:sparkle-duotone" />
+                        <span>{$t("settingModal.autoInteraction")}</span>
+                    </div>
+                    <div class="actions-list">
+                        <!-- Idle Toggle -->
+                        <button
+                            class="action-item"
+                            on:click={() =>
+                                ($settings.enableIdleTrigger =
+                                    !$settings.enableIdleTrigger)}
+                        >
+                            <div class="action-left">
+                                <Icon icon="ph:timer-bold" />
+                                <span>{$t("settingModal.autoIdle")}</span>
+                            </div>
+                            <span
+                                class="toggle"
+                                class:on={$settings.enableIdleTrigger}
+                                ><span class="knob"></span></span
+                            >
+                        </button>
+
+                        <!-- Interaction Toggle -->
+                        <button
+                            class="action-item"
+                            on:click={() =>
+                                ($settings.enableInteractionTrigger =
+                                    !$settings.enableInteractionTrigger)}
+                        >
+                            <div class="action-left">
+                                <Icon icon="ph:hand-pointing-bold" />
+                                <span>{$t("settingModal.autoTouch")}</span>
+                            </div>
+                            <span
+                                class="toggle"
+                                class:on={$settings.enableInteractionTrigger}
+                                ><span class="knob"></span></span
+                            >
+                        </button>
+                    </div>
+                </div>
 
                 <!-- 5. Chat Settings -->
 

@@ -12,6 +12,8 @@ export interface AppSettings {
     enterToSend: boolean;
     soundVolume: number;
     llmType: string;
+    enableIdleTrigger: boolean;
+    enableInteractionTrigger: boolean;
 }
 
 function isValidTheme(value: any): value is Theme {
@@ -31,7 +33,9 @@ function initializeSettings(): AppSettings {
         fontSize: 'medium',
         enterToSend: true,
         soundVolume: 0.8,
-        llmType: 'gemini_flash' // Default LLM type
+        llmType: 'gemini_flash', // Default LLM type
+        enableIdleTrigger: false,
+        enableInteractionTrigger: false
     };
 
     if (!browser) {
@@ -61,6 +65,12 @@ function initializeSettings(): AppSettings {
             }
             if (typeof savedSettings.soundVolume === 'number') {
                 settings.soundVolume = savedSettings.soundVolume;
+            }
+            if (typeof savedSettings.enableIdleTrigger === 'boolean') {
+                settings.enableIdleTrigger = savedSettings.enableIdleTrigger;
+            }
+            if (typeof savedSettings.enableInteractionTrigger === 'boolean') {
+                settings.enableInteractionTrigger = savedSettings.enableInteractionTrigger;
             }
         } catch (e) {
             console.error("Failed to parse settings from localStorage", e);

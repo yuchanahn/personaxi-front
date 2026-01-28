@@ -161,6 +161,8 @@ export class SafeAudioManager {
                     cleanup();
                     // 사용자가 아직 클릭하지 않았을 가능성이 높음
                     toast.error("화면을 터치해주세요 (Audio Blocked)");
+                    // 여기서 화면에 글자 보이기
+                    onError?.(new Error("Audio Blocked"));
                     resolve(false);
                 });
         });
