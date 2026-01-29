@@ -338,7 +338,9 @@
 
         if (expressionMap) {
             let targetExpression = "";
+
             autonomy?.setEmotion(emotionType);
+
             if (expressionMap[emotionType]) {
                 targetExpression = expressionMap[emotionType];
             } else if (expressionMap[category]) {

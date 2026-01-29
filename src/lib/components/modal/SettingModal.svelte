@@ -362,49 +362,51 @@
                 {/if}
 
                 <!-- Autonomy Settings -->
-                <div class="settings-card">
-                    <div class="card-header">
-                        <Icon icon="ph:sparkle-duotone" />
-                        <span>{$t("settingModal.autoInteraction")}</span>
-                    </div>
-                    <div class="actions-list">
-                        <!-- Idle Toggle -->
-                        <button
-                            class="action-item"
-                            on:click={() =>
-                                ($settings.enableIdleTrigger =
-                                    !$settings.enableIdleTrigger)}
-                        >
-                            <div class="action-left">
-                                <Icon icon="ph:timer-bold" />
-                                <span>{$t("settingModal.autoIdle")}</span>
-                            </div>
-                            <span
-                                class="toggle"
-                                class:on={$settings.enableIdleTrigger}
-                                ><span class="knob"></span></span
+                {#if mode === "3d" || mode === "live2d"}
+                    <div class="settings-card">
+                        <div class="card-header">
+                            <Icon icon="ph:sparkle-duotone" />
+                            <span>{$t("settingModal.autoInteraction")}</span>
+                        </div>
+                        <div class="actions-list">
+                            <!-- Idle Toggle -->
+                            <button
+                                class="action-item"
+                                on:click={() =>
+                                    ($settings.enableIdleTrigger =
+                                        !$settings.enableIdleTrigger)}
                             >
-                        </button>
+                                <div class="action-left">
+                                    <Icon icon="ph:timer-bold" />
+                                    <span>{$t("settingModal.autoIdle")}</span>
+                                </div>
+                                <span
+                                    class="toggle"
+                                    class:on={$settings.enableIdleTrigger}
+                                    ><span class="knob"></span></span
+                                >
+                            </button>
 
-                        <!-- Interaction Toggle -->
-                        <button
-                            class="action-item"
-                            on:click={() =>
-                                ($settings.enableInteractionTrigger =
-                                    !$settings.enableInteractionTrigger)}
-                        >
-                            <div class="action-left">
-                                <Icon icon="ph:hand-pointing-bold" />
-                                <span>{$t("settingModal.autoTouch")}</span>
-                            </div>
-                            <span
-                                class="toggle"
-                                class:on={$settings.enableInteractionTrigger}
-                                ><span class="knob"></span></span
+                            <!-- Interaction Toggle -->
+                            <button
+                                class="action-item"
+                                on:click={() =>
+                                    ($settings.enableInteractionTrigger =
+                                        !$settings.enableInteractionTrigger)}
                             >
-                        </button>
+                                <div class="action-left">
+                                    <Icon icon="ph:hand-pointing-bold" />
+                                    <span>{$t("settingModal.autoTouch")}</span>
+                                </div>
+                                <span
+                                    class="toggle"
+                                    class:on={$settings.enableInteractionTrigger}
+                                    ><span class="knob"></span></span
+                                >
+                            </button>
+                        </div>
                     </div>
-                </div>
+                {/if}
 
                 <!-- 5. Chat Settings -->
 

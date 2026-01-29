@@ -7,7 +7,6 @@ export class Live2DAutonomy {
     private app: any;
     private ticker: ((ticker: any) => void) | null = null;
 
-    // --- State: Physics / Drag ---
     private dragTargetX = 0;
     private dragTargetY = 0;
     private dragPhysicsX = 0;
@@ -16,7 +15,6 @@ export class Live2DAutonomy {
     private currentBodyY = 0;
     private bodyVol = 0;
 
-    // --- State: Blinking ---
     private blinkState: 'OPEN' | 'CLOSING' | 'CLOSED' | 'OPENING' = 'OPEN';
     private nextBlinkTime = 0;
     private blinkOpenValue = 1.0;
@@ -24,13 +22,11 @@ export class Live2DAutonomy {
     private blinkDuration = 150;
     private blinkTimer = 0;
 
-    // --- State: Motion Logic ---
     private gazeTargetX = 0;
     private gazeTargetY = 0;
     private gazeCurrentX = 0;
     private gazeCurrentY = 0;
 
-    // ✨ NEW: 마이크로 새카드 (미세한 눈 떨림)
     private saccadeOffsetX = 0;
     private saccadeOffsetY = 0;
     private nextSaccadeTime = 0;
@@ -42,13 +38,11 @@ export class Live2DAutonomy {
     private nextIdleMoveTime = 0;
     private nextGazeMoveTime = 0;
 
-    // ✨ NEW: 제스처 시스템
     private isGesturePlaying = false;
     private gestureStartTime = 0;
     private gestureDuration = 0;
     private currentGesture: GestureType | null = null;
 
-    // ✨ NEW: 말하기 상태 관리
     private isSpeaking = false;
 
     public setSpeaking(speaking: boolean) {
@@ -56,44 +50,26 @@ export class Live2DAutonomy {
         console.log(`🗣️ Speaking State: ${speaking}`);
     }
 
-    // --- State: Emotion & Presets ---
-    // --- State: Emotion & Presets ---
-    // Updated to match new EmotionType in Live2DViewer
     public currentEmotion:
-        | 'NORMAL'
-        | 'HAPPY'
-        | 'SAD'
-        | 'ANGRY'
-        | 'SURPRISED'
-        | 'ELATED'
-        | 'GENTLE'
-        | 'STERN'
-        | 'DEPRESSED'
-        | 'TENSE'
-        | 'ASTONISHED'
-        | 'CALM' = 'NORMAL';
+        | "ELATED"
+        | "GENTLE"
+        | "STERN"
+        | "DEPRESSED"
+        | "TENSE"
+        | "ASTONISHED"
+        | "CALM" = 'CALM';
 
     private emotionConfigs = {
-        // Legacy Support
-        NORMAL: { headYOffset: 0, motionSpeed: 0.05, eyeOpenMin: 1.0, breathRate: 1.0, idleIntervalMin: 1000 },
-        HAPPY: { headYOffset: 5, motionSpeed: 0.12, eyeOpenMin: 1.0, breathRate: 1.5, idleIntervalMin: 500 },
-        SAD: { headYOffset: -15, motionSpeed: 0.02, eyeOpenMin: 0.6, breathRate: 0.6, idleIntervalMin: 3000 },
-        ANGRY: { headYOffset: -5, motionSpeed: 0.08, eyeOpenMin: 1.2, breathRate: 2.5, idleIntervalMin: 800 },
-        SURPRISED: { headYOffset: 10, motionSpeed: 0.20, eyeOpenMin: 1.5, breathRate: 0.2, idleIntervalMin: 4000 },
-
-        // New EmotionTypes (Mapped to similar physical responses)
-        ELATED: { headYOffset: 8, motionSpeed: 0.15, eyeOpenMin: 1.0, breathRate: 2.0, idleIntervalMin: 500 },     // Like HAPPY but more energetic
-        GENTLE: { headYOffset: 2, motionSpeed: 0.06, eyeOpenMin: 0.9, breathRate: 1.0, idleIntervalMin: 1200 },    // Warm, calm happy
-        STERN: { headYOffset: -3, motionSpeed: 0.05, eyeOpenMin: 1.0, breathRate: 1.2, idleIntervalMin: 1500 },    // Serious, rigid like ANGRY but controlled
-        DEPRESSED: { headYOffset: -12, motionSpeed: 0.02, eyeOpenMin: 0.5, breathRate: 0.5, idleIntervalMin: 3000 }, // Deep sadness
-        TENSE: { headYOffset: -2, motionSpeed: 0.10, eyeOpenMin: 1.1, breathRate: 2.2, idleIntervalMin: 600 },     // High alert, nervous
-        ASTONISHED: { headYOffset: 10, motionSpeed: 0.18, eyeOpenMin: 1.5, breathRate: 0.3, idleIntervalMin: 3500 }, // Similar to SURPRISED
-        CALM: { headYOffset: 0, motionSpeed: 0.04, eyeOpenMin: 0.8, breathRate: 0.8, idleIntervalMin: 2000 }       // Relaxed neutral
-
-
+        ELATED: { headYOffset: 8, motionSpeed: 0.15, eyeOpenMin: 1.0, breathRate: 2.0, idleIntervalMin: 500 },
+        GENTLE: { headYOffset: 2, motionSpeed: 0.06, eyeOpenMin: 0.9, breathRate: 1.0, idleIntervalMin: 1200 },
+        STERN: { headYOffset: -3, motionSpeed: 0.07, eyeOpenMin: 0.4, breathRate: 1.3, idleIntervalMin: 100 },
+        DEPRESSED: { headYOffset: -12, motionSpeed: 0.02, eyeOpenMin: 0.5, breathRate: 0.5, idleIntervalMin: 3000 },
+        TENSE: { headYOffset: -2, motionSpeed: 0.10, eyeOpenMin: 1.1, breathRate: 2.2, idleIntervalMin: 600 },
+        ASTONISHED: { headYOffset: 10, motionSpeed: 0.18, eyeOpenMin: 1.5, breathRate: 0.3, idleIntervalMin: 3500 },
+        CALM: { headYOffset: 0, motionSpeed: 0.04, eyeOpenMin: 0.8, breathRate: 0.8, idleIntervalMin: 2000 }
     };
 
-    private activeConfig = this.emotionConfigs.NORMAL;
+    private activeConfig = this.emotionConfigs.CALM;
     private paramIndices: Record<string, number> = {};
 
     private currentHeadZ = 0;
@@ -130,13 +106,11 @@ export class Live2DAutonomy {
         }
     }
 
-    // ✨ NEW: 감도 변경 (런타임에도 가능)
     public setSensitivity(value: number) {
         this.sensitivity = this.clamp(value, 0.1, 2.0);
         console.log(`⚙️ Sensitivity changed to ${this.sensitivity}x`);
     }
 
-    // ✨ NEW: 제스처 재생 API
     public playGesture(gesture: GestureType) {
         if (this.isGesturePlaying) return; // 이미 재생 중이면 무시
 
@@ -203,7 +177,7 @@ export class Live2DAutonomy {
 
         this.nextIdleMoveTime = Date.now();
 
-        if (emotion === 'SURPRISED' || emotion === 'ANGRY') {
+        if (emotion === 'ELATED' || emotion === 'STERN') {
             this.blinkState = 'OPEN';
             this.blinkValue = 1.0;
             this.nextBlinkTime = Date.now() + 2000;
@@ -575,11 +549,11 @@ export class Live2DAutonomy {
         this.voiceEnv += (targetEnv - this.voiceEnv) * a;
 
         let amp = 6.0 * this.sensitivity; // 감도 적용
-        if (this.currentEmotion === 'HAPPY' || this.currentEmotion === 'ELATED') amp = 5.0 * this.sensitivity;
-        if (this.currentEmotion === 'SAD' || this.currentEmotion === 'DEPRESSED') amp = 2.0 * this.sensitivity;
-        if (this.currentEmotion === 'ANGRY' || this.currentEmotion === 'STERN') amp = 3.0 * this.sensitivity;
-        if (this.currentEmotion === 'SURPRISED' || this.currentEmotion === 'ASTONISHED') amp = 6.0 * this.sensitivity;
-        if (this.currentEmotion === 'CALM' || this.currentEmotion === 'GENTLE') amp = 4.0 * this.sensitivity;
+        if (this.currentEmotion === 'ELATED') amp = 5.0 * this.sensitivity;
+        if (this.currentEmotion === 'DEPRESSED') amp = 2.0 * this.sensitivity;
+        if (this.currentEmotion === 'STERN') amp = 3.0 * this.sensitivity;
+        if (this.currentEmotion === 'ASTONISHED') amp = 6.0 * this.sensitivity;
+        if (this.currentEmotion === 'GENTLE') amp = 4.0 * this.sensitivity;
         if (this.currentEmotion === 'TENSE') amp = 3.5 * this.sensitivity;
 
         const voiceBobY = this.clamp(this.voiceEnv * amp, 0, amp);
@@ -647,17 +621,69 @@ export class Live2DAutonomy {
         // 음성 볼륨이 일정 이상일 때만 발동
         if (this.voiceEnv > 0.1) {
             const intensity = Math.min(this.voiceEnv * 1.5, 1.0); // 0.0 ~ 1.0 강도
-
-            // 3. 눈 살짝 감기 (Squint) - 몰입감
-            // intensity가 높을수록 눈을 0.8 ~ 0.9 수준으로 살짝 감음 (기본 1.0)
-            const squintFactor = 1.0 - (intensity * 0.15); // 0.85 ~ 1.0
-
-            // 현재 눈 상태(깜빡임 포함)에 곱해줌
             const currentBlink = this.blinkValue * this.blinkOpenValue;
-            const finalEyeOpen = currentBlink * squintFactor;
+            let squintFactor = 1.0; // 기본값
+            let browFactor = 0.0; // 눈썹 조절 (음수: 찌푸림, 양수: 올림)
+            let mouthAdd = 0.0; // 추가 입 열림
 
+            // 감정에 따라 다르게 설정
+            switch (this.currentEmotion) {
+                case 'ELATED':
+                    // 기쁨: 눈 크게 뜨고, 눈썹 올림, 입 크게
+                    squintFactor = 1.0 + intensity * 0.1; // 살짝 더 뜸 (max 1.1)
+                    browFactor = intensity * 0.5; // 눈썹 올림
+                    mouthAdd = intensity * 0.2; // 입 더 벌림
+                    break;
+                case 'GENTLE':
+                    // 부드러움: 약간 감은 눈, 눈썹 약간 내림, 입 부드럽게
+                    squintFactor = 1.0 - intensity * 0.1; // 살짝 감음 (min 0.9)
+                    browFactor = -intensity * 0.2; // 약간 찌푸림
+                    mouthAdd = intensity * 0.1;
+                    break;
+                case 'STERN':
+                    // 엄격함: 눈 가늘게, 눈썹 강하게 찌푸림, 입 단호하게
+                    squintFactor = 1.0 - intensity * 0.25; // 더 감음 (min 0.75)
+                    browFactor = -intensity * 0.8; // 강한 찌푸림
+                    mouthAdd = intensity * 0.05; // 적게 벌림
+                    break;
+                case 'DEPRESSED':
+                    // 우울: 눈 많이 감음, 눈썹 내림, 입 약하게
+                    squintFactor = 1.0 - intensity * 0.3; // 많이 감음 (min 0.7)
+                    browFactor = -intensity * 0.4;
+                    mouthAdd = intensity * 0.05;
+                    break;
+                case 'TENSE':
+                    // 긴장: 눈 크게, 눈썹 찌푸림, 입 꽉
+                    squintFactor = 1.0 + intensity * 0.05; // 살짝 더 뜸
+                    browFactor = -intensity * 0.6;
+                    mouthAdd = intensity * 0.1;
+                    break;
+                case 'ASTONISHED':
+                    // 놀람: 눈 크게 뜨고, 눈썹 올림, 입 크게
+                    squintFactor = 1.0 + intensity * 0.2; // 더 뜸 (max 1.2)
+                    browFactor = intensity * 0.7; // 눈썹 높이 올림
+                    mouthAdd = intensity * 0.3; // 크게 벌림
+                    break;
+                case 'CALM':
+                    // 차분: 기본 살짝 감음
+                    squintFactor = 1.0 - intensity * 0.15; // 원래 동작 (min 0.85)
+                    browFactor = 0.0;
+                    mouthAdd = 0.0;
+                    break;
+            }
+
+            // 눈 적용 (squintFactor 범위 제한: 0.5 ~ 1.5로 안전하게)
+            const finalEyeOpen = currentBlink * this.clamp(squintFactor, 0.5, 1.5);
             this.setParam(values, 'ParamEyeLOpen', this.getParamOverride('ParamEyeLOpen', finalEyeOpen));
             this.setParam(values, 'ParamEyeROpen', this.getParamOverride('ParamEyeROpen', finalEyeOpen));
+
+            // 눈썹 적용 (모델에 따라 L/R 동일하게)
+            this.setParam(values, 'ParamBrowLY', browFactor);
+            this.setParam(values, 'ParamBrowRY', browFactor);
+
+            // 입 추가 열림 (기존 MouthOpenY에 더함, 모델의 mouthSync와 조합)
+            const currentMouthOpen = this.getParamOverride('ParamMouthOpenY', 0); // 기본 0
+            this.setParam(values, 'ParamMouthOpenY', currentMouthOpen + mouthAdd);
         }
     }
 
