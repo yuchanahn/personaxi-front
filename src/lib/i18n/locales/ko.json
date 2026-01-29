@@ -713,5 +713,64 @@
     "light": "라이트",
     "standard": "스탠다드",
     "premium": "프리미엄"
+  },
+  "guide": {
+    "pageTitle": "이용 가이드",
+    "searchPlaceholder": "검색어를 입력하세요...",
+    "homeButton": "홈으로 이동",
+    "updatedAt": "최근 업데이트: {date}",
+    "tabNotice": "공지사항",
+    "tabGuide": "가이드북",
+    "emptyState": "항목을 선택해주세요.",
+    "noticeListTitle": "공지사항",
+    "guideListTitle": "가이드 목차",
+    "poweredBy": "Powered by PersonaXi Team",
+    "categories": {
+      "start": "PersonaXi 시작",
+      "account": "계정 설정",
+      "enjoy": "캐릭터 즐기기",
+      "create": "캐릭터 제작하기",
+      "payment": "결제 및 환불 안내",
+      "policy": "약관 및 정책"
+    },
+    "articles": {
+      "start_intro": "PersonaXi 소개",
+      "account_signup": "회원가입",
+      "account_login": "로그인/본인인증",
+      "account_mypage": "내 계정/크리에이터 정보 관리",
+      "account_noti": "알림 설정",
+      "account_referral": "추천 코드 사용",
+      "account_leave": "계정 탈퇴",
+      "enjoy_search": "캐릭터 찾기",
+      "enjoy_chat": "채팅 기능",
+      "enjoy_options": "채팅방 옵션",
+      "enjoy_summary": "자동 요약",
+      "enjoy_story": "PersonaXi 스토리",
+      "create_rules": "캐릭터 제작 규정",
+      "create_original": "오리지널 캐릭터란?",
+      "create_incentive": "PersonaXi 인센티브",
+      "create_basic": "캐릭터 기본 제작 방법",
+      "create_expert": "전문가 모드 사용 방법",
+      "payment_guide": "PersonaXi 윙 및 결제 가이드",
+      "payment_member": "PersonaXi 멤버십",
+      "payment_refund": "PersonaXi 환불 정책",
+      "policy_terms": "서비스 이용약관",
+      "policy_privacy": "개인정보 처리방침",
+      "policy_marketing": "마케팅 이용 동의"
+    },
+    "notices": {
+      "launch_title": "🎉 PersonaXi 정식 오픈 안내",
+      "launch_desc": "PersonaXi가 드디어 정식 오픈했습니다! 새로운 기능들을 만나보세요.",
+      "maintenance_title": "🛠️ 서버 점검 안내 (1/30)",
+      "maintenance_desc": "더 안정적인 서비스를 위해 서버 점검이 진행될 예정입니다.",
+      "event_title": "🎁 오픈 기념 이벤트",
+      "event_desc": "선착순 500명에게 300 뉴런을 지급합니다! 지금 바로 참여하세요."
+    },
+    "tags": {
+      "update": "업데이트",
+      "maintenance": "점검",
+      "event": "이벤트",
+      "notice": "공지"
+    }
   }
 }

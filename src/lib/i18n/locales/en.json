@@ -759,5 +759,64 @@
     "light": "Light",
     "standard": "Standard",
     "premium": "Premium"
+  },
+  "guide": {
+    "pageTitle": "User Guide",
+    "searchPlaceholder": "Search...",
+    "homeButton": "Go Home",
+    "updatedAt": "Updated: {date}",
+    "tabNotice": "Notices",
+    "tabGuide": "Guidebook",
+    "emptyState": "Please select an item.",
+    "noticeListTitle": "Notices",
+    "guideListTitle": "Guide Contents",
+    "poweredBy": "Powered by PersonaXi Team",
+    "categories": {
+      "start": "Getting Started",
+      "account": "Account Settings",
+      "enjoy": "Enjoying Characters",
+      "create": "Creating Characters",
+      "payment": "Payment & Refund",
+      "policy": "Terms & Policies"
+    },
+    "articles": {
+      "start_intro": "About PersonaXi",
+      "account_signup": "Sign Up",
+      "account_login": "Login / Identity Verification",
+      "account_mypage": "Manage My Account / Creator Info",
+      "account_noti": "Notification Settings",
+      "account_referral": "Referral Code",
+      "account_leave": "Delete Account",
+      "enjoy_search": "Find Characters",
+      "enjoy_chat": "Chat Features",
+      "enjoy_options": "Chat Options",
+      "enjoy_summary": "Auto Summary",
+      "enjoy_story": "PersonaXi Story",
+      "create_rules": "Creation Guidelines",
+      "create_original": "What is Original Character?",
+      "create_incentive": "PersonaXi Incentive",
+      "create_basic": "Basic Creation Guide",
+      "create_expert": "Expert Mode Guide",
+      "payment_guide": "Wing & Payment Guide",
+      "payment_member": "PersonaXi Membership",
+      "payment_refund": "Refund Policy",
+      "policy_terms": "Terms of Service",
+      "policy_privacy": "Privacy Policy",
+      "policy_marketing": "Marketing Consent"
+    },
+    "notices": {
+      "launch_title": "🎉 PersonaXi Official Launch",
+      "launch_desc": "PersonaXi is finally officially open! Meet total new features.",
+      "maintenance_title": "🛠️ Server Maintenance (1/30)",
+      "maintenance_desc": "Server maintenance is scheduled for more stable service.",
+      "event_title": "🎁 Launch Event",
+      "event_desc": "300 Neurons for the first 500 users! Join now."
+    },
+    "tags": {
+      "update": "Update",
+      "maintenance": "Maintenance",
+      "event": "Event",
+      "notice": "Notice"
+    }
   }
 }
