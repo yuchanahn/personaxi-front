@@ -370,7 +370,7 @@
                         </div>
                         <div class="actions-list">
                             <!-- Idle Toggle -->
-                            <button
+                            <!-- <button
                                 class="action-item"
                                 on:click={() =>
                                     ($settings.enableIdleTrigger =
@@ -385,7 +385,7 @@
                                     class:on={$settings.enableIdleTrigger}
                                     ><span class="knob"></span></span
                                 >
-                            </button>
+                            </button> -->
 
                             <!-- Interaction Toggle -->
                             <button

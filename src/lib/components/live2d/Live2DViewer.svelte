@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { onMount, onDestroy, createEventDispatcher } from "svelte";
+    import { onMount, onDestroy, createEventDispatcher, tick } from "svelte";
     import { loadLive2DScripts } from "$lib/utils/live2dLoader";
     import Icon from "@iconify/svelte";
     import { SafeAudioManager } from "$lib/utils/safeAudioManager";
@@ -34,6 +34,10 @@
         setTimeout(() => {
             speak(startVoiceUrl as string);
         }, 500);
+    } else {
+        setTimeout(() => {
+            autonomy?.setEmotion("SLEEP");
+        }, 500);
     }
 
     let showDebug = false;
@@ -51,24 +55,32 @@
     };
 
     let isDragging = false;
+    let autonomyDebugState = "CALM"; // ✨ Debug State
+    let currentAutonomyEmotion = "CALM"; // ✨ Sleep Effect State
+
+    $: if (autonomy) {
+        autonomy.onEmotionChange = (emo) => {
+            currentAutonomyEmotion = emo;
+            if (autonomyDebugState !== emo) {
+                autonomyDebugState = emo;
+            }
+        };
+    }
 
     export async function speak(audioUrl: string, onFinish?: () => void) {
         if (!currentModel) return;
 
         error_showSpeech = false;
 
-        // ✨ Autonomy Speaking State ON
         if (autonomy) autonomy.setSpeaking(true);
 
         await SafeAudioManager.speak(currentModel, audioUrl, {
             onFinish: () => {
-                // ✨ Autonomy Speaking State OFF
                 if (autonomy) autonomy.setSpeaking(false);
                 if (onFinish) onFinish();
             },
             onError: (e) => {
                 console.error("### TTS Error", e);
-                // ✨ Autonomy Speaking State OFF
                 if (autonomy) autonomy.setSpeaking(false);
                 error_showSpeech = true;
             },
@@ -80,6 +92,13 @@
         if (currentModel && (currentModel as any).hitAreaFrames) {
             (currentModel as any).hitAreaFrames.visible = showDebug;
         }
+    }
+
+    function setAutonomyEmotion(emotion: string) {
+        if (!autonomy) return;
+        autonomyDebugState = emotion;
+        autonomy.setEmotion(emotion as any);
+        console.log(`Debug: Manually set autonomy emotion to ${emotion}`);
     }
     // [TEST] Reset to Default
     export function resetToDefault() {
@@ -375,12 +394,6 @@
             if (autonomy) {
                 updateDragTarget(e);
             }
-            dispatch("interaction", {
-                action: "touch_start",
-                duration: "start",
-                state: "contact",
-                is_ongoing: true,
-            });
         });
 
         model.on("pointermove", (e: any) => {
@@ -392,6 +405,14 @@
                 const dy = Math.abs(e.data.global.y - startY);
                 if (dx > dragThreshold || dy > dragThreshold) {
                     isDragging = true;
+
+                    dispatch("interaction", {
+                        action: "touch_start",
+                        duration: "start",
+                        state: "contact",
+                        is_ongoing: true,
+                    });
+                    autonomy?.WakeUp();
                 }
             }
 
@@ -930,6 +951,37 @@
                             )}
                     />
                 </div>
+                <div class="debug-panel">
+                    <!-- <h4>Autonomy Emotions: {autonomyDebugState}</h4>
+                    <div class="buttons">
+                        <button on:click={() => setAutonomyEmotion("CALM")}
+                            >CALM</button
+                        >
+                        <button on:click={() => setAutonomyEmotion("ELATED")}
+                            >ELATED</button
+                        >
+                        <button on:click={() => setAutonomyEmotion("GENTLE")}
+                            >GENTLE</button
+                        >
+                        <button on:click={() => setAutonomyEmotion("STERN")}
+                            >STERN</button
+                        >
+                        <button on:click={() => setAutonomyEmotion("DEPRESSED")}
+                            >DEPRESSED</button
+                        >
+                        <button on:click={() => setAutonomyEmotion("TENSE")}
+                            >TENSE</button
+                        >
+                        <button
+                            on:click={() => setAutonomyEmotion("ASTONISHED")}
+                            >ASTONISHED</button
+                        >
+                        <button on:click={() => setAutonomyEmotion("SLEEP")}
+                            >SLEEP</button
+                        >
+                    </div> -->
+                </div>
+
                 <div class="gesture-grid">
                     <button
                         class="gesture-btn"
@@ -1101,7 +1153,7 @@
                     class="presets-row"
                     style="display: flex; gap: 5px; flex-wrap: wrap; margin-top: 5px;"
                 >
-                    {#each ["NORMAL", "HAPPY", "SAD", "ANGRY", "SURPRISED"] as emotion}
+                    {#each ["CALM", "ELATED", "GENTLE", "STERN", "DEPRESSED", "TENSE", "ASTONISHED", "SLEEP"] as emotion}
                         <button
                             class="list-item clickable"
                             style="flex: 1; text-align: center; border: 1px solid #00AAFF; border-radius: 4px; font-size: 11px;"
@@ -1206,6 +1258,15 @@
     >
         🗣️ Test TTS
     </button>
+
+    <!-- ✨ SLEEP EFFECT (ZZZ...) -->
+    {#if currentAutonomyEmotion === "SLEEP"}
+        <div class="sleep-effect-container">
+            <div class="z-particle z1">Z</div>
+            <div class="z-particle z2">Z</div>
+            <div class="z-particle z3">Z</div>
+        </div>
+    {/if}
 </div>
 
 <style>
@@ -1554,6 +1615,62 @@
         to {
             transform: translate(-50%, -50%) scale(1);
             opacity: 1;
+        }
+    }
+
+    /* ✨ SLEEP EFFECT STYLES */
+    .sleep-effect-container {
+        position: absolute;
+        top: 20%;
+        right: 25%;
+        width: 100px;
+        height: 100px;
+        pointer-events: none;
+        z-index: 9999;
+    }
+
+    .z-particle {
+        position: absolute;
+        color: white;
+        font-weight: bold;
+        font-family: "Comic Sans MS", "Chalkboard SE", sans-serif;
+        text-shadow: 2px 2px 0px #4a4a4a;
+        opacity: 0;
+    }
+
+    .z1 {
+        font-size: 24px;
+        animation: floatZ 3s infinite ease-out 0s;
+        left: 0;
+        bottom: 0;
+    }
+    .z2 {
+        font-size: 32px;
+        animation: floatZ 3s infinite ease-out 1s;
+        left: 20px;
+        bottom: 20px;
+    }
+    .z3 {
+        font-size: 40px;
+        animation: floatZ 3s infinite ease-out 2s;
+        left: 45px;
+        bottom: 45px;
+    }
+
+    @keyframes floatZ {
+        0% {
+            transform: translate(0, 0) rotate(-10deg);
+            opacity: 0;
+        }
+        20% {
+            opacity: 1;
+        }
+        80% {
+            opacity: 0.8;
+        }
+        100% {
+            transform: translate(40px, -60px) rotate(10deg);
+            opacity: 0;
         }
     }
 </style>

@@ -57,6 +57,7 @@ export class Live2DAutonomy {
         | "DEPRESSED"
         | "TENSE"
         | "ASTONISHED"
+        | "SLEEP"
         | "CALM" = 'CALM';
 
     private emotionConfigs = {
@@ -66,6 +67,7 @@ export class Live2DAutonomy {
         DEPRESSED: { headYOffset: -12, motionSpeed: 0.02, eyeOpenMin: 0.5, breathRate: 0.5, idleIntervalMin: 3000 },
         TENSE: { headYOffset: -2, motionSpeed: 0.10, eyeOpenMin: 1.1, breathRate: 2.2, idleIntervalMin: 600 },
         ASTONISHED: { headYOffset: 10, motionSpeed: 0.18, eyeOpenMin: 1.5, breathRate: 0.3, idleIntervalMin: 3500 },
+        SLEEP: { headYOffset: -2, motionSpeed: 0.02, eyeOpenMin: 0.0, breathRate: 0.3, idleIntervalMin: 999999 },
         CALM: { headYOffset: 0, motionSpeed: 0.04, eyeOpenMin: 0.8, breathRate: 0.8, idleIntervalMin: 2000 }
     };
 
@@ -74,6 +76,24 @@ export class Live2DAutonomy {
 
     private currentHeadZ = 0;
     private voiceEnv = 0;
+
+    private SleepTimer: any | null = null;
+
+    private StopSleepTimer = () => {
+        if (this.SleepTimer) {
+            clearTimeout(this.SleepTimer);
+        }
+    };
+
+    private StartSleepTimer = () => {
+        this.StopSleepTimer();
+        this.SleepTimer = setTimeout(
+            () => {
+                this.setEmotion("SLEEP");
+            },
+            1000 * 60 * 3,
+        );
+    };
 
     constructor(model: any, app: any, sensitivity: number = 1.0) {
         this.model = model;
@@ -97,6 +117,7 @@ export class Live2DAutonomy {
 
         this.app.ticker.add(this.ticker, null, 0);
         console.log("🤖 Live2D Autonomy Enhanced Started");
+        this.StartSleepTimer();
     }
 
     public stop() {
@@ -104,6 +125,7 @@ export class Live2DAutonomy {
             this.app.ticker.remove(this.ticker);
             this.ticker = null;
         }
+        this.StopSleepTimer();
     }
 
     public setSensitivity(value: number) {
@@ -163,17 +185,45 @@ export class Live2DAutonomy {
                 this.gestureDuration = 300;
                 break;
             case 'PANT':
-                this.gestureDuration = 2000;
+                this.gestureDuration = 3000;
+                break;
+            case 'WAKE_UP':
+                this.gestureDuration = 2500;
                 break;
         }
+    }
+
+    // ✨ Callback for UI (e.g., Sleep Effect)
+    public onEmotionChange: ((emotion: keyof typeof this.emotionConfigs) => void) | null = null;
+
+
+    public WakeUp() {
+        if (!this.isSleeping()) return;
+        this.setEmotion("CALM");
+    }
+
+    public isSleeping(): boolean {
+        return this.currentEmotion === 'SLEEP';
     }
 
     public setEmotion(emotion: keyof typeof this.emotionConfigs) {
         if (this.currentEmotion === emotion) return;
 
         console.log(`🤖 Emotion Changed: ${this.currentEmotion} -> ${emotion}`);
+
+        // ✨ Wake Up Trigger
+        if (this.currentEmotion === 'SLEEP' && emotion !== 'SLEEP') {
+            console.log("🌅 Waking Up!");
+            this.playGesture('WAKE_UP');
+        }
+
         this.currentEmotion = emotion;
         this.activeConfig = this.emotionConfigs[emotion];
+
+        // Trigger Callback
+        if (this.onEmotionChange) {
+            this.onEmotionChange(emotion);
+        }
 
         this.nextIdleMoveTime = Date.now();
 
@@ -182,6 +232,8 @@ export class Live2DAutonomy {
             this.blinkValue = 1.0;
             this.nextBlinkTime = Date.now() + 2000;
         }
+
+        this.StartSleepTimer();
     }
 
     public handleDrag(normalizedX: number, normalizedY: number) {
@@ -283,6 +335,9 @@ export class Live2DAutonomy {
                 break;
             case 'PANT': // 가쁜 숨
                 this.gesturePant(progress);
+                break;
+            case 'WAKE_UP': // 기상
+                this.gestureWakeUp(progress);
                 break;
         }
 
@@ -408,6 +463,30 @@ export class Live2DAutonomy {
         this.idleTargetHeadZ = breath * 10 * this.sensitivity;
     }
 
+    // ✨ NEW: [WAKE_UP] 기상 (기지개 + 하품 + 눈 번쩍)
+    private gestureWakeUp(t: number) {
+        // 1. Stretch (0~70%)
+        if (t < 0.7) {
+            const ease = Math.sin((t / 0.7) * Math.PI); // 0 -> 1 -> 0
+            this.idleTargetHeadY = 15 * ease * this.sensitivity; // 고개 들기
+            this.idleTargetHeadZ = -5 * ease; // 고개 갸웃
+            this.setParamOverride('ParamMouthOpenY', 0.6 * ease); // 하품
+
+            // 눈은 천천히 뜸
+            const wakeEye = Math.min(1, (t / 0.5));
+            this.idleEyeOpenMax = 0.2 + (wakeEye * 0.8); // 0.2 -> 1.0
+        } else {
+            // 2. Blink/Shake (70%~100%)
+            const remainder = (t - 0.7) / 0.3; // 0~1
+            // 빠르게 두 번 깜빡임
+            const blink = Math.sin(remainder * Math.PI * 4);
+            this.blinkValue = blink > 0.8 ? 0 : 1;
+
+            this.idleTargetHeadY = 0;
+            this.idleEyeOpenMax = 1.0;
+        }
+    }
+
     private updateBlinking(deltaMS: number, values: Float32Array) {
         const now = Date.now();
 
@@ -501,10 +580,13 @@ export class Live2DAutonomy {
         }
 
         // --- 3. Chaotic Gaze (제스처 중에도 동작, 단 안절부절/FIDGET 빼고) ---
-        if (this.currentGesture !== 'FIDGET' && this.currentGesture !== 'ROLL_EYES' && this.currentGesture !== 'LOOK_UP_THINK' && now >= this.nextGazeMoveTime) {
+        if (this.currentEmotion !== 'SLEEP' && this.currentGesture !== 'FIDGET' && this.currentGesture !== 'ROLL_EYES' && this.currentGesture !== 'LOOK_UP_THINK' && now >= this.nextGazeMoveTime) {
             this.gazeTargetX = (Math.random() - 0.5) * 2.0 * this.sensitivity;
             this.gazeTargetY = (Math.random() - 0.5) * 1.5 * this.sensitivity;
             this.nextGazeMoveTime = now + 200 + Math.random() * 1300;
+        } else if (this.currentEmotion === 'SLEEP') {
+            this.gazeTargetX = 0;
+            this.gazeTargetY = 0;
         }
 
         // --- 4. Physics Interpolation ---
@@ -597,6 +679,15 @@ export class Live2DAutonomy {
 
         // ✨ 말할 때 오버라이드 적용 (마지막에 적용하여 우선순위 높임)
         this.applySpeakingExpressions(values);
+
+        // 💤 SLEEP OVERRIDE (Final Enforcement)
+        if (this.currentEmotion === 'SLEEP') {
+            this.setParam(values, 'ParamEyeLOpen', 0);
+            this.setParam(values, 'ParamEyeROpen', 0);
+            this.setParam(values, 'ParamEyeBallX', 0);
+            this.setParam(values, 'ParamEyeBallY', 0);
+            // 고개는 약간 숙인 상태 유지를 위해 물리를 완전히 끄진 않지만 제한할 수 있음
+        }
     }
 
     private paramOverrides: Record<string, number> = {}; // ✨ NEW: 제스처용 param override
@@ -755,4 +846,5 @@ export class Live2DAutonomy {
 }
 
 // ✨ 제스처 타입 정의
-type GestureType = 'NOD' | 'SHAKE' | 'TILT' | 'FIDGET' | 'SIGH' | 'LOOK_DOWN' | 'CLOSE_EYES' | 'WINK' | 'PUFF_CHEEKS' | 'STICK_TONGUE' | 'SQUINT' | 'ROLL_EYES' | 'LOOK_UP_THINK' | 'FLINCH' | 'PANT';
+type GestureType = 'NOD' | 'SHAKE' | 'TILT' | 'FIDGET' | 'SIGH' | 'LOOK_DOWN' | 'CLOSE_EYES' | 'WINK' | 'PUFF_CHEEKS' | 'STICK_TONGUE' | 'SQUINT' | 'ROLL_EYES' | 'LOOK_UP_THINK' | 'FLINCH' | 'PANT'
+    | 'WAKE_UP';
