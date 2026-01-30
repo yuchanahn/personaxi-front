@@ -3,6 +3,7 @@
     import { marked } from "marked";
 
     export let content: string;
+    export let isMessage: boolean = false;
 
     let prevContent = "";
     let htmlContent = "";
@@ -46,6 +47,6 @@
     }
 </script>
 
-<div class="narration-block markdown-body">
+<div class={isMessage ? "message" : "narration-block markdown-body"}>
     {@html htmlContent}
 </div>

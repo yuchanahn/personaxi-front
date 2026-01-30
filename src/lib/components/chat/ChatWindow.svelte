@@ -649,10 +649,7 @@
       <div class="message assistant">
         <div class="speaker-name">{item.speaker}</div>
         <div class="dialogue-bubble">
-          {item.content.replace(
-            /\*(.*?)\*/g,
-            '<i class="custom-italic">$1</i>',
-          )}
+          <ChatRenderer content={item.content} isMessage={true} />
         </div>
       </div>
     {:else if item.type === "image" && showImage && !showBackground}

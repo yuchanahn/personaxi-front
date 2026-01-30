@@ -34,7 +34,8 @@
         setTimeout(() => {
             speak(startVoiceUrl as string);
         }, 500);
-    } else {
+    } else if (!hasPlayedStartVoice) {
+        hasPlayedStartVoice = true;
         setTimeout(() => {
             autonomy?.setEmotion("SLEEP");
         }, 500);
