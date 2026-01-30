@@ -28,44 +28,100 @@
     .policy-container {
         max-width: 800px;
         margin: 40px auto;
-        padding: 20px;
-        background-color: #fff;
-        border-radius: 8px;
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        padding: 40px;
+        background-color: var(--card);
+        border: 1px solid var(--border-card);
+        border-radius: var(--radius-card);
         line-height: 1.8;
-        color: #333;
+        color: var(--foreground);
     }
-    h2 {
-        color: #2c3e50;
-        font-size: 2em;
+
+    /* Markdown Element Styles (Global) */
+    .policy-container :global(h1) {
+        font-size: 2.25em;
+        font-weight: 800;
+        margin-bottom: 30px;
+        color: var(--foreground);
+        border-bottom: 2px solid var(--border);
+        padding-bottom: 10px;
+    }
+
+    .policy-container :global(h2) {
+        font-size: 1.8em;
+        font-weight: 700;
+        margin-top: 40px;
+        margin-bottom: 20px;
+        color: var(--foreground);
+    }
+
+    .policy-container :global(h3) {
+        font-size: 1.4em;
+        font-weight: 600;
         margin-top: 30px;
         margin-bottom: 15px;
-        border-bottom: 2px solid #eee;
-        padding-bottom: 5px;
+        color: var(--foreground);
+        opacity: 0.9;
     }
-    h3 {
-        color: #34495e;
-        font-size: 1.5em;
-        margin-top: 25px;
-        margin-bottom: 10px;
+
+    .policy-container :global(p) {
+        margin-bottom: 16px;
+        color: var(--muted-foreground);
     }
-    p,
-    ul {
-        margin-bottom: 15px;
+
+    .policy-container :global(ul),
+    .policy-container :global(ol) {
+        margin-bottom: 20px;
+        padding-left: 24px;
+        color: var(--muted-foreground);
     }
-    ul {
+
+    .policy-container :global(li) {
+        margin-bottom: 8px;
+    }
+
+    .policy-container :global(ul) {
         list-style-type: disc;
-        margin-left: 20px;
     }
-    ul ul {
-        list-style-type: circle;
-        margin-left: 20px;
+
+    .policy-container :global(ol) {
+        list-style-type: decimal;
     }
-    a {
-        color: #007bff;
+
+    .policy-container :global(a) {
+        color: var(--primary);
         text-decoration: none;
     }
-    a:hover {
+
+    .policy-container :global(a:hover) {
         text-decoration: underline;
+    }
+
+    .policy-container :global(table) {
+        width: 100%;
+        border-collapse: collapse;
+        margin: 20px 0;
+        border: 1px solid var(--border);
+    }
+
+    .policy-container :global(th),
+    .policy-container :global(td) {
+        padding: 12px;
+        border: 1px solid var(--border);
+        text-align: left;
+        font-size: 0.95em;
+    }
+
+    .policy-container :global(th) {
+        background-color: var(--muted);
+        font-weight: 600;
+        color: var(--foreground);
+    }
+
+    .policy-container :global(blockquote) {
+        border-left: 4px solid var(--primary);
+        padding-left: 16px;
+        margin: 20px 0;
+        color: var(--muted-foreground);
+        font-style: italic;
     }
 </style>
