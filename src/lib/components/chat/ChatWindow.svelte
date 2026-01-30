@@ -241,12 +241,29 @@
 
   export let showBackground: boolean = false;
   let activeBackgroundImage: string | null = null;
+  let waitingForImage = false;
   // Map to store URLs of loaded images by index to support background mode even for lazy-loaded assets
   let loadedImageUrls: Record<number, string> = {};
 
   function handleImageLoad(index: number, url: string) {
+    if (loadedImageUrls[index]) return;
     loadedImageUrls[index] = url;
     if (autoScroll) scrollToBottom();
+
+    console.log("Image loaded:", index, url);
+
+    if (waitingForImage) {
+      waitingForImage = false;
+      startThrottleLoop();
+    }
+  }
+
+  function handleImageError(index: number) {
+    console.warn("Image load error, resuming chat:", index);
+    if (waitingForImage) {
+      waitingForImage = false;
+      startThrottleLoop();
+    }
   }
 
   let meta: ImageMetadata = {
@@ -436,6 +453,7 @@
 
   function startThrottleLoop() {
     if (throttleFrame) return;
+    if (waitingForImage) return; // Don't start if waiting
 
     let lastTime: number | null = null;
     const CHARS_PER_SECOND = 90;
@@ -468,6 +486,49 @@
 
         const jumpIdx = calculateBlockSkipIndex(targetContent, nextLen);
         if (jumpIdx !== -1) {
+          // Check if we just skipped an image
+          const skippedContent = targetContent.slice(nextLen, jumpIdx);
+
+          // Check for Markdown Image
+          const mdMatch = skippedContent.match(/^!\[.*?\]\((.*?)\)/);
+          if (mdMatch) {
+            const url = mdMatch[1];
+            // Check if this specific URL is loaded
+            const isLoaded = Object.values(loadedImageUrls).includes(url);
+            if (!isLoaded) {
+              waitingForImage = true;
+              // Force update visibleMessages to show the image placeholder/loading state
+              visibleMessages[currentThrottleIndex] = {
+                ...visibleMessages[currentThrottleIndex],
+                content: targetContent.slice(0, jumpIdx),
+              };
+              visibleMessages = [...visibleMessages];
+              scrollToBottom();
+
+              cancelThrottle(); // Stop the loop
+              return;
+            }
+          }
+
+          // Check for HTML Image Tag (<img index>)
+          const imgMatch = skippedContent.match(/^<img (\d+)>/);
+          if (imgMatch) {
+            const index = parseInt(imgMatch[1], 10);
+            if (!loadedImageUrls[index]) {
+              waitingForImage = true;
+              // Force update
+              visibleMessages[currentThrottleIndex] = {
+                ...visibleMessages[currentThrottleIndex],
+                content: targetContent.slice(0, jumpIdx),
+              };
+              visibleMessages = [...visibleMessages];
+              scrollToBottom();
+
+              cancelThrottle();
+              return;
+            }
+          }
+
           nextLen = jumpIdx;
           if (currentThrottleCharIndex < nextLen)
             currentThrottleCharIndex = nextLen;
@@ -503,38 +564,55 @@
     throttleFrame = requestAnimationFrame(loop);
   }
 
-  // Generate ChatLog from visibleMessages (Throttled)
-  $: chatLog = visibleMessages.flatMap((msg, i) => {
-    const messageId = `msg-${i}`;
-    if (msg.role === "user") {
-      if (msg.role === "user") {
-        const tagRegex = /<system-input>[\s\S]*?<\/system-input>/g;
-        const sanitizedContent = msg.content.replace(tagRegex, "[상호작용]");
-        return {
-          type: "user",
-          content: sanitizedContent,
-          id: messageId,
-        } as ChatLogItem;
+  let chatLogCache: Map<string, ChatLogItem[]> = new Map();
+
+  $: {
+    const newChatLog: ChatLogItem[] = [];
+
+    visibleMessages.forEach((msg, i) => {
+      const messageId = `msg-${i}`;
+      const isLast = i === visibleMessages.length - 1;
+
+      if (!isLast && chatLogCache.has(messageId + msg.content)) {
+        newChatLog.push(...chatLogCache.get(messageId + msg.content)!);
+      } else {
+        let blocks: ChatLogItem[] = [];
+        if (msg.role === "user") {
+          const tagRegex = /<system-input>[\s\S]*?<\/system-input>/g;
+          blocks = [
+            {
+              type: "user",
+              content: msg.content.replace(tagRegex, "[상호작용]"),
+              id: messageId,
+            },
+          ];
+        } else {
+          blocks = parseAssistantContent(msg.content, messageId, persona);
+
+          const is2D =
+            persona?.personaType === "2D" || persona?.personaType === "2.5D";
+          if (
+            is2D &&
+            i === $messages.length - 1 &&
+            !isLoading &&
+            $messages.length > 1
+          ) {
+            blocks.push({
+              type: "situation_trigger",
+              id: `${messageId}-trigger`,
+            });
+          }
+        }
+
+        if (!isLast) {
+          chatLogCache.set(messageId + msg.content, blocks);
+        }
+        newChatLog.push(...blocks);
       }
-    } else if (msg.role === "assistant") {
-      const blocks = parseAssistantContent(msg.content, messageId, persona);
+    });
 
-      // Check for images in this message to update background (REMOVED)
-
-      const is2D =
-        persona?.personaType === "2D" || persona?.personaType === "2.5D";
-      const isLastMessage = i === $messages.length - 1;
-
-      if (is2D && isLastMessage && !isLoading && $messages.length > 1) {
-        blocks.push({
-          type: "situation_trigger",
-          id: `${messageId}-trigger`,
-        });
-      }
-      return blocks;
-    }
-    return [];
-  });
+    chatLog = newChatLog;
+  }
 
   $: if ($messages && chatWindowEl) {
     tick().then(() => {
@@ -665,6 +743,7 @@
               if (autoScroll) scrollToBottom();
             }
           }}
+          on:error={() => handleImageError(i)}
         />
       </div>
     {:else if item.type === "markdown_image" && showImage && !showBackground}
@@ -674,6 +753,7 @@
           alt={item.alt}
           loading="lazy"
           on:load={() => handleImageLoad(i, item.url)}
+          on:error={() => handleImageError(i)}
         />
       </div>
     {:else if item.type === "situation_trigger"}
@@ -877,6 +957,13 @@
     max-width: 90%;
     margin-top: 0.5rem;
     margin-bottom: 0.5rem;
+  }
+
+  @media (max-width: 768px) {
+    .image-block {
+      max-width: 100%;
+      width: 100dvh;
+    }
   }
 
   .situation-image img {

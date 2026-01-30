@@ -50,17 +50,18 @@
     });
 
     // If metadata prop changes? (Likely strictly scoped to chat item, but good to be safe)
-    $: if (metadata && metadata !== currentMetadata) {
-        // If parent updates metadata (unlikely scenario in chat log but possible), sync it if it has URL
-        if (metadata.url) {
-            currentMetadata = { ...metadata };
-        }
+    // Reactively update currentMetadata if the prop changes and provides a new URL
+    $: if (metadata && metadata.url && metadata.url !== currentMetadata.url) {
+        currentMetadata = { ...metadata };
     }
 </script>
 
 <div class="chat-image-wrapper">
     {#if currentMetadata.url}
-        <AssetPreview asset={currentMetadata} />
+        <AssetPreview
+            asset={currentMetadata}
+            on:load={(e) => dispatch("load", e.detail)}
+        />
     {:else if isLoading}
         <div class="loading-placeholder">
             <div class="spinner"></div>
@@ -117,6 +118,22 @@
     @keyframes spin {
         to {
             transform: rotate(360deg);
+        }
+    }
+
+    /* Override AssetPreview styles for Chat */
+    .chat-image-wrapper :global(.asset-preview-media) {
+        width: auto !important;
+        height: auto !important;
+        max-width: 100%;
+        max-height: 500px; /* Constrain vertical height on desktop */
+        object-fit: contain !important;
+    }
+
+    @media (max-width: 768px) {
+        .chat-image-wrapper :global(.asset-preview-media) {
+            max-height: none; /* Allow taller on mobile */
+            width: 100% !important;
         }
     }
 </style>

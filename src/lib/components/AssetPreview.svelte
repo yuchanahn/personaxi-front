@@ -2,9 +2,11 @@
     import { fetchAndSetAssetTypes } from "$lib/api/edit_persona";
     import type { ImageMetadata } from "$lib/types";
     import Icon from "@iconify/svelte";
-    import { onDestroy, onMount } from "svelte";
+    import { createEventDispatcher, onDestroy, onMount } from "svelte";
 
     export let asset: ImageMetadata;
+
+    const dispatch = createEventDispatcher();
 
     let isFetching = false;
     let fetchAborted = false;
@@ -16,7 +18,6 @@
         fetchAborted = true;
     });
 
-    // LocalStorage 헬퍼 함수
     const getCachedType = (url: string): string | null => {
         return localStorage.getItem(CACHE_PREFIX + url);
     };
@@ -87,7 +88,13 @@
         <p>Private Asset</p>
     </div>
 {:else if asset.type === "image"}
-    <img src={asset.url} alt="asset" class="asset-preview-media" />
+    <img
+        src={asset.url}
+        alt="asset"
+        class="asset-preview-media"
+        on:load={() => dispatch("load", { url: asset.url })}
+        on:error={() => dispatch("error", { url: asset.url })}
+    />
 {:else if asset.type === "video"}
     <video
         autoplay
@@ -96,6 +103,8 @@
         playsinline
         class="asset-preview-media gif-like-video"
         bind:this={videoEl}
+        on:loadeddata={() => dispatch("load", { url: asset.url })}
+        on:error={() => dispatch("error", { url: asset.url })}
     >
         <source src={asset.url} type="video/mp4" />
         <track kind="captions" />

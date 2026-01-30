@@ -182,15 +182,15 @@ export async function sendPromptStream(cid: string, prompt: string, type?: strin
     }, (cssid) => {
         if (cssid) {
             loadCharacterSessions();
-            if (type == "character" || type == "2d" || type == "3d") {
-                goto(`/2d?c=${cssid}`);
-            }
-            else if (type == "live2d") {
-                goto(`/live2d?c=${cssid}`);
-            }
-            else {
-                goto(`/chat?c=${cssid}`);
-            }
+            //if (type == "character" || type == "2d" || type == "3d") {
+            //    goto(`/2d?c=${cssid}`);
+            //}
+            //else if (type == "live2d") {
+            //    goto(`/live2d?c=${cssid}`);
+            //}
+            //else {
+            //    goto(`/chat?c=${cssid}`);
+            //}
         }
     }, type).then(() => {
         onDone?.();
