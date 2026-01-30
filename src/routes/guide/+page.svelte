@@ -1,9 +1,9 @@
 <script lang="ts">
     import Icon from "@iconify/svelte";
-    import { fade, fly, slide } from "svelte/transition";
     import { t, locale } from "svelte-i18n";
-    import { onMount } from "svelte";
+    import { slide } from "svelte/transition";
     import { marked } from "marked";
+    import DOMPurify from "isomorphic-dompurify";
 
     // 📚 Type Definitions
     type TabType = "guide" | "notice";
@@ -11,7 +11,7 @@
     type Article = {
         id: string;
         titleKey: string;
-        fileName: string; // MD file name (without extension)
+        fileName: string;
         date?: string;
     };
 
@@ -31,6 +31,7 @@
         date: string;
         tagKey: string;
         tagColor: string;
+        fileName: string;
     };
 
     // 🗂️ Data Structure
@@ -39,11 +40,12 @@
 
     // Load MD files eagerly as raw text
     const mdModules = import.meta.glob("./content/**/*.md", {
-        as: "raw",
+        query: "?raw",
+        import: "default",
         eager: true,
     });
 
-    // Guide Categories (Closed by default)
+    // Guide Categories
     let guideCategories: Category[] = [
         {
             id: "start",
@@ -255,6 +257,7 @@
             date: "2026.01.29",
             tagKey: "guide.tags.notice",
             tagColor: "bg-blue-500",
+            fileName: "notice_launch",
         },
         {
             id: "n2",
@@ -263,6 +266,7 @@
             date: "2026.01.29",
             tagKey: "guide.tags.event",
             tagColor: "bg-purple-500",
+            fileName: "notice_event",
         },
         {
             id: "n3",
@@ -271,51 +275,90 @@
             date: "2026.01.30",
             tagKey: "guide.tags.maintenance",
             tagColor: "bg-orange-500",
+            fileName: "notice_maintenance",
         },
     ];
 
     let activeArticle: Article | null =
         guideCategories[0]?.children?.[0]?.articles?.[0] || null;
-    let articleContentHtml = "";
+    let activeNotice: Notice | null = null;
 
-    // Reactive Content Loader
-    $: if (activeArticle && $locale) {
-        loadArticleContent(activeArticle.fileName, $locale);
+    // Content state
+    let articleContentHtml = "";
+    let noticeContentHtml = "";
+
+    let requestId = 0;
+
+    // Reactive Content Loader (Centralized)
+    $: if (currentTab && $locale) {
+        // We watch dependencies. Inside we verify if we need to load.
+        // This pattern ensures we don't have race conditions or infinite loops.
+        const currentReqId = ++requestId;
+
+        (async () => {
+            if (currentTab === "guide" && activeArticle) {
+                // Pre-clear to avoid content mismatch during load, or keep old content?
+                // User asked for no duplication, clearing is safer visually for "loading" state.
+                articleContentHtml = "";
+                const html = await loadContent(activeArticle.fileName, $locale);
+                if (currentReqId === requestId) {
+                    articleContentHtml = DOMPurify.sanitize(html);
+                }
+            } else if (currentTab === "notice" && activeNotice) {
+                noticeContentHtml = "";
+                const html = await loadContent(activeNotice.fileName, $locale);
+                if (currentReqId === requestId) {
+                    noticeContentHtml = DOMPurify.sanitize(html);
+                }
+            }
+        })();
     }
 
-    // Explicit function to load and parse markdown
-    async function loadArticleContent(fileName: string, lang: string) {
-        // Fallback to 'en' if 'ko' not found, or handle error
-        // Construct path: ./content/[lang]/[fileName].md
-        // Note: import.meta.glob keys are relative to this file
+    // Generic Content Loader
+    async function loadContent(
+        fileName: string,
+        lang: string,
+    ): Promise<string> {
         const path = `./content/${lang}/${fileName}.md`;
         const fallbackPath = `./content/en/${fileName}.md`;
 
-        let rawMd = mdModules[path];
-        if (!rawMd && lang !== "en") {
-            rawMd = mdModules[fallbackPath];
-        }
+        const rawMd =
+            mdModules[path] || (lang !== "en" ? mdModules[fallbackPath] : null);
 
-        if (rawMd) {
-            articleContentHtml = await marked.parse(rawMd);
+        if (typeof rawMd === "string") {
+            return await marked.parse(rawMd);
         } else {
-            articleContentHtml = "<p>Content is being prepared...</p>";
+            return `<div class="p-8 text-center text-muted-foreground bg-muted/20 rounded-xl my-8">
+                <p class="font-medium">Content is being prepared...</p>
+                <p class="text-xs mt-2 opacity-50">(${fileName})</p>
+            </div>`;
         }
     }
 
-    // Interaction
+    // Interaction Handlers - STATE CHANGE ONLY
     function selectArticle(article: Article) {
+        if (activeArticle?.id === article.id) return;
         activeArticle = article;
         window.scrollTo({ top: 0, behavior: "smooth" });
     }
 
+    function selectNotice(notice: Notice) {
+        if (activeNotice?.id === notice.id) return;
+        activeNotice = notice;
+        window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+
+    function backToNoticeList() {
+        activeNotice = null;
+    }
+
     function toggleCategory(cat: Category) {
-        // Optionally close others? For now just toggle.
         cat.isOpen = !cat.isOpen;
         guideCategories = guideCategories;
     }
 
     function setTab(tab: TabType) {
+        if (currentTab === tab) return;
         currentTab = tab;
         window.scrollTo({ top: 0, behavior: "smooth" });
     }
@@ -327,16 +370,15 @@
 </script>
 
 <div
-    class="guide-wrapper bg-background text-foreground transition-colors duration-300 min-h-screen flex flex-col"
+    class="guide-wrapper bg-background text-foreground min-h-screen flex flex-col"
 >
     <!-- Header -->
     <header
-        class="sticky top-0 z-50 w-full border-b border-border/40 bg-background/80 backdrop-blur-md supports-[backdrop-filter]:bg-background/60"
+        class="sticky top-0 z-50 w-full border-b border-border/40 bg-background/80 backdrop-blur-md"
     >
         <div
             class="container mx-auto flex h-16 items-center justify-between px-4 sm:px-8"
         >
-            <!-- Added padding-left -->
             <div class="flex items-center gap-3 pl-8">
                 <a href="/" class="flex items-center gap-2 group">
                     <div
@@ -356,9 +398,9 @@
             </div>
 
             <div class="flex items-center gap-4">
-                <!-- Search -->
+                <!-- Search (Visual Only) -->
                 <div
-                    class="hidden md:flex items-center bg-muted/50 hover:bg-muted transition-colors rounded-full px-4 py-1.5 w-64 border border-transparent focus-within:border-primary/50 focus-within:bg-background focus-within:shadow-sm"
+                    class="hidden md:flex items-center bg-muted/50 hover:bg-muted transition-colors rounded-full px-4 py-1.5 w-64 border border-transparent focus-within:border-primary/50 focus-within:bg-background"
                 >
                     <Icon
                         icon="ph:magnifying-glass"
@@ -372,7 +414,7 @@
                     />
                 </div>
 
-                <!-- Lang Switch Dropdown -->
+                <!-- Lang Switch -->
                 <div class="relative">
                     <button
                         class="flex items-center gap-1.5 text-xs font-medium text-muted-foreground hover:text-foreground transition-colors px-2 py-1.5 rounded-md hover:bg-muted/50"
@@ -380,13 +422,10 @@
                     >
                         <Icon icon="ph:translate" width="16" />
                         <span class="uppercase">{$locale}</span>
-                        <Icon icon="ph:caret-down-bold" width="10" />
                     </button>
-
                     {#if isLangMenuOpen}
                         <div
                             class="absolute right-0 top-full mt-2 w-32 bg-card border border-border rounded-lg shadow-xl py-1 z-50 overflow-hidden"
-                            transition:fly={{ y: -5, duration: 150 }}
                         >
                             <button
                                 class="w-full text-left px-4 py-2 text-sm hover:bg-muted/50 transition-colors flex items-center justify-between {$locale ===
@@ -413,7 +452,6 @@
                                     />{/if}
                             </button>
                         </div>
-                        <!-- Backdrop to close -->
                         <div
                             class="fixed inset-0 z-40 bg-transparent"
                             on:click={() => (isLangMenuOpen = false)}
@@ -421,13 +459,11 @@
                     {/if}
                 </div>
 
-                <!-- Home Link -->
                 <a
                     href="/"
                     class="hidden sm:flex items-center gap-1.5 text-xs font-semibold bg-primary text-primary-foreground hover:bg-primary/90 px-3 py-1.5 rounded-full shadow-sm transition-all hover:shadow-md hover:-translate-y-0.5"
                 >
                     {$t("guide.homeButton")}
-                    <Icon icon="ph:arrow-right-bold" />
                 </a>
             </div>
         </div>
@@ -441,29 +477,6 @@
         <aside
             class="w-full md:w-64 flex-shrink-0 flex flex-col gap-6 md:sticky md:top-24 h-fit"
         >
-            <!-- Mobile Tabs -->
-            <div class="flex p-1 bg-muted rounded-xl md:hidden">
-                <button
-                    class="flex-1 py-2 rounded-lg text-sm font-medium transition-all {currentTab ===
-                    'guide'
-                        ? 'bg-background shadow-sm text-foreground'
-                        : 'text-muted-foreground'}"
-                    on:click={() => setTab("guide")}
-                >
-                    {$t("guide.tabGuide")}
-                </button>
-                <button
-                    class="flex-1 py-2 rounded-lg text-sm font-medium transition-all {currentTab ===
-                    'notice'
-                        ? 'bg-background shadow-sm text-foreground'
-                        : 'text-muted-foreground'}"
-                    on:click={() => setTab("notice")}
-                >
-                    {$t("guide.tabNotice")}
-                </button>
-            </div>
-
-            <!-- Desktop Navigation -->
             <nav class="hidden md:flex flex-col gap-1">
                 <div
                     class="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2 px-3"
@@ -500,9 +513,8 @@
                 </button>
             </nav>
 
-            <!-- Guide ToC -->
             {#if currentTab === "guide"}
-                <div class="flex flex-col gap-1" in:slide>
+                <div class="flex flex-col gap-1">
                     <div
                         class="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2 px-3 mt-4"
                     >
@@ -515,18 +527,11 @@
                                 on:click={() => toggleCategory(cat)}
                             >
                                 <div class="flex items-center gap-2">
-                                    {#if cat.icon}
-                                        <div
-                                            class="flex-shrink-0 w-5 flex justify-center"
-                                        >
-                                            <!-- Fixed width container for icon alignment -->
-                                            <Icon
-                                                icon={cat.icon}
-                                                class="text-muted-foreground group-hover:text-primary transition-colors"
-                                                width="16"
-                                            />
-                                        </div>
-                                    {/if}
+                                    {#if cat.icon}<Icon
+                                            icon={cat.icon}
+                                            class="text-muted-foreground group-hover:text-primary transition-colors"
+                                            width="16"
+                                        />{/if}
                                     <span>{$t(cat.titleKey)}</span>
                                 </div>
                                 <Icon
@@ -537,16 +542,12 @@
                                     width="12"
                                 />
                             </button>
-
                             {#if cat.isOpen}
                                 <div
                                     class="flex flex-col ml-3 pl-3 border-l border-border/50 py-1 gap-1"
                                     transition:slide|local
                                 >
-                                    {#if cat.children}
-                                        {#each cat.children as sub}
-                                            {#if sub.articles}
-                                                {#each sub.articles as article}
+                                    {#if cat.children}{#each cat.children as sub}{#if sub.articles}{#each sub.articles as article}
                                                     <button
                                                         class="text-left px-2 py-1.5 rounded-md text-sm transition-colors {activeArticle?.id ===
                                                         article.id
@@ -559,10 +560,7 @@
                                                     >
                                                         {$t(article.titleKey)}
                                                     </button>
-                                                {/each}
-                                            {/if}
-                                        {/each}
-                                    {/if}
+                                                {/each}{/if}{/each}{/if}
                                 </div>
                             {/if}
                         </div>
@@ -575,131 +573,203 @@
         <main class="flex-1 min-w-0 pb-12">
             {#if currentTab === "guide"}
                 {#if activeArticle}
-                    <article
-                        in:fade={{ duration: 200, delay: 100 }}
-                        class="max-w-3xl mx-auto"
-                    >
-                        <!-- Hero Banner (Conditional) -->
-                        {#if activeArticle.id === "start_intro"}
-                            <div
-                                class="relative w-full h-48 md:h-64 rounded-2xl overflow-hidden mb-8 shadow-sm group bg-black"
-                            >
+                    {#key activeArticle.id}
+                        <article class="max-w-3xl mx-auto min-h-[50vh]">
+                            <!-- Hero Banner (Conditional) -->
+                            {#if activeArticle.id === "start_intro"}
                                 <div
-                                    class="absolute inset-0 bg-gradient-to-br from-gray-900 to-black/80 z-10"
-                                ></div>
-                                <!-- Abstract Background Effect -->
-                                <div
-                                    class="absolute top-0 right-0 w-64 h-64 bg-primary/30 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2"
-                                ></div>
-                                <div
-                                    class="absolute bottom-0 left-0 w-64 h-64 bg-purple-500/20 rounded-full blur-3xl translate-y-1/2 -translate-x-1/2"
-                                ></div>
-
-                                <div
-                                    class="absolute inset-0 z-20 flex flex-col items-center justify-center text-white text-center px-4"
+                                    class="relative w-full h-48 md:h-64 rounded-2xl overflow-hidden mb-8 shadow-sm group bg-black"
                                 >
-                                    <h1
-                                        class="text-2xl md:text-3xl font-bold mb-2"
+                                    <div
+                                        class="absolute inset-0 bg-gradient-to-br from-gray-900 to-black/80 z-10"
+                                    ></div>
+                                    <div
+                                        class="absolute inset-0 z-20 flex flex-col items-center justify-center text-white text-center px-4"
                                     >
-                                        PersonaXi
-                                    </h1>
-                                    <p
-                                        class="text-white/80 text-sm font-medium tracking-wide"
-                                    >
-                                        Digital Life Form Platform
-                                    </p>
+                                        <h1
+                                            class="text-2xl md:text-3xl font-bold mb-2"
+                                        >
+                                            PersonaXi
+                                        </h1>
+                                        <p
+                                            class="text-white/80 text-sm font-medium tracking-wide"
+                                        >
+                                            Digital Life Form Platform
+                                        </p>
+                                    </div>
                                 </div>
+                            {/if}
+
+                            <div
+                                class="flex items-center gap-2 text-xs font-medium text-muted-foreground mb-4"
+                            >
+                                <span
+                                    class="bg-muted px-2 py-0.5 rounded-full uppercase tracking-wider text-[10px]"
+                                    >Guide</span
+                                >
+                                <Icon icon="ph:caret-right" width="10" />
+                                <span class="text-primary truncate"
+                                    >{$t(activeArticle.titleKey)}</span
+                                >
                             </div>
-                        {/if}
 
-                        <div
-                            class="flex items-center gap-2 text-xs font-medium text-muted-foreground mb-4"
-                        >
-                            <span
-                                class="bg-muted px-2 py-0.5 rounded-full uppercase tracking-wider text-[10px]"
-                                >Guide</span
+                            <div
+                                class="markdown-content prose prose-neutral dark:prose-invert max-w-none min-h-[200px]"
                             >
-                            <Icon icon="ph:caret-right" width="10" />
-                            <span class="text-primary truncate"
-                                >{$t(activeArticle.titleKey)}</span
-                            >
-                        </div>
-
-                        <!-- Content Rendered from Markdown -->
-                        <div
-                            class="prose prose-neutral dark:prose-invert max-w-none prose-headings:font-bold prose-headings:tracking-tight prose-p:text-muted-foreground prose-li:text-muted-foreground prose-strong:text-foreground prose-a:text-primary prose-a:no-underline hover:prose-a:underline prose-img:rounded-xl"
-                        >
-                            {@html articleContentHtml}
-                        </div>
-                    </article>
-                {:else}
-                    <div
-                        class="flex flex-col items-center justify-center p-12 text-muted-foreground/50 border-2 border-dashed border-border rounded-xl"
-                    >
-                        <Icon
-                            icon="ph:book-open-duotone"
-                            width="48"
-                            class="mb-4 opacity-50"
-                        />
-                        <p>{$t("guide.emptyState")}</p>
-                    </div>
+                                {#if articleContentHtml}
+                                    {@html articleContentHtml}
+                                {:else}
+                                    <div class="space-y-4 animate-pulse mt-8">
+                                        <div
+                                            class="h-8 bg-muted rounded w-3/4"
+                                        ></div>
+                                        <div
+                                            class="h-4 bg-muted rounded w-full"
+                                        ></div>
+                                        <div
+                                            class="h-4 bg-muted rounded w-2/3"
+                                        ></div>
+                                    </div>
+                                {/if}
+                            </div>
+                        </article>
+                    {/key}
                 {/if}
             {:else if currentTab === "notice"}
-                <div
-                    in:fade={{ duration: 200, delay: 100 }}
-                    class="max-w-3xl mx-auto"
-                >
-                    <h2 class="text-2xl font-bold mb-6 text-foreground">
-                        {$t("guide.noticeListTitle")}
-                    </h2>
-                    <div class="flex flex-col gap-4">
-                        {#each notices as notice}
-                            <div
-                                class="group relative bg-card hover:bg-card/80 border border-border rounded-xl p-5 md:p-6 shadow-sm hover:shadow-md transition-all cursor-pointer"
-                            >
-                                <div
-                                    class="flex flex-col md:flex-row md:items-start justify-between gap-4 mb-3"
+                {#if !activeNotice}
+                    <div class="max-w-3xl mx-auto">
+                        <h2 class="text-2xl font-bold mb-6 text-foreground">
+                            {$t("guide.noticeListTitle")}
+                        </h2>
+                        <div class="flex flex-col gap-4">
+                            {#each notices as notice}
+                                <button
+                                    class="w-full text-left group bg-card hover:bg-card/80 border border-border rounded-xl p-5 cursor-pointer transition-all focus-visible:ring-2 focus-visible:ring-primary"
+                                    on:click={() => selectNotice(notice)}
                                 >
-                                    <div class="flex items-center gap-2">
-                                        <span
-                                            class="{notice.tagColor} text-white text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider"
-                                        >
-                                            {$t(notice.tagKey)}
-                                        </span>
-                                        <span
-                                            class="text-xs text-muted-foreground font-mono"
-                                            >{notice.date}</span
-                                        >
+                                    <div class="flex justify-between mb-3">
+                                        <div class="flex items-center gap-2">
+                                            <span
+                                                class="{notice.tagColor} text-white text-[10px] font-bold px-2 py-0.5 rounded-full uppercase"
+                                                >{$t(notice.tagKey)}</span
+                                            >
+                                            <span
+                                                class="text-xs text-muted-foreground font-mono"
+                                                >{notice.date}</span
+                                            >
+                                        </div>
                                     </div>
-                                    <!-- Arrow Icon -->
-                                    <div
-                                        class="absolute top-6 right-6 opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all"
+                                    <h3
+                                        class="text-lg font-bold text-foreground mb-2 group-hover:text-primary"
                                     >
-                                        <Icon
-                                            icon="ph:arrow-right"
-                                            class="text-primary"
-                                        />
-                                    </div>
-                                </div>
-                                <h3
-                                    class="text-lg font-bold text-foreground mb-2 group-hover:text-primary transition-colors"
-                                >
-                                    {$t(notice.titleKey)}
-                                </h3>
-                                <p
-                                    class="text-sm text-muted-foreground leading-relaxed line-clamp-2"
-                                >
-                                    {$t(notice.descKey)}
-                                </p>
-                            </div>
-                        {/each}
+                                        {$t(notice.titleKey)}
+                                    </h3>
+                                    <p
+                                        class="text-sm text-muted-foreground line-clamp-2"
+                                    >
+                                        {$t(notice.descKey)}
+                                    </p>
+                                </button>
+                            {/each}
+                        </div>
                     </div>
-                </div>
+                {:else}
+                    {#key activeNotice.id}
+                        <article class="max-w-3xl mx-auto min-h-[50vh]">
+                            <button
+                                class="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground mb-6"
+                                on:click={backToNoticeList}
+                            >
+                                <Icon icon="ph:arrow-left" />
+                                <span>{$t("guide.noticeListTitle")}</span>
+                            </button>
+                            <header class="mb-8 border-b border-border/50 pb-6">
+                                <span
+                                    class="{activeNotice.tagColor} text-white text-[10px] font-bold px-2 py-0.5 rounded-full uppercase"
+                                    >{$t(activeNotice.tagKey)}</span
+                                >
+                                <h1
+                                    class="text-3xl font-bold text-foreground mt-3"
+                                >
+                                    {$t(activeNotice.titleKey)}
+                                </h1>
+                                <span
+                                    class="text-sm text-muted-foreground font-mono mt-2 block"
+                                    >{activeNotice.date}</span
+                                >
+                            </header>
+                            <div
+                                class="markdown-content prose prose-neutral dark:prose-invert max-w-none min-h-[200px]"
+                            >
+                                {#if noticeContentHtml}
+                                    {@html noticeContentHtml}
+                                {:else}
+                                    <div class="space-y-4 animate-pulse mt-8">
+                                        <div
+                                            class="h-8 bg-muted rounded w-3/4"
+                                        ></div>
+                                        <div
+                                            class="h-4 bg-muted rounded w-full"
+                                        ></div>
+                                    </div>
+                                {/if}
+                            </div>
+                        </article>
+                    {/key}
+                {/if}
             {/if}
         </main>
     </div>
 </div>
 
 <style>
-    /* Styling for the dropdown arrow rotation or other specific needs */
+    /* Robust Typography Overrides */
+    .markdown-content :global(h1) {
+        font-size: 2.25rem;
+        font-weight: 800;
+        margin-bottom: 1.5rem;
+        color: var(--foreground);
+    }
+    .markdown-content :global(h2) {
+        font-size: 1.75rem;
+        font-weight: 700;
+        margin-top: 2.5rem;
+        margin-bottom: 1rem;
+        color: var(--foreground);
+        border-bottom: 1px solid var(--border);
+        padding-bottom: 0.5rem;
+    }
+    .markdown-content :global(h3) {
+        font-size: 1.35rem;
+        font-weight: 600;
+        margin-top: 1.75rem;
+        margin-bottom: 0.75rem;
+        color: var(--foreground);
+    }
+    .markdown-content :global(p) {
+        font-size: 1rem;
+        line-height: 1.8;
+        margin-bottom: 1.25rem;
+        color: var(--muted-foreground);
+    }
+    .markdown-content :global(ul),
+    .markdown-content :global(ol) {
+        margin-bottom: 1.5rem;
+        padding-left: 1.5rem;
+    }
+    .markdown-content :global(li) {
+        color: var(--muted-foreground);
+        margin-bottom: 0.5rem;
+    }
+    .markdown-content :global(li::marker) {
+        color: var(--muted-foreground);
+    }
+    .markdown-content :global(strong) {
+        color: var(--foreground);
+        font-weight: 600;
+    }
+    .markdown-content :global(hr) {
+        margin: 2.5rem 0;
+        border-color: var(--border);
+    }
 </style>

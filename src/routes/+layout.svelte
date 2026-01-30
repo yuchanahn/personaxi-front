@@ -262,7 +262,7 @@
         -webkit-overflow-scrolling: touch;
         height: 100%;
 
-        padding-bottom: calc(85px + env(safe-area-inset-bottom, 0px));
+        padding-bottom: calc(env(safe-area-inset-bottom, 0px));
         /*padding-bottom: calc(85px + 100px);*/
     }
 

@@ -17,6 +17,7 @@
     import { allCategories } from "$lib/constants";
     import { slide } from "svelte/transition";
     import InstallPrompt from "$lib/components/common/InstallPrompt.svelte";
+    import Footer from "$lib/components/common/Footer.svelte";
 
     // --- 상수 ---
     const visibleCategories = allCategories.filter(
@@ -623,6 +624,9 @@
             </section>
         {/if}
     </div>
+    {#if activeTab === "home"}
+        <Footer />
+    {/if}
     <InstallPrompt />
 </div>
 
@@ -799,6 +803,7 @@
         cursor: pointer;
         transition: all 0.2s;
     }
+
     .cat-chip:hover {
         background-color: var(--secondary);
     }

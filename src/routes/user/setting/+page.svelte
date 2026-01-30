@@ -744,7 +744,7 @@
     />
     <SettingsModal bind:isOpen={showSettingsModal} />
 
-    <div class="footer-links">
+    <!-- <div class="footer-links">
         <a href="/policy"
             >{$t("settingPage.privacyPolicy", { default: "Privacy Policy" })}</a
         >
@@ -754,7 +754,7 @@
                 default: "Terms of Service",
             })}</a
         >
-    </div>
+    </div> -->
 </div>
 
 <style>
@@ -1040,6 +1040,7 @@
     .card-header {
         aspect-ratio: 1 / 1;
         width: 100%;
+        overflow: hidden;
         display: flex;
         justify-content: center;
         align-items: center;

@@ -209,7 +209,17 @@
     "termsOfService": "Terms of Service",
     "licensesAndCredits": "Licenses & Neurons",
     "chatLogConsent": "Chat/Log Data Collection Consent",
+    "refundPolicy": "Refund Policy",
     "title": "Legal Center"
+  },
+  "footer": {
+    "companyName": "PersonaXi Inc.",
+    "address": "Room 101, Bldg 104, 306-15, Beonyeong-ro, Seobuk-gu, Cheonan-si, Chungcheongnam-do, Republic of Korea",
+    "ceo": "CEO: Yuchan Ahn",
+    "bizLicense": "Business Registration No.: 628-14-02633",
+    "mailOrder": "Mail Order License: [Pending]",
+    "phone": "Tel: 070-0000-0000",
+    "email": "Email: contact@personaxi.com"
   },
   "licenses": {
     "loadError": "Failed to load license information.",
