@@ -19,6 +19,7 @@
     import { chatSessions } from "$lib/stores/chatSessions";
     import { toast } from "$lib/stores/toast";
     import { settings } from "$lib/stores/settings";
+    import type { Live2DAutonomy } from "$lib/utils/live2d/Live2DAutonomy";
 
     let lastSessionId: string | null = null;
     let persona: Persona | null = null;
@@ -264,6 +265,8 @@
         }
     }
 
+    let autonomy: Live2DAutonomy | null = null;
+
     const send = async (prompt: string) => {
         if (!persona || !lastSessionId) return;
 
@@ -281,6 +284,10 @@
         showThought1 = false;
         showThought2 = false;
         lastTriggeredAction = "";
+
+        if (autonomy) {
+            autonomy.WakeUp();
+        }
 
         await sendPromptStream(
             lastSessionId,
@@ -533,6 +540,7 @@
                     on:interaction={handleInteraction}
                     on:interactionEnd={handleInteractionEnd}
                     bind:error_showSpeech
+                    bind:autonomy
                 />
             {:else}
                 <div class="error-message">No Model URL</div>

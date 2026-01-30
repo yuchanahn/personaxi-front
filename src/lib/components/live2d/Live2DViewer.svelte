@@ -18,6 +18,7 @@
     export let closeupOffset: number = 0.2;
     export let startVoiceUrl: string | undefined = undefined;
     export let persona: any = null;
+    export let autonomy: Live2DAutonomy | null = null;
 
     export let error_showSpeech: boolean = false;
 
@@ -25,7 +26,6 @@
     let app: any;
     let currentModel: any | null = null;
     let isLoaded = false;
-    let autonomy: Live2DAutonomy | null = null;
     let hasPlayedStartVoice = false;
 
     $: if (isLoaded && currentModel && startVoiceUrl && !hasPlayedStartVoice) {
