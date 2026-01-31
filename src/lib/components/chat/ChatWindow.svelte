@@ -322,6 +322,12 @@
           type: newType,
         };
       }
+    } else {
+      // No image found in current log, reset background
+      if (activeBackgroundImage) {
+        activeBackgroundImage = null;
+        meta = { url: "", description: "" };
+      }
     }
   }
 

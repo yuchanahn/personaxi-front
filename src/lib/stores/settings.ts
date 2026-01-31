@@ -14,6 +14,9 @@ export interface AppSettings {
     llmType: string;
     enableIdleTrigger: boolean;
     enableInteractionTrigger: boolean;
+    showImage: boolean;
+    autoScroll: boolean;
+    showBackground: boolean;
 }
 
 function isValidTheme(value: any): value is Theme {
@@ -35,7 +38,10 @@ function initializeSettings(): AppSettings {
         soundVolume: 0.8,
         llmType: 'gemini_flash', // Default LLM type
         enableIdleTrigger: false,
-        enableInteractionTrigger: false
+        enableInteractionTrigger: false,
+        showImage: true,
+        autoScroll: true,
+        showBackground: false
     };
 
     if (!browser) {
@@ -72,6 +78,15 @@ function initializeSettings(): AppSettings {
             if (typeof savedSettings.enableInteractionTrigger === 'boolean') {
                 settings.enableInteractionTrigger = savedSettings.enableInteractionTrigger;
             }
+            if (typeof savedSettings.showImage === 'boolean') {
+                settings.showImage = savedSettings.showImage;
+            }
+            if (typeof savedSettings.autoScroll === 'boolean') {
+                settings.autoScroll = savedSettings.autoScroll;
+            }
+            if (typeof savedSettings.showBackground === 'boolean') {
+                settings.showBackground = savedSettings.showBackground;
+            }
         } catch (e) {
             console.error("Failed to parse settings from localStorage", e);
         }
@@ -92,7 +107,15 @@ function createSettingsStore() {
             }
             set(value);
         },
-        update
+        update: (fn: (value: AppSettings) => AppSettings) => {
+            update((current) => {
+                const newValue = fn(current);
+                if (browser) {
+                    window.localStorage.setItem('app-settings', JSON.stringify(newValue));
+                }
+                return newValue;
+            });
+        }
     };
 }
 

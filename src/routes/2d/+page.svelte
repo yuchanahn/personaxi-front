@@ -89,10 +89,24 @@
     });
   };
 
+  import { settings } from "$lib/stores/settings";
+
   let isSettingsModalOpen = false;
-  let showImage = true; // 기본값: 이미지 보이기
-  let autoScroll = true; // Default: Auto scroll enabled
-  let showBackground = false; // Background Image Mode
+
+  // Initialize from persistent settings, fallback to defaults if undefined
+  let showImage = $settings.showImage ?? true;
+  let autoScroll = $settings.autoScroll ?? true;
+  let showBackground = $settings.showBackground ?? false;
+
+  // Sync back to persistent settings when local values change
+  $: {
+    settings.update((s) => ({
+      ...s,
+      showImage,
+      autoScroll,
+      showBackground,
+    }));
+  }
 
   const handleModelConfirm = async (e: CustomEvent<string>) => {
     const selected = e.detail;
