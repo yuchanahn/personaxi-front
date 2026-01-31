@@ -373,7 +373,8 @@
   },
   "chatWindow": {
     "noConversation": "{name}, No conversation yet. Type a question to start.",
-    "thinking": "Thinking"
+    "thinking": "Thinking",
+    "selectionComplete": "Selection Complete"
   },
   "livePage": {
     "viewer1": "Viewer1",

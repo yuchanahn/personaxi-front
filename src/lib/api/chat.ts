@@ -152,12 +152,9 @@ export async function sendPromptStream(cid: string, prompt: string, type?: strin
                 const json = JSON.parse(trimmed);
 
                 if (json.predictions && Array.isArray(json.predictions) && json.predictions.length > 0) {
-                    // Logic copied from services/chat.ts
-                    // The backend sends a string of comma-separated JSON objects, so we wrap it in []
                     const p = JSON.parse("[" + json.predictions[0] + "]");
 
                     if (Array.isArray(p) && p.length > 0) {
-                        // Find the emotion with the highest value
                         const dominant = p.reduce((prev: any, current: any) => (prev.value > current.value) ? prev : current);
                         if (dominant && dominant.key) {
                             console.log("Emotion detected:", dominant.key);

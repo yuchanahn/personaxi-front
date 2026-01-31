@@ -4,7 +4,7 @@
         type ChatSession,
     } from "$lib/stores/chatSessions";
     import AssetPreview from "$lib/components/AssetPreview.svelte";
-    import { locale } from "svelte-i18n";
+    import { locale, t } from "svelte-i18n";
     import moment from "moment";
     import "moment/dist/locale/ko";
 
@@ -78,7 +78,7 @@
                     <div class="message">
                         {session.lastMessage.replace(
                             /<system-input>[\s\S]*?<\/system-input>/g,
-                            "[상호작용]",
+                            $t("chatWindow.selectionComplete"),
                         )}
                     </div>
                 {/if}

@@ -26,6 +26,11 @@
 
   let chatWindowEl: HTMLElement;
 
+  interface UserInteractionBlock {
+    type: "user-interaction";
+    content: string;
+    id: string;
+  }
   interface NarrationBlock {
     type: "narration";
     content: string;
@@ -79,6 +84,7 @@
 
   type ChatLogItem =
     | NarrationBlock
+    | UserInteractionBlock
     | DialogueBlock
     | UserBlock
     | ImageBlock
@@ -571,21 +577,34 @@
 
     visibleMessages.forEach((msg, i) => {
       const messageId = `msg-${i}`;
+      const cacheKey = `${messageId}-${persona?.id || "null"}-${msg.content}`;
       const isLast = i === visibleMessages.length - 1;
 
-      if (!isLast && chatLogCache.has(messageId + msg.content)) {
-        newChatLog.push(...chatLogCache.get(messageId + msg.content)!);
+      if (!isLast && chatLogCache.has(cacheKey)) {
+        newChatLog.push(...chatLogCache.get(cacheKey)!);
       } else {
         let blocks: ChatLogItem[] = [];
         if (msg.role === "user") {
           const tagRegex = /<system-input>[\s\S]*?<\/system-input>/g;
-          blocks = [
-            {
-              type: "user",
-              content: msg.content.replace(tagRegex, "[상호작용]"),
-              id: messageId,
-            },
-          ];
+
+          // 매치가 됐다면, 다른 타입으로 지정
+          if (tagRegex.test(msg.content)) {
+            blocks = [
+              {
+                type: "user-interaction",
+                content: $t("chatWindow.selectionComplete"),
+                id: messageId,
+              },
+            ];
+          } else {
+            blocks = [
+              {
+                type: "user",
+                content: msg.content,
+                id: messageId,
+              },
+            ];
+          }
         } else {
           blocks = parseAssistantContent(msg.content, messageId, persona);
 
@@ -605,7 +624,7 @@
         }
 
         if (!isLast) {
-          chatLogCache.set(messageId + msg.content, blocks);
+          chatLogCache.set(cacheKey, blocks);
         }
         newChatLog.push(...blocks);
       }
@@ -719,6 +738,10 @@
   {#each chatLog as item, i (item.id)}
     {#if item.type === "user"}
       <div class="message user">
+        {item.content}
+      </div>
+    {:else if item.type === "user-interaction"}
+      <div class="user-interaction">
         {item.content}
       </div>
     {:else if item.type === "narration"}
@@ -939,6 +962,46 @@
     pointer-events: none;
     transition: background-image 0.5s ease-in-out;
     background-color: rgba(0, 0, 0, 0.5);
+  }
+
+  /* 수정할 코드를 붙여넣을 위치: .user-interaction { */
+  .user-interaction {
+    position: relative;
+    background: linear-gradient(
+      135deg,
+      rgba(var(--secondary-rgb), 0.4),
+      rgba(var(--secondary-rgb), 0.1)
+    );
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border: 1px solid rgba(var(--primary-rgb), 0.2);
+    border-radius: 12px;
+    padding: 0.8rem 1.2rem;
+    margin: 0.75rem auto;
+    font-size: 0.85em;
+    color: var(--muted-foreground);
+    text-align: center;
+    max-width: fit-content;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+
+    /* 대화 사이의 구분선 느낌을 주는 포인트 */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    letter-spacing: 0.05em;
+  }
+
+  .user-interaction::before,
+  .user-interaction::after {
+    content: "";
+    height: 1px;
+    width: 20px;
+    background: linear-gradient(to right, transparent, var(--border));
+  }
+
+  .user-interaction::after {
+    background: linear-gradient(to left, transparent, var(--border));
   }
 
   /* Ensure messages are above background */

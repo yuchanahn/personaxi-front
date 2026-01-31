@@ -88,7 +88,8 @@
   },
   "chatWindow": {
     "noConversation": "{name}님과 대화를 시작해보세요!",
-    "thinking": "생각 중"
+    "thinking": "생각 중",
+    "selectionComplete": "선택 완료"
   },
   "sidebar": {
     "hide": "사이드바 숨기기",
