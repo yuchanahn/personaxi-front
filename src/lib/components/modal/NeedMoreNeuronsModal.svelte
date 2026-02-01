@@ -48,7 +48,7 @@
     let purchaseSuccess = false;
     let purchasedAmount = 0;
 
-    function handleRecharge(amount: number) {
+    function handleRecharge(option: any) {
         // TEMPORARY: Use the provided Test URL for all options for now, or mapped real URLs later.
         // In a real scenario, map amount -> specific checkout URL
         let checkoutUrl =
@@ -83,6 +83,8 @@
 
     onMount(() => {
         window.addEventListener("keydown", handleKeydown);
+
+        pricingStore.fetchPricingPolicy();
 
         // Ensure Lemon.js is loaded
         if (!document.getElementById("lemon-js")) {
@@ -184,7 +186,7 @@
                             class="recharge-button"
                             disabled={isPurchasing}
                             class:disabled={isPurchasing}
-                            on:click={() => handleRecharge(option.neurons)}
+                            on:click={() => handleRecharge(option)}
                         >
                             <div
                                 style="display:flex; align-items:center; gap:8px;"
@@ -198,6 +200,11 @@
                                         default: `${option.neurons.toLocaleString()} Neurons`,
                                     })}
                                 </span>
+                                {#if option.bonus_ratio && option.bonus_ratio > 0}
+                                    <span class="bonus-badge"
+                                        >+{option.bonus_ratio}%</span
+                                    >
+                                {/if}
                             </div>
 
                             {#if isPurchasing}
@@ -347,6 +354,16 @@
         justify-content: center;
         padding: 2rem 0;
         animation: fadeIn 0.3s ease;
+    }
+
+    .bonus-badge {
+        background-color: #ff9800; /* Orange for bonus */
+        color: #1a1a1a;
+        font-size: 0.75rem;
+        padding: 2px 6px;
+        border-radius: 4px;
+        font-weight: bold;
+        margin-left: 8px;
     }
 
     @keyframes fadeIn {

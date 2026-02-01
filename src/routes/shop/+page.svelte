@@ -87,6 +87,13 @@
                         default: `${option.neurons.toLocaleString()} Neurons`,
                     })}
                 </h2>
+                {#if option.bonus_ratio && option.bonus_ratio > 0}
+                    <div class="bonus-container">
+                        <span class="bonus-tag"
+                            >+{option.bonus_ratio}% Bonus</span
+                        >
+                    </div>
+                {/if}
                 <p class="price">{option.price_display}</p>
                 <p class="description">Neuron Pack</p>
                 <!-- Simple description -->
@@ -189,5 +196,20 @@
 
     .buy-btn:hover {
         opacity: 0.9;
+    }
+
+    .bonus-container {
+        margin-bottom: 10px;
+    }
+
+    .bonus-tag {
+        display: inline-block;
+        background: #f59e0b; /* Amber 500 */
+        color: #1a1a1a;
+        font-weight: 800;
+        padding: 4px 12px;
+        border-radius: 999px;
+        font-size: 0.85rem;
+        box-shadow: 0 2px 10px rgba(245, 158, 11, 0.3);
     }
 </style>

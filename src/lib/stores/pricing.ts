@@ -12,6 +12,7 @@ export interface PurchaseOption {
     price_krw: number;
     price_display: string;
     item_id: string;
+    bonus_ratio?: number;
 }
 
 const defaultPolicy: PricingPolicy = {
