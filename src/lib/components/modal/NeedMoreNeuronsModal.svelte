@@ -6,8 +6,9 @@
     import NeuronIcon from "../icons/NeuronIcon.svelte";
     import { get } from "svelte/store";
     import { st_user } from "$lib/stores/user";
-    import { toast } from "$lib/stores/toast";
+    // import { toast } from "$lib/stores/toast";
     import { pricingStore } from "$lib/stores/pricing";
+    import { fly, fade } from "svelte/transition";
 
     // 부모 컴포넌트로부터 모달 가시성 상태를 양방향으로 바인딩합니다.
     export let isOpen: boolean = false;
@@ -34,23 +35,36 @@
         window.removeEventListener("keydown", handleKeydown);
     });
 
-    // 충전 옵션 데이터 (실제로는 서버에서 받아올 수 있습니다)
-    // const rechargeOptions = [
-    //     { neurons: 1000, price: "₩1,200" },
-    //     { neurons: 5500, price: "₩5,900" },
-    //     { neurons: 12000, price: "₩12,000" },
-    // ];
-
     import { api } from "$lib/api"; // Assuming api client exists
-    import { notificationStore } from "$lib/stores/notification";
+    // import { notificationStore } from "$lib/stores/notification";
 
     let isPurchasing = false;
     let purchaseSuccess = false;
     let purchasedAmount = 0;
 
-    function handleRecharge(option: any) {
-        // TEMPORARY: Use the provided Test URL for all options for now, or mapped real URLs later.
-        // In a real scenario, map amount -> specific checkout URL
+    // Selection State
+    let selectedOptionId: string | null = null;
+    let selectedOption: any = null;
+
+    // Auto-select best value or default
+    // $: if ($pricingStore.purchase_options.length > 0 && !selectedOptionId) {
+    //     // Default to the middle option
+    //     const defaultIndex = $pricingStore.purchase_options.length > 1 ? 1 : 0;
+    //     const opt = $pricingStore.purchase_options[defaultIndex];
+    //     selectOption(opt);
+    // }
+
+    function selectOption(option: any) {
+        selectedOptionId = option.id;
+        selectedOption = option;
+    }
+
+    function handleRecharge() {
+        if (!selectedOption) return;
+
+        isPurchasing = true;
+
+        // TEMPORARY: Use the provided Test URL for all options for now
         let checkoutUrl =
             "https://personaxi.lemonsqueezy.com/checkout/buy/37030093-8078-4bd9-bc76-9711cbac1f3e?embed=1";
 
@@ -74,11 +88,12 @@
             window.LemonSqueezy.Url.Open(checkoutUrl);
         } else {
             console.warn("Lemon.js not ready, opening in new tab");
-            // Fallback if script didn't load for some reason, or just open in new tab
+            // Fallback if script didn't load for some reason
             window.open(checkoutUrl, "_blank");
         }
 
         closeModal();
+        isPurchasing = false;
     }
 
     onMount(() => {
@@ -114,115 +129,216 @@
     $: current_neurons_count = $st_user?.credits || 0;
 
     let isFrist = get(st_user)?.data.hasReceivedFirstCreationReward;
+
+    // --- Helper Functions from Shop Page ---
+    function getProductIconProps(index: number) {
+        const variants: ("simple" | "standard" | "double")[] = [
+            "simple",
+            "standard",
+            "double",
+        ];
+        const sizes = [28, 32, 36, 40];
+        const i = Math.min(index, variants.length - 1);
+
+        return {
+            variant: variants[i],
+            size: sizes[i],
+            color: "#525252", // Default color
+        };
+    }
+
+    function getBonusPercentage(option: any) {
+        if (option.bonus_amount && option.bonus_amount > 0) {
+            return Math.round((option.bonus_amount / option.neurons) * 100);
+        }
+        return 0;
+    }
+
+    function getStandardPrice(totalNeurons: number) {
+        // baseline: 1 neuron = 10 KRW
+        return totalNeurons * 10;
+    }
 </script>
 
 {#if isOpen}
+    <!-- Backdrop with Fade -->
     <!-- svelte-ignore a11y_click_events_have_key_events -->
     <!-- svelte-ignore a11y_no_static_element_interactions -->
-    <div class="modal-backdrop" on:click|self={closeModal}>
-        <div class="modal-content">
-            <button class="close-button" on:click={closeModal}>&times;</button>
+    <div
+        class="modal-backdrop"
+        on:click|self={closeModal}
+        transition:fade={{ duration: 200 }}
+    >
+        <!-- Modal Content with Slide Up (Fly) -->
+        <div class="modal-content" transition:fly={{ y: 300, duration: 300 }}>
+            <!-- Header -->
+            <div class="modal-header">
+                <h2>
+                    {#if isNeedNeurons}
+                        {$t("needNeuronsModal.title")}
+                    {:else}
+                        {$t("needNeuronsModal.rechargeTitle")}
+                    {/if}
+                </h2>
+                <button class="close-button" on:click={closeModal}>
+                    <Icon icon="ph:x-bold" width="20" height="20" />
+                </button>
+            </div>
 
-            {#if purchaseSuccess}
-                <div class="success-view">
-                    <Icon
-                        icon="ph:check-circle-fill"
-                        color="#4caf50"
-                        width="64"
-                    />
-                    <h2>
-                        {$t("needNeuronsModal.rechargeSuccess", {
-                            default: "Purchase Successful!",
-                        })}
-                    </h2>
-                    <p class="description">
-                        {purchasedAmount.toLocaleString()} Neurons added.
-                    </p>
-                </div>
-            {:else}
+            <!-- Description -->
+            <p class="description">
                 {#if isNeedNeurons}
-                    <h2>{$t("needNeuronsModal.title")}</h2>
-                    <p class="description">
-                        {$t("needNeuronsModal.description")}
-                    </p>
+                    {$t("needNeuronsModal.description")}
                 {:else}
-                    <h2>{$t("needNeuronsModal.rechargeTitle")}</h2>
-                    <p class="description">
-                        {$t("needNeuronsModal.rechargeDescription")}
-                    </p>
+                    {$t("needNeuronsModal.rechargeDescription")}
                 {/if}
+            </p>
 
+            <!-- Scrollable Content -->
+            <div class="modal-body">
+                <!-- Promo Box -->
                 {#if isFrist}
                     <div class="promo-box">
-                        <Icon icon="ph:gift-bold" width="24" />
-                        <span>{$t("needNeuronsModal.firstCreationReward")}</span
+                        <div class="promo-content">
+                            <Icon
+                                icon="ph:gift-bold"
+                                width="24"
+                                class="text-gold"
+                            />
+                            <span
+                                >{$t(
+                                    "needNeuronsModal.firstCreationReward",
+                                )}</span
+                            >
+                        </div>
+                        <button
+                            class="promo-action-btn"
+                            on:click={() => {
+                                closeModal();
+                                goto("/edit");
+                            }}
                         >
+                            {$t("needNeuronsModal.getFreeNeurons")}
+                            <Icon icon="ph:arrow-right-bold" />
+                        </button>
                     </div>
-
-                    <button
-                        class="go-to-edit-button"
-                        on:click={() => {
-                            closeModal();
-                            goto("/edit");
-                        }}
-                    >
-                        <Icon icon="ph:plus-circle-bold" width="20" />
-                        <span>{$t("needNeuronsModal.getFreeNeurons")}</span>
-                    </button>
                 {/if}
 
-                <div
-                    style="display: flex; justify-content: center; align-items: center;"
-                >
-                    <p>
-                        {$t("needNeuronsModal.currentNeurons", {
-                            values: { count: current_neurons_count },
-                        })}
-                    </p>
-                </div>
-                <div class="recharge-options">
-                    {#each $pricingStore.purchase_options as option}
+                <!-- Pricing Options List -->
+                <div class="pricing-list">
+                    {#each $pricingStore.purchase_options as option, i}
+                        {@const isSelected = selectedOption === option}
+                        {@const iconProps = getProductIconProps(i)}
+                        {@const bonusPercent = getBonusPercentage(option)}
+                        <!-- Calculate Standard Price based on total amount (neurons + bonus) -->
+                        {@const totalNeurons =
+                            option.neurons + (option.bonus_amount || 0)}
+                        {@const standardPrice = getStandardPrice(totalNeurons)}
+
                         <button
-                            class="recharge-button"
-                            disabled={isPurchasing}
-                            class:disabled={isPurchasing}
-                            on:click={() => handleRecharge(option)}
+                            class="pricing-row"
+                            class:selected={isSelected}
+                            on:click={() => selectOption(option)}
                         >
-                            <div
-                                style="display:flex; align-items:center; gap:8px;"
-                            >
-                                <NeuronIcon />
-                                <span class="neurons-amount">
-                                    {$t("shop.neuron_pack", {
-                                        values: {
-                                            count: option.neurons.toLocaleString(),
-                                        },
-                                        default: `${option.neurons.toLocaleString()} Neurons`,
-                                    })}
-                                </span>
-                                {#if option.bonus_ratio && option.bonus_ratio > 0}
-                                    <span class="bonus-badge"
-                                        >+{option.bonus_ratio}%</span
-                                    >
-                                {/if}
+                            <!-- Left: Icon & Info -->
+                            <div class="row-left">
+                                <div
+                                    class="icon-wrapper"
+                                    class:active={isSelected}
+                                >
+                                    <NeuronIcon
+                                        size={iconProps.size}
+                                        variant={iconProps.variant}
+                                        color={isSelected
+                                            ? "#fbbf24"
+                                            : "#525252"}
+                                    />
+                                </div>
+                                <div class="info-wrapper">
+                                    <div class="neurons-count">
+                                        {option.neurons.toLocaleString()}
+                                        <span class="unit">N</span>
+                                    </div>
+                                    {#if option.bonus_amount && option.bonus_amount > 0}
+                                        <span class="bonus-pill">
+                                            +{Math.floor(
+                                                option.bonus_amount,
+                                            ).toLocaleString()}
+                                            {$t("shop.bonus_label")}
+                                        </span>
+                                    {/if}
+                                </div>
                             </div>
 
-                            {#if isPurchasing}
-                                <span class="spinner">...</span>
-                            {:else}
-                                <span class="price-tag"
-                                    >{option.price_display}</span
-                                >
-                            {/if}
+                            <!-- Right: Price & Badge -->
+                            <div class="row-right">
+                                <!-- Best Value Badge (Example Logic: highest bonus or index > 1) -->
+                                {#if bonusPercent >= 20}
+                                    <span class="best-badge"
+                                        >{$t("shop.best_value")}</span
+                                    >
+                                {/if}
+
+                                <div class="price-container">
+                                    <!-- Discount Logic matching shop page -->
+                                    {#if option.price_krw < standardPrice}
+                                        <span class="old-price">
+                                            {standardPrice.toLocaleString()}₩
+                                        </span>
+                                    {/if}
+                                    <span
+                                        class="current-price"
+                                        class:highlight={isSelected}
+                                    >
+                                        {option.price_display}
+                                    </span>
+                                </div>
+                            </div>
                         </button>
                     {/each}
                 </div>
-            {/if}
+            </div>
+
+            <!-- Footer: Purchase Button -->
+            <div class="modal-footer">
+                <div class="current-balance">
+                    <span>{$t("shop.current_neurons")}</span>
+                    <strong>{current_neurons_count.toLocaleString()} N</strong>
+                </div>
+                <button
+                    class="purchase-btn"
+                    disabled={isPurchasing || !selectedOption}
+                    on:click={handleRecharge}
+                >
+                    {#if isPurchasing}
+                        <span class="spinner"></span>
+                    {:else if selectedOption}
+                        {$t("shop.purchase_button", {
+                            values: {
+                                price: selectedOption.price_display,
+                            },
+                        })}
+                    {:else}
+                        {$t("shop.select_option")}
+                    {/if}
+                </button>
+            </div>
         </div>
     </div>
 {/if}
 
 <style>
+    /* Dark Theme Variables */
+    :global(body) {
+        --modal-bg: #171717;
+        --modal-border: #262626;
+        --text-main: #ededed;
+        --text-muted: #a3a3a3;
+        --accent-gold: #fbbf24;
+        --accent-blue: #3b82f6;
+        --accent-blue-hover: #2563eb;
+    }
+
     .modal-backdrop {
         position: fixed;
         top: 0;
@@ -232,148 +348,316 @@
         background-color: rgba(0, 0, 0, 0.7);
         display: flex;
         justify-content: center;
-        align-items: center;
-        z-index: 1000;
-        backdrop-filter: blur(5px);
-    }
-    .modal-content {
-        background-color: #2a2a2a;
-        border-radius: 16px;
-        padding: 2rem;
-        width: 90%;
-        max-width: 400px;
-        box-shadow: 0 5px 20px rgba(0, 0, 0, 0.5);
-        position: relative;
-        color: #e0e0e0;
-        border: 1px solid #444;
-        text-align: center;
-    }
-    .close-button {
-        position: absolute;
-        top: 10px;
-        right: 15px;
-        background: none;
-        border: none;
-        color: #888;
-        font-size: 2.5rem;
-        cursor: pointer;
-        line-height: 1;
-        transition:
-            color 0.2s,
-            transform 0.2s;
-    }
-    .close-button:hover {
-        color: #fff;
-        transform: rotate(90deg);
-    }
-    h2 {
-        color: #ffffff;
-        font-size: 1.8em;
-        margin-top: 0;
-        margin-bottom: 0.5rem;
-    }
-    .description {
-        font-size: 1rem;
-        color: #aaa;
-        margin-bottom: 2rem;
-    }
-    .promo-box {
-        background-color: rgba(74, 144, 226, 0.1);
-        color: #87c3ff;
-        border: 1px solid rgba(74, 144, 226, 0.3);
-        border-radius: 8px;
-        padding: 12px;
-        margin: 1rem 0;
-        display: inline-flex;
-        align-items: center;
-        gap: 10px;
-        font-weight: 600;
+        align-items: flex-end; /* Align bottom for mobile sheet */
+        padding-bottom: calc(
+            70px + env(safe-area-inset-bottom)
+        ); /* Lift up for navbar */
+        z-index: 2000;
+        backdrop-filter: blur(8px);
     }
 
-    .go-to-edit-button {
-        background-color: #4a90e2;
-        color: white;
+    .modal-content {
+        background-color: #171717;
+        border-top-left-radius: 24px;
+        border-top-right-radius: 24px;
+        width: 100%;
+        max-width: 500px;
+        max-height: 85vh; /* Allow it to be tall but not full screen */
+        box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.5);
+        display: flex;
+        flex-direction: column;
+        border: 1px solid #262626;
+        border-bottom: none;
+        overflow: hidden;
+    }
+
+    /* Desktop: Center Modal */
+    @media (min-width: 768px) {
+        .modal-backdrop {
+            align-items: center;
+            padding-bottom: 0; /* Reset padding for desktop */
+        }
+        .modal-content {
+            border-radius: 24px;
+            border-bottom: 1px solid #262626;
+            max-height: 80vh;
+        }
+    }
+
+    .modal-header {
+        padding: 20px 24px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border-bottom: 1px solid #262626;
+    }
+
+    .modal-header h2 {
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: #ededed;
+        margin: 0;
+    }
+
+    .close-button {
+        background: #262626;
         border: none;
-        padding: 12px 20px;
-        border-radius: 8px;
-        font-size: 1.1em;
-        cursor: pointer;
-        display: inline-flex;
+        color: #a3a3a3;
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        display: flex;
         align-items: center;
         justify-content: center;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+    .close-button:hover {
+        background: #404040;
+        color: #fff;
+    }
+
+    .description {
+        padding: 0 24px;
+        margin: 16px 0 0;
+        color: #a3a3a3;
+        font-size: 0.9rem;
+        line-height: 1.5;
+    }
+
+    .modal-body {
+        flex: 1;
+        overflow-y: auto;
+        padding: 20px 24px;
+    }
+
+    /* Promo Box */
+    .promo-box {
+        background: rgba(251, 191, 36, 0.1); /* Gold tint */
+        border: 1px solid rgba(251, 191, 36, 0.2);
+        border-radius: 12px;
+        padding: 12px 16px;
+        margin-bottom: 20px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+
+    .promo-content {
+        display: flex;
+        align-items: center;
         gap: 10px;
-        width: 100%;
-        margin-bottom: 1.5rem;
-        transition: background-color 0.2s ease;
+        color: #fbbf24;
+        font-weight: 600;
+        font-size: 0.9rem;
     }
 
-    .go-to-edit-button:hover {
-        background-color: #357abd;
+    .promo-action-btn {
+        background: none;
+        border: none;
+        color: #fbbf24;
+        font-weight: 700;
+        font-size: 0.85rem;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 4px;
     }
 
-    .recharge-options {
+    /* Pricing List */
+    .pricing-list {
         display: flex;
         flex-direction: column;
         gap: 12px;
     }
-    .recharge-button {
-        background-color: #4a4a4a;
-        color: #ffffff;
-        border: none;
-        padding: 15px 20px;
-        border-radius: 8px;
-        font-size: 1.1em;
-        cursor: pointer;
+
+    /* Fixed: Removed default borders to prevent "everything highlighted" look */
+    .pricing-row {
         display: flex;
         justify-content: space-between;
         align-items: center;
-        transition: background-color 0.2s ease;
-    }
-    .recharge-button:hover {
-        background-color: #5e5e5e;
-    }
-    .neurons-amount {
-        font-weight: bold;
-    }
-    .price-tag {
-        background-color: #3e6f9f;
-        padding: 4px 10px;
-        border-radius: 6px;
-        font-size: 0.9em;
+        background: #262626;
+        border: 1px solid transparent; /* Default transparent */
+        border-color: transparent !important; /* Force transparent */
+        border-radius: 16px;
+        padding: 16px;
+        cursor: pointer;
+        transition: all 0.2s cubic-bezier(0.25, 0.1, 0.25, 1);
+        width: 100%;
+        text-align: left;
     }
 
-    .recharge-button.disabled {
-        opacity: 0.7;
+    @media (max-width: 768px) {
+        .pricing-row {
+            padding: 12px;
+        }
+        .pricing-list {
+            gap: 5px;
+        }
+    }
+
+    .pricing-row:hover {
+        background: #333;
+    }
+
+    /* Selection State */
+    .pricing-row.selected {
+        background: rgba(251, 191, 36, 0.05); /* Subtle Gold Tint */
+        border-color: #fbbf24 !important; /* Visible border ONLY when selected */
+        box-shadow: 0 0 0 1px #fbbf24; /* Focus ring */
+    }
+
+    .row-left {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+    }
+
+    .icon-wrapper {
+        width: 48px;
+        height: 48px;
+        border-radius: 12px;
+        background: #171717;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.3s;
+    }
+
+    .icon-wrapper.active {
+        box-shadow: 0 0 15px rgba(251, 191, 36, 0.2);
+    }
+
+    .info-wrapper {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+    }
+
+    .neurons-count {
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: #ededed;
+    }
+
+    .neurons-count .unit {
+        font-size: 0.8rem;
+        font-weight: 400;
+        color: #737373;
+    }
+
+    .bonus-pill {
+        font-size: 0.75rem;
+        color: #fbbf24;
+        font-weight: 600;
+        background: rgba(251, 191, 36, 0.1);
+        padding: 2px 6px;
+        border-radius: 4px;
+        width: fit-content;
+    }
+
+    .row-right {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-end;
+        gap: 4px;
+    }
+
+    .best-badge {
+        background: linear-gradient(135deg, #f59e0b, #d97706);
+        color: #000;
+        font-size: 0.65rem;
+        padding: 2px 8px;
+        border-radius: 6px;
+        font-weight: 800;
+    }
+
+    .price-container {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-end;
+    }
+
+    .old-price {
+        font-size: 0.75rem;
+        color: #525252;
+        text-decoration: line-through;
+    }
+
+    .current-price {
+        font-size: 1rem;
+        font-weight: 600;
+        color: #a3a3a3;
+        transition: color 0.2s;
+    }
+
+    .current-price.highlight {
+        color: #fbbf24;
+        font-weight: 700;
+    }
+
+    /* Footer */
+    .modal-footer {
+        padding: 20px 24px;
+        border-top: 1px solid #262626;
+        background: rgba(23, 23, 23, 0.95);
+        backdrop-filter: blur(10px);
+    }
+
+    .current-balance {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 0.85rem;
+        color: #737373;
+        margin-bottom: 12px;
+    }
+
+    .current-balance strong {
+        color: #fbbf24;
+    }
+
+    .purchase-btn {
+        width: 100%;
+        background: #3b82f6;
+        color: white;
+        border: none;
+        padding: 16px;
+        border-radius: 16px;
+        font-size: 1rem;
+        font-weight: 700;
+        cursor: pointer;
+        transition: all 0.2s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .purchase-btn:hover:not(:disabled) {
+        background: #2563eb;
+        transform: translateY(-2px);
+    }
+
+    .purchase-btn:disabled {
+        background: #262626;
+        color: #525252;
         cursor: not-allowed;
     }
 
-    .success-view {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        padding: 2rem 0;
-        animation: fadeIn 0.3s ease;
+    /* Spinner */
+    .spinner {
+        width: 20px;
+        height: 20px;
+        border: 3px solid rgba(255, 255, 255, 0.3);
+        border-radius: 50%;
+        border-top-color: #fff;
+        animation: spin 1s ease-in-out infinite;
     }
 
-    .bonus-badge {
-        background-color: #ff9800; /* Orange for bonus */
-        color: #1a1a1a;
-        font-size: 0.75rem;
-        padding: 2px 6px;
-        border-radius: 4px;
-        font-weight: bold;
-        margin-left: 8px;
-    }
-
-    @keyframes fadeIn {
-        from {
-            opacity: 0;
-            transform: translateY(10px);
-        }
+    @keyframes spin {
         to {
-            opacity: 1;
-            transform: translateY(0);
+            transform: rotate(360deg);
         }
     }
 </style>
