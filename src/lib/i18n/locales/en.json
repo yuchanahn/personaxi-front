@@ -743,7 +743,28 @@
     "title": "Neuron Shop",
     "subtitle": "Charge Neurons to interact with more personas!",
     "buyNow": "Buy Now",
-    "neuron_pack": "{count} Neurons"
+    "neuron_pack": "{count} Neurons",
+    "current_neurons": "Current Neurons",
+    "best_value": "BEST",
+    "selected": "Selected",
+    "purchase_button": "Purchase for {price}",
+    "select_option": "Select Option",
+    "bonus_label": "Bonus",
+    "notice": {
+      "title": "Payment Notice",
+      "refund_title": "Refund Policy",
+      "refund_desc": "Full refund available for unused neurons within 7 days of purchase. (Non-refundable after 7 days)",
+      "cancel_title": "Cancellation",
+      "cancel_desc": "Card cancellations take approximately 5 business days to process.",
+      "validity_title": "Validity",
+      "validity_desc": "Charged neurons are valid for 1 year from the date of purchase.",
+      "fee_title": "Fees",
+      "fee_desc": "International transaction fees may apply depending on your card issuer or bank.",
+      "ai_title": "AI Quality",
+      "ai_desc": "Variations in AI-generated content quality are not grounds for refunds.",
+      "ban_title": "Restrictions",
+      "ban_desc": "Remaining neurons are non-refundable if the account is suspended due to policy violations."
+    }
   },
   "install": {
     "title": "Install App",

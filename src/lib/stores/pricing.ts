@@ -13,6 +13,7 @@ export interface PurchaseOption {
     price_display: string;
     item_id: string;
     bonus_ratio?: number;
+    bonus_amount?: number;
 }
 
 const defaultPolicy: PricingPolicy = {

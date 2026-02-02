@@ -697,7 +697,28 @@
     "title": "뉴런 상점",
     "subtitle": "더 많은 페르소나와 대화하기 위해 뉴런을 충전하세요!",
     "buyNow": "구매하기",
-    "neuron_pack": "{count} 뉴런"
+    "neuron_pack": "{count} 뉴런",
+    "current_neurons": "현재 보유 뉴런",
+    "best_value": "최고 효율",
+    "selected": "선택된 상품",
+    "purchase_button": "{price}으로 구매하기",
+    "select_option": "상품을 선택하세요",
+    "bonus_label": "보너스",
+    "notice": {
+      "title": "결제 시 참고해주세요!",
+      "refund_title": "환불 정책",
+      "refund_desc": "구매 후 7일 이내 미사용 뉴런은 전액 환불 가능합니다. (이후 불가)",
+      "cancel_title": "결제 취소",
+      "cancel_desc": "카드 취소 시 영업일 기준 약 5일 소요됩니다.",
+      "validity_title": "유효 기간",
+      "validity_desc": "충전된 뉴런의 유효 기간은 1년입니다.",
+      "fee_title": "수수료",
+      "fee_desc": "해외 결제 시 카드사/은행 수수료가 발생할 수 있습니다.",
+      "ai_title": "AI 특성",
+      "ai_desc": "AI 생성 결과물의 품질 차이는 환불 사유에 해당하지 않습니다.",
+      "ban_title": "이용 제한",
+      "ban_desc": "약관 위반으로 인한 계정 정지 시 잔여 뉴런은 환불되지 않습니다."
+    }
   },
   "install": {
     "title": "앱 설치 가이드",
