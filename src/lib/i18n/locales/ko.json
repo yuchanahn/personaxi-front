@@ -36,6 +36,10 @@
     "credits": "내 뉴런",
     "plan": "플랜",
     "creatorPoints": "제작자 포인트",
+    "creatorPointInfo": {
+      "title": "제작자 포인트란?",
+      "desc": "다른 사용자가 내 페르소나와 대화하거나 후원할 때 적립되는 포인트입니다. 일정 비율로 뉴런으로 전환하여 사용할 수 있습니다."
+    },
     "transfer": "전환",
     "charge": "상점",
     "myPersonas": "내 AI 페르소나",

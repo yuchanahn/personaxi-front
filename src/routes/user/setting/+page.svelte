@@ -263,6 +263,7 @@
     const { unreadCount } = notificationStore;
 
     let showUserListModal = false;
+    let showCreatorInfoModal = false;
     let userListTab: "followers" | "following" = "followers";
     let followerCount = 0;
     let followingCount = 0;
@@ -542,7 +543,15 @@
             <!-- Row 2: Creator Points -->
             <div class="profile-detail-row">
                 <div class="info-group">
-                    <span class="label">{$t("settingPage.creatorPoints")}</span>
+                    <span class="label">
+                        {$t("settingPage.creatorPoints")}
+                        <button
+                            class="info-btn-small"
+                            on:click={() => (showCreatorInfoModal = true)}
+                        >
+                            <Icon icon="ph:info-bold" />
+                        </button>
+                    </span>
                     <span class="value">{user.creator_points || 0} P</span>
                 </div>
                 <button
@@ -573,6 +582,29 @@
             </button>
         </div>
     </div>
+
+    <!-- Creator Info Modal -->
+    {#if showCreatorInfoModal}
+        <div
+            class="modal-backdrop"
+            on:click={() => (showCreatorInfoModal = false)}
+            role="button"
+            tabindex="0"
+            on:keypress={(e) =>
+                e.key === "Enter" && (showCreatorInfoModal = false)}
+        >
+            <div class="modal-content" on:click|stopPropagation>
+                <h2>{$t("settingPage.creatorPointInfo.title")}</h2>
+                <p>{$t("settingPage.creatorPointInfo.desc")}</p>
+                <button
+                    class="btn btn-primary full-width"
+                    on:click={() => (showCreatorInfoModal = false)}
+                >
+                    {$t("common.confirm", { default: "Confirm" })}
+                </button>
+            </div>
+        </div>
+    {/if}
 
     <!-- TAB HEADER -->
     <div class="section-header">
@@ -1269,6 +1301,64 @@
         text-align: center;
         color: var(--muted-foreground);
         font-size: 1.1rem;
+    }
+
+    .info-btn-small {
+        background: none;
+        border: none;
+        color: #737373;
+        cursor: pointer;
+        padding: 4px;
+        display: inline-flex;
+        align-items: center;
+        vertical-align: middle;
+        transition: color 0.2s;
+        margin-left: 4px;
+    }
+
+    .info-btn-small:hover {
+        color: #fbbf24;
+    }
+
+    .modal-backdrop {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.7);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 1000;
+        backdrop-filter: blur(5px);
+    }
+
+    .modal-content {
+        background: #171717;
+        padding: 24px;
+        border-radius: 16px;
+        max-width: 90%;
+        width: 320px;
+        border: 1px solid #262626;
+        text-align: center;
+    }
+
+    .modal-content h2 {
+        font-size: 1.1rem;
+        color: #ededed;
+        margin: 0 0 12px 0;
+    }
+
+    .modal-content p {
+        font-size: 0.9rem;
+        color: #a3a3a3;
+        margin: 0 0 24px 0;
+        line-height: 1.5;
+    }
+
+    .full-width {
+        width: 100%;
     }
 
     /* Responsive Text Logic */

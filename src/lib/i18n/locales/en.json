@@ -5,7 +5,11 @@
     "credits": "My Neurons",
     "plan": "Plan",
     "creatorPoints": "Creator Points",
-    "transfer": "Transfer",
+    "creatorPointInfo": {
+      "title": "What are Creator Points?",
+      "desc": "Creator Points are earned when others chat with your Personas. You can convert them into Neurons to use in the shop."
+    },
+    "transfer": "Convert",
     "charge": "Shop",
     "myPersonas": "My AI Personas",
     "newPersona": "+ New AI Persona",
