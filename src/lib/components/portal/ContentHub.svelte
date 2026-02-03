@@ -37,6 +37,8 @@
     let isLive2dLoading = writable(true);
     let isVrmLoading = writable(true);
 
+    let isPWA = false;
+
     let isSearchModalOpen = false;
     let query = "";
     let searchType: "name" | "tags" = "name";
@@ -100,6 +102,15 @@
     }
 
     onMount(async () => {
+        // Check if running as PWA
+        if (typeof window !== "undefined") {
+            const isStandalone = window.matchMedia(
+                "(display-mode: standalone)",
+            ).matches;
+            // @ts-ignore
+            const isIOSStandalone = window.navigator.standalone === true;
+            isPWA = isStandalone || isIOSStandalone;
+        }
         reloadAll();
     });
 
@@ -472,17 +483,19 @@
         </div>
 
         <div class="right-controls">
-            <button
-                class="install-button"
-                on:click={() => goto("/install")}
-                title={$t("install.title") || "App Install"}
-            >
-                <Icon
-                    icon="material-symbols:download-rounded"
-                    width="24"
-                    height="24"
-                />
-            </button>
+            {#if !isPWA}
+                <button
+                    class="install-button"
+                    on:click={() => goto("/install")}
+                    title={$t("install.title") || "App Install"}
+                >
+                    <Icon
+                        icon="material-symbols:download-rounded"
+                        width="24"
+                        height="24"
+                    />
+                </button>
+            {/if}
             <button
                 class="search-trigger-button"
                 on:click={() => goto("/shop")}
