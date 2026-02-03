@@ -2514,7 +2514,6 @@
         bottom: 150%;
     }
 
-    /* Responsive adjustment for asset card actions */
     @media (max-width: 480px) {
         .asset-card-actions {
             flex-direction: column;
@@ -2555,38 +2554,11 @@
         transform: translateY(-1px);
     }
 
-    .chat-button.secondary {
-        /* Additional secondary styling if needed */
-    }
-
     .portrait-preview.clickable {
         cursor: pointer;
         position: relative;
         overflow: hidden;
         border-radius: var(--radius-card);
-    }
-
-    .portrait-preview.clickable.has-id:hover .chat-overlay {
-        opacity: 1;
-    }
-
-    .chat-overlay {
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: rgba(0, 0, 0, 0.6);
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        color: white;
-        opacity: 0;
-        transition: opacity 0.2s;
-        gap: 0.5rem;
-        font-weight: 600;
-        backdrop-filter: blur(2px);
     }
 
     .content-type-selector {
@@ -2602,9 +2574,8 @@
         gap: 0.8rem;
         padding: 1rem;
         background: rgba(255, 255, 255, 0.05);
-        border: 1px solid rgba(255, 255, 255, 0.1);
-        border-radius: 12px;
-        color: rgba(255, 255, 255, 0.6);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-card);
         cursor: pointer;
         transition: all 0.2s ease;
         text-align: left;
@@ -2616,9 +2587,8 @@
     }
 
     .content-type-selector button.active {
-        background: rgba(59, 130, 246, 0.15);
-        border-color: #3b82f6;
-        color: #fff;
+        border-color: var(--primary);
+        color: var(--primary);
     }
 
     .content-type-selector .text {

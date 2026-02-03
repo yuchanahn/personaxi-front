@@ -364,15 +364,7 @@
 
 <style>
     /* Dark Theme Variables */
-    :global(body) {
-        --modal-bg: #171717;
-        --modal-border: #262626;
-        --text-main: #ededed;
-        --text-muted: #a3a3a3;
-        --accent-gold: #fbbf24;
-        --accent-blue: #3b82f6;
-        --accent-blue-hover: #2563eb;
-    }
+    /* Dark Theme Variables Removed - Using global theme variables */
 
     .modal-backdrop {
         position: fixed;
@@ -392,18 +384,19 @@
     }
 
     .modal-content {
-        background-color: #171717;
+        background-color: var(--card);
         border-top-left-radius: 24px;
         border-top-right-radius: 24px;
         width: 100%;
         max-width: 500px;
         max-height: 85vh; /* Allow it to be tall but not full screen */
-        box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.5);
+        box-shadow: var(--shadow-popover);
         display: flex;
         flex-direction: column;
-        border: 1px solid #262626;
+        border: 1px solid var(--border);
         border-bottom: none;
         overflow: hidden;
+        color: var(--foreground);
     }
 
     /* Desktop: Center Modal */
@@ -414,7 +407,7 @@
         }
         .modal-content {
             border-radius: 24px;
-            border-bottom: 1px solid #262626;
+            border-bottom: 1px solid var(--border);
             max-height: 80vh;
         }
     }
@@ -424,20 +417,20 @@
         display: flex;
         justify-content: space-between;
         align-items: center;
-        border-bottom: 1px solid #262626;
+        border-bottom: 1px solid var(--border);
     }
 
     .modal-header h2 {
         font-size: 1.25rem;
         font-weight: 700;
-        color: #ededed;
+        color: var(--foreground);
         margin: 0;
     }
 
     .close-button {
-        background: #262626;
+        background: transparent;
         border: none;
-        color: #a3a3a3;
+        color: var(--muted-foreground);
         width: 32px;
         height: 32px;
         border-radius: 50%;
@@ -449,14 +442,14 @@
     }
 
     .close-button:hover {
-        background: #404040;
-        color: #fff;
+        background: var(--secondary);
+        color: var(--foreground);
     }
 
     .description {
         padding: 0 24px;
         margin: 16px 0 0;
-        color: #a3a3a3;
+        color: var(--muted-foreground);
         font-size: 0.9rem;
         line-height: 1.5;
     }
@@ -483,7 +476,9 @@
         display: flex;
         align-items: center;
         gap: 10px;
-        color: #fbbf24;
+        color: var(
+            --foreground
+        ); /* was #fbbf24, but context says "promo content color". Usually dark or light text. Wait, original was #fbbf24? No, looking at lines 486. Ah, it was #fbbf24 in original. I'll stick to variable if I can or keep gold. Let's keep gold for promo content if it's special, or use foreground. The snippet shows: color: #fbbf24; in original. I'll keep it gold or valid variable. Actually line 486 in original is color: #fbbf24; */
         font-weight: 600;
         font-size: 0.9rem;
     }
@@ -512,7 +507,7 @@
         display: flex;
         justify-content: space-between;
         align-items: center;
-        background: #262626;
+        background: var(--secondary);
         border: 1px solid transparent; /* Default transparent */
         border-color: transparent !important; /* Force transparent */
         border-radius: 16px;
@@ -533,7 +528,7 @@
     }
 
     .pricing-row:hover {
-        background: #333;
+        background: var(--border);
     }
 
     /* Selection State */
@@ -553,7 +548,7 @@
         width: 48px;
         height: 48px;
         border-radius: 12px;
-        background: #171717;
+        background: var(--background);
         display: flex;
         align-items: center;
         justify-content: center;
@@ -573,13 +568,13 @@
     .neurons-count {
         font-size: 1.1rem;
         font-weight: 700;
-        color: #ededed;
+        color: var(--foreground);
     }
 
     .neurons-count .unit {
         font-size: 0.8rem;
         font-weight: 400;
-        color: #737373;
+        color: var(--muted-foreground);
     }
 
     .bonus-pill {
@@ -616,14 +611,14 @@
 
     .old-price {
         font-size: 0.75rem;
-        color: #525252;
+        color: var(--muted-foreground);
         text-decoration: line-through;
     }
 
     .current-price {
         font-size: 1rem;
         font-weight: 600;
-        color: #a3a3a3;
+        color: var(--muted-foreground);
         transition: color 0.2s;
     }
 
@@ -635,8 +630,8 @@
     /* Footer */
     .modal-footer {
         padding: 24px;
-        background: #171717;
-        border-top: 1px solid #262626;
+        background: var(--card);
+        border-top: 1px solid var(--border);
         display: flex;
         flex-direction: column;
         gap: 16px;
@@ -655,7 +650,7 @@
         gap: 10px;
         cursor: pointer;
         font-size: 0.85rem;
-        color: #a3a3a3;
+        color: var(--muted-foreground);
         user-select: none;
         line-height: 1.4;
     }
@@ -668,31 +663,32 @@
         width: 20px;
         height: 20px;
         flex-shrink: 0;
-        border: 2px solid #525252;
+        border: 2px solid var(--muted-foreground);
         border-radius: 6px;
         display: flex;
         align-items: center;
         justify-content: center;
         transition: all 0.2s;
-        background: #262626;
-        color: black;
+        background: var(--background);
+        color: var(--foreground);
         margin-top: 1px;
     }
 
     .checkbox-label input:checked + .checkbox-custom {
         background: #fbbf24;
         border-color: #fbbf24;
+        color: black;
     }
 
     .agreement-text a {
-        color: #a3a3a3;
+        color: var(--muted-foreground);
         text-decoration: underline;
         text-underline-offset: 2px;
         transition: color 0.2s;
     }
 
     .agreement-text a:hover {
-        color: #ededed;
+        color: var(--foreground);
     }
 
     .current-balance {
@@ -700,7 +696,7 @@
         justify-content: space-between;
         align-items: center;
         font-size: 0.85rem;
-        color: #737373;
+        color: var(--muted-foreground);
         margin-bottom: 12px;
     }
 
@@ -710,8 +706,8 @@
 
     .purchase-btn {
         width: 100%;
-        background: #3b82f6;
-        color: white;
+        background: var(--primary);
+        color: var(--primary-foreground);
         border: none;
         padding: 16px;
         border-radius: 16px;
@@ -725,14 +721,15 @@
     }
 
     .purchase-btn:hover:not(:disabled) {
-        background: #2563eb;
+        filter: brightness(1.1);
         transform: translateY(-2px);
     }
 
     .purchase-btn:disabled {
-        background: #262626;
-        color: #525252;
+        background: var(--muted);
+        color: var(--muted-foreground);
         cursor: not-allowed;
+        opacity: 0.7;
     }
 
     /* Spinner */

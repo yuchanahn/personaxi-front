@@ -253,11 +253,7 @@
 </div>
 
 <style>
-    :global(body) {
-        background-color: #0a0a0a; /* Pure Dark */
-        color: #ededed;
-        margin: 0;
-    }
+    /* Global body styles removed to prevent theme conflict */
 
     .shop-page {
         min-height: 100vh;
@@ -278,16 +274,17 @@
         font-weight: 800;
         margin: 0 0 8px;
         letter-spacing: -0.03em;
+        color: var(--foreground);
     }
 
     header p {
-        color: #737373;
+        color: var(--muted-foreground);
         font-size: 1rem;
     }
 
     .balance-card {
-        background: #171717;
-        border: 1px solid #262626;
+        background: var(--card);
+        border: 1px solid var(--border);
         border-radius: 20px;
         padding: 24px;
         margin-top: 12px;
@@ -298,7 +295,7 @@
 
     .balance-card .label {
         font-size: 0.8rem;
-        color: #737373;
+        color: var(--muted-foreground);
         text-transform: uppercase;
         letter-spacing: 0.05em;
         margin-bottom: 8px;
@@ -318,7 +315,7 @@
 
     .balance-row .unit {
         font-size: 1rem;
-        color: #737373;
+        color: var(--muted-foreground);
         margin-top: 12px;
     }
 
@@ -330,8 +327,8 @@
 
     .product-card {
         position: relative;
-        background: #171717;
-        border: 1px solid #262626;
+        background: var(--card);
+        border: 1px solid var(--border);
         border-radius: 20px;
         padding: 24px;
         cursor: pointer;
@@ -339,12 +336,12 @@
     }
 
     .product-card:hover {
-        border-color: #404040;
-        background: #1c1c1c;
+        border-color: var(--border);
+        background: var(--secondary);
     }
 
     .product-card.selected {
-        background: #171717;
+        background: var(--card);
         border-color: #fbbf24; /* Impulsive Gold */
         box-shadow: 0 0 0 1px #fbbf24;
     }
@@ -364,12 +361,12 @@
     .icon-holder {
         width: 40px;
         height: 40px;
-        background: #262626;
+        background: var(--secondary);
         border-radius: 10px;
         display: flex;
         align-items: center;
         justify-content: center;
-        color: #525252;
+        color: var(--muted-foreground);
         font-size: 1.2rem;
     }
 
@@ -382,11 +379,12 @@
         display: block;
         font-size: 1.3rem;
         font-weight: 700;
+        color: var(--foreground);
     }
 
     .neurons small {
         font-size: 0.8rem;
-        color: #525252;
+        color: var(--muted-foreground);
     }
 
     .bonus-label {
@@ -406,10 +404,10 @@
         margin-left: auto;
         margin-right: auto;
         padding: 30px;
-        background: #171717; /* Darker than card, lighter than bg */
+        background: var(--card); /* Darker than card, lighter than bg */
         border-radius: 20px;
-        color: #737373;
-        border: 1px solid #262626;
+        color: var(--muted-foreground);
+        border: 1px solid var(--border);
     }
 
     .notice-section h3 {
@@ -417,7 +415,7 @@
         align-items: center;
         gap: 8px;
         font-size: 1rem;
-        color: #a3a3a3;
+        color: var(--foreground);
         margin: 0 0 20px 0;
     }
 
@@ -439,13 +437,13 @@
     }
 
     .notice-section li strong {
-        color: #d4d4d4;
+        color: var(--foreground);
         font-weight: 600;
         font-size: 0.9rem;
     }
 
     .notice-section li span {
-        color: #737373;
+        color: var(--muted-foreground);
     }
 
     .percent {
@@ -463,11 +461,12 @@
         display: block;
         font-size: 1.1rem;
         font-weight: 700;
+        color: var(--foreground);
     }
 
     .old {
         font-size: 0.8rem;
-        color: #525252;
+        color: var(--muted-foreground);
         text-decoration: line-through;
     }
 
@@ -502,21 +501,21 @@
     .bar-content {
         max-width: 560px;
         margin: 0 auto;
-        background: rgba(23, 23, 23, 0.8);
+        background: var(--card); /* Fallback */
         backdrop-filter: blur(20px);
-        border: 1px solid #262626;
+        border: 1px solid var(--border);
         border-radius: 24px;
         padding: 12px 12px 12px 24px;
         display: flex;
         justify-content: space-between;
         align-items: center;
-        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+        box-shadow: var(--shadow-popover);
     }
 
     .selection-detail .lbl {
         display: block;
         font-size: 0.75rem;
-        color: #737373;
+        color: var(--muted-foreground);
     }
 
     .selection-detail .val {
@@ -542,8 +541,8 @@
     }
 
     .pay-btn:disabled {
-        background: #262626;
-        color: #525252;
+        background: var(--muted);
+        color: var(--muted-foreground);
         cursor: not-allowed;
     }
 
