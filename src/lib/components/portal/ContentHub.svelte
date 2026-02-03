@@ -473,6 +473,25 @@
 
         <div class="right-controls">
             <button
+                class="install-button"
+                on:click={() => goto("/install")}
+                title={$t("install.title") || "App Install"}
+            >
+                <Icon
+                    icon="material-symbols:download-rounded"
+                    width="24"
+                    height="24"
+                />
+            </button>
+            <button
+                class="search-trigger-button"
+                on:click={() => goto("/shop")}
+                title={$t("shop.title") || "Shop"}
+            >
+                <Icon icon="solar:bag-5-bold-duotone" width="24" height="24" />
+            </button>
+
+            <button
                 class="search-trigger-button"
                 on:click={() => (isSearchModalOpen = true)}
             >
@@ -972,6 +991,13 @@
     .search-trigger-button {
         background: none;
         border: none;
+        color: var(--foreground);
+        padding: 0.5rem;
+        cursor: pointer;
+    }
+
+    .install-button {
+        background: var(--secondary);
         color: var(--foreground);
         padding: 0.5rem;
         cursor: pointer;

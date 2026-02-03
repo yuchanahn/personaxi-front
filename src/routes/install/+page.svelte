@@ -74,8 +74,8 @@
                 <div class="qr-card">
                     <img src={qrCodeUrl} alt="Scan to install" class="qr-img" />
                     <div class="qr-text">
-                        <h3>모바일로 접속하기</h3>
-                        <p>카메라로 QR을 스캔하세요.</p>
+                        <h3>{$t("install.scanTitle")}</h3>
+                        <p>{$t("install.scanDesc")}</p>
                     </div>
                 </div>
             </div>
@@ -227,10 +227,7 @@
                 class="notice-icon"
                 width="20"
             />
-            <span
-                >앱 스토어 방문 없이 무료로 설치되며, <br />자동 업데이트를
-                지원합니다.</span
-            >
+            <span>{@html $t("install.notice")}</span>
         </div>
     </div>
 </div>

@@ -45,6 +45,7 @@
     // Selection State
     let selectedOptionId: string | null = null;
     let selectedOption: any = null;
+    let agreedToPolicies = false;
 
     // Auto-select best value or default
     // $: if ($pricingStore.purchase_options.length > 0 && !selectedOptionId) {
@@ -301,13 +302,47 @@
 
             <!-- Footer: Purchase Button -->
             <div class="modal-footer">
+                <!-- Policy Agreement Checkbox -->
+                <div class="policy-agreement">
+                    <label class="checkbox-label">
+                        <input
+                            type="checkbox"
+                            bind:checked={agreedToPolicies}
+                        />
+                        <span class="checkbox-custom">
+                            {#if agreedToPolicies}
+                                <Icon
+                                    icon="material-symbols:check-small-rounded"
+                                    width="16"
+                                />
+                            {/if}
+                        </span>
+                        <span class="agreement-text">
+                            <a href="/terms" target="_blank"
+                                >{$t("legal.termsOfService")}</a
+                            >
+                            ·
+                            <a href="/privacy" target="_blank"
+                                >{$t("legal.privacyPolicy")}</a
+                            >
+                            ·
+                            <a href="/terms" target="_blank"
+                                >{$t("legal.refundPolicy")}</a
+                            >
+                            {$t("legal.agreedToPolicies")}
+                        </span>
+                    </label>
+                </div>
+
                 <div class="current-balance">
                     <span>{$t("shop.current_neurons")}</span>
                     <strong>{current_neurons_count.toLocaleString()} N</strong>
                 </div>
                 <button
                     class="purchase-btn"
-                    disabled={isPurchasing || !selectedOption}
+                    disabled={isPurchasing ||
+                        !selectedOption ||
+                        !agreedToPolicies}
                     on:click={handleRecharge}
                 >
                     {#if isPurchasing}
@@ -599,10 +634,65 @@
 
     /* Footer */
     .modal-footer {
-        padding: 20px 24px;
+        padding: 24px;
+        background: #171717;
         border-top: 1px solid #262626;
-        background: rgba(23, 23, 23, 0.95);
-        backdrop-filter: blur(10px);
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+    }
+
+    .policy-agreement {
+        display: flex;
+        justify-content: center;
+        margin-bottom: 4px;
+        width: 100%;
+    }
+
+    .checkbox-label {
+        display: flex;
+        align-items: flex-start;
+        gap: 10px;
+        cursor: pointer;
+        font-size: 0.85rem;
+        color: #a3a3a3;
+        user-select: none;
+        line-height: 1.4;
+    }
+
+    .checkbox-label input {
+        display: none;
+    }
+
+    .checkbox-custom {
+        width: 20px;
+        height: 20px;
+        flex-shrink: 0;
+        border: 2px solid #525252;
+        border-radius: 6px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.2s;
+        background: #262626;
+        color: black;
+        margin-top: 1px;
+    }
+
+    .checkbox-label input:checked + .checkbox-custom {
+        background: #fbbf24;
+        border-color: #fbbf24;
+    }
+
+    .agreement-text a {
+        color: #a3a3a3;
+        text-decoration: underline;
+        text-underline-offset: 2px;
+        transition: color 0.2s;
+    }
+
+    .agreement-text a:hover {
+        color: #ededed;
     }
 
     .current-balance {

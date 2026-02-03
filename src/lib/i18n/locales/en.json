@@ -270,6 +270,15 @@
     "create": "Create",
     "legal": "Legal"
   },
+  "legal": {
+    "privacyPolicy": "Privacy Policy",
+    "termsOfService": "Terms of Service",
+    "licensesAndCredits": "Licenses",
+    "chatLogConsent": "Chat Log Consent",
+    "refundPolicy": "Refund Policy",
+    "agreedToPolicies": " I have read and agree to.",
+    "title": "Legal"
+  },
   "welcomeModal": {
     "title": "Welcome to PersonaXI!",
     "neuronReward": "As a welcome gift, you've received {amount} Neurons!",
@@ -789,7 +798,10 @@
     "benefit": "Benefits: Fullscreen & Faster",
     "notice": "📢 Not available on official stores yet.<br>Install this PWA to enjoy the service at a <strong>better price</strong> without store fees!",
     "promptTitle": "Experience the App!",
-    "promptDesc": "Install for fullscreen & better performance."
+    "promptDesc": "Install for fullscreen & better performance.",
+    "scanTitle": "Scan with Mobile",
+    "scanDesc": "Scan QR code with your camera.",
+    "notice": "Installs instantly without App Store visits.<br />Supports automatic updates."
   },
   "models": {
     "title": "Response Mode",
@@ -864,13 +876,5 @@
     "mailOrder": "E-Commerce: 2025-ChungnamCheonan-2452",
     "phone": "Phone: 070-8064-0436",
     "email": "Email: personaxi2025@gmail.com"
-  },
-  "legal": {
-    "privacyPolicy": "Privacy Policy",
-    "termsOfService": "Terms of Service",
-    "licensesAndCredits": "Licenses",
-    "chatLogConsent": "Chat Logs Consent",
-    "refundPolicy": "Refund Policy",
-    "title": "Policies"
   }
 }
