@@ -16,6 +16,7 @@
     placeholderName = "",
     mode = "3d", // Add mode prop to determine base cost
     neededNeurons,
+    onImageClick = () => {},
   }: {
     onSend: (text: string) => void;
     onChangeInput?: (text: string) => void;
@@ -24,6 +25,7 @@
     placeholderName?: string;
     mode?: "2d" | "3d";
     neededNeurons?: number;
+    onImageClick?: () => void;
   } = $props();
 
   let prompt = $state("");
@@ -93,12 +95,11 @@
         autocomplete="off"
         inputmode="search"
         enterkeyhint="send"
-        autocorrect="off"
         autocapitalize="off"
         spellcheck="false"
         use:autoResize={180}
-        on:keydown={handleSubmit}
-        on:input={() => onChangeInput(prompt)}
+        onkeydown={handleSubmit}
+        oninput={() => onChangeInput(prompt)}
       ></textarea>
     {/if}
     {#if prompt.trim() === ""}
@@ -110,12 +111,20 @@
           }}
         />
       </div>
+      <button
+        class="chat-image-button"
+        title="이미지 생성"
+        aria-label="이미지 생성"
+        onclick={onImageClick}
+      >
+        <Icon icon="ci:image" width="24" height="24" />
+      </button>
     {:else}
       <button
         class="chat-send-button"
         class:is-disabled={isDisabled || isOverLimit}
         disabled={isOverLimit || isDisabled}
-        on:click={() => {
+        onclick={() => {
           if (prompt.trim() === "" || isOverLimit || isDisabled) return;
           onSend(prompt);
           prompt = "";
@@ -247,6 +256,24 @@
     background-color: var(--muted);
     color: var(--muted-foreground);
     cursor: not-allowed;
+  }
+
+  .chat-image-button {
+    position: absolute;
+    bottom: 7px;
+    right: 55px;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10;
+    transition:
+      background-color 0.2s ease,
+      opacity 0.2s ease;
   }
 
   .listening .chat-send-button {

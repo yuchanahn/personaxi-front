@@ -829,6 +829,11 @@
         .stat-divider {
             margin: 0 0.25rem;
         }
+
+        /* 하단에 네비 바 만큼 여백 주기 */
+        .profile-container {
+            margin-bottom: 5rem;
+        }
     }
     .scroll-container {
         height: 100%;

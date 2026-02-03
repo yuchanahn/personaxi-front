@@ -78,7 +78,8 @@
     "sendButton": "Send",
     "generateSituationImage": "✨ Generate Situation Image",
     "generatingImage": "Generating...",
-    "cost": "10 Neurons"
+    "cost": "10 Neurons",
+    "selectRatio": "Select Ratio"
   },
   "broadcastChatInput": {
     "placeholder": "Type your chat...",

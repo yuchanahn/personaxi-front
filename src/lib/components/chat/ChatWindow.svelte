@@ -667,7 +667,13 @@
   }
 
   let isGeneratingImage = false;
-  let showRatioOptions = false;
+  export let showRatioOptions = false;
+
+  $: if (showRatioOptions) {
+    tick().then(() => {
+      scrollToBottom();
+    });
+  }
 
   async function generateSituationImage(ratio: string) {
     if (isGeneratingImage || !persona) return;
@@ -787,15 +793,23 @@
       </div>
     {:else if item.type === "situation_trigger"}
       <div class="situation-trigger-wrapper">
-        {#if !showRatioOptions && !isGeneratingImage}
-          <button
+        {#if !showRatioOptions && !isGeneratingImage && persona?.static_portrait_url}
+          <!-- <button
             class="situation-btn"
             on:click={() => (showRatioOptions = true)}
           >
             {$t("chatInput.generateSituationImage")}
             <span class="cost-badge">({$t("chatInput.cost")})</span>
-          </button>
+          </button> -->
         {:else if showRatioOptions && !isGeneratingImage}
+          <div class="ratio-group-wrapper">
+            <span
+              >{$t("chatInput.generateSituationImage")} | {$t(
+                "chatInput.selectRatio",
+              )}</span
+            >
+            <span class="cost-badge">({$t("chatInput.cost")})</span>
+          </div>
           <div class="ratio-group">
             <!-- svelte-ignore a11y_consider_explicit_label -->
             <button

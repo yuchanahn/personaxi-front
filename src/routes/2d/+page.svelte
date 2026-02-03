@@ -139,6 +139,8 @@
 
     showModelSelector = false;
   };
+
+  let showRatioOptions = false;
 </script>
 
 {#if isSettingsModalOpen && persona}
@@ -174,6 +176,7 @@
       {autoScroll}
       SendMessage={send}
       {showBackground}
+      bind:showRatioOptions
     />
     <ChatInput
       onSend={send}
@@ -181,6 +184,9 @@
       placeholderName={persona?.name}
       mode="2d"
       neededNeurons={currentCost}
+      onImageClick={() => {
+        showRatioOptions = !showRatioOptions;
+      }}
     />
   </div>
 </main>

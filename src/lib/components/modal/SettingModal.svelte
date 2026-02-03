@@ -3,6 +3,7 @@
     import { createEventDispatcher, onDestroy, onMount } from "svelte";
     import { t } from "svelte-i18n";
     import Icon from "@iconify/svelte";
+    import NeuronIcon from "$lib/components/icons/NeuronIcon.svelte";
     import ReportModal from "$lib/components/modal/ReportModal.svelte";
     import { settings } from "$lib/stores/settings";
 
@@ -257,7 +258,8 @@
                     <h2>{$t("settingModal.title")}</h2>
                     <span class="neuron-balance">
                         {$t("settingModal.neuronBalance")}
-                        {user?.credits ?? 0} ⚡️
+                        {user?.credits ?? 0}
+                        <NeuronIcon size={14} />
                     </span>
                 </div>
                 <button
@@ -286,7 +288,7 @@
                             >
                                 {#each availableLLMs as llm (llm.id)}
                                     <option value={llm.id}
-                                        >{llm.name}⚡️{llm.cost}</option
+                                        >{llm.name} ({llm.cost}N)</option
                                     >
                                 {/each}
                             </select>
@@ -295,7 +297,8 @@
                             </div>
                         </div>
                         <p class="section-description">
-                            {$t("settingModal.costDisplay")} ⚡️{selectedLLM.cost}
+                            {$t("settingModal.costDisplay")}
+                            <NeuronIcon size={14} />{selectedLLM.cost}
                         </p>
                     </div>
                 {/if}
@@ -808,6 +811,9 @@
         font-size: 12px;
         color: var(--muted-foreground);
         margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 4px;
     }
 
     /* Inputs */
