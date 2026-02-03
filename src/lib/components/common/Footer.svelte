@@ -44,6 +44,10 @@
             <a href="/terms" class="hover:text-foreground transition-colors"
                 >{$t("legal.termsOfService")}</a
             >
+            <span class="opacity-20">|</span>
+            <a href="/licenses" class="hover:text-foreground transition-colors"
+                >{$t("legal.licensesAndCredits")}</a
+            >
 
             <div class="flex items-center gap-2 ml-2">
                 <a

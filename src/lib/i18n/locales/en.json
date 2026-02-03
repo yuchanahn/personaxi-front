@@ -855,5 +855,22 @@
       "event": "Event",
       "notice": "Notice"
     }
+  },
+  "footer": {
+    "companyName": "PersonaXi",
+    "address": "104-101, 306-15 Beonyeong-ro, Seobuk-gu, Cheonan-si, Chungcheongnam-do, Republic of Korea",
+    "ceo": "Representative: An Yu-chan",
+    "bizLicense": "Biz License: 628-14-02633",
+    "mailOrder": "E-Commerce: 2025-ChungnamCheonan-2452",
+    "phone": "Phone: 070-8064-0436",
+    "email": "Email: personaxi2025@gmail.com"
+  },
+  "legal": {
+    "privacyPolicy": "Privacy Policy",
+    "termsOfService": "Terms of Service",
+    "licensesAndCredits": "Licenses",
+    "chatLogConsent": "Chat Logs Consent",
+    "refundPolicy": "Refund Policy",
+    "title": "Policies"
   }
 }

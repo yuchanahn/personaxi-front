@@ -9,20 +9,18 @@
     export let isOpen: boolean = false;
     const dispatch = createEventDispatcher();
 
-    let expandedSection: "privacy" | "terms" | "chatLogs" | null = null;
+    let expandedSection: "privacy" | "terms" | null = null;
     let agreePrivacy = false;
     let agreeTerms = false;
-    let agreeChatLogs = false;
 
-    $: allAgreed = agreePrivacy && agreeTerms && agreeChatLogs;
-    $: someAgreed = agreePrivacy || agreeTerms || agreeChatLogs;
+    $: allAgreed = agreePrivacy && agreeTerms;
+    $: someAgreed = agreePrivacy || agreeTerms;
     $: isIndeterminate = !allAgreed && someAgreed;
 
     function handleToggleAll() {
         const newState = !allAgreed;
         agreePrivacy = newState;
         agreeTerms = newState;
-        agreeChatLogs = newState;
     }
 
     function handleConfirm() {
@@ -33,29 +31,24 @@
         }
     }
 
-    function toggleSection(section: "privacy" | "terms" | "chatLogs") {
+    function toggleSection(section: "privacy" | "terms") {
         expandedSection = expandedSection === section ? null : section;
     }
 
     // --- 동적 컨텐츠 로드 ---
     let privacyPolicyContent = "";
     let termsOfServiceContent = "";
-    let chatLogsConsentContent = "";
+
     onMount(() => {
-        async function loadContent(loc: string | null) {
+        async function loadContent(loc: string | null | undefined) {
             if (!loc) return;
             try {
-                const [termsModule, policyModule, logsModule] =
-                    await Promise.all([
-                        import(`$lib/i18n/locales/${loc}/terms.md?raw`),
-                        import(`$lib/i18n/locales/${loc}/policy.md?raw`),
-                        import(
-                            `$lib/i18n/locales/${loc}/privacy-chat-logs.md?raw`
-                        ),
-                    ]);
+                const [termsModule, policyModule] = await Promise.all([
+                    import(`$lib/i18n/locales/${loc}/terms.md?raw`),
+                    import(`$lib/i18n/locales/${loc}/policy.md?raw`),
+                ]);
                 termsOfServiceContent = marked(termsModule.default) as string;
                 privacyPolicyContent = marked(policyModule.default) as string;
-                chatLogsConsentContent = marked(logsModule.default) as string;
             } catch (e) {
                 console.error("Failed to load consent documents:", e);
             }
@@ -146,36 +139,6 @@
                         {#if expandedSection === "terms"}
                             <div class="agreement-content">
                                 {@html termsOfServiceContent}
-                            </div>
-                        {/if}
-                    </div>
-
-                    <div class="agreement-item">
-                        <div class="agreement-header">
-                            <label class="checkbox-label">
-                                <input
-                                    type="checkbox"
-                                    bind:checked={agreeChatLogs}
-                                />
-                                <span class="checkmark"></span>
-                                {$t("consentModal.agreeChatLogs")}
-                            </label>
-                            <button
-                                class="toggle-button"
-                                on:click={() => toggleSection("chatLogs")}
-                            >
-                                <span
-                                    class="toggle-icon-wrapper"
-                                    class:rotated={expandedSection ===
-                                        "chatLogs"}
-                                >
-                                    <Icon icon="mdi:chevron-down" />
-                                </span>
-                            </button>
-                        </div>
-                        {#if expandedSection === "chatLogs"}
-                            <div class="agreement-content">
-                                {@html chatLogsConsentContent}
                             </div>
                         {/if}
                     </div>

@@ -27,11 +27,7 @@ const defaultPolicy: PricingPolicy = {
         "gemini-flash-lite": 1.0,
         "gemini-pro": 2.0
     },
-    purchase_options: [
-        { neurons: 1000, price_krw: 1200, price_display: "₩1,200", item_id: "neuron_1000" },
-        { neurons: 5500, price_krw: 5900, price_display: "₩5,900", item_id: "neuron_5500" },
-        { neurons: 12000, price_krw: 12000, price_display: "₩12,000", item_id: "neuron_12000" }
-    ]
+    purchase_options: []
 };
 
 function createPricingStore() {

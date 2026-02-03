@@ -268,14 +268,14 @@
   "legal": {
     "privacyPolicy": "개인정보처리방침",
     "termsOfService": "이용약관",
-    "licensesAndCredits": "라이선스 · 뉴런",
+    "licensesAndCredits": "라이선스",
     "chatLogConsent": "채팅/로그 수집 동의",
     "refundPolicy": "환불 정책",
     "title": "정책"
   },
   "footer": {
     "companyName": "페르소나엑스아이",
-    "address": "충청남도 천안시 서북구 번영로 306-15, 104동 101호(백석동, 브라운스톤 천안)",
+    "address": "충청남도 천안시 서북구 번영로 306-15, 104 - 101",
     "ceo": "대표자: 안유찬",
     "bizLicense": "사업자등록번호: 628-14-02633",
     "mailOrder": "통신판매업신고번호: 2025-충남천안-2452",
@@ -284,19 +284,19 @@
   },
   "licenses": {
     "loadError": "라이선스 정보를 불러오는 데 실패했습니다.",
-    "pageTitle": "라이선스 및 뉴런 - [사이트/서비스 이름]"
+    "pageTitle": "라이선스 및 뉴런 - PersonaXi"
   },
   "policy": {
     "loadError": "개인정보처리방침을 불러오는 데 실패했습니다.",
-    "pageTitle": "개인정보처리방침 - [사이트/서비스 이름]"
+    "pageTitle": "개인정보처리방침 - PersonaXi"
   },
   "privacyChatLogs": {
     "loadError": "채팅 및 로그 수집 동의 정보를 불러오는 데 실패했습니다.",
-    "pageTitle": "채팅 및 로그 수집 동의 - [사이트/서비스 이름]"
+    "pageTitle": "채팅 및 로그 수집 동의 - PersonaXi"
   },
   "terms": {
     "loadError": "이용약관을 불러오는 데 실패했습니다.",
-    "pageTitle": "이용약관 - [사이트/서비스 이름]"
+    "pageTitle": "이용약관 - PersonaXi"
   },
   "tutorial": {
     "title": "튜토리얼",

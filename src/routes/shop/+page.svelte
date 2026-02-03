@@ -11,13 +11,6 @@
         "https://personaxi.lemonsqueezy.com/checkout/buy/37030093-8078-4bd9-bc76-9711cbac1f3e?embed=1";
     let selectedOption: any = null;
 
-    $: if (!selectedOption && $pricingStore.purchase_options.length > 0) {
-        selectedOption =
-            $pricingStore.purchase_options.length >= 2
-                ? $pricingStore.purchase_options[1]
-                : $pricingStore.purchase_options[0];
-    }
-
     function getCheckoutUrl(option: any) {
         if (!$user) return lemonSqueezyUrl;
         return `${lemonSqueezyUrl}&checkout[custom][user_id]=${$user.id}`;
@@ -66,7 +59,11 @@
     }, $pricingStore.purchase_options[0]);
 
     function getStandardPrice(neurons: number) {
-        return Math.floor(neurons / 10);
+        if ($pricingStore.purchase_options.length === 0) return 0;
+        const baseOption = $pricingStore.purchase_options[0];
+        // Calculate base rate (KRW per Neuron) from the smallest pack
+        const baseRate = baseOption.price_krw / baseOption.neurons;
+        return Math.floor(neurons * baseRate);
     }
 
     function getProductIconProps(index: number) {
@@ -172,11 +169,7 @@
                         </div>
 
                         <div class="price-group">
-                            {#if getBonusPercentage(option) > 0}
-                                <span class="percent"
-                                    >+{getBonusPercentage(option)}%</span
-                                >
-                            {/if}
+                            <!-- Percentage badge removed as per request -->
                             <div class="price-texts">
                                 {#if option.price_krw < getStandardPrice(option.neurons + (option.bonus_amount || 0))}
                                     <span class="old"
@@ -207,9 +200,6 @@
             </li>
             <li>
                 <span>{$t("shop.notice.cancel_desc")}</span>
-            </li>
-            <li>
-                <span>{$t("shop.notice.validity_desc")}</span>
             </li>
             <li>
                 <span>{$t("shop.notice.fee_desc")}</span>

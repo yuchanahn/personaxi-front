@@ -1,23 +1,64 @@
 # 라이선스 및 크레딧
 
-저희 [사이트/서비스 이름]은(는) 다양한 오픈소스 라이브러리와 VRM 모델을 활용하여 서비스를 제공하고 있습니다. 아래에서 사용된 리소스들의 라이선스 정보를 확인하실 수 있습니다.
+페르소나엑스아이(이하 '회사')는 아래의 오픈소스 소프트웨어와 기술을 활용합니다.
 
-## 1. 오픈소스 라이브러리 라이선스
+---
 
-*   **Svelte:** MIT License ([라이선스 전문](https://svelte.dev/license))
-*   **Three.js:** MIT License ([라이선스 전문](https://github.com/mrdoob/three.js/blob/master/LICENSE))
-*   **Vite:** MIT License ([라이선스 전문](https://github.com/vitejs/vite/blob/main/LICENSE))
+## 1. 프론트엔드 (MIT License)
+- Svelte / SvelteKit
+- Three.js
+- @pixiv/three-vrm
+- Tailwind CSS
+- Bits UI
+- Iconify
+- Marked
+- Socket.io-client
+- Supabase JS
+- PixiJS / pixi-live2d-display
 
-## 2. VRM 모델 사용 안내
+## 2. 백엔드
 
-저희 사이트에서 사용되는 VRM 모델들의 라이선스 정보입니다. 각 모델은 제작자의 명시된 라이선스 약관에 따라 사용되고 있습니다.
+| 소프트웨어 | 라이선스 |
+|:---|:---|
+| Go (Golang) | BSD 3-Clause |
+| Chi Router | MIT License |
+| Pgx | MIT License |
+| Godotenv | MIT License |
+| Gorilla WebSocket | BSD 2-Clause |
+| Chromem-go | Apache License 2.0 ※ |
 
-### '탐험가 제미니' 모델
+> **※ Apache 2.0 NOTICE 의무:** Chromem-go는 Apache License 2.0 하에 배포됩니다. 이 라이선스는 배포본과 함께 원본 저작권자의 NOTICE 파일을 유지하는 의무를 포함하며, 회사는 해당 NOTICE를 서비스 내 "Third-Party Notices" 섹션에 관리하고 있습니다.
 
-*   **모델 제작자:** AI Dev Team
-*   **모델 출처:** [모델_다운로드_혹은_구매_페이지_링크]
-*   **사용된 라이선스:** Creative Commons Attribution-ShareAlike 4.0 International (CC BY-SA 4.0) ([라이선스 전문](https://creativecommons.org/licenses/by-sa/4.0/deed.ko))
-*   **주요 제한 사항:**
-    *   수정 시 원본 라이선스와 동일한 조건으로 배포해야 합니다.
+## 3. Live2D & Graphics
 
-본 정보는 각 리소스의 라이선스 약관을 바탕으로 작성되었으며, 사용 전에 해당 라이선스의 전문을 반드시 확인하시길 권장합니다.
+본 서비스는 Live2D Inc.의 기술을 사용하며, 관련 권리는 해당 저작권자에게 있습니다.
+
+- **Live2D Cubism SDK:** Proprietary License (Live2D Open Software License)
+    - Copyright (c) Live2D Inc. All rights reserved.
+    - Live2D 및 Cubism은 주식회사 Live2D의 등록 상표입니다.
+
+## 4. 폰트 및 리소스
+
+- **Pretendard:** SIL Open Font License 1.1
+- **VRM 모델:** 기본 캐릭터는 회사 제작 또는 허용된 라이선스 하에 제공되며, 사용자 업로드 모델의 저작권은 해당 사용자에게 있습니다. 회사는 사용자 업로드 모델에 대한 소유권을 주장하지 않습니다.
+
+---
+
+## 라이선스 종류별 안내
+
+| 라이선스 | 상업 이용 | 수정 가능 | 특수 조건 |
+|:---|:---|:---|:---|
+| MIT License | ✅ | ✅ | 저작권 표기 유지 |
+| BSD 2-Clause | ✅ | ✅ | 저작권 표기 유지 |
+| BSD 3-Clause | ✅ | ✅ | 저작권 표기 유지, 제품명 사용 제한 |
+| Apache 2.0 | ✅ | ✅ | NOTICE 파일 유지 필수 |
+| SIL OFL 1.1 | ✅ | ✅ | 폰트 이름 변경 시 별도 라이선스 필요 |
+
+---
+
+**Notice:**
+1. 본 서비스에서 사용하는 모든 오픈소스 라이브러리의 상세 라이선스 전문은 각 소프트웨어 배포본 내부의 라이선스 파일 또는 공식 저장소에서 확인하실 수 있습니다.
+2. 저작권 침해(DMCA) 관련 신고는 아래 절차에 따라 접수하세요:
+   - **신고 이메일:** support@personaxi.com
+   - **필요 정보:** ① 침해된 저작물의 특정 정보 ② 침해 콘텐츠의 위치(URL 등) ③ 신고자의 연락처 및 본인 확인 정보
+3. 회사는 DMCA 신고를 수신한 후, 신속하게 검토하여 적절한 조치를 취하겠습니다.
