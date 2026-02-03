@@ -184,6 +184,7 @@
       placeholderName={persona?.name}
       mode="2d"
       neededNeurons={currentCost}
+      hasStaticImage={!!persona?.static_portrait_url}
       onImageClick={() => {
         showRatioOptions = !showRatioOptions;
       }}

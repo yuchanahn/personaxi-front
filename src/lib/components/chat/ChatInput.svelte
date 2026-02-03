@@ -16,6 +16,7 @@
     placeholderName = "",
     mode = "3d", // Add mode prop to determine base cost
     neededNeurons,
+    hasStaticImage = false,
     onImageClick = () => {},
   }: {
     onSend: (text: string) => void;
@@ -25,6 +26,7 @@
     placeholderName?: string;
     mode?: "2d" | "3d";
     neededNeurons?: number;
+    hasStaticImage?: boolean;
     onImageClick?: () => void;
   } = $props();
 
@@ -111,14 +113,16 @@
           }}
         />
       </div>
-      <button
-        class="chat-image-button"
-        title="이미지 생성"
-        aria-label="이미지 생성"
-        onclick={onImageClick}
-      >
-        <Icon icon="ci:image" width="24" height="24" />
-      </button>
+      {#if hasStaticImage}
+        <button
+          class="chat-image-button"
+          title="이미지 생성"
+          aria-label="이미지 생성"
+          onclick={onImageClick}
+        >
+          <Icon icon="ci:image" width="24" height="24" />
+        </button>
+      {/if}
     {:else}
       <button
         class="chat-send-button"
