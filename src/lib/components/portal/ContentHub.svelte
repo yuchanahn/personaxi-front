@@ -506,7 +506,7 @@
                     on:click={handleNeuronClick}
                     title={$t("shop.title") || "Recharge Neurons"}
                 >
-                    <NeuronIcon size={20} color="#fbbf24" variant="simple" />
+                    <NeuronIcon size={20} color="#fbbf24" variant="standard" />
                     <span class="balance-text">
                         {$st_user?.credits?.toLocaleString() || 0}
                     </span>
