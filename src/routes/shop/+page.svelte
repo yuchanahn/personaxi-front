@@ -267,6 +267,7 @@
 
     header {
         margin-bottom: 48px;
+        text-align: center;
     }
 
     h1 {

@@ -320,7 +320,7 @@
     import CharacterCard from "$lib/components/card/CharacterCard.svelte";
     import { loadLikedContent, loadFollowedContent } from "$lib/api/content";
 
-    let activeTab: "profile" | "created" | "liked" | "following" = "created";
+    let activeTab: "profile" | "created" | "liked" | "following" = "profile";
     let likedPersonas: any[] = [];
     let followedPersonas: any[] = [];
     let isLoadingTab = false;
@@ -933,8 +933,9 @@
        HEADER
        ============================================ */
     .page-header {
+        position: relative;
         display: flex;
-        justify-content: space-between;
+        justify-content: center;
         align-items: center;
         padding: 1.5rem 0 1rem;
         border-bottom: 1px solid var(--border);
@@ -944,9 +945,12 @@
         font-size: 1.75rem;
         font-weight: 700;
         margin: 0;
+        text-align: center;
     }
 
     .header-actions {
+        position: absolute;
+        right: 0;
         display: flex;
         gap: 0.5rem;
     }

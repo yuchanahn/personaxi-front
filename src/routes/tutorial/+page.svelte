@@ -19,7 +19,12 @@
 <style>
     .tutorial-container {
         padding: 2rem;
+        text-align: center;
         /* 페이지 전체적인 레이아웃 설정 */
+    }
+
+    h1 {
+        margin-bottom: 1rem;
     }
 
     .notion-iframe-wrapper {

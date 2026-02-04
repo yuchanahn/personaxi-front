@@ -56,10 +56,10 @@
 
     .page-header {
         display: flex;
-        justify-content: space-between;
+        justify-content: center;
         align-items: center;
         margin-bottom: 1.5rem;
-        margin-left: 2.5rem; /* 뒤로가기 버튼 공간 확보 */
+        position: relative;
     }
 
     .page-header h1 {
