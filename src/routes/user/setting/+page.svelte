@@ -1051,7 +1051,7 @@
     .persona-grid {
         display: grid;
         grid-template-columns: repeat(auto-fit, minmax(145px, 1fr));
-        gap: 1rem;
+        gap: 0.4rem;
     }
     .persona-card {
         position: relative;

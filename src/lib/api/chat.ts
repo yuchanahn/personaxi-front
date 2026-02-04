@@ -134,7 +134,7 @@ export async function deleteChatHistory(sessionId: string) {
 
 
 
-export async function sendPromptStream(cid: string, prompt: string, type?: string, onDone?: () => void, onEmotion?: (emotion: string) => void) {
+export async function sendPromptStream(cid: string, prompt: string, type?: string, onDone?: () => void, onEmotion?: (emotion: string) => void, onError?: (error: any) => void) {
     if (!prompt.trim()) return;
     messages.update((m) => [...m, { role: 'user', content: prompt }]);
 
@@ -143,7 +143,6 @@ export async function sendPromptStream(cid: string, prompt: string, type?: strin
     if (cid === "1" || cid === null) {
         cid = "";
     }
-
     impl_sendPromptStream(prompt, cid, (data) => {
         // Check if data is emotion JSON
         try {
@@ -165,6 +164,7 @@ export async function sendPromptStream(cid: string, prompt: string, type?: strin
                 }
             }
         } catch (e) {
+            onError?.(e);
             // Not JSON or parsing failed, treat as text
         }
 
@@ -189,7 +189,7 @@ export async function sendPromptStream(cid: string, prompt: string, type?: strin
             //    goto(`/chat?c=${cssid}`);
             //}
         }
-    }, type).then(() => {
+    }, type, onError).then(() => {
         onDone?.();
         console.log(aiText)
     });
@@ -201,6 +201,7 @@ export async function impl_sendPromptStream(
     onData: (data: string) => void,
     onCSSID?: (cssid: string) => void,
     type?: string,
+    onError?: (error: any) => void,
 ): Promise<void> {
     if (!prompt.trim()) return;
 
@@ -214,8 +215,8 @@ export async function impl_sendPromptStream(
 
     if (response.status === 402) {
         showNeedMoreNeuronsModal()
-
-        console.log("showNeedMoreNeuronsModal()")
+        onError?.(new Error("Not enough neurons"));
+        return;
     }
 
     const reader = response.body?.getReader();

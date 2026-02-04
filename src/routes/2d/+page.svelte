@@ -68,7 +68,7 @@
 
   let isLoading = false;
   let isDisabled = false;
-  const send = async (prompt: string) => {
+  const send = async (prompt: string, onError?: (error: any) => void) => {
     if (isLoading || isDisabled) return;
 
     const sessionId = $page.url.searchParams.get("c");
@@ -81,12 +81,24 @@
       return u;
     });
 
+    let ErrorHandler = (error: any) => {
+      onError?.(error);
+      loadChatHistory(sessionId ?? "");
+    };
+
     isLoading = true;
     isDisabled = true;
-    await sendPromptStream(sessionId ?? "", prompt, "2d", () => {
-      isDisabled = false;
-      isLoading = false;
-    });
+    await sendPromptStream(
+      sessionId ?? "",
+      prompt,
+      "2d",
+      () => {
+        isDisabled = false;
+        isLoading = false;
+      },
+      undefined,
+      ErrorHandler,
+    );
   };
 
   import { settings } from "$lib/stores/settings";

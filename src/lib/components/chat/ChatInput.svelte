@@ -7,6 +7,8 @@
 
   import { pricingStore } from "$lib/stores/pricing";
   import { get } from "svelte/store";
+  import { toast } from "$lib/stores/toast";
+  import { loadChatHistory } from "$lib/api/chat";
 
   let {
     onSend,
@@ -19,7 +21,7 @@
     hasStaticImage = false,
     onImageClick = () => {},
   }: {
-    onSend: (text: string) => void;
+    onSend: (text: string, onError?: (error: any) => void) => void;
     onChangeInput?: (text: string) => void;
     isDisabled?: boolean;
     isListening?: boolean;
@@ -44,14 +46,30 @@
         : $pricingStore.costs.chat_2d,
   );
 
+  function SendPrompt() {
+    if (prompt.trim() === "" || isOverLimit || isDisabled) return;
+    let sendSuccess = true;
+    let capturedPrompt = prompt;
+    onSend(prompt, (error) => {
+      sendSuccess = false;
+      prompt = capturedPrompt;
+    });
+    if (!sendSuccess) return;
+    prompt = "";
+
+    setTimeout(() => {
+      document
+        .querySelector(".chat-input")
+        ?.scrollIntoView({ behavior: "smooth", block: "end" });
+    }, 100);
+  }
+
   function handleSubmit(e: KeyboardEvent) {
     if (isDisabled || isOverLimit) return;
 
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
-      if (prompt.trim() === "") return;
-      onSend(prompt);
-      prompt = "";
+      SendPrompt();
 
       const textarea = e.currentTarget as HTMLTextAreaElement;
       textarea.style.height = "auto";
@@ -109,7 +127,8 @@
         <SttComponent
           bind:isListening
           onSpeechComplete={(text) => {
-            if (!isDisabled) onSend(text);
+            prompt = text;
+            if (!isDisabled) SendPrompt();
           }}
         />
       </div>
@@ -129,9 +148,7 @@
         class:is-disabled={isDisabled || isOverLimit}
         disabled={isOverLimit || isDisabled}
         onclick={() => {
-          if (prompt.trim() === "" || isOverLimit || isDisabled) return;
-          onSend(prompt);
-          prompt = "";
+          SendPrompt();
         }}
         title={$t("chatInput.sendButton")}
         aria-label={$t("chatInput.sendButton")}

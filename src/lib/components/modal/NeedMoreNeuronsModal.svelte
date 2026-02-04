@@ -9,6 +9,14 @@
     // import { toast } from "$lib/stores/toast";
     import { pricingStore } from "$lib/stores/pricing";
     import { fly, fade } from "svelte/transition";
+    import { page } from "$app/stores";
+
+    // Check if we are in a chat-like page where navbar is hidden or overlayed
+    $: isChatPage =
+        $page.url.pathname.startsWith("/chat") ||
+        $page.url.pathname.startsWith("/2d") ||
+        $page.url.pathname.startsWith("/live2d") ||
+        $page.url.pathname.startsWith("/character");
 
     // 부모 컴포넌트로부터 모달 가시성 상태를 양방향으로 바인딩합니다.
     export let isOpen: boolean = false;
@@ -167,6 +175,7 @@
     <!-- svelte-ignore a11y_no_static_element_interactions -->
     <div
         class="modal-backdrop"
+        class:chat-mode={isChatPage}
         on:click|self={closeModal}
         transition:fade={{ duration: 200 }}
     >
@@ -381,6 +390,10 @@
         ); /* Lift up for navbar */
         z-index: 2000;
         backdrop-filter: blur(8px);
+    }
+
+    .modal-backdrop.chat-mode {
+        padding-bottom: env(safe-area-inset-bottom);
     }
 
     .modal-content {
