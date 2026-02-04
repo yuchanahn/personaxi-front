@@ -772,44 +772,6 @@
         gap: 0.5rem;
     }
 
-    .nav-label,
-    .nav-label-btn {
-        color: var(--muted-foreground); /* Default to muted */
-        font-size: 1rem;
-        font-weight: 500;
-        margin-right: 0.2rem;
-        transition:
-            color 0.2s,
-            text-shadow 0.2s;
-
-        background: none;
-        border: none;
-        padding: 0;
-        cursor: pointer;
-        white-space: nowrap; /* Prevent wrapping */
-        flex-shrink: 0;
-    }
-
-    .nav-label.active,
-    .nav-label-btn.active {
-        color: var(--foreground);
-        font-weight: 700;
-        text-shadow: 0 0 8px rgba(255, 255, 255, 0.5);
-    }
-
-    .reset-cat {
-        background: none;
-        border: none;
-        color: var(--muted-foreground);
-        cursor: pointer;
-        padding: 0;
-        display: flex;
-        align-items: center;
-    }
-    .reset-cat:hover {
-        color: var(--destructive);
-    }
-
     .category-toggle-btn {
         background: none;
         border: none;
@@ -998,10 +960,6 @@
         color: var(--foreground);
         padding: 0.5rem;
         cursor: pointer;
-    }
-
-    .install-button {
-        display: none;
     }
 
     .neuron-balance-chip {

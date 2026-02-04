@@ -37,26 +37,20 @@
     >
         <!-- Header -->
         <div
-            class="flex items-center justify-between p-4 border-b"
+            class="grid grid-cols-5 items-center p-4 border-b"
             style="border-color: var(--border);"
         >
+            <div class="col-span-1 flex justify-start"></div>
+
             <h2
-                class="text-lg font-semibold flex items-center gap-2"
+                class="col-span-3 text-lg font-semibold flex items-center justify-center gap-2 whitespace-nowrap"
                 style="color: var(--foreground);"
             >
-                <Icon icon="lucide:bell" class="w-5 h-5" />
-                {$t("notifications.title")}
+                <Icon icon="lucide:bell" class="w-5 h-5 flex-shrink-0" />
+                <span class="truncate">{$t("notifications.title")}</span>
             </h2>
-            <div class="flex items-center gap-2">
-                <!-- 
-                <button 
-                    class="p-2 text-gray-500 hover:text-blue-500 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
-                    title="Mark all as read"
-                    on:click={markAllRead}
-                >
-                    <Icon icon="lucide:check-check" class="w-5 h-5" />
-                </button>
-                -->
+
+            <div class="col-span-1 flex justify-end">
                 <button
                     class="p-2 text-gray-500 hover:text-red-500 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
                     on:click={close}
@@ -67,8 +61,25 @@
         </div>
 
         <!-- Content -->
-        <div class="flex-1 overflow-hidden">
+        <div class="flex-1 overflow-y-auto drawer-content">
             <NotificationList />
         </div>
     </div>
 {/if}
+
+<style>
+    /* 하단 네비바 가림 방지 패딩 */
+    .drawer-content {
+        padding-bottom: 2rem; /* 데스크톱 기본값 */
+    }
+
+    @media (max-width: 768px) {
+        .drawer-content {
+            /* 네비바 높이(약 70px) + 여유공간 1rem */
+            padding-bottom: calc(
+                70px + 1rem + env(safe-area-inset-bottom)
+            ) !important;
+            box-sizing: border-box;
+        }
+    }
+</style>

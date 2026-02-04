@@ -77,6 +77,12 @@
     let originalUser: User | null = null;
     let isPWA = false;
 
+    function logoutHandler() {
+        if (confirm("정말 로그아웃 하시겠습니까?")) {
+            logout();
+        }
+    }
+
     onMount(async () => {
         if (typeof window !== "undefined") {
             const isStandalone = window.matchMedia(
@@ -619,19 +625,19 @@
                                         </button>
                                     </div> -->
                                     <div class="enhanced-actions">
+                                        <div class="bottom-utility-row">
+                                            <button
+                                                class="logout-link-btn"
+                                                on:click={logoutHandler}
+                                            >
+                                                <Icon
+                                                    icon="tabler:logout"
+                                                    width="18"
+                                                />
+                                                <span>로그아웃</span>
+                                            </button>
+                                        </div>
                                         {#if !isPWA}
-                                            <div class="bottom-utility-row">
-                                                <button
-                                                    class="logout-link-btn"
-                                                    on:click={logout}
-                                                >
-                                                    <Icon
-                                                        icon="tabler:logout"
-                                                        width="18"
-                                                    />
-                                                    <span>로그아웃</span>
-                                                </button>
-                                            </div>
                                             <button
                                                 class="install-banner-btn"
                                                 on:click={() =>
@@ -1642,6 +1648,10 @@
         .content-grid {
             grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
             gap: 0.75rem;
+        }
+
+        .content-area {
+            padding-bottom: 80px;
         }
     }
 
