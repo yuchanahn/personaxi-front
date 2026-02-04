@@ -14,7 +14,7 @@
     import { page } from "$app/stores";
 
     let noticeContent = "";
-    let isNoticeOpen = false;
+    let isNoticeOpen = true;
 
     $: loc = $locale || "en";
     $: if (loc) {
@@ -214,13 +214,13 @@
             </div>
 
             <!-- Description -->
-            <p class="description">
+            <!-- <p class="description">
                 {#if isNeedNeurons}
                     {$t("needNeuronsModal.description")}
                 {:else}
                     {$t("needNeuronsModal.rechargeDescription")}
                 {/if}
-            </p>
+            </p> -->
 
             <!-- Scrollable Content -->
             <div class="modal-body">
@@ -455,7 +455,7 @@
         .modal-content {
             border-radius: 24px;
             border-bottom: 1px solid var(--border);
-            max-height: 80vh;
+            max-height: 90vh;
         }
     }
 
@@ -558,7 +558,7 @@
         border: 1px solid transparent; /* Default transparent */
         border-color: transparent !important; /* Force transparent */
         border-radius: 16px;
-        padding: 16px;
+        padding: 5px 7px;
         cursor: pointer;
         transition: all 0.2s cubic-bezier(0.25, 0.1, 0.25, 1);
         width: 100%;
@@ -567,7 +567,7 @@
 
     @media (max-width: 768px) {
         .pricing-row {
-            padding: 12px;
+            padding: 5px 7px;
         }
         .pricing-list {
             gap: 5px;
@@ -681,13 +681,13 @@
         border-top: 1px solid var(--border);
         display: flex;
         flex-direction: column;
-        gap: 16px;
+        gap: 3px;
     }
 
     .policy-agreement {
         display: flex;
         justify-content: center;
-        margin-bottom: 4px;
+        margin-bottom: 1px;
         width: 100%;
     }
 
@@ -744,7 +744,7 @@
         align-items: center;
         font-size: 0.85rem;
         color: var(--muted-foreground);
-        margin-bottom: 12px;
+        margin-bottom: 2px;
     }
 
     .current-balance strong {
@@ -756,7 +756,7 @@
         background: var(--primary);
         color: var(--primary-foreground);
         border: none;
-        padding: 16px;
+        padding: 12px;
         border-radius: 16px;
         font-size: 1rem;
         font-weight: 700;

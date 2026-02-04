@@ -12,6 +12,7 @@
     import { writable } from "svelte/store";
     import { t } from "svelte-i18n";
     import CharacterCard from "../card/CharacterCard.svelte";
+    import NeuronIcon from "$lib/components/icons/NeuronIcon.svelte";
     import ContentCarousel from "./ContentCarousel.svelte";
     import Icon from "@iconify/svelte";
     import { allCategories } from "$lib/constants";
@@ -381,6 +382,15 @@
         goto(`/profile?c=${content.id}`);
     }
 
+    function handleNeuronClick() {
+        const user = get(st_user);
+        if (!user || !user.id) {
+            goto("/login");
+            return;
+        }
+        showNeedMoreNeuronsModal(false);
+    }
+
     function toggleCategory() {
         isCategoryExpanded = !isCategoryExpanded;
     }
@@ -425,111 +435,117 @@
 
     <!-- Header Section -->
     <div class="header-section">
-        <div class="left-controls">
-            <!-- Navigation Tabs -->
-            <div class="nav-tabs">
-                <!-- Home button removed per user request -->
-                <!-- <button
-                    class="nav-tab"
-                    class:active={activeTab === "home"}
-                    on:click={() => setActiveTab("home")}
-                >
-                    {$t("contentHub.nav.home")}
-                </button>
-                <div class="tab-separator">|</div> -->
-                <button
-                    class="nav-tab"
-                    class:active={activeTab === "character"}
-                    on:click={() => setActiveTab("character")}
-                >
-                    {$t("contentHub.nav.character")}
-                </button>
-                <div class="tab-separator">|</div>
-                <button
-                    class="nav-tab"
-                    class:active={activeTab === "story"}
-                    on:click={() => setActiveTab("story")}
-                >
-                    {$t("contentHub.nav.story")}
-                </button>
-                <div class="tab-separator">|</div>
-                <div class="companion-group">
-                    <button
-                        class="nav-label-btn"
-                        class:active={activeTab === "2d" || activeTab === "3d"}
-                        on:click={() => setActiveTab("2d")}
+        <div
+            class="header-content max-w-screen-xl mx-auto w-full flex items-start justify-between"
+        >
+            <div class="left-controls pt-1.5">
+                <!-- Navigation Tabs -->
+                <div class="nav-tabs">
+                    <!-- Home button removed per user request -->
+                    <!-- <button
+                        class="nav-tab"
+                        class:active={activeTab === "home"}
+                        on:click={() => setActiveTab("home")}
                     >
-                        {$t("contentHub.nav.companion")}
+                        {$t("contentHub.nav.home")}
                     </button>
+                    <div class="tab-separator">|</div> -->
                     <button
                         class="nav-tab"
-                        class:active={activeTab === "2d"}
-                        on:click={() => setActiveTab("2d")}
+                        class:active={activeTab === "character"}
+                        on:click={() => setActiveTab("character")}
                     >
-                        {$t("contentHub.nav.2d")}
+                        {$t("contentHub.nav.character")}
                     </button>
+                    <div class="tab-separator">|</div>
                     <button
                         class="nav-tab"
-                        class:active={activeTab === "3d"}
-                        on:click={() => setActiveTab("3d")}
+                        class:active={activeTab === "story"}
+                        on:click={() => setActiveTab("story")}
                     >
-                        {$t("contentHub.nav.3d")}
+                        {$t("contentHub.nav.story")}
                     </button>
+                    <div class="tab-separator">|</div>
+                    <div class="companion-group">
+                        <button
+                            class="nav-label-btn"
+                            class:active={activeTab === "2d" ||
+                                activeTab === "3d"}
+                            on:click={() => setActiveTab("2d")}
+                        >
+                            {$t("contentHub.nav.companion")}
+                        </button>
+                        <button
+                            class="nav-tab"
+                            class:active={activeTab === "2d"}
+                            on:click={() => setActiveTab("2d")}
+                        >
+                            {$t("contentHub.nav.2d")}
+                        </button>
+                        <button
+                            class="nav-tab"
+                            class:active={activeTab === "3d"}
+                            on:click={() => setActiveTab("3d")}
+                        >
+                            {$t("contentHub.nav.3d")}
+                        </button>
+                    </div>
                 </div>
+
+                {#if selectedCategory}
+                    <div class="current-category">
+                        <!-- filtered chips handled below -->
+                    </div>
+                {/if}
             </div>
 
-            {#if selectedCategory}
-                <div class="current-category">
-                    <!-- filtered chips handled below -->
-                </div>
-            {/if}
-        </div>
-
-        <div class="right-controls">
-            <!-- Neuron Balance Chip (Wallet Pattern) -->
-            <button
-                class="neuron-balance-chip"
-                on:click={() => showNeedMoreNeuronsModal(false)}
-                title={$t("shop.title") || "Recharge Neurons"}
-            >
-                <Icon
-                    icon="material-symbols:bolt-rounded"
-                    class="neuron-icon"
-                    width="20"
-                    height="20"
-                />
-                <span class="balance-text">
-                    {$st_user?.credits?.toLocaleString() || 0}
-                </span>
-            </button>
-
-            <!-- Only show filtering options if NOT in Home mode (Home has curated lists) -->
-            {#if activeTab !== "home"}
+            <div class="right-controls">
+                <!-- Neuron Balance Chip (Wallet Pattern) -->
                 <button
-                    class="category-toggle-btn"
-                    on:click={toggleCategory}
-                    aria-label={$t("contentHub.toggleCategories")}
+                    class="neuron-balance-chip"
+                    on:click={handleNeuronClick}
+                    title={$t("shop.title") || "Recharge Neurons"}
                 >
-                    <div class="icon-wrapper">
-                        <Icon icon="mdi:tune-variant" width="24" height="24" />
-                    </div>
+                    <NeuronIcon size={20} color="#fbbf24" variant="simple" />
+                    <span class="balance-text">
+                        {$st_user?.credits?.toLocaleString() || 0}
+                    </span>
                 </button>
-            {/if}
-        </div>
-        <div class="second-right-controls">
-            <button
-                class="search-trigger-button"
-                on:click={() => (isSearchModalOpen = true)}
-            >
-                <Icon icon="mdi:magnify" width="24" height="24" />
-            </button>
+
+                <!-- Search Button -->
+                <div class="row-controls">
+                    <button
+                        class="search-trigger-button"
+                        on:click={() => (isSearchModalOpen = true)}
+                    >
+                        <Icon icon="mdi:magnify" width="24" height="24" />
+                    </button>
+
+                    <!-- Only show filtering options if NOT in Home mode (Home has curated lists) -->
+                    {#if activeTab !== "home"}
+                        <button
+                            class="category-toggle-btn"
+                            on:click={toggleCategory}
+                            aria-label={$t("contentHub.toggleCategories")}
+                        >
+                            <div class="icon-wrapper">
+                                <Icon
+                                    icon="mdi:tune-variant"
+                                    width="24"
+                                    height="24"
+                                />
+                            </div>
+                        </button>
+                    {/if}
+                </div>
+            </div>
         </div>
     </div>
 
     <!-- Collapsible Category Bar (Only for List Views) -->
     {#if isCategoryExpanded && activeTab !== "home"}
         <div class="category-panel" transition:slide={{ duration: 300 }}>
-            <div class="category-grid">
+            <div class="category-grid max-w-screen-xl mx-auto w-full">
                 <button
                     class="cat-chip"
                     class:active={selectedCategory === null}
@@ -551,110 +567,113 @@
     {/if}
 
     <div class="hub-container">
-        <!-- HOME DASHBOARD VIEW -->
-        {#if activeTab === "home"}
-            <!-- Section 1: New Arrivals -->
-            <ContentCarousel
-                title={$t("content.newArrivals")}
-                contents={$newContents}
-                isLoading={$isNewLoading}
-                hasMore={hasMoreNew}
-                on:select={(e) => handleCardClick(e.detail)}
-                on:loadMore={() => handleLoadMore("new")}
-            />
+        <div class="hub-content max-w-screen-xl mx-auto w-full">
+            <!-- HOME DASHBOARD VIEW -->
+            <!-- If we are in home tab AND NOT searching/filtering, show dashboard -->
+            {#if activeTab === "home" && !selectedCategory}
+                <!-- Section 1: New Arrivals -->
+                <ContentCarousel
+                    title={$t("content.newArrivals")}
+                    contents={$newContents}
+                    isLoading={$isNewLoading}
+                    hasMore={hasMoreNew}
+                    on:select={(e) => handleCardClick(e.detail)}
+                    on:loadMore={() => handleLoadMore("new")}
+                />
 
-            <!-- Section 2: Popular -->
-            <ContentCarousel
-                title={$t("content.todaysPopular")}
-                contents={$popularContents}
-                isLoading={$isPopularLoading}
-                hasMore={hasMorePopular}
-                on:select={(e) => handleCardClick(e.detail)}
-                on:loadMore={() => handleLoadMore("popular")}
-            />
+                <!-- Section 2: Popular -->
+                <ContentCarousel
+                    title={$t("content.todaysPopular")}
+                    contents={$popularContents}
+                    isLoading={$isPopularLoading}
+                    hasMore={hasMorePopular}
+                    on:select={(e) => handleCardClick(e.detail)}
+                    on:loadMore={() => handleLoadMore("popular")}
+                />
 
-            <!-- Section 3: Fantasy -->
-            <ContentCarousel
-                title={$t("content.fantasy")}
-                contents={$fantasyContents}
-                isLoading={$isFantasyLoading}
-                hasMore={false}
-                on:select={(e) => handleCardClick(e.detail)}
-                on:loadMore={() => {}}
-            />
+                <!-- Section 3: Fantasy -->
+                <ContentCarousel
+                    title={$t("content.fantasy")}
+                    contents={$fantasyContents}
+                    isLoading={$isFantasyLoading}
+                    hasMore={false}
+                    on:select={(e) => handleCardClick(e.detail)}
+                    on:loadMore={() => {}}
+                />
 
-            <!-- Section 4: Live2D -->
-            <ContentCarousel
-                title={$t("content.live2dTitle")}
-                contents={$live2dContents}
-                isLoading={$isLive2dLoading}
-                hasMore={hasMoreLive2d}
-                emptyMessage="No Live2D models found."
-                on:select={(e) => handleCardClick(e.detail)}
-                on:loadMore={() => handleLoadMore("live2d")}
-            />
+                <!-- Section 4: Live2D -->
+                <ContentCarousel
+                    title={$t("content.live2dTitle")}
+                    contents={$live2dContents}
+                    isLoading={$isLive2dLoading}
+                    hasMore={hasMoreLive2d}
+                    emptyMessage="No Live2D models found."
+                    on:select={(e) => handleCardClick(e.detail)}
+                    on:loadMore={() => handleLoadMore("live2d")}
+                />
 
-            <!-- Section 5: VRM -->
-            <ContentCarousel
-                title={$t("content.vrmTitle")}
-                contents={$vrmContents}
-                isLoading={$isVrmLoading}
-                hasMore={hasMoreVrm}
-                emptyMessage="No VRM models found."
-                on:select={(e) => handleCardClick(e.detail)}
-                on:loadMore={() => handleLoadMore("vrm")}
-            />
-        {:else}
-            <!-- LIST VIEW (Character / Story / Filtered) -->
-            <section class="hub-section full-height">
-                <div class="section-header">
-                    <h3>
-                        {#if selectedCategory === "search"}
-                            {$t("contentHub.searchResult", {
-                                values: { query },
-                            })}
-                        {:else if selectedCategory === "following"}
-                            {$t("contentHub.following")}
-                        {:else if selectedCategory === "liked"}
-                            {$t("contentHub.liked")}
-                        {:else if selectedCategory}
-                            {$t(selectedCategory)}
-                        {:else}
-                            {$t(`contentHub.nav.${activeTab}`)}
-                        {/if}
-                    </h3>
-                    <div class="sort-controls">
-                        <button
-                            class:active={currentSort === "latest"}
-                            on:click={() => changeSort("latest")}
-                            >{$t("sort.latest")}</button
-                        >
-                        <button
-                            class:active={currentSort === "popular"}
-                            on:click={() => changeSort("popular")}
-                            >{$t("sort.popular")}</button
-                        >
+                <!-- Section 5: VRM -->
+                <ContentCarousel
+                    title={$t("content.vrmTitle")}
+                    contents={$vrmContents}
+                    isLoading={$isVrmLoading}
+                    hasMore={hasMoreVrm}
+                    emptyMessage="No VRM models found."
+                    on:select={(e) => handleCardClick(e.detail)}
+                    on:loadMore={() => handleLoadMore("vrm")}
+                />
+            {:else}
+                <!-- LIST VIEW (Character / Story / Filtered) -->
+                <section class="hub-section full-height">
+                    <div class="section-header">
+                        <h3>
+                            {#if selectedCategory === "search"}
+                                {$t("contentHub.searchResult", {
+                                    values: { query },
+                                })}
+                            {:else if selectedCategory === "following"}
+                                {$t("contentHub.following")}
+                            {:else if selectedCategory === "liked"}
+                                {$t("contentHub.liked")}
+                            {:else if selectedCategory}
+                                {$t(selectedCategory)}
+                            {:else}
+                                {$t(`contentHub.nav.${activeTab}`)}
+                            {/if}
+                        </h3>
+                        <div class="sort-controls">
+                            <button
+                                class:active={currentSort === "latest"}
+                                on:click={() => changeSort("latest")}
+                                >{$t("sort.latest")}</button
+                            >
+                            <button
+                                class:active={currentSort === "popular"}
+                                on:click={() => changeSort("popular")}
+                                >{$t("sort.popular")}</button
+                            >
+                        </div>
                     </div>
-                </div>
 
-                {#if $isLoading}
-                    <div class="center-message">Loading...</div>
-                {:else if $contents.length === 0}
-                    <div class="center-message">
-                        {$t("contentHub.noResults")}
-                    </div>
-                {:else}
-                    <div class="content flex-grid">
-                        {#each $contents as content (content.id)}
-                            <CharacterCard
-                                {content}
-                                on:click={() => handleCardClick(content)}
-                            />
-                        {/each}
-                    </div>
-                {/if}
-            </section>
-        {/if}
+                    {#if $isLoading}
+                        <div class="center-message">Loading...</div>
+                    {:else if $contents.length === 0}
+                        <div class="center-message">
+                            {$t("contentHub.noResults")}
+                        </div>
+                    {:else}
+                        <div class="content flex-grid">
+                            {#each $contents as content (content.id)}
+                                <CharacterCard
+                                    {content}
+                                    on:click={() => handleCardClick(content)}
+                                />
+                            {/each}
+                        </div>
+                    {/if}
+                </section>
+            {/if}
+        </div>
     </div>
     {#if activeTab === "home"}
         <Footer />
@@ -690,15 +709,13 @@
         gap: 1.5rem;
         padding-left: 2.5rem;
     }
+
     .right-controls {
         display: flex;
         align-items: center;
         gap: 1rem;
-    }
-    .second-right-controls {
-        display: flex;
-        align-items: center;
-        gap: 1rem;
+        flex-direction: column;
+        align-items: flex-end;
     }
 
     /* --- Navigation Tabs --- */
@@ -890,40 +907,10 @@
         font-weight: 600;
     }
 
-    /* --- Carousel --- */
-    .carousel-container {
-        width: 100%;
-        overflow-x: auto;
-        padding-bottom: 1rem;
-        scrollbar-width: none;
-        min-height: 150px;
-    }
-    .carousel-container::-webkit-scrollbar {
-        display: none;
-    }
-
-    .carousel-track {
-        display: flex;
-        gap: 1rem;
-        padding-right: 1.5rem;
-    }
-
-    .carousel-item {
-        flex-shrink: 0;
-        width: 200px;
-    }
-
-    .empty-shim,
-    .loading-shim {
-        padding: 1rem;
-        color: var(--muted-foreground);
-        font-style: italic;
-    }
-
     /* --- Grid --- */
     .content.flex-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
         gap: 1.5rem;
         padding-right: 1.5rem;
     }
@@ -1038,15 +1025,17 @@
         transform: translateY(-1px);
         box-shadow: var(--shadow-card);
     }
-
-    .neuron-balance-chip .neuron-icon {
-        color: #fbbf24; /* Gold */
+    .row-controls {
+        display: flex;
+        flex-direction: row;
+        justify-content: flex-end;
+        align-items: right;
+        padding-right: 0.5rem;
     }
-
     /* --- Mobile --- */
     @media (max-width: 768px) {
         .header-section {
-            flex-direction: column;
+            flex-direction: row;
             align-items: flex-start;
             gap: 1rem;
             padding: 1rem 0.5rem;
@@ -1071,8 +1060,10 @@
         }
 
         .right-controls {
-            width: 100%;
+            width: 30%;
+            flex-direction: column;
             justify-content: flex-end;
+            align-items: right;
             padding-right: 0.5rem;
         }
 

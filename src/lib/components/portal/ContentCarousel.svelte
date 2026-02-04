@@ -171,7 +171,7 @@
 
     .carousel-track {
         display: flex;
-        gap: 1rem;
+        gap: 0.5rem;
         padding-right: 1.5rem; /* End padding */
     }
 
@@ -225,6 +225,10 @@
     @media (max-width: 768px) {
         .carousel-item {
             width: 160px;
+        }
+        .hub-section {
+            padding: 1rem 0 0.1rem 1.5rem;
+            gap: 0.5rem;
         }
     }
 

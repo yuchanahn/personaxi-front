@@ -355,8 +355,8 @@
   "needNeuronsModal": {
     "title": "뉴런이 부족해요!",
     "description": "더 많은 대화를 나누려면 뉴런을 충전해주세요.",
-    "rechargeTitle": "뉴런 충전!",
-    "rechargeDescription": "더 많은 대화를 나누려면 뉴런을 충전해주세요.",
+    "rechargeTitle": "뉴런 구매하기",
+    "rechargeDescription": "더 많은 대화를 나누려면 뉴런을 구매해주세요.",
     "rechargeAlert": "{amount} 뉴런을 선택하셨습니다.",
     "rechargeSuccess": "충전이 완료되었습니다! 뉴런이 지급되었습니다.",
     "firstCreationReward": "페르소나 최초 생성 시 200 뉴런 지급!",
