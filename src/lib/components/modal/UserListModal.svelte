@@ -121,6 +121,7 @@
     }
 
     function close() {
+        isOpen = false;
         dispatch("close");
     }
 </script>

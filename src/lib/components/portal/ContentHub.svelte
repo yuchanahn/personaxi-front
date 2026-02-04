@@ -18,6 +18,9 @@
     import { slide } from "svelte/transition";
     import InstallPrompt from "$lib/components/common/InstallPrompt.svelte";
     import Footer from "$lib/components/common/Footer.svelte";
+    import { st_user } from "$lib/stores/user";
+    import { get } from "svelte/store";
+    import { showNeedMoreNeuronsModal } from "$lib/stores/modal";
 
     // --- 상수 ---
     const visibleCategories = allCategories.filter(
@@ -483,25 +486,21 @@
         </div>
 
         <div class="right-controls">
-            {#if !isPWA}
-                <button
-                    class="install-button"
-                    on:click={() => goto("/install")}
-                    title={$t("install.title") || "App Install"}
-                >
-                    <Icon
-                        icon="material-symbols:download-rounded"
-                        width="24"
-                        height="24"
-                    />
-                </button>
-            {/if}
+            <!-- Neuron Balance Chip (Wallet Pattern) -->
             <button
-                class="search-trigger-button"
-                on:click={() => goto("/shop")}
-                title={$t("shop.title") || "Shop"}
+                class="neuron-balance-chip"
+                on:click={() => showNeedMoreNeuronsModal(false)}
+                title={$t("shop.title") || "Recharge Neurons"}
             >
-                <Icon icon="solar:bag-5-bold-duotone" width="24" height="24" />
+                <Icon
+                    icon="material-symbols:bolt-rounded"
+                    class="neuron-icon"
+                    width="20"
+                    height="20"
+                />
+                <span class="balance-text">
+                    {$st_user?.credits?.toLocaleString() || 0}
+                </span>
             </button>
 
             <button
@@ -1010,10 +1009,33 @@
     }
 
     .install-button {
-        background: var(--secondary);
-        color: var(--foreground);
-        padding: 0.5rem;
+        display: none;
+    }
+
+    .neuron-balance-chip {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        background: var(--card);
+        border: 1px solid var(--border);
+        padding: 6px 12px;
+        border-radius: 999px;
         cursor: pointer;
+        transition: all 0.2s ease;
+        color: var(--foreground);
+        font-weight: 600;
+        font-size: 0.9rem;
+        box-shadow: var(--shadow-sm);
+    }
+
+    .neuron-balance-chip:hover {
+        background: var(--secondary);
+        transform: translateY(-1px);
+        box-shadow: var(--shadow-card);
+    }
+
+    .neuron-balance-chip .neuron-icon {
+        color: #fbbf24; /* Gold */
     }
 
     /* --- Mobile --- */

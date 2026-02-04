@@ -385,10 +385,8 @@
         display: flex;
         justify-content: center;
         align-items: flex-end; /* Align bottom for mobile sheet */
-        padding-bottom: calc(
-            70px + env(safe-area-inset-bottom)
-        ); /* Lift up for navbar */
-        z-index: 2000;
+        padding-bottom: env(safe-area-inset-bottom);
+        z-index: 10001; /* Higher than NavBottom (9999) */
         backdrop-filter: blur(8px);
     }
 

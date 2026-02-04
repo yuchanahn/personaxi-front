@@ -19,7 +19,12 @@
     import { loadCharacterSessions } from "$lib/api/sessions";
     import { confirmConsent, getCurrentUser } from "$lib/api/auth";
     import { st_user } from "$lib/stores/user";
-    import { needMoreNeuronsModal } from "$lib/stores/modal";
+
+    // NEW: Global modal store
+    import {
+        needMoreNeuronsModal,
+        closeNeedMoreNeuronsModal,
+    } from "$lib/stores/modal";
     import { pricingStore } from "$lib/stores/pricing";
 
     /* ────────────── SvelteKit 내장 ────────────── */
@@ -206,10 +211,6 @@
     {/if}
 
     <!-- ────────────── 모달 ────────────── -->
-    <NeedMoreNeuronsModal
-        bind:isOpen={$needMoreNeuronsModal}
-        isNeedNeurons={true}
-    />
     <ConsentModal
         isOpen={consentModal}
         on:confirm={async () => {
@@ -227,6 +228,13 @@
             ><Icon icon="weui:back-filled" width="12" height="24" />
         </button>
     {/if}
+
+    <!-- Global Charge Modal -->
+    <NeedMoreNeuronsModal
+        isOpen={$needMoreNeuronsModal.isOpen}
+        isNeedNeurons={$needMoreNeuronsModal.isNeedNeurons}
+        on:close={closeNeedMoreNeuronsModal}
+    />
 
     <ToastContainer />
     <ConfirmModal />
