@@ -589,17 +589,62 @@
                             <!-- Right: Actions -->
                             <div class="profile-actions-section">
                                 {#if !isEditingProfile}
-                                    <button
-                                        class="logout-btn"
-                                        on:click={logout}
-                                    >
-                                        <Icon
-                                            icon="tabler:logout"
-                                            width="18"
-                                            height="18"
-                                        />
-                                        <span class="logout-text">Logout</span>
-                                    </button>
+                                    <!-- <div class="action-row">
+                                        {#if !isPWA}
+                                            <button
+                                                class="compact-action-btn"
+                                                on:click={() =>
+                                                    goto("/install")}
+                                                aria-label="App Install Guide"
+                                                title="App Install Guide"
+                                            >
+                                                <Icon
+                                                    icon="material-symbols:download-rounded"
+                                                    width="24"
+                                                    height="24"
+                                                />
+                                            </button>
+                                        {/if}
+                                        <button
+                                            class="compact-action-btn logout"
+                                            on:click={logout}
+                                            aria-label="Logout"
+                                            title="Logout"
+                                        >
+                                            <Icon
+                                                icon="tabler:logout"
+                                                width="24"
+                                                height="24"
+                                            />
+                                        </button>
+                                    </div> -->
+                                    <div class="enhanced-actions">
+                                        {#if !isPWA}
+                                            <div class="bottom-utility-row">
+                                                <button
+                                                    class="logout-link-btn"
+                                                    on:click={logout}
+                                                >
+                                                    <Icon
+                                                        icon="tabler:logout"
+                                                        width="18"
+                                                    />
+                                                    <span>로그아웃</span>
+                                                </button>
+                                            </div>
+                                            <button
+                                                class="install-banner-btn"
+                                                on:click={() =>
+                                                    goto("/install")}
+                                            >
+                                                <Icon
+                                                    icon="material-symbols:download-rounded"
+                                                    width="20"
+                                                />
+                                                <span>앱 설치</span>
+                                            </button>
+                                        {/if}
+                                    </div>
                                 {:else}
                                     <div class="edit-actions">
                                         <button
@@ -634,6 +679,18 @@
                                     <span class="stat-title"
                                         >{$t("settingPage.credits")}</span
                                     >
+                                </div>
+                                <div class="stat-value-container">
+                                    <div class="stat-value-row">
+                                        <NeuronIcon
+                                            size={28}
+                                            color={"#a0a0a0"}
+                                        />
+                                        <span class="stat-value-large"
+                                            >{$st_user?.credits ||
+                                                user.credits}</span
+                                        >
+                                    </div>
                                     <button
                                         class="primary-btn compact"
                                         on:click={() =>
@@ -646,13 +703,6 @@
                                         />
                                         {$t("settingPage.charge")}
                                     </button>
-                                </div>
-                                <div class="stat-value-row">
-                                    <NeuronIcon size={28} color={"#a0a0a0"} />
-                                    <span class="stat-value-large"
-                                        >{$st_user?.credits ||
-                                            user.credits}</span
-                                    >
                                 </div>
                             </div>
 
@@ -672,6 +722,14 @@
                                             />
                                         </button>
                                     </span>
+                                </div>
+                                <div class="stat-value-container">
+                                    <div class="stat-value-row">
+                                        <span class="stat-value-large"
+                                            >{user.creator_points || 0}</span
+                                        >
+                                        <span class="stat-unit">Points</span>
+                                    </div>
                                     <button
                                         class="primary-btn compact"
                                         on:click={() =>
@@ -685,37 +743,8 @@
                                         {$t("settingPage.transfer")}
                                     </button>
                                 </div>
-                                <div class="stat-value-row">
-                                    <span class="stat-value-large"
-                                        >{user.creator_points || 0}</span
-                                    >
-                                    <span class="stat-unit">Points</span>
-                                </div>
                             </div>
                         </div>
-
-                        <!-- Install App Banner (Only if not PWA) -->
-                        {#if !isPWA}
-                            <button
-                                class="install-banner"
-                                on:click={() => goto("/install")}
-                            >
-                                <Icon
-                                    icon="material-symbols:download-rounded"
-                                    width="20"
-                                    height="20"
-                                />
-                                <span
-                                    >{$t("install.title") ||
-                                        "Install App"}</span
-                                >
-                                <Icon
-                                    icon="ph:arrow-right-bold"
-                                    width="16"
-                                    height="16"
-                                />
-                            </button>
-                        {/if}
                     </div>
                 </div>
             {:else if isLoadingTab}
@@ -895,6 +924,8 @@
             on:keypress={(e) =>
                 e.key === "Enter" && (showCreatorInfoModal = false)}
         >
+            <!-- svelte-ignore a11y_click_events_have_key_events -->
+            <!-- svelte-ignore a11y_no_static_element_interactions -->
             <div class="modal-box" on:click|stopPropagation>
                 <h2 class="modal-title">
                     {$t("settingPage.creatorPointInfo.title")}
@@ -1182,32 +1213,6 @@
         display: flex;
         align-items: flex-start;
     }
-
-    .logout-btn {
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-        padding: 0.5rem 1rem;
-        background: transparent;
-        border: 1px solid var(--border);
-        border-radius: 8px;
-        color: var(--muted-foreground);
-        cursor: pointer;
-        transition: all 0.2s;
-        font-size: 0.9rem;
-        font-weight: 500;
-    }
-
-    .logout-btn:hover {
-        background: hsl(0 85% 52% / 0.1);
-        border-color: var(--destructive);
-        color: var(--destructive);
-    }
-
-    .logout-text {
-        display: inline;
-    }
-
     .edit-actions {
         display: flex;
         gap: 0.5rem;
@@ -1215,9 +1220,9 @@
 
     .cancel-btn,
     .save-btn {
-        width: 36px;
-        height: 36px;
-        border-radius: 8px;
+        width: 44px;
+        height: 44px;
+        border-radius: 10px;
         border: 1px solid var(--border);
         display: flex;
         align-items: center;
@@ -1249,11 +1254,12 @@
     /* Stats Grid */
     .stats-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-        gap: 1rem;
-        padding: 0 2rem 2rem;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 1.5rem;
+        padding: 0 2rem 2.5rem;
         border-top: 1px solid var(--border);
-        padding-top: 1.5rem;
+        padding-top: 2.5rem; /* Increased spacing */
+        margin-top: 1.5rem; /* Additional separation */
     }
 
     .stat-card {
@@ -1294,6 +1300,12 @@
         color: var(--primary);
     }
 
+    .stat-value-container {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
     .stat-value-row {
         display: flex;
         align-items: center;
@@ -1310,28 +1322,6 @@
         font-size: 0.95rem;
         color: var(--muted-foreground);
         font-weight: 500;
-    }
-
-    /* Install Banner */
-    .install-banner {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 0.75rem;
-        padding: 1rem;
-        background: var(--secondary);
-        border: none;
-        border-top: 1px solid var(--border);
-        color: var(--foreground);
-        cursor: pointer;
-        transition: all 0.2s;
-        font-size: 0.95rem;
-        font-weight: 600;
-        width: 100%;
-    }
-
-    .install-banner:hover {
-        background: var(--muted);
     }
 
     /* ============================================
@@ -1617,11 +1607,6 @@
             width: 100%;
         }
 
-        .logout-btn {
-            width: 100%;
-            justify-content: center;
-        }
-
         .avatar-wrapper {
             width: 72px;
             height: 72px;
@@ -1633,7 +1618,7 @@
 
         .stats-grid {
             grid-template-columns: 1fr;
-            padding: 0 1.5rem 1.5rem;
+            padding: 1rem 1.5rem 1.5rem;
         }
 
         .tabs-nav {
@@ -1668,5 +1653,44 @@
         .content-grid {
             grid-template-columns: repeat(2, 1fr);
         }
+    }
+
+    /* 버튼 컨테이너: 상단 정보와 더 가깝게 */
+    .enhanced-actions {
+        display: flex;
+        flex-direction: row;
+        justify-content: space-between;
+        margin-top: 0.5rem;
+        width: 100%;
+    }
+
+    /* 앱 설치 버튼: 너무 무겁지 않게 */
+    .install-banner-btn {
+        all: unset; /* 기본 스타일 초기화 */
+        display: flex;
+        align-items: center;
+        gap: 0.4rem;
+        padding: 0.5rem 1rem;
+        background: var(--secondary); /* 배경보다 살짝 밝거나 비슷한 톤 */
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+    .install-banner-btn:hover {
+        background: var(--muted);
+    }
+
+    /* 로그아웃 버튼: 설치 버튼과 높이 맞춤 */
+    .logout-link-btn {
+        display: flex;
+        align-items: center;
+        gap: 0.4rem;
+        color: var(--muted-foreground);
+        font-size: 0.85rem;
+        padding: 0.5rem;
     }
 </style>

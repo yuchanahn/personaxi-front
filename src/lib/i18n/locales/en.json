@@ -215,6 +215,8 @@
     "licensesAndCredits": "Licenses & Neurons",
     "chatLogConsent": "Chat/Log Data Collection Consent",
     "refundPolicy": "Refund Policy",
+    "checkedAndAgree": "I have read and agree to the ",
+    "agreedToPolicies": ".",
     "title": "Legal Center"
   },
   "footer": {
@@ -269,15 +271,6 @@
     "feed": "Feed",
     "create": "Create",
     "legal": "Legal"
-  },
-  "legal": {
-    "privacyPolicy": "Privacy Policy",
-    "termsOfService": "Terms of Service",
-    "licensesAndCredits": "Licenses",
-    "chatLogConsent": "Chat Log Consent",
-    "refundPolicy": "Refund Policy",
-    "agreedToPolicies": " I have read and agree to.",
-    "title": "Legal"
   },
   "welcomeModal": {
     "title": "Welcome to PersonaXI!",
@@ -765,13 +758,11 @@
     "select_option": "Select Option",
     "bonus_label": "Bonus",
     "notice": {
-      "title": "Payment Notice",
+      "title": "Precautions",
       "refund_title": "Refund Policy",
       "refund_desc": "Full refund available for unused neurons within 7 days of purchase. (Non-refundable after 7 days)",
       "cancel_title": "Cancellation",
       "cancel_desc": "Card cancellations take approximately 5 business days to process.",
-      "validity_title": "Validity",
-      "validity_desc": "Charged neurons are valid for 1 year from the date of purchase.",
       "fee_title": "Fees",
       "fee_desc": "International transaction fees may apply depending on your card issuer or bank.",
       "ai_title": "AI Quality",

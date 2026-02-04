@@ -2,10 +2,25 @@
     import { onMount } from "svelte";
     import { st_user as user } from "$lib/stores/user";
     import { pricingStore } from "$lib/stores/pricing";
-    import { t } from "svelte-i18n";
+    import { t, locale } from "svelte-i18n";
     import { fade, slide } from "svelte/transition";
     import Icon from "@iconify/svelte";
     import NeuronIcon from "$lib/components/icons/NeuronIcon.svelte";
+    import { marked } from "marked";
+
+    let noticeContent = "";
+    $: loc = $locale || "en";
+
+    $: if (loc) {
+        import(`$lib/i18n/locales/${loc}/shop_notice.md?raw`)
+            .then(async (module) => {
+                noticeContent = await marked(module.default);
+            })
+            .catch((e) => {
+                console.error(e);
+                noticeContent = "";
+            });
+    }
 
     let lemonSqueezyUrl =
         "https://personaxi.lemonsqueezy.com/checkout/buy/37030093-8078-4bd9-bc76-9711cbac1f3e?embed=1";
@@ -194,23 +209,9 @@
             <Icon icon="ph:info" />
             {$t("shop.notice.title")}
         </h3>
-        <ul>
-            <li>
-                <span>{$t("shop.notice.refund_desc")}</span>
-            </li>
-            <li>
-                <span>{$t("shop.notice.cancel_desc")}</span>
-            </li>
-            <li>
-                <span>{$t("shop.notice.fee_desc")}</span>
-            </li>
-            <li>
-                <span>{$t("shop.notice.ai_desc")}</span>
-            </li>
-            <li>
-                <span>{$t("shop.notice.ban_desc")}</span>
-            </li>
-        </ul>
+        <div class="markdown-content">
+            {@html noticeContent}
+        </div>
     </div>
 
     <!-- Force spacer to ensure content clears the sticky bottom bar -->
@@ -420,31 +421,25 @@
         margin: 0 0 20px 0;
     }
 
-    .notice-section ul {
-        list-style: none;
-        padding: 0;
+    .notice-section :global(ul) {
+        list-style: disc; /* Use disc for markdown list */
+        padding-left: 20px; /* Add padding for bullets */
         margin: 0;
         display: flex;
         flex-direction: column;
-        gap: 12px;
+        gap: 8px;
     }
 
-    .notice-section li {
+    .notice-section :global(li) {
         font-size: 0.85rem;
         line-height: 1.5;
-        display: flex;
-        flex-direction: column;
-        gap: 2px;
+        color: var(--muted-foreground);
     }
 
-    .notice-section li strong {
+    .notice-section :global(strong) {
         color: var(--foreground);
         font-weight: 600;
         font-size: 0.9rem;
-    }
-
-    .notice-section li span {
-        color: var(--muted-foreground);
     }
 
     .percent {

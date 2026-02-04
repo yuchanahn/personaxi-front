@@ -8,8 +8,25 @@
     import { st_user } from "$lib/stores/user";
     // import { toast } from "$lib/stores/toast";
     import { pricingStore } from "$lib/stores/pricing";
-    import { fly, fade } from "svelte/transition";
+    import { marked } from "marked";
+    import { locale } from "svelte-i18n";
+    import { slide, fly, fade } from "svelte/transition";
     import { page } from "$app/stores";
+
+    let noticeContent = "";
+    let isNoticeOpen = false;
+
+    $: loc = $locale || "en";
+    $: if (loc) {
+        import(`$lib/i18n/locales/${loc}/shop_notice.md?raw`)
+            .then(async (module) => {
+                noticeContent = await marked(module.default);
+            })
+            .catch((e) => {
+                console.error(e);
+                noticeContent = "";
+            });
+    }
 
     // Check if we are in a chat-like page where navbar is hidden or overlayed
     $: isChatPage =
@@ -190,6 +207,7 @@
                         {$t("needNeuronsModal.rechargeTitle")}
                     {/if}
                 </h2>
+
                 <button class="close-button" on:click={closeModal}>
                     <Icon icon="ph:x-bold" width="20" height="20" />
                 </button>
@@ -307,6 +325,31 @@
                         </button>
                     {/each}
                 </div>
+
+                <!-- Precautions Toggle -->
+                <div class="precautions-section">
+                    <button
+                        class="toggle-btn"
+                        on:click={() => (isNoticeOpen = !isNoticeOpen)}
+                    >
+                        <Icon icon="ph:info-bold" width="16" />
+                        <span
+                            >{$t("shop.notice.title", {
+                                default: "Precautions",
+                            })}</span
+                        >
+                        <Icon
+                            icon="ph:caret-down-bold"
+                            width="16"
+                            class="caret {isNoticeOpen ? 'open' : ''}"
+                        />
+                    </button>
+                    {#if isNoticeOpen}
+                        <div class="notice-content" transition:slide>
+                            {@html noticeContent}
+                        </div>
+                    {/if}
+                </div>
             </div>
 
             <!-- Footer: Purchase Button -->
@@ -327,15 +370,8 @@
                             {/if}
                         </span>
                         <span class="agreement-text">
-                            <a href="/terms" target="_blank"
-                                >{$t("legal.termsOfService")}</a
-                            >
-                            ·
-                            <a href="/privacy" target="_blank"
-                                >{$t("legal.privacyPolicy")}</a
-                            >
-                            ·
-                            <a href="/terms" target="_blank"
+                            {$t("legal.checkedAndAgree")}
+                            <a href="/refund" target="_blank"
                                 >{$t("legal.refundPolicy")}</a
                             >
                             {$t("legal.agreedToPolicies")}
@@ -757,5 +793,58 @@
         to {
             transform: rotate(360deg);
         }
+    }
+
+    /* Precautions Toggle Styles */
+    .precautions-section {
+        margin-top: 20px;
+        background: var(--background);
+        border-radius: 12px;
+        overflow: hidden;
+    }
+
+    .toggle-btn {
+        width: 100%;
+        padding: 12px 16px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        background: none;
+        border: none;
+        color: var(--muted-foreground);
+        font-size: 0.85rem;
+        cursor: pointer;
+        transition: background 0.2s;
+    }
+
+    .toggle-btn:hover {
+        background: rgba(0, 0, 0, 0.05);
+        color: var(--foreground);
+    }
+
+    .toggle-btn .caret {
+        margin-left: auto;
+        transition: transform 0.2s;
+    }
+
+    .toggle-btn .caret.open {
+        transform: rotate(180deg);
+    }
+
+    .notice-content {
+        padding: 0 16px 16px;
+        font-size: 0.8rem;
+        color: var(--muted-foreground);
+        line-height: 1.5;
+    }
+
+    /* Markdown Styles within notice-content */
+    .notice-content :global(ul) {
+        padding-left: 20px;
+        margin: 0;
+        list-style: disc;
+    }
+    .notice-content :global(li) {
+        margin-bottom: 4px;
     }
 </style>

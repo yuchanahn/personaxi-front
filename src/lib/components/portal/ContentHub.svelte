@@ -503,13 +503,6 @@
                 </span>
             </button>
 
-            <button
-                class="search-trigger-button"
-                on:click={() => (isSearchModalOpen = true)}
-            >
-                <Icon icon="mdi:magnify" width="24" height="24" />
-            </button>
-
             <!-- Only show filtering options if NOT in Home mode (Home has curated lists) -->
             {#if activeTab !== "home"}
                 <button
@@ -522,6 +515,14 @@
                     </div>
                 </button>
             {/if}
+        </div>
+        <div class="second-right-controls">
+            <button
+                class="search-trigger-button"
+                on:click={() => (isSearchModalOpen = true)}
+            >
+                <Icon icon="mdi:magnify" width="24" height="24" />
+            </button>
         </div>
     </div>
 
@@ -686,11 +687,15 @@
     .left-controls {
         display: flex;
         align-items: center;
-        gap: 1.5rem; /* Separates toggle from tabs */
-        /* 사이드바 아이콘 만큼 띄워주기 */
+        gap: 1.5rem;
         padding-left: 2.5rem;
     }
     .right-controls {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+    .second-right-controls {
         display: flex;
         align-items: center;
         gap: 1rem;
