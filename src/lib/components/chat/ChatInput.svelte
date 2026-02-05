@@ -6,9 +6,8 @@
   import { st_user } from "$lib/stores/user";
 
   import { pricingStore } from "$lib/stores/pricing";
-  import { get } from "svelte/store";
-  import { toast } from "$lib/stores/toast";
-  import { loadChatHistory } from "$lib/api/chat";
+  import { onMount, tick } from "svelte";
+  import { initKeyboardViewport } from "$lib/helpers/keyboardViewport";
 
   let {
     onSend,
@@ -20,6 +19,7 @@
     neededNeurons,
     hasStaticImage = false,
     onImageClick = () => {},
+    isButtonMode = false,
   }: {
     onSend: (text: string, onError?: (error: any) => void) => void;
     onChangeInput?: (text: string) => void;
@@ -30,6 +30,7 @@
     neededNeurons?: number;
     hasStaticImage?: boolean;
     onImageClick?: () => void;
+    isButtonMode?: boolean;
   } = $props();
 
   let prompt = $state("");
@@ -81,6 +82,33 @@
       }, 100);
     }
   }
+
+  let realInput: HTMLTextAreaElement;
+
+  let keyboardHeight = 0;
+  let isKeyboardOpen = false;
+
+  async function openKeyboard(e: Event) {
+    e.preventDefault();
+    await tick();
+    realInput?.focus({ preventScroll: true });
+
+    // 임시
+
+    isKeyboardOpen = true;
+  }
+
+  onMount(() => {
+    const handle = initKeyboardViewport({
+      inputEl: () => realInput ?? null,
+      setKeyboardHeight: (px) => (keyboardHeight = px),
+      setIsKeyboardOpen: (open) => (isKeyboardOpen = open),
+      threshold: 10,
+      maxCloseFrames: 30,
+    });
+
+    return handle.destroy;
+  });
 </script>
 
 <div class="chat-input-wrapper">
@@ -100,7 +128,25 @@
   {/if}
   <div class="input-container" class:listening={isListening}>
     {#if !isListening}
+      {#if !isKeyboardOpen}
+        <textarea
+          class="chat-input focus-override"
+          value="클릭하세요"
+          onclick={openKeyboard}
+        ></textarea>
+      {/if}
       <textarea
+        bind:this={realInput}
+        bind:value={prompt}
+        rows="1"
+        class="real-input"
+        class:shown={isKeyboardOpen}
+        autocomplete="off"
+        autocapitalize="off"
+        spellcheck="false"
+      ></textarea>
+
+      <!-- <textarea
         bind:value={prompt}
         placeholder={$t("chatInput.placeholder", {
           values: { name: placeholderName || "친구" },
@@ -110,8 +156,6 @@
         rows="1"
         maxlength={MAX_CHARS}
         disabled={isDisabled}
-        name="input_xyz_123_random"
-        id="input_xyz_123_random"
         autocomplete="off"
         inputmode="search"
         enterkeyhint="send"
@@ -120,7 +164,7 @@
         use:autoResize={180}
         onkeydown={handleSubmit}
         oninput={() => onChangeInput(prompt)}
-      ></textarea>
+      ></textarea> -->
     {/if}
     {#if prompt.trim() === ""}
       <div class="chat-send-button" title="음성 입력" aria-label="음성 입력">
@@ -203,6 +247,19 @@
     transition:
       border-color 0.2s,
       box-shadow 0.2s;
+  }
+
+  .real-input {
+    position: absolute;
+    left: 0;
+    top: 0;
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .real-input.shown {
+    opacity: 1;
+    pointer-events: auto;
   }
 
   .chat-input:focus {
