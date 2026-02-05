@@ -504,8 +504,23 @@
         window.addEventListener("touchstart", onUserActivity);
         resetIdleTimer();
 
-        // [Mobile Keyboard Fix]
-        initialCanvasHeight = window.innerHeight; // Cache initial height for background
+        // [Mobile Keyboard Fix: Body Lock Strategy]
+        initialCanvasHeight = window.innerHeight;
+
+        // Apply Body Lock
+        const originalStyle = {
+            overflow: document.body.style.overflow,
+            height: document.body.style.height,
+            position: document.body.style.position,
+            width: document.body.style.width,
+            overscroll: document.body.style.overscrollBehavior,
+        };
+
+        document.body.style.overflow = "hidden";
+        document.body.style.height = "100%";
+        document.body.style.position = "fixed";
+        document.body.style.width = "100%";
+        document.body.style.overscrollBehavior = "none";
 
         if (typeof window !== "undefined" && window.visualViewport) {
             viewportHeight = window.visualViewport.height;
@@ -514,28 +529,21 @@
                 if (window.visualViewport) {
                     viewportHeight = window.visualViewport.height;
 
-                    // [ForceScroll Strategy]
-                    // Force reset scroll to top to prevent browser shifting
-                    if (window.scrollY !== 0 || document.body.scrollTop !== 0) {
-                        window.scrollTo(0, 0);
-                        document.body.scrollTop = 0;
-                    }
-                }
-            };
-
-            const handleScroll = () => {
-                // Ensure scroll stays at 0
-                if (window.scrollY !== 0 || document.body.scrollTop !== 0) {
-                    window.scrollTo(0, 0);
-                    document.body.scrollTop = 0;
+                    // Body Lock prevents scroll, so no force reset needed.
                 }
             };
 
             window.visualViewport.addEventListener("resize", handleResize);
-            window.visualViewport.addEventListener("scroll", handleResize);
-            window.addEventListener("scroll", handleScroll);
 
             removeListener = () => {
+                // Restore Body
+                document.body.style.overflow = originalStyle.overflow;
+                document.body.style.height = originalStyle.height;
+                document.body.style.position = originalStyle.position;
+                document.body.style.width = originalStyle.width;
+                document.body.style.overscrollBehavior =
+                    originalStyle.overscroll;
+
                 window.removeEventListener(
                     "affection-update",
                     handleAffection as EventListener,
@@ -544,11 +552,6 @@
                     "resize",
                     handleResize,
                 );
-                window.visualViewport?.removeEventListener(
-                    "scroll",
-                    handleResize,
-                );
-                window.removeEventListener("scroll", handleScroll);
             };
         } else {
             // Fallback for environments without visualViewport

@@ -40,8 +40,21 @@
   let isModelLoading = true;
 
   onMount(() => {
-    // [Mobile Keyboard Fix]
-    initialCanvasHeight = window.innerHeight; // Cache for background
+    // [Mobile Keyboard Fix: Body Lock Strategy]
+    initialCanvasHeight = window.innerHeight;
+
+    // Save original styles
+    const originalOverflow = document.body.style.overflow;
+    const originalHeight = document.body.style.height;
+    const originalPosition = document.body.style.position;
+    const originalWidth = document.body.style.width;
+
+    // Apply Body Lock
+    document.body.style.overflow = "hidden";
+    document.body.style.height = "100%";
+    document.body.style.position = "fixed";
+    document.body.style.width = "100%";
+    document.body.style.overscrollBehavior = "none";
 
     let cleanupListeners = () => {};
 
@@ -51,29 +64,13 @@
       const handleResize = () => {
         if (window.visualViewport) {
           viewportHeight = window.visualViewport.height;
-          // [ForceScroll Strategy]
-          if (document.body.scrollTop !== 0 || window.scrollY !== 0) {
-            window.scrollTo(0, 0);
-            document.body.scrollTop = 0;
-          }
-        }
-      };
-
-      const handleScroll = () => {
-        if (document.body.scrollTop !== 0 || window.scrollY !== 0) {
-          window.scrollTo(0, 0);
-          document.body.scrollTop = 0;
         }
       };
 
       window.visualViewport.addEventListener("resize", handleResize);
-      window.visualViewport.addEventListener("scroll", handleResize);
-      window.addEventListener("scroll", handleScroll);
 
       cleanupListeners = () => {
         window.visualViewport?.removeEventListener("resize", handleResize);
-        window.visualViewport?.removeEventListener("scroll", handleResize);
-        window.removeEventListener("scroll", handleScroll);
       };
     } else {
       viewportHeight = window.innerHeight;
@@ -81,6 +78,12 @@
 
     return () => {
       cleanupListeners();
+      // Restore body styles
+      document.body.style.overflow = originalOverflow;
+      document.body.style.height = originalHeight;
+      document.body.style.position = originalPosition;
+      document.body.style.width = originalWidth;
+      document.body.style.overscrollBehavior = "";
     };
   });
 
@@ -721,10 +724,9 @@
 
   .chat-container {
     position: absolute;
-    bottom: 0;
+    top: 0;
     width: 100%;
-    height: 100vh;
-    height: 100dvh;
+    /* height bound via inline style */
 
     padding-bottom: env(safe-area-inset-bottom, 0px);
 
