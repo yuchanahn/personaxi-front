@@ -19,7 +19,7 @@
     neededNeurons,
     hasStaticImage = false,
     onImageClick = () => {},
-    isButtonMode = false,
+    iosVV = false,
   }: {
     onSend: (text: string, onError?: (error: any) => void) => void;
     onChangeInput?: (text: string) => void;
@@ -30,7 +30,7 @@
     neededNeurons?: number;
     hasStaticImage?: boolean;
     onImageClick?: () => void;
-    isButtonMode?: boolean;
+    iosVV?: boolean;
   } = $props();
 
   let prompt = $state("");
@@ -83,10 +83,10 @@
     }
   }
 
-  let realInput: HTMLTextAreaElement;
+  let realInput: HTMLTextAreaElement | null = $state(null);
 
   let keyboardHeight = 0;
-  let isKeyboardOpen = false;
+  let isKeyboardOpen = $state(false);
 
   async function openKeyboard(e: Event) {
     e.preventDefault();
@@ -128,43 +128,60 @@
   {/if}
   <div class="input-container" class:listening={isListening}>
     {#if !isListening}
-      {#if !isKeyboardOpen}
+      {#if !iosVV}
+        {#if !isKeyboardOpen}
+          <textarea
+            class="chat-input focus-override"
+            placeholder={$t("chatInput.placeholder", {
+              values: { name: placeholderName || "친구" },
+            })}
+            bind:value={prompt}
+            rows="1"
+            maxlength={MAX_CHARS}
+            disabled={isDisabled}
+            use:autoResize={180}
+            onclick={openKeyboard}
+          ></textarea>
+        {/if}
         <textarea
+          bind:this={realInput}
+          bind:value={prompt}
+          class:over-limit={isOverLimit}
+          rows="1"
+          maxlength={MAX_CHARS}
+          disabled={isDisabled}
+          use:autoResize={180}
+          placeholder={$t("chatInput.placeholder", {
+            values: { name: placeholderName || "친구" },
+          })}
+          class="real-input focus-override"
+          oninput={() => onChangeInput(prompt)}
+          class:shown={isKeyboardOpen}
+          autocomplete="off"
+          autocapitalize="off"
+          spellcheck="false"
+        ></textarea>
+      {:else}
+        <textarea
+          bind:value={prompt}
+          placeholder={$t("chatInput.placeholder", {
+            values: { name: placeholderName || "친구" },
+          })}
           class="chat-input focus-override"
-          value="클릭하세요"
-          onclick={openKeyboard}
+          class:over-limit={isOverLimit}
+          rows="1"
+          maxlength={MAX_CHARS}
+          disabled={isDisabled}
+          autocomplete="off"
+          inputmode="search"
+          enterkeyhint="send"
+          autocapitalize="off"
+          spellcheck="false"
+          use:autoResize={180}
+          onkeydown={handleSubmit}
+          oninput={() => onChangeInput(prompt)}
         ></textarea>
       {/if}
-      <textarea
-        bind:this={realInput}
-        bind:value={prompt}
-        rows="1"
-        class="real-input"
-        class:shown={isKeyboardOpen}
-        autocomplete="off"
-        autocapitalize="off"
-        spellcheck="false"
-      ></textarea>
-
-      <!-- <textarea
-        bind:value={prompt}
-        placeholder={$t("chatInput.placeholder", {
-          values: { name: placeholderName || "친구" },
-        })}
-        class="chat-input focus-override"
-        class:over-limit={isOverLimit}
-        rows="1"
-        maxlength={MAX_CHARS}
-        disabled={isDisabled}
-        autocomplete="off"
-        inputmode="search"
-        enterkeyhint="send"
-        autocapitalize="off"
-        spellcheck="false"
-        use:autoResize={180}
-        onkeydown={handleSubmit}
-        oninput={() => onChangeInput(prompt)}
-      ></textarea> -->
     {/if}
     {#if prompt.trim() === ""}
       <div class="chat-send-button" title="음성 입력" aria-label="음성 입력">
@@ -220,15 +237,17 @@
     color: #666;
     cursor: not-allowed;
   }
+
   .input-container {
     position: relative;
     width: 100%;
     margin: 0 auto;
-    display: flex;
-    align-items: flex-start;
+    min-height: 50px;
   }
 
-  .chat-input {
+  .chat-input,
+  .real-input {
+    width: 100%;
     resize: none;
     background: var(--input);
     color: var(--foreground);
@@ -242,24 +261,31 @@
     outline: none;
     padding: 0.7rem;
     padding-right: 3.5rem;
-    flex-grow: 1;
     box-sizing: border-box;
     transition:
       border-color 0.2s,
       box-shadow 0.2s;
   }
 
+  .chat-input {
+    position: relative; /* 흐름을 차지하게 하여 부모 높이를 확보 */
+    z-index: 1;
+  }
+
   .real-input {
-    position: absolute;
-    left: 0;
+    position: fixed;
     top: 0;
+    left: 0;
+    z-index: 2; /* chat-input보다 위에 배치 */
     opacity: 0;
     pointer-events: none;
   }
 
   .real-input.shown {
+    position: relative;
     opacity: 1;
     pointer-events: auto;
+    background: var(--input); /* 배경색을 채워 아래 chat-input을 가림 */
   }
 
   .chat-input:focus {

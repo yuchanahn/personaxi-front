@@ -556,6 +556,7 @@
                     placeholderName={persona?.name}
                     mode="3d"
                     neededNeurons={currentCost}
+                    iosVV={true}
                 />
             </div>
         </div>

@@ -35,7 +35,10 @@
         {#if !isKeyboardOpen}
             <textarea
                 class="input-button"
-                value="클릭하세요"
+                autocomplete="off"
+                autocapitalize="off"
+                spellcheck="false"
+                value={text}
                 on:click={openKeyboard}
             ></textarea>
         {/if}
