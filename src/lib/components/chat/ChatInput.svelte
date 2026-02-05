@@ -215,7 +215,7 @@
         onclick={() => {
           //SendPrompt();
         }}
-        onmousedown={() => {
+        onmousedown={(e) => {
           e.preventDefault();
           SendPrompt();
         }}
