@@ -250,7 +250,8 @@
     position: relative;
     width: 100%;
     margin: 0 auto;
-    min-height: 50px;
+    display: flex;
+    align-items: flex-start;
   }
 
   .chat-input,
@@ -274,7 +275,6 @@
       border-color 0.2s,
       box-shadow 0.2s;
   }
-
   .chat-input {
     position: relative;
     z-index: 1;
