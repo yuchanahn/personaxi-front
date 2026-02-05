@@ -111,7 +111,10 @@
   });
 </script>
 
-<div class="chat-input-wrapper">
+<div
+  class="chat-input-wrapper"
+  style:transform="translateY(-{keyboardHeight}px)"
+>
   {#if !isListening && charCount > 1000}
     <div
       class="char-counter"
@@ -269,7 +272,7 @@
   }
 
   .chat-input {
-    position: relative; /* 흐름을 차지하게 하여 부모 높이를 확보 */
+    position: relative;
     z-index: 1;
   }
 
