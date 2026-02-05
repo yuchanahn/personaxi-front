@@ -213,6 +213,10 @@
         class:is-disabled={isDisabled || isOverLimit}
         disabled={isOverLimit || isDisabled}
         onclick={() => {
+          //SendPrompt();
+        }}
+        onmousedown={() => {
+          e.preventDefault();
           SendPrompt();
         }}
         title={$t("chatInput.sendButton")}
