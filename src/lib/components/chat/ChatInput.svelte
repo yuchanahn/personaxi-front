@@ -85,7 +85,7 @@
 
   let realInput: HTMLTextAreaElement | null = $state(null);
 
-  let keyboardHeight = 0;
+  let keyboardHeight = $state(0);
   let isKeyboardOpen = $state(false);
 
   async function openKeyboard(e: Event) {
