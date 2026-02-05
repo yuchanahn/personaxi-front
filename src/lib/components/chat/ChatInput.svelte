@@ -157,6 +157,7 @@
           class="real-input focus-override"
           oninput={() => onChangeInput(prompt)}
           class:shown={isKeyboardOpen}
+          onkeydown={handleSubmit}
           autocomplete="off"
           autocapitalize="off"
           spellcheck="false"
