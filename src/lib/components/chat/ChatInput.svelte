@@ -128,7 +128,7 @@
   {/if}
   <div class="input-container" class:listening={isListening}>
     {#if !isListening}
-      {#if !iosVV}
+      {#if iosVV}
         {#if !isKeyboardOpen}
           <textarea
             class="chat-input focus-override"
