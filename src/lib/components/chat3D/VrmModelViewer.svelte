@@ -17,6 +17,10 @@
   import { messages } from "$lib/stores/messages";
   import { ttsState } from "$lib/stores/ttsStore";
 
+  // --- Mobile Keyboard Fix ---
+  let viewportHeight = 0;
+  // ----------------------------
+
   export let persona: Persona | null;
   export let cssid: string | null = null;
   export let show: boolean = true;
@@ -44,6 +48,36 @@
   ) {
     console.log("[VRM] Autoplay Start Voice:", startVoiceUrl);
     hasPlayedStartVoice = true;
+
+    // [Mobile Keyboard Fix]
+    if (typeof window !== "undefined" && window.visualViewport) {
+      viewportHeight = window.visualViewport.height;
+      const handleResize = () => {
+        if (window.visualViewport) {
+          viewportHeight = window.visualViewport.height;
+          // iOS scroll fix: sometimes it scrolls the body
+          if (document.body.scrollTop !== 0) {
+            document.body.scrollTop = 0;
+          }
+        }
+      };
+      window.visualViewport.addEventListener("resize", handleResize);
+      window.visualViewport.addEventListener("scroll", handleResize);
+
+      // We should ideally remove these listeners on destroy,
+      // but onMount return is not available inside this reactive block or script scope easily without separate onMount.
+      // But notice this file already imports `onDestroy`. Let's use it.
+      onDestroy(() => {
+        if (typeof window !== "undefined" && window.visualViewport) {
+          window.visualViewport.removeEventListener("resize", handleResize);
+          window.visualViewport.removeEventListener("scroll", handleResize);
+        }
+      });
+    } else if (typeof window !== "undefined") {
+      // Fallback
+      viewportHeight = window.innerHeight;
+    }
+
     setTimeout(() => {
       // VRM viewer usually has a speek or similar method, or uses TTS api directly?
       // The parent uses `connectTTSSocket` to control it.
@@ -618,7 +652,10 @@
     </div>
   </div>
   -->
-  <div class="chat-container select-none">
+  <div
+    class="chat-container select-none"
+    style:height={viewportHeight ? `${viewportHeight}px` : "100%"}
+  >
     <div class="chat-content">
       <ChatWindow showChat={show} {isLoading} {persona} />
       <ChatInput

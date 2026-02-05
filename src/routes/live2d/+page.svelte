@@ -21,6 +21,10 @@
     import { settings } from "$lib/stores/settings";
     import type { Live2DAutonomy } from "$lib/utils/live2d/Live2DAutonomy";
 
+    // --- Mobile Keyboard Fix ---
+    let viewportHeight = 0;
+    // ----------------------------
+
     let lastSessionId: string | null = null;
     let persona: Persona | null = null;
     let idleTimer: any = null;
@@ -498,6 +502,34 @@
         window.addEventListener("click", onUserActivity);
         window.addEventListener("touchstart", onUserActivity);
         resetIdleTimer();
+
+        // [Mobile Keyboard Fix]
+        if (typeof window !== "undefined" && window.visualViewport) {
+            viewportHeight = window.visualViewport.height;
+            const handleResize = () => {
+                if (window.visualViewport) {
+                    viewportHeight = window.visualViewport.height;
+                    // iOS scroll fix: sometimes it scrolls the body
+                    if (document.body.scrollTop !== 0) {
+                        document.body.scrollTop = 0;
+                    }
+                }
+            };
+            window.visualViewport.addEventListener("resize", handleResize);
+            window.visualViewport.addEventListener("scroll", handleResize);
+
+            removeListener = () => {
+                window.removeEventListener(
+                    "affection-update",
+                    handleAffection as EventListener,
+                );
+                window.visualViewport?.removeEventListener("resize", handleResize);
+                window.visualViewport?.removeEventListener("scroll", handleResize);
+            };
+        } else {
+             // Fallback for environments without visualViewport
+             viewportHeight = window.innerHeight;
+        }
     });
 
     onDestroy(() => {
@@ -548,7 +580,10 @@
         </div>
 
         <div class="chat-overlay">
-            <div class="chat-content">
+            <div
+                class="chat-content"
+                style:height={viewportHeight ? `${viewportHeight}px` : "100%"}
+            >
                 <ChatWindow {showChat} {isLoading} />
                 <ChatInput
                     onSend={send}
