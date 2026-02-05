@@ -5,7 +5,7 @@
   import { handleSendToCharacter } from "$lib/services/chat";
   import type { Model } from "$lib/vrm/core/model";
   import type { Persona } from "$lib/types";
-  import { onDestroy, onMount, tick } from "svelte";
+  import { onDestroy, tick } from "svelte";
   import type { Viewer } from "$lib/vrm/core/viewer";
   import Icon from "@iconify/svelte";
 
@@ -16,11 +16,6 @@
   import SpeechBubble from "$lib/components/chat/SpeechBubble.svelte";
   import { messages } from "$lib/stores/messages";
   import { ttsState } from "$lib/stores/ttsStore";
-
-  // --- Mobile Keyboard Fix ---
-  let viewportHeight = 0;
-  let initialCanvasHeight = 0;
-  // ----------------------------
 
   export let persona: Persona | null;
   export let cssid: string | null = null;
@@ -39,54 +34,6 @@
 
   let isModelLoading = true;
 
-  onMount(() => {
-    // [Mobile Keyboard Fix: Body Lock Strategy]
-    initialCanvasHeight = window.innerHeight;
-
-    // Save original styles
-    const originalOverflow = document.body.style.overflow;
-    const originalHeight = document.body.style.height;
-    const originalPosition = document.body.style.position;
-    const originalWidth = document.body.style.width;
-
-    // Apply Body Lock
-    document.body.style.overflow = "hidden";
-    document.body.style.height = "100%";
-    document.body.style.position = "fixed";
-    document.body.style.width = "100%";
-    document.body.style.overscrollBehavior = "none";
-
-    let cleanupListeners = () => {};
-
-    if (typeof window !== "undefined" && window.visualViewport) {
-      viewportHeight = window.visualViewport.height;
-
-      const handleResize = () => {
-        if (window.visualViewport) {
-          viewportHeight = window.visualViewport.height;
-        }
-      };
-
-      window.visualViewport.addEventListener("resize", handleResize);
-
-      cleanupListeners = () => {
-        window.visualViewport?.removeEventListener("resize", handleResize);
-      };
-    } else {
-      viewportHeight = window.innerHeight;
-    }
-
-    return () => {
-      cleanupListeners();
-      // Restore body styles
-      document.body.style.overflow = originalOverflow;
-      document.body.style.height = originalHeight;
-      document.body.style.position = originalPosition;
-      document.body.style.width = originalWidth;
-      document.body.style.overscrollBehavior = "";
-    };
-  });
-
   // Autoplay Start Voice (VRM)
   $: if (
     !isModelLoading &&
@@ -97,9 +44,6 @@
   ) {
     console.log("[VRM] Autoplay Start Voice:", startVoiceUrl);
     hasPlayedStartVoice = true;
-
-    // [Mobile Keyboard Fix] - Moved to onMount
-
     setTimeout(() => {
       // VRM viewer usually has a speek or similar method, or uses TTS api directly?
       // The parent uses `connectTTSSocket` to control it.
@@ -452,7 +396,6 @@
 <!-- svelte-ignore a11y_no_static_element_interactions -->
 <div
   id="character-view"
-  style:height={initialCanvasHeight ? `${initialCanvasHeight}px` : "100dvh"}
   on:mousedown={handleMouseClick}
   on:mousemove={handleMouseMove}
 >
@@ -675,10 +618,7 @@
     </div>
   </div>
   -->
-  <div
-    class="chat-container select-none"
-    style:height={viewportHeight ? `${viewportHeight}px` : "100%"}
-  >
+  <div class="chat-container select-none">
     <div class="chat-content">
       <ChatWindow showChat={show} {isLoading} {persona} />
       <ChatInput
@@ -724,9 +664,10 @@
 
   .chat-container {
     position: absolute;
-    top: 0;
+    bottom: 0;
     width: 100%;
-    /* height bound via inline style */
+    height: 100vh;
+    height: 100dvh;
 
     padding-bottom: env(safe-area-inset-bottom, 0px);
 

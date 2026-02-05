@@ -21,11 +21,6 @@
     import { settings } from "$lib/stores/settings";
     import type { Live2DAutonomy } from "$lib/utils/live2d/Live2DAutonomy";
 
-    // --- Mobile Keyboard Fix ---
-    let viewportHeight = 0;
-    let initialCanvasHeight = 0;
-    // ----------------------------
-
     let lastSessionId: string | null = null;
     let persona: Persona | null = null;
     let idleTimer: any = null;
@@ -503,61 +498,6 @@
         window.addEventListener("click", onUserActivity);
         window.addEventListener("touchstart", onUserActivity);
         resetIdleTimer();
-
-        // [Mobile Keyboard Fix: Body Lock Strategy]
-        initialCanvasHeight = window.innerHeight;
-
-        // Apply Body Lock
-        const originalStyle = {
-            overflow: document.body.style.overflow,
-            height: document.body.style.height,
-            position: document.body.style.position,
-            width: document.body.style.width,
-            overscroll: document.body.style.overscrollBehavior,
-        };
-
-        document.body.style.overflow = "hidden";
-        document.body.style.height = "100%";
-        document.body.style.position = "fixed";
-        document.body.style.width = "100%";
-        document.body.style.overscrollBehavior = "none";
-
-        if (typeof window !== "undefined" && window.visualViewport) {
-            viewportHeight = window.visualViewport.height;
-
-            const handleResize = () => {
-                if (window.visualViewport) {
-                    viewportHeight = window.visualViewport.height;
-
-                    // Body Lock prevents scroll, so no force reset needed.
-                }
-            };
-
-            window.visualViewport.addEventListener("resize", handleResize);
-
-            removeListener = () => {
-                // Restore Body
-                document.body.style.overflow = originalStyle.overflow;
-                document.body.style.height = originalStyle.height;
-                document.body.style.position = originalStyle.position;
-                document.body.style.width = originalStyle.width;
-                document.body.style.overscrollBehavior =
-                    originalStyle.overscroll;
-
-                window.removeEventListener(
-                    "affection-update",
-                    handleAffection as EventListener,
-                );
-                window.visualViewport?.removeEventListener(
-                    "resize",
-                    handleResize,
-                );
-            };
-        } else {
-            // Fallback for environments without visualViewport
-            viewportHeight = window.innerHeight;
-            removeListener = () => {};
-        }
     });
 
     onDestroy(() => {
@@ -572,9 +512,7 @@
     let error_showSpeech = false;
 </script>
 
-<main
-    style:height={initialCanvasHeight ? `${initialCanvasHeight}px` : "100dvh"}
->
+<main>
     <div
         class="vignette-overlay vignette-black"
         style="opacity: {blackOpacity};"
@@ -610,10 +548,8 @@
         </div>
 
         <div class="chat-overlay">
-            <div
-                class="chat-content"
-                style:height={viewportHeight ? `${viewportHeight}px` : "100%"}
-            >
+            <div class="chat-content">
+                <ChatWindow {showChat} {isLoading} />
                 <ChatInput
                     onSend={send}
                     onChangeInput={handleInputChange}
@@ -621,7 +557,6 @@
                     mode="3d"
                     neededNeurons={currentCost}
                 />
-                <ChatWindow {showChat} {isLoading} />
             </div>
         </div>
 
