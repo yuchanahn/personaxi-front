@@ -625,6 +625,7 @@
         onSend={send}
         onChangeInput={handleInputChange}
         placeholderName={persona?.name}
+        iosVV={true}
       />
     </div>
   </div>
