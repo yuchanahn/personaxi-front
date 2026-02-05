@@ -5,7 +5,7 @@
   import { handleSendToCharacter } from "$lib/services/chat";
   import type { Model } from "$lib/vrm/core/model";
   import type { Persona } from "$lib/types";
-  import { onDestroy, tick } from "svelte";
+  import { onDestroy, onMount, tick } from "svelte";
   import type { Viewer } from "$lib/vrm/core/viewer";
   import Icon from "@iconify/svelte";
 
@@ -38,6 +38,57 @@
 
   let isModelLoading = true;
 
+  onMount(() => {
+    // [Mobile Keyboard Fix]
+    // Prevent layout shift by locking body scroll
+    let originalOverflow = document.body.style.overflow;
+    let originalHeight = document.body.style.height;
+    let originalPosition = document.body.style.position;
+    let originalWidth = document.body.style.width;
+
+    // Cleanup function variable
+    let cleanupListeners = () => {};
+
+    if (typeof window !== "undefined" && window.visualViewport) {
+      viewportHeight = window.visualViewport.height;
+
+      const handleResize = () => {
+        if (window.visualViewport) {
+          viewportHeight = window.visualViewport.height;
+          // iOS scroll fix
+          if (document.body.scrollTop !== 0) {
+            document.body.scrollTop = 0;
+          }
+        }
+      };
+
+      window.visualViewport.addEventListener("resize", handleResize);
+      window.visualViewport.addEventListener("scroll", handleResize);
+
+      // Apply Body Lock
+      document.body.style.overflow = "hidden";
+      document.body.style.height = "100%";
+      document.body.style.position = "fixed";
+      document.body.style.width = "100%";
+
+      cleanupListeners = () => {
+        window.visualViewport?.removeEventListener("resize", handleResize);
+        window.visualViewport?.removeEventListener("scroll", handleResize);
+      };
+    } else {
+      viewportHeight = window.innerHeight;
+    }
+
+    return () => {
+      cleanupListeners();
+      // Restore body styles
+      document.body.style.overflow = originalOverflow;
+      document.body.style.height = originalHeight;
+      document.body.style.position = originalPosition;
+      document.body.style.width = originalWidth;
+    };
+  });
+
   // Autoplay Start Voice (VRM)
   $: if (
     !isModelLoading &&
@@ -49,34 +100,7 @@
     console.log("[VRM] Autoplay Start Voice:", startVoiceUrl);
     hasPlayedStartVoice = true;
 
-    // [Mobile Keyboard Fix]
-    if (typeof window !== "undefined" && window.visualViewport) {
-      viewportHeight = window.visualViewport.height;
-      const handleResize = () => {
-        if (window.visualViewport) {
-          viewportHeight = window.visualViewport.height;
-          // iOS scroll fix: sometimes it scrolls the body
-          if (document.body.scrollTop !== 0) {
-            document.body.scrollTop = 0;
-          }
-        }
-      };
-      window.visualViewport.addEventListener("resize", handleResize);
-      window.visualViewport.addEventListener("scroll", handleResize);
-
-      // We should ideally remove these listeners on destroy,
-      // but onMount return is not available inside this reactive block or script scope easily without separate onMount.
-      // But notice this file already imports `onDestroy`. Let's use it.
-      onDestroy(() => {
-        if (typeof window !== "undefined" && window.visualViewport) {
-          window.visualViewport.removeEventListener("resize", handleResize);
-          window.visualViewport.removeEventListener("scroll", handleResize);
-        }
-      });
-    } else if (typeof window !== "undefined") {
-      // Fallback
-      viewportHeight = window.innerHeight;
-    }
+    // [Mobile Keyboard Fix] - Moved to onMount
 
     setTimeout(() => {
       // VRM viewer usually has a speek or similar method, or uses TTS api directly?

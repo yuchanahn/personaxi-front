@@ -518,17 +518,40 @@
             window.visualViewport.addEventListener("resize", handleResize);
             window.visualViewport.addEventListener("scroll", handleResize);
 
+            // [Mobile Body Lock] - Prevent screen logic from shifting up
+            const originalOverflow = document.body.style.overflow;
+            const originalHeight = document.body.style.height;
+            const originalPosition = document.body.style.position;
+            const originalWidth = document.body.style.width;
+
+            document.body.style.overflow = "hidden";
+            document.body.style.height = "100%";
+            document.body.style.position = "fixed"; // Critical for iOS
+            document.body.style.width = "100%";
+
             removeListener = () => {
                 window.removeEventListener(
                     "affection-update",
                     handleAffection as EventListener,
                 );
-                window.visualViewport?.removeEventListener("resize", handleResize);
-                window.visualViewport?.removeEventListener("scroll", handleResize);
+                window.visualViewport?.removeEventListener(
+                    "resize",
+                    handleResize,
+                );
+                window.visualViewport?.removeEventListener(
+                    "scroll",
+                    handleResize,
+                );
+
+                // Restore body styles
+                document.body.style.overflow = originalOverflow;
+                document.body.style.height = originalHeight;
+                document.body.style.position = originalPosition;
+                document.body.style.width = originalWidth;
             };
         } else {
-             // Fallback for environments without visualViewport
-             viewportHeight = window.innerHeight;
+            // Fallback for environments without visualViewport
+            viewportHeight = window.innerHeight;
         }
     });
 
