@@ -99,7 +99,11 @@
                     "/suspended",
                     "/install",
                 ];
-                if (!publicRoutes.includes($page.url.pathname)) {
+                const isPublic =
+                    publicRoutes.includes($page.url.pathname) ||
+                    $page.url.pathname.startsWith("/test/");
+
+                if (!isPublic) {
                     goto("/login");
                 }
             }
@@ -179,7 +183,8 @@
             "/",
             "/live2d",
             "/maintenance",
-        ].includes($page.url.pathname);
+        ].includes($page.url.pathname) &&
+        !$page.url.pathname.startsWith("/test/");
 
     $: isChatPage = ["/2d", "/character", "/live2d", "/feed"].includes(
         $page.url.pathname,

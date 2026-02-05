@@ -23,6 +23,7 @@
 
     // --- Mobile Keyboard Fix ---
     let viewportHeight = 0;
+    let initialCanvasHeight = 0;
     // ----------------------------
 
     let lastSessionId: string | null = null;
@@ -504,30 +505,35 @@
         resetIdleTimer();
 
         // [Mobile Keyboard Fix]
+        initialCanvasHeight = window.innerHeight; // Cache initial height for background
+
         if (typeof window !== "undefined" && window.visualViewport) {
             viewportHeight = window.visualViewport.height;
+
             const handleResize = () => {
                 if (window.visualViewport) {
                     viewportHeight = window.visualViewport.height;
-                    // iOS scroll fix: sometimes it scrolls the body
-                    if (document.body.scrollTop !== 0) {
+
+                    // [ForceScroll Strategy]
+                    // Force reset scroll to top to prevent browser shifting
+                    if (window.scrollY !== 0 || document.body.scrollTop !== 0) {
+                        window.scrollTo(0, 0);
                         document.body.scrollTop = 0;
                     }
                 }
             };
+
+            const handleScroll = () => {
+                // Ensure scroll stays at 0
+                if (window.scrollY !== 0 || document.body.scrollTop !== 0) {
+                    window.scrollTo(0, 0);
+                    document.body.scrollTop = 0;
+                }
+            };
+
             window.visualViewport.addEventListener("resize", handleResize);
             window.visualViewport.addEventListener("scroll", handleResize);
-
-            // [Mobile Body Lock] - Prevent screen logic from shifting up
-            const originalOverflow = document.body.style.overflow;
-            const originalHeight = document.body.style.height;
-            const originalPosition = document.body.style.position;
-            const originalWidth = document.body.style.width;
-
-            document.body.style.overflow = "hidden";
-            document.body.style.height = "100%";
-            document.body.style.position = "fixed"; // Critical for iOS
-            document.body.style.width = "100%";
+            window.addEventListener("scroll", handleScroll);
 
             removeListener = () => {
                 window.removeEventListener(
@@ -542,16 +548,12 @@
                     "scroll",
                     handleResize,
                 );
-
-                // Restore body styles
-                document.body.style.overflow = originalOverflow;
-                document.body.style.height = originalHeight;
-                document.body.style.position = originalPosition;
-                document.body.style.width = originalWidth;
+                window.removeEventListener("scroll", handleScroll);
             };
         } else {
             // Fallback for environments without visualViewport
             viewportHeight = window.innerHeight;
+            removeListener = () => {};
         }
     });
 
@@ -567,7 +569,9 @@
     let error_showSpeech = false;
 </script>
 
-<main>
+<main
+    style:height={initialCanvasHeight ? `${initialCanvasHeight}px` : "100dvh"}
+>
     <div
         class="vignette-overlay vignette-black"
         style="opacity: {blackOpacity};"

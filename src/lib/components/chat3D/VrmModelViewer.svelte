@@ -19,6 +19,7 @@
 
   // --- Mobile Keyboard Fix ---
   let viewportHeight = 0;
+  let initialCanvasHeight = 0;
   // ----------------------------
 
   export let persona: Persona | null;
@@ -40,13 +41,8 @@
 
   onMount(() => {
     // [Mobile Keyboard Fix]
-    // Prevent layout shift by locking body scroll
-    let originalOverflow = document.body.style.overflow;
-    let originalHeight = document.body.style.height;
-    let originalPosition = document.body.style.position;
-    let originalWidth = document.body.style.width;
+    initialCanvasHeight = window.innerHeight; // Cache for background
 
-    // Cleanup function variable
     let cleanupListeners = () => {};
 
     if (typeof window !== "undefined" && window.visualViewport) {
@@ -55,25 +51,29 @@
       const handleResize = () => {
         if (window.visualViewport) {
           viewportHeight = window.visualViewport.height;
-          // iOS scroll fix
-          if (document.body.scrollTop !== 0) {
+          // [ForceScroll Strategy]
+          if (document.body.scrollTop !== 0 || window.scrollY !== 0) {
+            window.scrollTo(0, 0);
             document.body.scrollTop = 0;
           }
         }
       };
 
+      const handleScroll = () => {
+        if (document.body.scrollTop !== 0 || window.scrollY !== 0) {
+          window.scrollTo(0, 0);
+          document.body.scrollTop = 0;
+        }
+      };
+
       window.visualViewport.addEventListener("resize", handleResize);
       window.visualViewport.addEventListener("scroll", handleResize);
-
-      // Apply Body Lock
-      document.body.style.overflow = "hidden";
-      document.body.style.height = "100%";
-      document.body.style.position = "fixed";
-      document.body.style.width = "100%";
+      window.addEventListener("scroll", handleScroll);
 
       cleanupListeners = () => {
         window.visualViewport?.removeEventListener("resize", handleResize);
         window.visualViewport?.removeEventListener("scroll", handleResize);
+        window.removeEventListener("scroll", handleScroll);
       };
     } else {
       viewportHeight = window.innerHeight;
@@ -81,11 +81,6 @@
 
     return () => {
       cleanupListeners();
-      // Restore body styles
-      document.body.style.overflow = originalOverflow;
-      document.body.style.height = originalHeight;
-      document.body.style.position = originalPosition;
-      document.body.style.width = originalWidth;
     };
   });
 
@@ -454,6 +449,7 @@
 <!-- svelte-ignore a11y_no_static_element_interactions -->
 <div
   id="character-view"
+  style:height={initialCanvasHeight ? `${initialCanvasHeight}px` : "100dvh"}
   on:mousedown={handleMouseClick}
   on:mousemove={handleMouseMove}
 >
