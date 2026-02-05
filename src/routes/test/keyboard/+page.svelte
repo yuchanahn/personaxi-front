@@ -1,277 +1,107 @@
 <script lang="ts">
     import { onMount } from "svelte";
 
-    let debugInfo = "";
-    let strategy:
-        | "default"
-        | "fixed-body"
-        | "visual-viewport"
-        | "force-scroll"
-        | "counter-transform" = "default";
-
-    let initialWindowHeight = 0; // Fixed Base Height
-    let windowHeight = 0;
-    let viewportHeight = 0;
-    let scrollY = 0;
-
-    let vvHeight = 0;
-    let vvOffsetTop = 0;
-    let vvPageTop = 0;
-
-    function updateDebug() {
-        if (typeof window !== "undefined") {
-            windowHeight = window.innerHeight;
-            scrollY = window.scrollY;
-            if (window.visualViewport) {
-                vvHeight = window.visualViewport.height;
-                vvOffsetTop = window.visualViewport.offsetTop;
-                vvPageTop = window.visualViewport.pageTop;
-            }
-            viewportHeight = window.visualViewport
-                ? window.visualViewport.height
-                : window.innerHeight;
-
-            debugInfo = JSON.stringify(
-                {
-                    initH: initialWindowHeight,
-                    winH: windowHeight,
-                    vvH: vvHeight,
-                    vvTop: vvOffsetTop,
-                    vvPageTop: vvPageTop,
-                    scrollY: scrollY.toFixed(0),
-                    strategy,
-                },
-                null,
-                2,
-            );
-
-            if (strategy === "force-scroll") {
-                if (window.scrollY !== 0) {
-                    window.scrollTo(0, 0);
-                }
-            }
-        }
-    }
+    let initialHeight = 0;
 
     onMount(() => {
-        initialWindowHeight = window.innerHeight; // Capture on load
-        updateDebug();
-
-        window.addEventListener("resize", updateDebug);
-        window.addEventListener("scroll", updateDebug);
-        if (window.visualViewport) {
-            window.visualViewport.addEventListener("resize", updateDebug);
-            window.visualViewport.addEventListener("scroll", updateDebug);
-        }
-
-        // Try VirtualKeyboard API (Android)
-        if ("virtualKeyboard" in navigator) {
-            (navigator as any).virtualKeyboard.overlaysContent = true;
-        }
-
-        return () => {
-            window.removeEventListener("resize", updateDebug);
-            window.removeEventListener("scroll", updateDebug);
-            if (window.visualViewport) {
-                window.visualViewport.removeEventListener(
-                    "resize",
-                    updateDebug,
-                );
-                window.visualViewport.removeEventListener(
-                    "scroll",
-                    updateDebug,
-                );
-            }
-            unlockBody();
-        };
+        initialHeight = window.innerHeight;
     });
-
-    function lockBody() {
-        document.body.style.position = "fixed";
-        document.body.style.width = "100%";
-        document.body.style.height = "100%";
-        document.body.style.overflow = "hidden";
-    }
-
-    function unlockBody() {
-        document.body.style.position = "";
-        document.body.style.width = "";
-        document.body.style.height = "";
-        document.body.style.overflow = "";
-    }
-
-    function setStrategy(s: any) {
-        strategy = s;
-        if (s === "fixed-body") {
-            lockBody();
-        } else {
-            unlockBody();
-        }
-        updateDebug();
-        if (s === "force-scroll") {
-            window.scrollTo(0, 0);
-        }
-    }
 </script>
 
-<!-- Background Layer -->
-<!-- V4: Apply Transform for Counter-Transform strategy -->
-<div
-    class="bg"
-    style:height={initialWindowHeight ? `${initialWindowHeight}px` : "100dvh"}
-    style:transform={strategy === "counter-transform"
-        ? `translateY(${vvOffsetTop}px)`
-        : "none"}
->
-    <!-- Background is chat_bg.png via CSS -->
-</div>
+<div class="app-wrapper" style:height="{initialHeight}px">
+    <div class="bg-layer"></div>
 
-<!-- UI Layer -->
-<div
-    class="ui-layer"
-    style:height={strategy === "visual-viewport" ||
-    strategy === "force-scroll" ||
-    strategy === "counter-transform"
-        ? `${vvHeight}px`
-        : "100dvh"}
-    style:top={strategy === "visual-viewport" ||
-    strategy === "force-scroll" ||
-    strategy === "counter-transform"
-        ? `${vvOffsetTop}px`
-        : "0"}
->
-    <div class="header">
-        <h1>Keyboard Test V4</h1>
-        <pre class="debug">{debugInfo}</pre>
-        <div class="controls-row">
-            <button
-                class:active={strategy === "default"}
-                on:click={() => setStrategy("default")}>Default</button
-            >
-            <button
-                class:active={strategy === "fixed-body"}
-                on:click={() => setStrategy("fixed-body")}>BodyLock</button
-            >
-            <button
-                class:active={strategy === "visual-viewport"}
-                on:click={() => setStrategy("visual-viewport")}>VV Only</button
-            >
+    <header class="top-search-bar">
+        <div class="search-input-wrapper">
+            <span class="search-icon">🔍</span>
+            <input type="text" placeholder="상단 고정 검색창 (점프 없음)" />
         </div>
-        <div class="controls-row">
-            <button
-                class:active={strategy === "force-scroll"}
-                on:click={() => setStrategy("force-scroll")}>ForceScroll</button
-            >
-            <button
-                class:active={strategy === "counter-transform"}
-                on:click={() => setStrategy("counter-transform")}
-                >CounterTF</button
-            >
+    </header>
+
+    <main class="scroll-area">
+        <div class="content-padding">
+            {#each Array(40) as _, i}
+                <div class="card">본문 스크롤 테스트 데이터 {i + 1}</div>
+            {/each}
         </div>
-    </div>
-
-    <div class="spacer"></div>
-
-    <div class="footer">
-        <input
-            type="text"
-            placeholder="Click to test keyboard..."
-            on:focus={() => setTimeout(() => updateDebug(), 100)}
-        />
-    </div>
+    </main>
 </div>
 
 <style>
-    :global(body) {
+    /* [핵심] Body 스크롤 완전 차단 */
+    :global(html, body) {
         margin: 0;
-        /* overscroll-behavior: none; */
-    }
-    .bg {
-        position: fixed;
-        top: 0;
-        left: 0;
+        padding: 0;
         width: 100%;
-        height: 100dvh;
-        z-index: 0;
-        background-image: url("/chat_bg.png");
-        background-size: cover;
-        background-position: center bottom;
-        background-repeat: no-repeat;
-        overflow: hidden;
-        will-change: transform; /* V4 optimization */
+        height: 100%;
+        overflow: hidden !important;
+        position: fixed;
     }
 
-    .ui-layer {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100dvh;
-        z-index: 10;
+    .app-wrapper {
+        position: relative;
         display: flex;
         flex-direction: column;
-        pointer-events: none;
-        border: 2px solid rgba(0, 0, 255, 0.3);
-        box-sizing: border-box;
-    }
-
-    .ui-layer > * {
-        pointer-events: auto;
-    }
-
-    .header {
-        background: rgba(255, 255, 255, 0.9);
-        padding: 5px;
-        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-    }
-    .debug {
-        font-size: 9px;
-        font-family: monospace;
-        background: #eee;
-        padding: 3px;
-        margin: 3px 0;
-        border-radius: 4px;
-        white-space: pre-wrap;
-    }
-    .controls-row {
-        display: flex;
-        gap: 3px;
-        margin-bottom: 3px;
-    }
-    button {
-        flex: 1;
-        padding: 6px;
-        border: 1px solid #ccc;
-        background: white;
-        border-radius: 4px;
-        font-size: 11px;
-    }
-    button.active {
-        background: #007bff;
-        color: white;
-        border-color: #0056b3;
-    }
-
-    .spacer {
-        flex: 1;
-    }
-
-    .footer {
-        padding: 10px;
-        background: white;
-        border-top: 1px solid #ccc;
-        background: rgba(255, 255, 255, 0.9);
-    }
-    input {
         width: 100%;
-        padding: 15px;
-        font-size: 16px;
-        border: 2px solid #ddd;
-        border-radius: 8px;
-        box-sizing: border-box;
+        overflow: hidden;
     }
-    input:focus {
-        border-color: #007bff;
+
+    .bg-layer {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: -1;
+        background-image: url("/chat_bg.png");
+        background-size: cover;
+        background-position: center;
+    }
+
+    /* [핵심 전략] 입력창을 최상단에 배치 */
+    .top-search-bar {
+        position: relative;
+        z-index: 100;
+        padding: 10px 16px;
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(10px);
+        border-bottom: 1px solid #ddd;
+    }
+
+    .search-input-wrapper {
+        display: flex;
+        align-items: center;
+        background: #f1f1f1;
+        border-radius: 8px;
+        padding: 0 12px;
+    }
+
+    input {
+        flex: 1;
+        height: 44px;
+        border: none;
+        background: transparent;
+        font-size: 16px; /* iOS 줌 방지 필수 */
         outline: none;
+        padding-left: 8px;
+    }
+
+    /* 본문 스크롤 영역 분리 */
+    .scroll-area {
+        flex: 1;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .content-padding {
+        padding: 16px;
+    }
+
+    .card {
+        background: rgba(255, 255, 255, 0.7);
+        margin-bottom: 12px;
+        padding: 20px;
+        border-radius: 12px;
+        color: #333;
     }
 </style>

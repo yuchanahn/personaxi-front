@@ -614,7 +614,6 @@
                 class="chat-content"
                 style:height={viewportHeight ? `${viewportHeight}px` : "100%"}
             >
-                <ChatWindow {showChat} {isLoading} />
                 <ChatInput
                     onSend={send}
                     onChangeInput={handleInputChange}
@@ -622,6 +621,7 @@
                     mode="3d"
                     neededNeurons={currentCost}
                 />
+                <ChatWindow {showChat} {isLoading} />
             </div>
         </div>
 
