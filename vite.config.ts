@@ -34,11 +34,7 @@ export default defineConfig({
         changeOrigin: true,
         agent: new https.Agent({ keepAlive: true }),
       },
-      '/auth': {
-        target: 'https://api.personaxi.com',
-        changeOrigin: true,
-        agent: new https.Agent({ keepAlive: true }),
-      },
+
       '/ws': {
         target: 'https://api.personaxi.com',
         ws: true,

@@ -5,13 +5,44 @@
     import Icon from "@iconify/svelte";
     import { toast } from "$lib/stores/toast";
 
-    let mode: "options" | "email" | "register" = "options";
+    let mode: "options" | "email" | "register" | "reset" = "options";
 
     let email = "";
     let password = "";
 
     const toOptions = () => (mode = "options");
     const toEmailForm = () => (mode = "email");
+    const toResetForm = () => {
+        errorMessage = "";
+        mode = "reset";
+    };
+
+    let isResetting = false;
+
+    const handleResetPassword = async () => {
+        if (!email) return;
+        isResetting = true;
+        errorMessage = "";
+
+        try {
+            const { error } = await supabase.auth.resetPasswordForEmail(email, {
+                redirectTo: `${window.location.origin}/auth/update-password`,
+            });
+
+            if (error) throw error;
+
+            toast.success("Password reset link sent! Check your email.");
+            toEmailForm();
+        } catch (e) {
+            if (e instanceof Error) {
+                errorMessage = e.message;
+            } else {
+                errorMessage = "Failed to send reset email.";
+            }
+        } finally {
+            isResetting = false;
+        }
+    };
 
     let errorMessage: string = "";
 
@@ -121,6 +152,44 @@
                 <span>·</span>
                 <a href="/privacy">{$t("login.privacy")}</a>
             </div>
+        {:else if mode === "reset"}
+            <form
+                class="email-form"
+                on:submit|preventDefault={handleResetPassword}
+            >
+                {#if errorMessage}
+                    <div class="error-message">{errorMessage}</div>
+                {/if}
+                <div class="form-group">
+                    <label for="reset-email">Reset Password</label>
+                    <p class="description">
+                        {$t("login.resetDescription", {
+                            default:
+                                "Enter your email to receive a password reset link.",
+                        })}
+                    </p>
+                    <input
+                        id="reset-email"
+                        type="email"
+                        bind:value={email}
+                        required
+                        placeholder="you@example.com"
+                    />
+                </div>
+                <button
+                    class="submit-button"
+                    type="submit"
+                    disabled={isResetting}
+                >
+                    {isResetting ? "Sending..." : "Send Reset Link"}
+                </button>
+            </form>
+
+            <div class="alt-actions">
+                <button class="link-button" on:click={toEmailForm}>
+                    {$t("common.back")}
+                </button>
+            </div>
         {:else}
             <form class="email-form" on:submit|preventDefault={loginWithEmail}>
                 {#if errorMessage}
@@ -145,6 +214,15 @@
                         required
                         placeholder=""
                     />
+                    <div class="forgot-password">
+                        <button
+                            type="button"
+                            class="link-button small"
+                            on:click={toResetForm}
+                        >
+                            Forgot Password?
+                        </button>
+                    </div>
                 </div>
                 <button class="submit-button" type="submit"
                     >{$t("login.signIn")}</button
@@ -352,5 +430,23 @@
         font-size: 0.9rem;
         text-align: center;
         margin-bottom: 1rem; /* 폼과 분리 */
+    }
+
+    .forgot-password {
+        display: flex;
+        justify-content: flex-end;
+        margin-top: 0.25rem;
+    }
+
+    .link-button.small {
+        font-size: 0.8rem;
+        color: var(--color-text-secondary);
+    }
+
+    .description {
+        font-size: 0.9rem;
+        color: var(--color-text-secondary);
+        margin: 0 0 0.5rem 0;
+        line-height: 1.4;
     }
 </style>
