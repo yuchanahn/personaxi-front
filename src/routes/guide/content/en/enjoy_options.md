@@ -1,7 +1,21 @@
-## Chat Options
+# Chat Options & Settings
 
-Click the settings icon at the top right of the chat room to change various options.
+Customize your chat experience to your taste. 🛠️
+Click the `Settings (⚙️)` icon at the top right of the chat room.
 
-*   **Change Background**: Upload your own image or change to a default background.
-*   **Change LLM Model**: Switch to a smarter model or a lighter, faster model for conversation.
-*   **Reset Chat**: Erase all memories and return to the state when you first met. (Cannot be undone)
+## 🎨 Background
+Set the mood with the right background.
+*   **Default**: Use the background set by the creator.
+*   **Custom**: Upload an image from your device to set as the background. (Visible only to you)
+
+## 🧠 LLM Model
+Swap the AI brain powering the character.
+*   **Gemini Flash (Default)**: Fast and lightweight. Great for daily chat.
+*   **Gemini Pro / Ultra**: Smarter and logical. Recommended for complex RP or long-form conversations. (Costs extra Neurons)
+
+## 🔄 Conversation Control
+*   **Reset**: Wipe all memories with the character and start fresh.
+    > [!CAUTION]
+    > Resetting permanently deletes intimacy and memories. They cannot be recovered!
+*   **Regenerate**: Don't like the last response? Make them say it again.
+*   **Edit**: Directly modify the character's response or your message to steer the conversation.

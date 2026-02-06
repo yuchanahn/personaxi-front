@@ -1249,7 +1249,7 @@
         </div>
     {/if}
 
-    <button
+    <!-- <button
         class="test-tts-btn"
         style="position: absolute; top: 50px; right: 70px; z-index: 9999; pointer-events: auto; padding: 8px 16px; background: #ff0055; color: white; border-radius: 20px; border: 2px solid white; font-weight: bold; box-shadow: 0 4px 10px rgba(0,0,0,0.3); cursor: pointer; transition: transform 0.1s;"
         on:click={() => speak("/TTS_Sample.mp3")}
@@ -1258,7 +1258,7 @@
         on:mouseleave={(e) => (e.currentTarget.style.transform = "scale(1)")}
     >
         🗣️ Test TTS
-    </button>
+    </button> -->
 
     <!-- ✨ SLEEP EFFECT (ZZZ...) -->
     {#if currentAutonomyEmotion === "SLEEP"}

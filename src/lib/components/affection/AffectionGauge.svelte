@@ -386,8 +386,8 @@
 
     .affection-container {
         position: relative;
-        width: 64px;
-        height: 64px;
+        width: 68px;
+        height: 68px;
         border-radius: 999px;
         display: grid;
         place-items: center;

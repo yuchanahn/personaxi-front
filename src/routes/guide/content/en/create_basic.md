@@ -1,8 +1,32 @@
-## Basic Creation Guide
+# Basic Creation Guide
 
-The first step to making your own character.
+Create a persona easily and quickly without complex settings.
+Just **4 steps** to birth your AI friend! 🥚 ➡️ 🐣
 
-1.  **Name & Image**: Register the character's name and representative image. You can upload a Live2D model if you have one.
-2.  **Greeting**: Enter the line the character says when a user first speaks to them.
-3.  **Personality Tags**: Select tags representing personality, such as Tsundere, Kind, Cool, etc.
-4.  **Category**: Select the genre the character belongs to.
+## 🛠️ Creation Steps
+
+### 1. Identity
+*   **Name**: Give your character a name.
+*   **Profile Image**: Upload an image that best represents them.
+    *   (Tip) Close-up face shots have higher click-through rates.
+*   **Category**: Select a genre like Fantasy, Romance, School, etc.
+
+### 2. Persona Settings
+The most important step for personality.
+*   **Personality Tags**: Select keywords like `Tsundere` `Kind` `Cool` and AI will form the personality automatically.
+*   **Bio**: Short description displayed in the list. (e.g., "Your childhood friend with a secret.")
+
+### 3. First Message
+The first line the character says when a user enters the chat.
+*   Describe the situation (actions) or speak directly.
+*   *Ex: "(Looking up from a book) Oh, you're here? I was waiting."*
+
+### 4. Visibility
+*   **Public**: Everyone can search and chat. (Eligible for incentives)
+*   **Private**: Only you can access. Recommended for testing.
+
+---
+
+> [!NOTE]
+> **Connecting Live2D / 3D Models**
+> After basic creation, you can upload Live2D or VRM model files in the 'Edit' screen.

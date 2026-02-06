@@ -1,19 +1,33 @@
-## Refund Policy
+# Refund Policy
 
 **Last Updated: 2026-02-04**
 
-### 1. Neuron Cancellation & Referund
-- **Unused Neurons**: Packages of Neurons that have not been used at all can be fully refunded within 7 days of purchase.
-- **No Partial Refunds**: If you have used even 1 Neuron from the package, cancellation or refund for that transaction is not possible. (Digital content value is consumed immediately upon use).
-- **Bonus Neurons**: Neurons provided as bonuses from events or promotions are not eligible for refunds and cannot be exchanged for cash.
+PersonaXi adheres to a fair refund policy.
 
-### 2. Subscriptions & Membership
-- PersonaXi currently does not offer subscription-based memberships. All purchases are Pay-as-you-go.
+## 1. Neuron Payment Cancellation
 
-### 3. Refund Process
-- To request a refund, please send your **[Transaction ID]** and **[Account ID]** to our support center (contact@personaxi.com) or via our Discord #support channel.
-- Processing may take 3-5 business days depending on the policy of our payment processor (LemonSqueezy).
+### ✅ Fully Refundable
+*   Within **7 days** of purchase.
+*   If **NONE** of the purchased Neurons have been used.
 
-### 4. Exceptions
-- If the service is interrupted for more than 24 hours due to company fault, we will extend the duration of any time-limited items (if applicable in the future).
-- The company is not responsible for unauthorized purchases resulting from user negligence or account theft.
+### ❌ Non-Refundable
+*   If even a **single Neuron** from the package has been used. (Digital content cannot be partially refunded)
+*   **Free/Bonus Neurons** given from events, check-ins, etc.
+*   If more than 7 days have passed since purchase.
+
+## 2. Subscription Cancellation (Coming Soon)
+*   You can schedule cancellation anytime; you won't be billed from the next cycle.
+*   Already paid periods are not pro-rated, but benefits remain until the end of the period.
+
+## 3. How to Request Refund
+
+Need a refund? Please contact support with the following info:
+
+1.  **Account ID (Email)**
+2.  **Transaction ID**
+3.  **Reason for Refund**
+
+> [!IMPORTANT]
+> **Contact Channels**
+> *   📧 Email: [support@personaxi.com](mailto:support@personaxi.com)
+> *   💬 Discord: [#support-ticket](https://discord.gg/personaxi) channel

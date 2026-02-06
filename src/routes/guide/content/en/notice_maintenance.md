@@ -1,15 +1,16 @@
-## 🛠️ Jan 30 Scheduled Maintenance
+# [Maintenance] Server Stabilization
 
-Hello, this is the PersonaXi Team.
-Server maintenance will be conducted to provide a more stable service.
+To provide a stable service, we will be performing server maintenance.
+Please note that access to the service will be restricted during this time. 🚧
 
-### Schedule
-**Jan 30, 2026 (Fri) 03:00 ~ 05:00 (2 Hours)**
+## 🕒 Schedule
+*   **Date**: 2026.02.10 (Tue)
+*   **Time**: 03:00 AM ~ 05:00 AM (2 hours) (UTC+9)
 
-### Details
-*   Server stabilization
-*   Fixed some character dialogue errors
-*   Security patch applied
+## 🛠️ Details
+*   Database server upgrade
+*   Network latency optimization
+*   Security patch application
 
-The service will be temporarily unavailable during maintenance.
-We will finish the work quickly and see you soon. Thank you.
+We apologize for the inconvenience and will repay you with a better service.
+Thank you.

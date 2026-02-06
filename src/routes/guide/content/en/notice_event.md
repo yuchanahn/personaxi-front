@@ -1,17 +1,19 @@
-## 🎁 Grand Opening Attendance Event
+# [Event] Creator Challenge
 
-To celebrate the opening of PersonaXi, we have prepared a special event.
-Check in every day for 7 days and get rich rewards!
+Who will be the best creator? 🏆
+The **1st Creator Challenge** begins now!
 
-### Event Period
-Jan 29, 2026 ~ Feb 28, 2026
+## 📅 Period
+*   2026.02.01 ~ 2026.02.28
 
-### How to Participate
-Log in every day and stamp your attendance in the 'Event' tab.
+## 🎯 How to Participate
+1.  Create an original character.
+2.  Make the character public.
+3.  Gather the most 'Likes' and 'Chat Counts' during the period!
 
-### Rewards
-*   Day 1: 1,000 Points
-*   Day 3: Premium Model Ticket (1 Hour)
-*   **Day 7: Limited Edition 'Cyberpunk' Costume Set**
+## 🎁 Prizes
+*   🥇 **1st Place**: 50,000 Neurons + Special Badge
+*   🥈 **2nd Place**: 30,000 Neurons
+*   🥉 **3rd Place**: 10,000 Neurons
 
-Don't miss out!
+Show off your creativity!

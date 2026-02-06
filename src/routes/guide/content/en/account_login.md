@@ -1,8 +1,25 @@
-## Login & Identity Verification
+# Login & Troubleshooting
 
-### Troubleshooting Login
-*   **Forgot your password?**: Reset it via 'Find Password' at the bottom of the login screen.
-*   **Link Social Login**: You can link social accounts to your existing account in My Page.
+## 🔑 How to Login
 
-### Identity Verification (Adult Content)
-Identity verification may be required to access some adult-only content. Verification data is securely encrypted and managed.
+Please select the same method you used to sign up.
+
+*   **Google Users**: Click `Continue with Google`
+*   **Kakao Users**: Click `Start with Kakao`
+*   **Email Users**: Enter email and password
+
+---
+
+## 💡 FAQ
+
+### Q. I can't log in!
+*   Check if you are using the correct social account. (e.g., If you signed up with Google but try to log in with Kakao, a new account might be created.)
+*   Try clearing your browser cookies/cache.
+
+### Q. I forgot my password.
+*   **Social Login**: Manage your password on that platform (Google, Kakao).
+*   **Email Login**: Use the `Forgot Password` link at the bottom of the login screen.
+
+> [!WARNING]
+> **Age Verification**
+> When accessing some Adult (NSFW) content, additional age verification may be required by local laws. Verification data is ephemeral and not stored.

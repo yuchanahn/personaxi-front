@@ -1,7 +1,24 @@
-## Wing & Payment Guide
+# Payment & Neurons
 
-'Wing' is the paid currency used in PersonaXi.
+Guide to **'Neurons'**, the currency of PersonaXi. 💎
 
-*   **Usage**: Used for advanced LLM models, unlocking paid character shards, sponsoring creators, etc.
-*   **How to Charge**: You can charge via credit card, PayPal, etc., in the Shop tab.
-*   **Free Acquisition**: You can also get free Wings through daily check-ins, daily missions, and event participation.
+## 🧠 What are Neurons?
+The virtual currency used in the PersonaXi ecosystem.
+Inspired by brain cells, symbolizing connection with AI.
+
+### Main Uses
+*   **High-Intelligence Models**: Chat with smarter AI models (Gemini Pro/Ultra).
+*   **Image Generation**: Generate images during chat or render high-quality scenes.
+*   **TTS (Voice Chat)**: High-quality voice synthesis.
+*   **Creator Support (Coming Soon)**: Gift Neurons to your favorite creators.
+
+## 💳 Charging & Methods
+You can purchase Neuron packages in the `Shop` tab.
+
+*   **Methods**: Supports major global payment methods via **PortOne** / **LemonSqueezy**.
+*   **Security**: Payments are processed securely by trusted third-party providers.
+
+> [!TIP]
+> **Free Neurons**
+> During the Beta period, we give out bonus Neurons for **Daily Check-ins** or **Bug Reports**.
+> Don't miss out on Discord community events!

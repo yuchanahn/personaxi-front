@@ -3,7 +3,11 @@
     import { t, locale } from "svelte-i18n";
     import { slide } from "svelte/transition";
     import { marked } from "marked";
+    import markedAlert from "marked-alert";
     import DOMPurify from "isomorphic-dompurify";
+
+    // Configure Marked with Alerts
+    marked.use(markedAlert());
 
     // 📚 Type Definitions
     type TabType = "guide" | "notice";
@@ -40,6 +44,13 @@
 
     // Load MD files eagerly as raw text
     const mdModules = import.meta.glob("./content/**/*.md", {
+        query: "?raw",
+        import: "default",
+        eager: true,
+    });
+
+    // Load Actual Policy Files
+    const policyModules = import.meta.glob("../../lib/i18n/locales/**/*.md", {
         query: "?raw",
         import: "default",
         eager: true,
@@ -136,9 +147,10 @@
                             fileName: "enjoy_options",
                         },
                         {
-                            id: "enjoy_summary",
-                            titleKey: "guide.articles.enjoy_summary",
-                            fileName: "enjoy_summary",
+                            id: "enjoy_virtual_character",
+                            titleKey: "guide.articles.enjoy_virtual_character",
+                            fileName: "enjoy_virtual_character",
+                            date: "2026.02.05",
                         },
                         {
                             id: "enjoy_story",
@@ -178,6 +190,11 @@
                             id: "create_basic",
                             titleKey: "guide.articles.create_basic",
                             fileName: "create_basic",
+                        },
+                        {
+                            id: "create_virtual_character",
+                            titleKey: "guide.articles.create_virtual_character",
+                            fileName: "create_virtual_character",
                         },
                         {
                             id: "create_expert",
@@ -319,11 +336,29 @@
         fileName: string,
         lang: string,
     ): Promise<string> {
-        const path = `./content/${lang}/${fileName}.md`;
-        const fallbackPath = `./content/en/${fileName}.md`;
+        let rawMd: any = null;
 
-        const rawMd =
-            mdModules[path] || (lang !== "en" ? mdModules[fallbackPath] : null);
+        // Check for Policy files first (Real Source)
+        if (fileName === "policy_terms") {
+            const path = `../../lib/i18n/locales/${lang}/terms.md`;
+            const fallbackPath = `../../lib/i18n/locales/en/terms.md`;
+            rawMd =
+                policyModules[path] ||
+                (lang !== "en" ? policyModules[fallbackPath] : null);
+        } else if (fileName === "policy_privacy") {
+            const path = `../../lib/i18n/locales/${lang}/policy.md`;
+            const fallbackPath = `../../lib/i18n/locales/en/policy.md`;
+            rawMd =
+                policyModules[path] ||
+                (lang !== "en" ? policyModules[fallbackPath] : null);
+        } else {
+            // Default Guide Content
+            const path = `./content/${lang}/${fileName}.md`;
+            const fallbackPath = `./content/en/${fileName}.md`;
+            rawMd =
+                mdModules[path] ||
+                (lang !== "en" ? mdModules[fallbackPath] : null);
+        }
 
         if (typeof rawMd === "string") {
             return await marked.parse(rawMd);
@@ -771,5 +806,64 @@
     .markdown-content :global(hr) {
         margin: 2.5rem 0;
         border-color: var(--border);
+    }
+
+    /* GFM Alerts Styling */
+    .markdown-content :global(.markdown-alert) {
+        padding: 0.75rem 1rem;
+        margin-bottom: 1rem;
+        border-left: 0.25rem solid;
+        border-radius: 0.25rem 0.5rem 0.5rem 0.25rem; /* Rounded corners except top-left bottom-left handled by border */
+        background-color: var(--muted);
+    }
+
+    .markdown-content :global(.markdown-alert-title) {
+        display: flex;
+        align-items: center;
+        font-weight: 600;
+        font-size: 0.9rem;
+        margin-bottom: 0.5rem;
+        text-transform: uppercase;
+    }
+
+    /* Specific Alert Colors */
+    .markdown-content :global(.markdown-alert-note) {
+        border-color: #4285f4;
+        background-color: rgba(66, 133, 244, 0.1);
+    }
+    .markdown-content :global(.markdown-alert-note .markdown-alert-title) {
+        color: #4285f4;
+    }
+
+    .markdown-content :global(.markdown-alert-tip) {
+        border-color: #0f9d58;
+        background-color: rgba(15, 157, 88, 0.1);
+    }
+    .markdown-content :global(.markdown-alert-tip .markdown-alert-title) {
+        color: #0f9d58;
+    }
+
+    .markdown-content :global(.markdown-alert-important) {
+        border-color: #9333ea;
+        background-color: rgba(147, 51, 234, 0.1);
+    }
+    .markdown-content :global(.markdown-alert-important .markdown-alert-title) {
+        color: #9333ea;
+    }
+
+    .markdown-content :global(.markdown-alert-warning) {
+        border-color: #fbbc04;
+        background-color: rgba(251, 188, 4, 0.1);
+    }
+    .markdown-content :global(.markdown-alert-warning .markdown-alert-title) {
+        color: #b45309;
+    }
+
+    .markdown-content :global(.markdown-alert-caution) {
+        border-color: #ea4335;
+        background-color: rgba(234, 67, 53, 0.1);
+    }
+    .markdown-content :global(.markdown-alert-caution .markdown-alert-title) {
+        color: #ea4335;
     }
 </style>

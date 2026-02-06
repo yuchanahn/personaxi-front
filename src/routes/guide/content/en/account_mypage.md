@@ -1,9 +1,24 @@
-## Manage Account & Creator Info
+# Profile & Account Management
 
-You can modify various information in **Settings > Edit Profile**.
+Manage your activity and customize how you appear to others on **My Page**. ✨
 
-*   **Nickname**: The name shown to other users.
-*   **Profile Image**: Register an image that represents you.
-*   **Bio**: Write a simple phrase to introduce yourself.
+## 📝 Edit Profile
 
-To be active as a creator, you must go through the 'Register Creator' process. Once registered, a dashboard showing statistics for your created characters will be activated.
+You can modify the following in `Settings` > `Edit Profile`.
+
+| Item | Description |
+| :--- | :--- |
+| **Nickname** | Name displayed in the community. |
+| **Creator Tag** | Your unique ID. (Format: `@username`) Users can search for you with this tag. |
+| **Profile Image** | Upload an image that represents you. (GIF support coming soon) |
+| **Bio** | Write a short introduction about yourself. |
+
+## 📊 Activity History
+
+*   **My Personas**: Manage characters you have created.
+*   **Liked Personas**: Collection of characters you gave a 'Heart' to.
+*   **Following/Followers**: Check your connections with other creators.
+
+> [!TIP]
+> **Changing Creator Tag**
+> Your tag is used as a unique URL, so choose carefully! Changing it may break existing links to your profile.

@@ -1,7 +1,29 @@
-## Expert Mode Guide
+# Expert Mode
 
-Use Expert Mode if you want to create a more sophisticated character.
+Detail, and perfection. 🛠️
+Advanced tools for those who want to engineer the soul of their character.
 
-*   **System Prompt**: You can directly write the AI's behavioral guidelines. Use `{{user}}`, `{{char}}` variables to create dynamic situations.
-*   **Example Dialogue**: Entering 3 or more examples of how the character speaks makes the tone much more natural.
-*   **Knowledge Base (RAG)**: If you upload world settings or long documents the character needs to know, it will reference them during conversation.
+## 🏗️ Key Features
+
+### 1. System Prompt
+Directly control the AI's behavioral principles.
+*   Use `{{user}}` and `{{char}}` variables for dynamic names.
+*   Use Markdown for readable instructions.
+
+### 2. Few-shot Examples
+"Example is better than precept." The best way to teach speech styles.
+*   Separate multiple dialogue examples with `<START>`.
+*   Include unique speech patterns, interjections, and actions for perfect mimicry.
+
+### 3. Knowledge Base (KB / RAG)
+Upload vast setting documents or world lore.
+*   The character "searches" this info during chat to reflect it in answers.
+*   *Ex: Magic spell book, historical timeline, etc.*
+
+### 4. Advanced Parameters
+*   **Temperature**: Creativity control (Higher = Creative/Random, Lower = Logical/Repetitive).
+*   **Top P / Top K**: Diversity control.
+
+> [!IMPORTANT]
+> **Node Editor Coming Soon**
+> In H1 2026, a **Node-based Editor** for visually designing conversation flows will be added to Expert Mode. Stay tuned!
