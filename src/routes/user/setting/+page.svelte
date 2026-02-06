@@ -254,6 +254,7 @@
     }
 
     import SettingsModal from "$lib/components/modal/UserSettingsModal.svelte";
+    import PaymentHistoryModal from "$lib/components/modal/PaymentHistoryModal.svelte";
     import { settings, type Language } from "$lib/stores/settings";
     import AssetPreview from "$lib/components/AssetPreview.svelte";
     import NotificationDrawer from "$lib/components/notification/NotificationDrawer.svelte";
@@ -262,6 +263,7 @@
     import { getFollowers, getFollowing } from "$lib/api/user";
 
     let showSettingsModal = false;
+    let showPaymentHistoryModal = false;
     let isNotificationDrawerOpen = false;
     const { unreadCount } = notificationStore;
 
@@ -682,9 +684,21 @@
                         <div class="stats-grid">
                             <div class="stat-card">
                                 <div class="stat-header">
-                                    <span class="stat-title"
-                                        >{$t("settingPage.credits")}</span
+                                    <span class="stat-title">
+                                        {$t("settingPage.credits")}
+                                    </span>
+                                    <button
+                                        class="history-request-btn"
+                                        on:click={() =>
+                                            (showPaymentHistoryModal = true)}
                                     >
+                                        <Icon
+                                            icon="ph:receipt-bold"
+                                            width="14"
+                                            height="14"
+                                        />
+                                        {$t("paymentHistoryModal.title")}
+                                    </button>
                                 </div>
                                 <div class="stat-value-container">
                                     <div class="stat-value-row">
@@ -913,6 +927,11 @@
     />
 
     <SettingsModal bind:isOpen={showSettingsModal} />
+
+    <PaymentHistoryModal
+        bind:isOpen={showPaymentHistoryModal}
+        on:close={() => (showPaymentHistoryModal = false)}
+    />
 
     <UserListModal
         bind:isOpen={showUserListModal}
@@ -1304,6 +1323,25 @@
 
     .info-icon-btn:hover {
         color: var(--primary);
+    }
+
+    .history-request-btn {
+        display: flex;
+        align-items: center;
+        gap: 0.3rem;
+        font-size: 0.8rem;
+        color: var(--muted-foreground);
+        background: var(--secondary);
+        border: 1px solid var(--border);
+        padding: 0.3rem 0.6rem;
+        border-radius: 6px;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+    .history-request-btn:hover {
+        background: var(--muted);
+        color: var(--foreground);
     }
 
     .stat-value-container {

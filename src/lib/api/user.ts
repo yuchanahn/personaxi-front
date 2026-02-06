@@ -39,3 +39,13 @@ export async function deleteUser(): Promise<boolean> {
     const res = await api.delete("/api/user/delete");
     return res.ok;
 }
+
+import type { PaymentRecord } from "$lib/types";
+
+export async function getPaymentHistory(): Promise<PaymentRecord[]> {
+    const res = await api.get("/api/user/payments");
+    if (res.ok) {
+        return await res.json();
+    }
+    return [];
+}

@@ -139,3 +139,13 @@ export interface UserDevice {
     deviceType: string;
     lastActiveAt: string;
 }
+
+export interface PaymentRecord {
+    id: string; // Order ID
+    amount: number;
+    currency: string;
+    item_name: string;
+    status: 'paid' | 'pending' | 'refunded' | 'failed' | 'refund_requested';
+    created_at: string;
+    payment_method?: string;
+}

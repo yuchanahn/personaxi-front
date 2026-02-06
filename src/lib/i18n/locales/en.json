@@ -122,6 +122,32 @@
       "notLoggedIn": "Login Required"
     }
   },
+  "paymentHistoryModal": {
+    "title": "Payment History",
+    "refund": "Request Refund",
+    "refundConfirm": "Are you sure you want to request a refund?\n(Only available for unused items purchased within 7 days)",
+    "noHistory": "No payment history yet.",
+    "date": "Date",
+    "item": "Item",
+    "amount": "Amount",
+    "status": {
+      "paid": "Paid",
+      "pending": "Pending",
+      "refunded": "Refunded",
+      "failed": "Failed",
+      "refund_requested": "Refund Requested"
+    },
+    "reasons": {
+      "label": "Select a reason for refund",
+      "simple_change": "Simple Change of Mind",
+      "mistake": "Accidental Purchase",
+      "error": "Service Error",
+      "other": "Other"
+    },
+    "cancel": "Cancel",
+    "submit": "Submit Request",
+    "refundRequested": "Refund request submitted.\nWe will notify you via email."
+  },
   "paymentModal": {
     "pack100Name": "Basic Neuron Pack",
     "pack300Name": "Value Neuron Pack",
@@ -218,15 +244,6 @@
     "checkedAndAgree": "I have read and agree to the ",
     "agreedToPolicies": ".",
     "title": "Legal Center"
-  },
-  "footer": {
-    "companyName": "PersonaXi Inc.",
-    "address": "Room 101, Bldg 104, 306-15, Beonyeong-ro, Seobuk-gu, Cheonan-si, Chungcheongnam-do, Republic of Korea",
-    "ceo": "CEO: Yuchan Ahn",
-    "bizLicense": "Business Registration No.: 628-14-02633",
-    "mailOrder": "Mail Order License: 2025-충남천안-2452",
-    "phone": "Tel: 070-8064-0436",
-    "email": "Email: contact@personaxi.com"
   },
   "licenses": {
     "loadError": "Failed to load license information.",
@@ -792,7 +809,7 @@
     "promptDesc": "Install for fullscreen & better performance.",
     "scanTitle": "Scan with Mobile",
     "scanDesc": "Scan QR code with your camera.",
-    "notice": "Installs instantly without App Store visits.<br />Supports automatic updates."
+    "notice_benefit": "Installs instantly without App Store visits.<br />Supports automatic updates."
   },
   "models": {
     "title": "Response Mode",
