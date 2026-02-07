@@ -6,22 +6,16 @@
     let loading = true;
     let error = "";
 
+    // Top-level variables for template access
+    let productName = "";
+    let amount = 0;
+
     onMount(async () => {
         const query = $page.url.searchParams;
-
-        const paymentId = query.get("paymentId");
-        const amount = Number(query.get("amount"));
-        const credits = Number(query.get("credits"));
-        const productName = query.get("productName");
-
-        // User Info
+        productName = query.get("productName") || "";
+        amount = Number(query.get("amount")) || 0;
         const userId = query.get("userId");
-        const email = query.get("email") || undefined;
-        const name = query.get("name") || undefined;
-
-        // Config (Should match environment variables/constants used in Modal)
-        const storeId = "store-04392323-c1ba-4c80-9812-ae8577171bb0";
-        const channelKey = "channel-key-e2e8e3dc-c4e4-45e1-8fb5-50ee82c9f8b2";
+        const paymentId = query.get("paymentId");
 
         if (!paymentId || !amount || !productName || !userId) {
             error = "Invalid payment parameters.";
@@ -41,11 +35,35 @@
                 return;
             }
 
+            // Ready to pay - Show button
+            loading = false;
+        } catch (e: any) {
+            error = e.message || "An unexpected error occurred.";
+            loading = false;
+        }
+    });
+
+    async function startPayment() {
+        if (!window.PortOne) return;
+
+        try {
+            const query = $page.url.searchParams;
+            const paymentId = query.get("paymentId");
+            const userId = query.get("userId");
+            const email = query.get("email") || undefined;
+            const name = query.get("name") || undefined;
+            const credits = Number(query.get("credits"));
+
+            // Correct Config
+            const storeId = "store-04392323-c1ba-4c80-9812-ae8577171bb0";
+            const channelKey =
+                "channel-key-e2e8e3dc-c4e4-45e1-8fb5-50ee82c9f8b2";
+
             const response = await window.PortOne.requestPayment({
                 storeId,
                 channelKey,
-                paymentId,
-                orderName: productName,
+                paymentId: paymentId!,
+                orderName: productName!,
                 totalAmount: amount,
                 currency: "CURRENCY_KRW",
                 payMethod: "CARD",
@@ -62,21 +80,15 @@
             });
 
             if (response.code != null) {
-                // Error handling
                 error = response.message || "Payment failed";
-                loading = false;
-                // alert(error);
-                // window.close(); // Optional
             } else {
-                // Success - typically redirects, but if not:
                 window.location.href =
                     "/payment/complete?paymentId=" + paymentId;
             }
         } catch (e: any) {
-            error = e.message || "An unexpected error occurred.";
-            loading = false;
+            error = e.message;
         }
-    });
+    }
 </script>
 
 <div class="container">
@@ -93,6 +105,17 @@
                 >{$t("common.close", { default: "Close" })}</button
             >
         </div>
+    {:else}
+        <div class="payment-ready">
+            <h2>Payment Ready</h2>
+            <br />
+            <p class="product-name">{productName}</p>
+            <p class="amount">{amount.toLocaleString()} KRW</p>
+            <br />
+            <button class="pay-btn" on:click={startPayment}>
+                Proceed to Payment
+            </button>
+        </div>
     {/if}
 </div>
 
@@ -102,7 +125,7 @@
         flex-direction: column;
         align-items: center;
         justify-content: center;
-        height: 100vh;
+        height: 100dvh; /* Use dynamic viewport height for mobile */
         background-color: #1a1a1a;
         color: white;
         text-align: center;
@@ -138,5 +161,22 @@
         border: none;
         border-radius: 5px;
         cursor: pointer;
+    }
+    .pay-btn {
+        background: #0070f3;
+        font-size: 1.2rem;
+        padding: 15px 30px;
+        font-weight: bold;
+        border-radius: 8px;
+        width: 80%;
+        max-width: 300px;
+    }
+    .product-name {
+        font-size: 1.5rem;
+        font-weight: bold;
+    }
+    .amount {
+        font-size: 1.2rem;
+        color: #ddd;
     }
 </style>

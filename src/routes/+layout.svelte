@@ -121,17 +121,28 @@
 
         // If returning from PortOne payment
         if (paymentId) {
+            const code = urlParams.get("code");
+            const message = urlParams.get("message");
+            const decodedMessage = message ? decodeURIComponent(message) : "";
+
             // Remove params from URL without reload
             const newUrl = window.location.pathname + window.location.hash;
             window.history.replaceState({}, document.title, newUrl);
 
-            // Notify user "Checking payment..."
-            // toast.info("Payment result confirming..."); // Optional
+            // Check for error code (PortOne V2 returns code on failure/cancellation)
+            if (code) {
+                console.error("Payment Error Redirect:", code, decodedMessage);
+                toast.error(
+                    decodedMessage ||
+                        get(t)("shop.payment_failed", {
+                            default: "Payment failed.",
+                        }),
+                );
+                closeNeedMoreNeuronsModal();
+                return;
+            }
 
-            // Force refresh user data to see new credits
-            // The Webhook should have processed it by now, or is processing.
-            // We can retry a few times if credits haven't updated yet?
-            // For now, simple refresh.
+            // Success handling
             const user = await getCurrentUser();
             if (user) {
                 st_user.set(user);

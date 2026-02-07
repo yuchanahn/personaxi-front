@@ -146,7 +146,19 @@
                 });
 
                 // Open in new window (System Browser)
-                window.open(`/payment/bridge?${params.toString()}`, "_blank");
+                const newWindow = window.open(
+                    `/payment/bridge?${params.toString()}`,
+                    "_blank",
+                );
+
+                // Fallback for PWA/Popup Blockers: If popup blocked, navigate current window
+                if (
+                    !newWindow ||
+                    newWindow.closed ||
+                    typeof newWindow.closed == "undefined"
+                ) {
+                    window.location.href = `/payment/bridge?${params.toString()}`;
+                }
 
                 closeModal();
                 isPurchasing = false;
