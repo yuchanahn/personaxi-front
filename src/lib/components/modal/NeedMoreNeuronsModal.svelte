@@ -90,70 +90,42 @@
     // PortOne V2
     async function handleRecharge() {
         if (!selectedOption) return;
-
         isPurchasing = true;
 
-        const userValue = get(st_user);
-        if (!userValue) {
-            console.error("User not found");
+        const p = getPaymentParams();
+        if (!p) {
             isPurchasing = false;
             return;
         }
-
-        // Generate Merchant UID
-        const credits =
-            selectedOption.neurons + (selectedOption.bonus_amount || 0);
-        // Format: ord_{timestamp}_{random} to meet KG Inicis 40-char limit
-        const merchantUid = `ord_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
 
         // Ensure PortOne SDK is loaded
         // @ts-ignore
         if (!window.PortOne) {
             console.error("PortOne SDK not loaded");
             isPurchasing = false;
-            // Maybe show toast error
             return;
         }
 
         try {
-            const storeId = "store-04392323-c1ba-4c80-9812-ae8577171bb0";
-            // NHN KCP (User Choice)
-            const channelKey =
-                "channel-key-d051e951-7b83-4ce6-bbef-0e966d73c39f";
-
-            const paymentId = uuidv4();
-            const orderName =
-                selectedOption.name ||
-                `${(selectedOption.neurons + (selectedOption.bonus_amount || 0)).toLocaleString()} Neurons`;
-            const totalAmount = selectedOption.price_krw;
-            const credits =
-                selectedOption.neurons + (selectedOption.bonus_amount || 0);
-
-            // Removing PWA Force Redirect Logic (Let KCP handle mobile flow natively)
-            // @ts-ignore
-            const isPWA =
-                window.matchMedia("(display-mode: standalone)").matches ||
-                (window.navigator as any).standalone === true;
-
             // @ts-ignore
             const response = await window.PortOne.requestPayment({
-                storeId,
-                channelKey,
-                paymentId,
-                orderName,
-                totalAmount,
+                storeId: p.storeId,
+                channelKey: p.channelKey,
+                paymentId: p.paymentId,
+                orderName: p.orderName,
+                totalAmount: Number(p.totalAmount),
                 currency: "CURRENCY_KRW",
                 payMethod: "CARD",
                 customer: {
-                    fullName: userValue.name || "Test User",
-                    phoneNumber: "010-1234-5678", // Must be valid-looking for some PGs
-                    email: userValue.email || "test@example.com",
+                    fullName: p.name || "Test User",
+                    phoneNumber: "010-0000-0000",
+                    email: p.email || "test@example.com",
                 },
                 customData: {
-                    userId: userValue.id,
-                    credits: credits,
+                    userId: p.userId,
+                    credits: Number(p.credits),
                 },
-                redirectUrl: `${window.location.origin}/payment/complete`, // Explicit complete page
+                redirectUrl: `${window.location.origin}/payment/complete`,
             });
             // bypass: { ... } // Removed to prevent forced popup behavior on mobile
 
@@ -223,6 +195,50 @@
     function getStandardPrice(totalNeurons: number) {
         // baseline: 1 neuron = 10 KRW
         return totalNeurons * 10;
+    }
+
+    function getPaymentParams() {
+        if (!selectedOption) return null;
+
+        const p_user = get(st_user);
+        if (!p_user) return null;
+
+        const paymentId = uuidv4();
+        const orderName =
+            selectedOption.name ||
+            `${(selectedOption.neurons + (selectedOption.bonus_amount || 0)).toLocaleString()} Neurons`;
+        const totalAmount = selectedOption.price_krw;
+        const credits =
+            selectedOption.neurons + (selectedOption.bonus_amount || 0);
+
+        // KG Inicis (Reverted)
+        const storeId = "store-04392323-c1ba-4c80-9812-ae8577171bb0";
+        const channelKey = "channel-key-e2e8e3dc-c4e4-45e1-8fb5-50ee82c9f8b2";
+
+        const params = new URLSearchParams({
+            paymentId,
+            amount: totalAmount.toString(),
+            credits: credits.toString(),
+            productName: orderName,
+            userId: p_user.id,
+            email: p_user.email || "",
+            name: p_user.name || "",
+            storeId,
+            channelKey,
+        });
+
+        return {
+            paymentId,
+            orderName,
+            totalAmount,
+            credits,
+            storeId,
+            channelKey,
+            userId: p_user.id,
+            email: p_user.email || "",
+            name: p_user.name || "",
+            paramsStr: params.toString(),
+        };
     }
 </script>
 
@@ -456,6 +472,23 @@
                         {$t("shop.select_option")}
                     {/if}
                 </button>
+
+                <div class="row buttons">
+                    <button class="cancel-btn" on:click={closeModal}>
+                        {$t("common.cancel")}
+                    </button>
+                    <button
+                        class="charge-btn"
+                        on:click={handleRecharge}
+                        disabled={isPurchasing}
+                    >
+                        {#if isPurchasing}
+                            Processing...
+                        {:else}
+                            {$t("shop.charge")}
+                        {/if}
+                    </button>
+                </div>
             </div>
         </div>
     </div>
