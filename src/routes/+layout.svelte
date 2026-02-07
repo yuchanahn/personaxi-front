@@ -99,6 +99,10 @@
                     "/test",
                     "/suspended",
                     "/install",
+                    "/terms",
+                    "/policy",
+                    "/privacy",
+                    "/licenses",
                 ];
                 const isPublic =
                     publicRoutes.includes($page.url.pathname) ||
