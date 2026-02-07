@@ -146,18 +146,14 @@
                 });
 
                 // Open in new window (System Browser)
-                const newWindow = window.open(
-                    `/payment/bridge?${params.toString()}`,
-                    "_blank",
-                );
+                // Redirect to PWA Test Page
+                window.location.href = `/payment/pwa-test?${params.toString()}`;
 
-                // Fallback for PWA/Popup Blockers: If popup blocked, navigate current window
-                if (
-                    !newWindow ||
-                    newWindow.closed ||
-                    typeof newWindow.closed == "undefined"
-                ) {
-                    window.location.href = `/payment/bridge?${params.toString()}`;
+                closeModal();
+                isPurchasing = false;
+                toast.info("PWA Test Page Opened.");
+                return;
+            }
                 }
 
                 closeModal();
