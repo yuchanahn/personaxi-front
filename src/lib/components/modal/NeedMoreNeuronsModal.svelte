@@ -117,8 +117,10 @@
 
         try {
             const storeId = "store-04392323-c1ba-4c80-9812-ae8577171bb0";
+            // NHN KCP (User Choice)
             const channelKey =
-                "channel-key-e2e8e3dc-c4e4-45e1-8fb5-50ee82c9f8b2";
+                "channel-key-d051e951-7b83-4ce6-bbef-0e966d73c39f";
+
             const paymentId = uuidv4();
             const orderName =
                 selectedOption.name ||
@@ -127,33 +129,11 @@
             const credits =
                 selectedOption.neurons + (selectedOption.bonus_amount || 0);
 
-            // Mobile PWA Check: PWA environments behave poorly with Payment SDKs (popups blocked/weird).
-            // Force open in system browser via Bridge Page.
+            // Removing PWA Force Redirect Logic (Let KCP handle mobile flow natively)
             // @ts-ignore
             const isPWA =
                 window.matchMedia("(display-mode: standalone)").matches ||
                 (window.navigator as any).standalone === true;
-
-            if (isPWA) {
-                const params = new URLSearchParams({
-                    paymentId,
-                    amount: totalAmount.toString(),
-                    credits: credits.toString(),
-                    productName: orderName,
-                    userId: userValue.id,
-                    email: userValue.email || "",
-                    name: userValue.name || "",
-                });
-
-                // Open in new window (System Browser)
-                // Redirect to PWA Test Page
-                window.location.href = `/payment/pwa-test?${params.toString()}`;
-
-                closeModal();
-                isPurchasing = false;
-                toast.info("PWA Test Page Opened.");
-                return;
-            }
 
             // @ts-ignore
             const response = await window.PortOne.requestPayment({
@@ -165,15 +145,15 @@
                 currency: "CURRENCY_KRW",
                 payMethod: "CARD",
                 customer: {
-                    fullName: userValue.name,
-                    phoneNumber: "010-0000-0000",
-                    email: userValue.email,
+                    fullName: userValue.name || "Test User",
+                    phoneNumber: "010-1234-5678", // Must be valid-looking for some PGs
+                    email: userValue.email || "test@example.com",
                 },
                 customData: {
                     userId: userValue.id,
                     credits: credits,
                 },
-                redirectUrl: `${window.location.origin}${window.location.pathname}`, // Clean URL for better PG compatibility
+                redirectUrl: `${window.location.origin}/payment/complete`, // Explicit complete page
             });
             // bypass: { ... } // Removed to prevent forced popup behavior on mobile
 
@@ -490,7 +470,7 @@
         top: 0;
         left: 0;
         width: 100vw;
-        height: 100vh;
+        height: 100dvh;
         background-color: rgba(0, 0, 0, 0.7);
         display: flex;
         justify-content: center;
