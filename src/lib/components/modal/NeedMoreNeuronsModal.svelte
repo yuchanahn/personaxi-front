@@ -154,18 +154,6 @@
                 toast.info("PWA Test Page Opened.");
                 return;
             }
-                }
-
-                closeModal();
-                isPurchasing = false;
-                toast.info(
-                    $t("shop.payment_browser_opened", {
-                        default:
-                            "Payment opened in browser. Please complete it there.",
-                    }),
-                );
-                return;
-            }
 
             // @ts-ignore
             const response = await window.PortOne.requestPayment({
