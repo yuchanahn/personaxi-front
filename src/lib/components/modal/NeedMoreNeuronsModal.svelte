@@ -116,9 +116,9 @@
         }
 
         try {
-            const storeId = "store-43890393-27d1-4db5-8eb0-2af3d9021e15";
+            const storeId = "store-04392323-c1ba-4c80-9812-ae8577171bb0";
             const channelKey =
-                "channel-key-32127265-5003-455b-9878-01e428df133c";
+                "channel-key-e2e8e3dc-c4e4-45e1-8fb5-50ee82c9f8b2";
             const paymentId = uuidv4();
             const orderName =
                 selectedOption.name ||
