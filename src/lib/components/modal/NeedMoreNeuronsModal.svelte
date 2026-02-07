@@ -167,7 +167,7 @@
                 orderName,
                 totalAmount,
                 currency: "CURRENCY_KRW",
-                payMethod: "EASY_PAY",
+                payMethod: "CARD",
                 customer: {
                     fullName: userValue.name,
                     phoneNumber: "010-0000-0000",
