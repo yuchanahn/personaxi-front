@@ -789,7 +789,8 @@
     },
     "payment_complete_toast": "Payment verified! Neurons added.",
     "payment_failed": "Payment failed.",
-    "payment_error": "An error occurred during payment."
+    "payment_error": "An error occurred during payment.",
+    "payment_browser_opened": "Payment page opened in a new browser window. Please complete it there."
   },
   "payment": {
     "processing": "Verifying payment...",

@@ -752,7 +752,8 @@
     },
     "payment_complete_toast": "결제가 확인되었습니다! 뉴런이 지급되었습니다.",
     "payment_failed": "결제에 실패했습니다.",
-    "payment_error": "결제 중 오류가 발생했습니다."
+    "payment_error": "결제 중 오류가 발생했습니다.",
+    "payment_browser_opened": "결제 페이지가 새 창에서 열렸습니다. 결제를 완료해주세요."
   },
   "payment": {
     "processing": "결제 확인 중...",

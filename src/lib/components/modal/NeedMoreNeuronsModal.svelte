@@ -116,30 +116,69 @@
         }
 
         try {
+            const storeId = "store-43890393-27d1-4db5-8eb0-2af3d9021e15";
+            const channelKey =
+                "channel-key-32127265-5003-455b-9878-01e428df133c";
+            const paymentId = uuidv4();
+            const orderName =
+                selectedOption.name ||
+                `${(selectedOption.neurons + (selectedOption.bonus_amount || 0)).toLocaleString()} Neurons`;
+            const totalAmount = selectedOption.price_krw;
+            const credits =
+                selectedOption.neurons + (selectedOption.bonus_amount || 0);
+
+            // Mobile PWA Check: PWA environments behave poorly with Payment SDKs (popups blocked/weird).
+            // Force open in system browser via Bridge Page.
+            // @ts-ignore
+            const isPWA =
+                window.matchMedia("(display-mode: standalone)").matches ||
+                (window.navigator as any).standalone === true;
+
+            if (isPWA) {
+                const params = new URLSearchParams({
+                    paymentId,
+                    amount: totalAmount.toString(),
+                    credits: credits.toString(),
+                    productName: orderName,
+                    userId: userValue.id,
+                    email: userValue.email || "",
+                    name: userValue.name || "",
+                });
+
+                // Open in new window (System Browser)
+                window.open(`/payment/bridge?${params.toString()}`, "_blank");
+
+                closeModal();
+                isPurchasing = false;
+                toast.info(
+                    $t("shop.payment_browser_opened", {
+                        default:
+                            "Payment opened in browser. Please complete it there.",
+                    }),
+                );
+                return;
+            }
+
             // @ts-ignore
             const response = await window.PortOne.requestPayment({
-                storeId: "store-04392323-c1ba-4c80-9812-ae8577171bb0",
-                channelKey: "channel-key-e2e8e3dc-c4e4-45e1-8fb5-50ee82c9f8b2",
-                paymentId: merchantUid,
-                orderName:
-                    selectedOption.name ||
-                    `${(selectedOption.neurons + (selectedOption.bonus_amount || 0)).toLocaleString()} Neurons`,
-                totalAmount: selectedOption.price_krw,
+                storeId,
+                channelKey,
+                paymentId,
+                orderName,
+                totalAmount,
                 currency: "CURRENCY_KRW",
-                payMethod: "CARD",
+                payMethod: "EASY_PAY",
                 customer: {
-                    fullName: userValue.name || "Customer",
-                    phoneNumber: "010-0000-0000", // Required field usually, maybe ask user?
+                    fullName: userValue.name,
                     email: userValue.email,
-                    id: userValue.id,
                 },
                 customData: {
                     userId: userValue.id,
                     credits: credits,
                 },
                 redirectUrl: `${window.location.origin}${window.location.pathname}`, // Clean URL for better PG compatibility
-                // bypass: { ... } // Removed to prevent forced popup behavior on mobile
             });
+            // bypass: { ... } // Removed to prevent forced popup behavior on mobile
 
             if (response.code != null) {
                 // Error
