@@ -1,0 +1,1 @@
+import{d as s,w as n}from"./BHpJcsIX.js";import{s as t}from"./BJ77iYVw.js";const a=n(null);s(a,o=>o!==null);async function e(){await t.auth.signOut(),a.set(null),window.location.href="/login"}export{a,e as l};
