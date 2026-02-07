@@ -51,6 +51,7 @@
                 payMethod: "EASY_PAY",
                 customer: {
                     fullName: name,
+                    phoneNumber: "010-0000-0000",
                     email: email,
                 },
                 customData: {

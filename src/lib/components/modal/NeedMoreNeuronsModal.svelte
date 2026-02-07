@@ -170,6 +170,7 @@
                 payMethod: "EASY_PAY",
                 customer: {
                     fullName: userValue.name,
+                    phoneNumber: "010-0000-0000",
                     email: userValue.email,
                 },
                 customData: {
