@@ -6,7 +6,7 @@
     import NeuronIcon from "../icons/NeuronIcon.svelte";
     import { get } from "svelte/store";
     import { st_user } from "$lib/stores/user";
-    // import { toast } from "$lib/stores/toast";
+    import { toast } from "$lib/stores/toast";
     import { pricingStore } from "$lib/stores/pricing";
     import { marked } from "marked";
     import { locale } from "svelte-i18n";
@@ -85,41 +85,78 @@
         selectedOption = option;
     }
 
-    function handleRecharge() {
+    import { v4 as uuidv4 } from "uuid";
+
+    // PortOne V2
+    async function handleRecharge() {
         if (!selectedOption) return;
 
         isPurchasing = true;
 
-        // TEMPORARY: Use the provided Test URL for all options for now
-        let checkoutUrl =
-            "https://personaxi.lemonsqueezy.com/checkout/buy/37030093-8078-4bd9-bc76-9711cbac1f3e?embed=1";
-
-        // Append user ID
         const userValue = get(st_user);
-        if (userValue) {
-            checkoutUrl += `&checkout[custom][user_id]=${userValue.id}`;
+        if (!userValue) {
+            console.error("User not found");
+            isPurchasing = false;
+            return;
         }
 
-        // Try to initialize if missing
+        // Generate Merchant UID
+        const credits =
+            selectedOption.neurons + (selectedOption.bonus_amount || 0);
+        // Format: ord_{timestamp}_{random} to meet KG Inicis 40-char limit
+        const merchantUid = `ord_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
+
+        // Ensure PortOne SDK is loaded
         // @ts-ignore
-        if (!window.LemonSqueezy && window.createLemonSqueezy) {
-            // @ts-ignore
-            window.createLemonSqueezy();
+        if (!window.PortOne) {
+            console.error("PortOne SDK not loaded");
+            isPurchasing = false;
+            // Maybe show toast error
+            return;
         }
 
-        // Open via Lemon.js (if loaded) or fallback to new window
-        // @ts-ignore
-        if (window.LemonSqueezy) {
+        try {
             // @ts-ignore
-            window.LemonSqueezy.Url.Open(checkoutUrl);
-        } else {
-            console.warn("Lemon.js not ready, opening in new tab");
-            // Fallback if script didn't load for some reason
-            window.open(checkoutUrl, "_blank");
-        }
+            const response = await window.PortOne.requestPayment({
+                storeId: "store-04392323-c1ba-4c80-9812-ae8577171bb0",
+                channelKey: "channel-key-e2e8e3dc-c4e4-45e1-8fb5-50ee82c9f8b2",
+                paymentId: merchantUid,
+                orderName:
+                    selectedOption.name ||
+                    `${(selectedOption.neurons + (selectedOption.bonus_amount || 0)).toLocaleString()} Neurons`,
+                totalAmount: selectedOption.price_krw,
+                currency: "CURRENCY_KRW",
+                payMethod: "CARD",
+                customer: {
+                    fullName: userValue.name || "Customer",
+                    phoneNumber: "010-0000-0000", // Required field usually, maybe ask user?
+                    email: userValue.email,
+                    id: userValue.id,
+                },
+                customData: {
+                    userId: userValue.id,
+                    credits: credits,
+                },
+                redirectUrl: window.location.origin + "/payment/complete", // Mobile redirect
+            });
 
-        closeModal();
-        isPurchasing = false;
+            if (response.code != null) {
+                // Error
+                console.error("PortOne Error:", response);
+                toast.error(response.message || "Payment failed");
+                isPurchasing = false;
+                return;
+            }
+
+            // Success (Logic is handled via Webhook, but we can optimistically update or poll)
+            // Or just close modal and show "Processing..."
+            closeModal();
+            isPurchasing = false;
+        } catch (error) {
+            console.error("PortOne Exception:", error);
+            toast.error("An unexpected error occurred during payment.");
+            isPurchasing = false;
+        }
     }
 
     onMount(() => {
@@ -127,27 +164,13 @@
 
         pricingStore.fetchPricingPolicy();
 
-        // Ensure Lemon.js is loaded
-        if (!document.getElementById("lemon-js")) {
+        // Load PortOne V2 SDK
+        if (!document.getElementById("portone-v2-sdk")) {
             const script = document.createElement("script");
-            script.id = "lemon-js";
-            script.src = "https://assets.lemonsqueezy.com/lemon.js";
+            script.id = "portone-v2-sdk";
+            script.src = "https://cdn.portone.io/v2/browser-sdk.js";
             script.defer = true;
-            script.onload = () => {
-                // @ts-ignore
-                if (window.createLemonSqueezy) {
-                    // @ts-ignore
-                    window.createLemonSqueezy();
-                }
-            };
             document.body.appendChild(script);
-        } else {
-            // If already loaded, ensure it's initialized
-            // @ts-ignore
-            if (window.createLemonSqueezy && !window.LemonSqueezy) {
-                // @ts-ignore
-                window.createLemonSqueezy();
-            }
         }
     });
 
@@ -350,6 +373,20 @@
                         </div>
                     {/if}
                 </div>
+                <!-- Business Info (Minimalist) -->
+                <div class="business-info-minimal">
+                    <p class="font-bold">{$t("footer.companyName")}</p>
+                    <p>
+                        {$t("footer.ceo")} <span class="mx-1">|</span>
+                        {$t("footer.bizLicense")}
+                    </p>
+                    <p>{$t("footer.address")}</p>
+                    <p>{$t("footer.mailOrder")}</p>
+                    <p>
+                        {$t("footer.phone")} <span class="mx-1">|</span>
+                        {$t("footer.email")}
+                    </p>
+                </div>
             </div>
 
             <!-- Footer: Purchase Button -->
@@ -491,14 +528,6 @@
     .close-button:hover {
         background: var(--secondary);
         color: var(--foreground);
-    }
-
-    .description {
-        padding: 0 24px;
-        margin: 16px 0 0;
-        color: var(--muted-foreground);
-        font-size: 0.9rem;
-        line-height: 1.5;
     }
 
     .modal-body {
@@ -812,9 +841,6 @@
         background: none;
         border: none;
         color: var(--muted-foreground);
-        font-size: 0.85rem;
-        cursor: pointer;
-        transition: background 0.2s;
     }
 
     .toggle-btn:hover {
@@ -822,20 +848,41 @@
         color: var(--foreground);
     }
 
-    .toggle-btn .caret {
-        margin-left: auto;
-        transition: transform 0.2s;
-    }
-
-    .toggle-btn .caret.open {
-        transform: rotate(180deg);
-    }
-
     .notice-content {
         padding: 0 16px 16px;
         font-size: 0.8rem;
-        color: var(--muted-foreground);
         line-height: 1.5;
+        color: var(--muted-foreground);
+    }
+
+    /* Business Info (Minimalist) */
+    .business-info-minimal {
+        margin-top: 32px;
+        padding-top: 24px;
+        border-top: 1px solid var(--border);
+        text-align: center;
+        font-size: 0.7rem;
+        color: var(--muted-foreground);
+        opacity: 0.6;
+        line-height: 1.5;
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+    }
+
+    .business-info-minimal p {
+        margin: 0;
+    }
+
+    .mx-1 {
+        margin: 0 4px;
+        opacity: 0.3;
+    }
+
+    .font-bold {
+        font-weight: 700;
+        margin-bottom: 4px !important;
+        opacity: 0.9;
     }
 
     /* Markdown Styles within notice-content */

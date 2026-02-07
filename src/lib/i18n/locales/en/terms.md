@@ -85,7 +85,7 @@ By accessing or using personaxi ("Service"), operated by PersonaXI ("Company"), 
 ## Chapter 5: Paid Services and Refunds
 
 ### Article 11: Purchase of Neurons
-1. Members may purchase Neurons through the payment processor (Lemon Squeezy, acting as Merchant of Record).
+1. Members may purchase Neurons through the designated payment processor.
 2. **Delivery:** Neurons are credited to the Member's account immediately upon successful payment and are available for use right away.
 3. **Refund Policy:**
    - Refunds are available within **7 days** of purchase, provided that **zero (0) Neurons** have been used.
@@ -101,7 +101,7 @@ By accessing or using personaxi ("Service"), operated by PersonaXI ("Company"), 
 
 ### Article 13: Payment and Taxes
 1. For international payments, the final amount may vary depending on the applicable tax rate (e.g., VAT) and exchange rates of the relevant country.
-2. Lemon Squeezy, as the Merchant of Record, is responsible for the collection and remittance of applicable taxes. Detailed tax information is displayed on the payment page and in the receipt.
+2. The payment processor is responsible for the collection and remittance of applicable taxes. Detailed tax information is displayed on the payment page and in the receipt.
 
 ### Article 14: Service Suspension or Closure — Refund of Paid Credits
 1. If the Company discontinues or suspends the Service for an extended period due to business reasons, it shall provide notice to Members at least **30 days** prior to the suspension date.

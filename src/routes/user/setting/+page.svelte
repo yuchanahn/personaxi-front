@@ -9,7 +9,7 @@
     import { locale, t } from "svelte-i18n";
     import AuctionModal from "$lib/components/modal/AuctionModal.svelte";
     import PointConvertModal from "$lib/components/modal/PointConvertModal.svelte";
-    import NeedMoreNeuronsModal from "$lib/components/modal/NeedMoreNeuronsModal.svelte";
+
     import NeuronIcon from "$lib/components/icons/NeuronIcon.svelte";
     import { get } from "svelte/store";
     import type { User } from "$lib/types";
@@ -180,12 +180,6 @@
         showAuctionModal = true;
     }
 
-    let paymentModalOpen = false;
-
-    function handleModalClose() {
-        paymentModalOpen = false;
-    }
-
     interface UserSettingRequest {
         name: string;
         nickname: string;
@@ -261,6 +255,7 @@
     import { notificationStore } from "$lib/stores/notification";
     import UserListModal from "$lib/components/modal/UserListModal.svelte";
     import { getFollowers, getFollowing } from "$lib/api/user";
+    import { needMoreNeuronsModal } from "$lib/stores/modal";
 
     let showSettingsModal = false;
     let showPaymentHistoryModal = false;
@@ -714,7 +709,10 @@
                                     <button
                                         class="primary-btn compact"
                                         on:click={() =>
-                                            (paymentModalOpen = true)}
+                                            needMoreNeuronsModal.set({
+                                                isOpen: true,
+                                                isNeedNeurons: false,
+                                            })}
                                     >
                                         <Icon
                                             icon="ph:plus-bold"
@@ -914,12 +912,6 @@
             on:confirm={handleConvertConfirm}
         />
     {/if}
-
-    <NeedMoreNeuronsModal
-        bind:isOpen={paymentModalOpen}
-        on:close={handleModalClose}
-        isNeedNeurons={false}
-    />
 
     <NotificationDrawer
         bind:isOpen={isNotificationDrawerOpen}

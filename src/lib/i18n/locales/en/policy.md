@@ -58,7 +58,7 @@ The Company shall process personal information only within the scope specified i
 | **Google, LLC** (USA) | Email, chat records, Persona settings | AI response generation via Gemini LLM and infrastructure use | Until account termination or end of entrustment contract |
 | **Supabase, Inc.** (USA) | Member UID, email, uploaded files | User authentication (Auth), database and storage | Until account termination or end of entrustment contract |
 | **Oracle Corp.** (USA) | All service data | Web server hosting and cloud computing infrastructure | Until account termination or end of entrustment contract |
-| **Lemon Squeezy, LLC** (USA) | Payment email, payment records | Payment processing, tax compliance, and fraud prevention | Until the end of the statutory retention period (5 years) |
+| **Payment Processor** | Payment email, payment records | Payment processing, tax compliance, and fraud prevention | Until the end of the statutory retention period (5 years) |
 | **Fish Audio** (USA, etc.) | Chat text | AI character voice (TTS) generation and synthesis | Deleted immediately after the purpose is fulfilled |
 | **Kakao Corp.** (South Korea) | Email, nickname, profile photo | Identity verification and login via Kakao account | Until account termination |
 

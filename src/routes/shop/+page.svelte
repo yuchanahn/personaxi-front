@@ -7,6 +7,10 @@
     import Icon from "@iconify/svelte";
     import NeuronIcon from "$lib/components/icons/NeuronIcon.svelte";
     import { marked } from "marked";
+    import Footer from "$lib/components/common/Footer.svelte";
+    import { v4 as uuidv4 } from "uuid";
+    import { get } from "svelte/store";
+    import { toast } from "$lib/stores/toast";
 
     let noticeContent = "";
     $: loc = $locale || "en";
@@ -22,40 +26,69 @@
             });
     }
 
-    let lemonSqueezyUrl =
-        "https://personaxi.lemonsqueezy.com/checkout/buy/37030093-8078-4bd9-bc76-9711cbac1f3e?embed=1";
     let selectedOption: any = null;
 
-    function getCheckoutUrl(option: any) {
-        if (!$user) return lemonSqueezyUrl;
-        return `${lemonSqueezyUrl}&checkout[custom][user_id]=${$user.id}`;
-    }
-
-    function openCheckout() {
+    async function handlePayment() {
         if (!selectedOption) return;
-        const url = getCheckoutUrl(selectedOption);
+        const $userData = get(user);
+        if (!$userData) return;
+
+        // Generate Merchant UID
+        const credits =
+            selectedOption.neurons + (selectedOption.bonus_amount || 0);
+        // Format: ord_{timestamp}_{random} to meet KG Inicis 40-char limit
+        const merchantUid = `ord_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
+
+        // Ensure PortOne SDK is loaded
         // @ts-ignore
-        if (!window.LemonSqueezy && window.createLemonSqueezy)
-            window.createLemonSqueezy();
-        // @ts-ignore
-        if (window.LemonSqueezy) {
+        if (!window.PortOne) {
+            console.error("PortOne SDK not loaded");
+            return;
+        }
+
+        try {
             // @ts-ignore
-            window.LemonSqueezy.Url.Open(url);
-        } else {
-            window.open(url, "_blank");
+            const response = await window.PortOne.requestPayment({
+                storeId: "store-04392323-c1ba-4c80-9812-ae8577171bb0",
+                channelKey: "channel-key-32ef66ed-54c4-4a00-80d5-ce4dfe0fb468",
+                paymentId: merchantUid,
+                orderName:
+                    selectedOption.name ||
+                    `${(selectedOption.neurons + (selectedOption.bonus_amount || 0)).toLocaleString()} Neurons`,
+                totalAmount: selectedOption.price_krw,
+                currency: "CURRENCY_KRW",
+                payMethod: "CARD",
+                customer: {
+                    fullName: $userData.name || "Customer",
+                    phoneNumber: "010-0000-0000",
+                    email: $userData.email,
+                    id: $userData.id,
+                },
+                customData: {
+                    userId: $userData.id,
+                    credits: credits,
+                },
+                redirectUrl: window.location.origin + "/payment/complete",
+            });
+
+            if (response.code != null) {
+                console.error("PortOne Error:", response);
+                toast.error(response.message || "Payment failed");
+                return;
+            }
+            // Success handling if needed (or rely on webhook)
+        } catch (error) {
+            console.error("PortOne Exception:", error);
+            toast.error("An unexpected error occurred during payment.");
         }
     }
 
     onMount(() => {
-        if (!document.getElementById("lemon-js")) {
+        if (!document.getElementById("portone-v2-sdk")) {
             const script = document.createElement("script");
-            script.id = "lemon-js";
-            script.src = "https://assets.lemonsqueezy.com/lemon.js";
+            script.id = "portone-v2-sdk";
+            script.src = "https://cdn.portone.io/v2/browser-sdk.js";
             script.defer = true;
-            script.onload = () => {
-                // @ts-ignore
-                if (window.createLemonSqueezy) window.createLemonSqueezy();
-            };
             document.body.appendChild(script);
         }
     });
@@ -239,7 +272,7 @@
             <button
                 class="pay-btn"
                 disabled={!selectedOption}
-                on:click={openCheckout}
+                on:click={handlePayment}
             >
                 {#if selectedOption}
                     {$t("shop.purchase_button", {
@@ -251,6 +284,8 @@
             </button>
         </div>
     </div>
+
+    <Footer />
 </div>
 
 <style>
@@ -309,10 +344,6 @@
         gap: 10px;
         font-size: 2.5rem;
         font-weight: 800;
-    }
-
-    .balance-row .icon {
-        color: #fbbf24; /* Neurons = Gold */
     }
 
     .balance-row .unit {
