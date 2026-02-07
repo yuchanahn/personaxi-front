@@ -51,11 +51,40 @@
     </div>
 
     <div class="test-case recommended">
-        <h3>Method 2: Anchor Link (Proposed Fix)</h3>
-        <p>This should force the System Browser to open.</p>
+        <h3>Method 2: Anchor Link (Same Domain)</h3>
+        <p>This often fails if scope captures it (Current Issue).</p>
         <a href={bridgeUrl} target="_blank" class="link-btn">
-            Test Anchor Link
+            Test Internal Link (/payment/bridge)
         </a>
+    </div>
+
+    <div class="test-case external">
+        <h3>Method 3: External Link (Subdomain Simulation)</h3>
+        <p>
+            <strong>Proposed Fix:</strong> Testing if a
+            <em>different domain</em> opens Safari.
+        </p>
+        <div class="btn-group">
+            <a
+                href="https://google.com"
+                target="_blank"
+                class="link-btn success"
+            >
+                Test Google.com
+            </a>
+            <a
+                href="https://github.com"
+                target="_blank"
+                class="link-btn success"
+            >
+                Test GitHub.com
+            </a>
+        </div>
+        <p class="small-note">
+            If these open in Safari, then moving payment to <code
+                >pay.personaxi.com</code
+            > will work!
+        </p>
     </div>
 
     <div class="note">
@@ -92,8 +121,17 @@
         border: 1px solid #444;
     }
     .test-case.recommended {
-        border-color: #0070f3;
-        background: #001a33;
+        border-color: #ff9900; /* Orange for "Attempt" */
+        background: #332200;
+    }
+    .test-case.external {
+        border-color: #00ff00; /* Green for "Solution" */
+        background: #002200;
+    }
+    .btn-group {
+        display: flex;
+        gap: 10px;
+        margin-top: 10px;
     }
     button,
     .link-btn {
@@ -110,6 +148,14 @@
     }
     .link-btn {
         background: #0070f3;
+    }
+    .link-btn.success {
+        background: #28a745;
+    }
+    .small-note {
+        font-size: 0.85rem;
+        color: #ccc;
+        margin-top: 10px;
     }
     .note {
         font-size: 0.9rem;
