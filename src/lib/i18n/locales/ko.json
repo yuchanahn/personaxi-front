@@ -749,7 +749,17 @@
       "ai_desc": "AI 생성 결과물의 품질 차이는 환불 사유에 해당하지 않습니다.",
       "ban_title": "이용 제한",
       "ban_desc": "약관 위반으로 인한 계정 정지 시 잔여 뉴런은 환불되지 않습니다."
-    }
+    },
+    "payment_complete_toast": "결제가 확인되었습니다! 뉴런이 지급되었습니다.",
+    "payment_failed": "결제에 실패했습니다.",
+    "payment_error": "결제 중 오류가 발생했습니다."
+  },
+  "payment": {
+    "processing": "결제 확인 중...",
+    "wait_moment": "잠시만 기다려주세요.",
+    "success": "결제 성공!",
+    "redirecting": "상점으로 이동합니다...",
+    "failed": "결제 실패"
   },
   "install": {
     "title": "앱 설치 가이드",

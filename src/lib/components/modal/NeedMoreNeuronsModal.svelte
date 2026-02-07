@@ -137,7 +137,8 @@
                     userId: userValue.id,
                     credits: credits,
                 },
-                redirectUrl: window.location.origin + "/payment/complete", // Mobile redirect
+                redirectUrl: `${window.location.origin}${window.location.pathname}`, // Clean URL for better PG compatibility
+                // bypass: { ... } // Removed to prevent forced popup behavior on mobile
             });
 
             if (response.code != null) {

@@ -35,9 +35,10 @@
     import Icon from "@iconify/svelte";
     import { slide } from "svelte/transition";
     import { accessToken } from "$lib/stores/auth";
-    import { locale } from "svelte-i18n";
+    import { locale, t } from "svelte-i18n";
     import { get } from "svelte/store";
     import { api } from "$lib/api";
+    import { toast } from "$lib/stores/toast";
     import type { User } from "$lib/types";
 
     import { supabase } from "$lib/supabase";
@@ -110,6 +111,41 @@
         });
 
         return () => subscription.unsubscribe();
+    });
+
+    // 3. Payment Redirect Handler (Mobile Support)
+    onMount(async () => {
+        if (!browser) return;
+        const urlParams = new URLSearchParams(window.location.search);
+        const paymentId = urlParams.get("paymentId");
+
+        // If returning from PortOne payment
+        if (paymentId) {
+            // Remove params from URL without reload
+            const newUrl = window.location.pathname + window.location.hash;
+            window.history.replaceState({}, document.title, newUrl);
+
+            // Notify user "Checking payment..."
+            // toast.info("Payment result confirming..."); // Optional
+
+            // Force refresh user data to see new credits
+            // The Webhook should have processed it by now, or is processing.
+            // We can retry a few times if credits haven't updated yet?
+            // For now, simple refresh.
+            const user = await getCurrentUser();
+            if (user) {
+                st_user.set(user);
+                toast.success(
+                    get(t)("shop.payment_complete_toast", {
+                        default: "Payment verified! Neurons added.",
+                    }),
+                );
+
+                // If the modal was open (state preserved?), close it.
+                // But full reload might have reset stores.
+                closeNeedMoreNeuronsModal();
+            }
+        }
     });
 
     accessToken.subscribe(async (token) => {

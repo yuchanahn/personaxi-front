@@ -786,7 +786,17 @@
       "ai_desc": "Variations in AI-generated content quality are not grounds for refunds.",
       "ban_title": "Restrictions",
       "ban_desc": "Remaining neurons are non-refundable if the account is suspended due to policy violations."
-    }
+    },
+    "payment_complete_toast": "Payment verified! Neurons added.",
+    "payment_failed": "Payment failed.",
+    "payment_error": "An error occurred during payment."
+  },
+  "payment": {
+    "processing": "Verifying payment...",
+    "wait_moment": "Please wait a moment.",
+    "success": "Payment Successful!",
+    "redirecting": "Redirecting to shop...",
+    "failed": "Payment Failed"
   },
   "install": {
     "title": "Install App",
