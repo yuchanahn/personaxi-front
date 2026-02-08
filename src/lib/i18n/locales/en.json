@@ -135,7 +135,8 @@
       "pending": "Pending",
       "refunded": "Refunded",
       "failed": "Failed",
-      "refund_requested": "Refund Requested"
+      "refund_requested": "Refund Requested",
+      "cancelled": "Cancelled"
     },
     "reasons": {
       "label": "Select a reason for refund",

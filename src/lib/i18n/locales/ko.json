@@ -158,7 +158,8 @@
       "pending": "대기 중",
       "refunded": "환불됨",
       "failed": "실패",
-      "refund_requested": "환불 요청됨"
+      "refund_requested": "환불 요청됨",
+      "cancelled": "취소됨"
     },
     "reasons": {
       "label": "환불 사유를 선택해주세요",

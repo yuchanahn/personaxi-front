@@ -1,5 +1,6 @@
 <script lang="ts">
     import { goto } from "$app/navigation";
+    import { getCurrentUser } from "$lib/api/auth";
     import { createEventDispatcher, onDestroy, onMount } from "svelte";
     import { t } from "svelte-i18n";
     import Icon from "@iconify/svelte";
@@ -130,6 +131,12 @@
                 isPurchasing = false;
                 return;
             }
+
+            const user = await getCurrentUser();
+            if (user) {
+                st_user.set(user);
+            }
+            toast.success("Payment successful! Neurons updated.");
 
             closeModal();
             isPurchasing = false;
