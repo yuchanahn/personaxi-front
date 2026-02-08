@@ -12,6 +12,7 @@
     import { locale } from "svelte-i18n";
     import { slide, fly, fade } from "svelte/transition";
     import { page } from "$app/stores";
+    import { v4 as uuidv4 } from "uuid";
 
     let noticeContent = "";
     let isNoticeOpen = true;
@@ -60,9 +61,6 @@
         window.removeEventListener("keydown", handleKeydown);
     });
 
-    import { api } from "$lib/api"; // Assuming api client exists
-    // import { notificationStore } from "$lib/stores/notification";
-
     let isPurchasing = false;
     let purchaseSuccess = false;
     let purchasedAmount = 0;
@@ -72,20 +70,10 @@
     let selectedOption: any = null;
     let agreedToPolicies = false;
 
-    // Auto-select best value or default
-    // $: if ($pricingStore.purchase_options.length > 0 && !selectedOptionId) {
-    //     // Default to the middle option
-    //     const defaultIndex = $pricingStore.purchase_options.length > 1 ? 1 : 0;
-    //     const opt = $pricingStore.purchase_options[defaultIndex];
-    //     selectOption(opt);
-    // }
-
     function selectOption(option: any) {
         selectedOptionId = option.id;
         selectedOption = option;
     }
-
-    import { v4 as uuidv4 } from "uuid";
 
     // PortOne V2
     async function handleRecharge() {
@@ -97,6 +85,14 @@
             isPurchasing = false;
             return;
         }
+
+        // Store return URL for redirect after payment
+        localStorage.setItem("payment_return_url", $page.url.pathname);
+        // Store history length for smart rewind
+        localStorage.setItem(
+            "payment_start_history_len",
+            window.history.length.toString(),
+        );
 
         // Ensure PortOne SDK is loaded
         // @ts-ignore
@@ -127,18 +123,14 @@
                 },
                 redirectUrl: `${window.location.origin}/payment/complete`,
             });
-            // bypass: { ... } // Removed to prevent forced popup behavior on mobile
 
             if (response.code != null) {
-                // Error
                 console.error("PortOne Error:", response);
                 toast.error(response.message || "Payment failed");
                 isPurchasing = false;
                 return;
             }
 
-            // Success (Logic is handled via Webhook, but we can optimistically update or poll)
-            // Or just close modal and show "Processing..."
             closeModal();
             isPurchasing = false;
         } catch (error) {
@@ -153,7 +145,6 @@
 
         pricingStore.fetchPricingPolicy();
 
-        // Load PortOne V2 SDK
         if (!document.getElementById("portone-v2-sdk")) {
             const script = document.createElement("script");
             script.id = "portone-v2-sdk";
@@ -168,7 +159,6 @@
 
     let isFrist = get(st_user)?.data.hasReceivedFirstCreationReward;
 
-    // --- Helper Functions from Shop Page ---
     function getProductIconProps(index: number) {
         const variants: ("simple" | "standard" | "double")[] = [
             "simple",
@@ -181,7 +171,7 @@
         return {
             variant: variants[i],
             size: sizes[i],
-            color: "#525252", // Default color
+            color: "#525252",
         };
     }
 
@@ -211,7 +201,6 @@
         const credits =
             selectedOption.neurons + (selectedOption.bonus_amount || 0);
 
-        // KG Inicis (Reverted)
         const storeId = "store-04392323-c1ba-4c80-9812-ae8577171bb0";
         const channelKey = "channel-key-e2e8e3dc-c4e4-45e1-8fb5-50ee82c9f8b2";
 
@@ -268,15 +257,6 @@
                     <Icon icon="ph:x-bold" width="20" height="20" />
                 </button>
             </div>
-
-            <!-- Description -->
-            <!-- <p class="description">
-                {#if isNeedNeurons}
-                    {$t("needNeuronsModal.description")}
-                {:else}
-                    {$t("needNeuronsModal.rechargeDescription")}
-                {/if}
-            </p> -->
 
             <!-- Scrollable Content -->
             <div class="modal-body">
@@ -472,23 +452,6 @@
                         {$t("shop.select_option")}
                     {/if}
                 </button>
-
-                <div class="row buttons">
-                    <button class="cancel-btn" on:click={closeModal}>
-                        {$t("common.cancel")}
-                    </button>
-                    <button
-                        class="charge-btn"
-                        on:click={handleRecharge}
-                        disabled={isPurchasing}
-                    >
-                        {#if isPurchasing}
-                            Processing...
-                        {:else}
-                            {$t("shop.charge")}
-                        {/if}
-                    </button>
-                </div>
             </div>
         </div>
     </div>
@@ -496,7 +459,6 @@
 
 <style>
     /* Dark Theme Variables */
-    /* Dark Theme Variables Removed - Using global theme variables */
 
     .modal-backdrop {
         position: fixed;
@@ -602,9 +564,7 @@
         display: flex;
         align-items: center;
         gap: 10px;
-        color: var(
-            --foreground
-        ); /* was #fbbf24, but context says "promo content color". Usually dark or light text. Wait, original was #fbbf24? No, looking at lines 486. Ah, it was #fbbf24 in original. I'll stick to variable if I can or keep gold. Let's keep gold for promo content if it's special, or use foreground. The snippet shows: color: #fbbf24; in original. I'll keep it gold or valid variable. Actually line 486 in original is color: #fbbf24; */
+        color: var(--foreground);
         font-weight: 600;
         font-size: 0.9rem;
     }
@@ -628,7 +588,6 @@
         gap: 12px;
     }
 
-    /* Fixed: Removed default borders to prevent "everything highlighted" look */
     .pricing-row {
         display: flex;
         justify-content: space-between;

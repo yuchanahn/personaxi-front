@@ -3,6 +3,7 @@ import { supabase } from '$lib/supabase';
 import type { Notification } from '$lib/types';
 import { accessToken } from './auth';
 import { st_user } from './user'; // Assuming user store has the current user info
+import { toast } from '$lib/stores/toast';
 
 function createNotificationStore() {
     const { subscribe, set, update } = writable<Notification[]>([]);
@@ -93,6 +94,32 @@ function createNotificationStore() {
         }
     }
 
+    async function deleteNotification(id: string) {
+        const token = get(accessToken);
+        if (!token) return;
+
+        // Optimistic update
+        update(n => n.filter(item => item.id !== id));
+
+        try {
+            const res = await fetch(`/api/notifications/${id}`, {
+                method: 'DELETE',
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+            if (!res.ok) {
+                // Revert if failed (maybe reload list)
+                console.error("Failed to delete notification");
+                toast.error("Failed to delete notification");
+                fetchNotifications();
+            }
+        } catch (e) {
+            console.error("Failed to delete notification", e);
+            fetchNotifications();
+        }
+    }
+
     async function markAllAsRead() {
         // Not implemented in backend yet as a single call, but UI might want it.
         // For now, we iterate or add a bulk endpoint later.
@@ -124,7 +151,8 @@ function createNotificationStore() {
                     // Increment unread count
                     unreadCount.update(c => c + 1);
 
-                    // Optional: Trigger native bridge or sound
+                    // Show Toast
+                    toast.success(newNotif.content);
                 }
             )
             .subscribe();
@@ -138,6 +166,7 @@ function createNotificationStore() {
         fetchNotifications,
         fetchUnreadCount,
         markAsRead,
+        deleteNotification,
         init: (userId: string) => {
             fetchNotifications();
             fetchUnreadCount();

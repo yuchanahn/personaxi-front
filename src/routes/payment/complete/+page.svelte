@@ -4,25 +4,117 @@
     import Icon from "@iconify/svelte";
     import { t } from "svelte-i18n";
 
-    let status = "processing"; // 'processing', 'success', 'failed'
+    let status = "processing";
     let message = "";
+    let returnUrl = "" as string | null;
 
     onMount(async () => {
-        // Parse URL params
+        // 1. Parse URL params immediately
         const urlParams = new URLSearchParams(window.location.search);
-        // PortOne V1/V2 params might vary, but usually imp_success or success
-        // V2 might just redirect back.
-        // We assume if they reached here, the PG flow finished.
-        // Webhook handles the actual logic.
+        const code = urlParams.get("code");
+        const msg = urlParams.get("message");
+        const decodedMessage = msg ? decodeURIComponent(msg) : "";
 
-        // Simulate a short delay to allow webhook to process
+        // 2. Get stored state
+        returnUrl = localStorage.getItem("payment_return_url");
+
+        // 3. Logic for Smart Rewind (reused for both success/fail to exit PG)
+        const performRewind = () => {
+            const startLenStr = localStorage.getItem(
+                "payment_start_history_len",
+            );
+            const doFallback = () => {
+                if (returnUrl) {
+                    goto(returnUrl, { replaceState: true });
+                } else {
+                    goto("/", { replaceState: true });
+                }
+            };
+
+            if (startLenStr) {
+                const startLen = parseInt(startLenStr, 10);
+                const currentLen = window.history.length;
+                const delta = currentLen - startLen;
+                localStorage.removeItem("payment_start_history_len");
+
+                if (delta > 0) {
+                    window.history.go(-delta);
+                    // Safety timeout in case go() fails or takes too long
+                    setTimeout(() => {
+                        // checks? just wait
+                    }, 500);
+                } else {
+                    doFallback();
+                }
+            } else {
+                doFallback();
+            }
+        };
+
+        // 4. Handle Failure/Cancellation
+        if (code) {
+            status = "failed";
+            message = decodedMessage || "Payment was cancelled or failed.";
+            console.error("Payment Failed:", code, message);
+
+            // Clear token to prevent loops, but effectively we are done
+            localStorage.removeItem("payment_return_url");
+
+            // Automatically go back after showing error
+            setTimeout(() => {
+                performRewind();
+            }, 3000);
+            return;
+        }
+
+        // 5. Handle Missing Token (Direct Access protection)
+        if (!returnUrl) {
+            goto("/", { replaceState: true });
+            return;
+        }
+
+        // 6. Handle Success (Assumed if no code and token exists)
+        // Simulate verify delay
         setTimeout(() => {
             status = "success";
+
+            // Consume the ticket
+            localStorage.removeItem("payment_return_url");
+
+            // Redirect back
             setTimeout(() => {
-                goto("/shop"); // Redirect to shop or hub
+                performRewind();
             }, 3000);
-        }, 2000);
+        }, 1500);
     });
+
+    function performRewind() {
+        const startLenStr = localStorage.getItem("payment_start_history_len");
+        if (!returnUrl) {
+            goto("/", { replaceState: true });
+            return;
+        }
+        const doFallback = () => {
+            goto(returnUrl!, { replaceState: true });
+        };
+
+        if (startLenStr) {
+            const startLen = parseInt(startLenStr, 10);
+            const currentLen = window.history.length;
+            const delta = currentLen - startLen;
+            localStorage.removeItem("payment_start_history_len");
+
+            if (delta > 0) {
+                window.history.go(-delta);
+
+                setTimeout(() => {}, 500);
+            } else {
+                doFallback();
+            }
+        } else {
+            doFallback();
+        }
+    }
 </script>
 
 <div class="payment-complete-container">
@@ -49,7 +141,7 @@
             <Icon icon="ph:x-circle-bold" class="error-icon" width="64" />
             <h2>{$t("payment.failed", { default: "Payment Failed" })}</h2>
             <p>{message}</p>
-            <button on:click={() => goto("/shop")}
+            <button on:click={() => performRewind()}
                 >{$t("common.back", { default: "Go Back" })}</button
             >
         {/if}

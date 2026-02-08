@@ -20,12 +20,12 @@
     import { confirmConsent, getCurrentUser } from "$lib/api/auth";
     import { st_user } from "$lib/stores/user";
 
-    // NEW: Global modal store
     import {
         needMoreNeuronsModal,
         closeNeedMoreNeuronsModal,
     } from "$lib/stores/modal";
     import { pricingStore } from "$lib/stores/pricing";
+    import { notificationStore } from "$lib/stores/notification";
 
     /* ────────────── SvelteKit 내장 ────────────── */
     import { onMount, tick } from "svelte";
@@ -187,6 +187,11 @@
             }
         }
         loadCharacterSessions();
+
+        // Initialize Notification Store
+        if (user) {
+            notificationStore.init(user.ssid);
+        }
     });
 
     settings.subscribe(async (settings) => {
@@ -222,7 +227,11 @@
     });
 
     function handleBack() {
-        history.length > 1 ? history.back() : goto("/hub");
+        if (history.length <= 1) {
+            goto("/hub");
+        } else {
+            history.back();
+        }
     }
 
     $: showNavBottom =
@@ -279,7 +288,7 @@
     />
     <WelcomeModal neuronAmount={100} isOpen={welcomeModal} />
 
-    {#if !["/hub", "/", "/maintenance"].includes($page.url.pathname)}
+    {#if !["/hub", "/", "/maintenance", "/payment/complete"].includes($page.url.pathname)}
         <button class="back-btn" on:click={handleBack}
             ><Icon icon="weui:back-filled" width="12" height="24" />
         </button>

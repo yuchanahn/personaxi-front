@@ -128,4 +128,13 @@
     {#if !notification.isRead}
         <div class="w-2 h-2 rounded-full bg-blue-500 mt-2 shrink-0"></div>
     {/if}
+
+    <button
+        class="p-1 text-gray-400 hover:text-red-500 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors ml-2"
+        on:click|stopPropagation={() =>
+            notificationStore.deleteNotification(notification.id)}
+        title={$t("common.delete")}
+    >
+        <Icon icon="lucide:trash-2" class="w-4 h-4" />
+    </button>
 </div>
