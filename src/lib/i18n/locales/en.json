@@ -43,7 +43,7 @@
     "insufficientPoints": "Insufficient points.",
     "minAmountError": "Minimum conversion amount is {min} points.",
     "exchangeRate": "Exchange Rate",
-    "fee": "Conversion Fee",
+    "fee": "Conversion Fee (Free Event!)",
     "receiveAmount": "You Receive",
     "convertAction": "Convert",
     "success": "Conversion successful.",

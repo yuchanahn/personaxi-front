@@ -13,7 +13,7 @@
     let isLoading = false;
 
     // Configuration (Mock)
-    const FEE_RATE = 0.1; // 10% fee
+    const FEE_RATE = 0; // 0% fee (Event)
     const EXCHANGE_RATE = 1; // 1 Point = 1 Neuron
     const MIN_AMOUNT = 100;
 
@@ -81,15 +81,27 @@
                             >{$t("pointConvertModal.max")}: {userPoints} P</span
                         >
                     </div>
+
                     <div class="input-wrapper">
                         <input
+                            class:has-value={amount && amount > 0}
                             type="number"
                             bind:value={amount}
                             placeholder="0"
                             min="0"
                             max={userPoints}
                         />
-                        <span class="unit">P</span>
+                        <div class="suffix">
+                            {#if userPoints > 0 && amount !== userPoints}
+                                <button
+                                    class="max-btn"
+                                    on:click={() => (amount = userPoints)}
+                                >
+                                    {$t("pointConvertModal.max")}
+                                </button>
+                            {/if}
+                            <span class="unit">P</span>
+                        </div>
                     </div>
                     {#if amount && amount > userPoints}
                         <p class="error-msg">
@@ -110,7 +122,7 @@
                         <span>1 P = {EXCHANGE_RATE} Neuron</span>
                     </div>
                     <div class="summary-row">
-                        <span>{$t("pointConvertModal.fee")} (10%)</span>
+                        <span>{$t("pointConvertModal.fee")}</span>
                         <span class="fee-text">-{fee} P</span>
                     </div>
                     <div class="divider"></div>
@@ -156,21 +168,21 @@
         background: var(--background);
         width: 90%;
         max-width: 420px;
-        border-radius: 20px;
+        border-radius: 24px;
         border: 1px solid var(--border);
         box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
         overflow: hidden;
     }
     .modal-header {
-        padding: 1.25rem;
+        padding: 1.25rem 1.5rem;
         display: flex;
         justify-content: space-between;
         align-items: center;
-        border-bottom: 1px solid var(--border);
     }
     .modal-header h3 {
         margin: 0;
-        font-size: 1.1rem;
+        font-size: 1.2rem;
+        font-weight: 700;
     }
     .close-btn {
         background: transparent;
@@ -180,13 +192,14 @@
         padding: 0.5rem;
         border-radius: 50%;
         display: flex;
+        margin-right: -0.5rem;
     }
     .close-btn:hover {
         background: var(--muted);
     }
 
     .modal-body {
-        padding: 1.5rem;
+        padding: 0 1.5rem 1.5rem 1.5rem;
         display: flex;
         flex-direction: column;
         gap: 1.5rem;
@@ -195,7 +208,7 @@
     .info-box {
         background: var(--muted);
         padding: 1rem;
-        border-radius: 12px;
+        border-radius: 16px;
         font-size: 0.9rem;
     }
     .info-title {
@@ -218,63 +231,107 @@
         gap: 0.4rem;
     }
     .info-sub.invalid {
-        color: var(--primary); /* Use primary color for notice, or orange */
+        color: var(--primary);
     }
 
     .input-section {
         display: flex;
         flex-direction: column;
-        gap: 0.5rem;
+        gap: 0.75rem;
     }
     .label-row {
         display: flex;
         justify-content: space-between;
-        font-size: 0.9rem;
+        font-size: 0.95rem;
         color: var(--muted-foreground);
+        font-weight: 500;
     }
     .max-text {
-        font-size: 0.8rem;
+        font-size: 0.85rem;
+        color: var(--primary);
     }
     .input-wrapper {
         position: relative;
         display: flex;
         align-items: center;
-    }
-    input {
-        width: 100%;
-        padding: 0.75rem 1rem;
-        padding-right: 3rem;
-        border: 1px solid var(--border);
-        border-radius: 12px;
         background: var(--secondary);
+        border-radius: 16px;
+        transition: ring 0.2s;
+        border: 1px solid transparent;
+    }
+    .input-wrapper:focus-within {
+        border-color: var(--primary);
+        background: var(--background);
+    }
+
+    /* Hide Spinners */
+    input[type="number"]::-webkit-inner-spin-button,
+    input[type="number"]::-webkit-outer-spin-button {
+        -webkit-appearance: none;
+        margin: 0;
+    }
+    input[type="number"] {
+        -moz-appearance: textfield;
+        width: 100%;
+        padding: 1rem 1rem;
+        padding-right: 6rem; /* Space for suffix */
+        border: none;
+        background: transparent;
         color: var(--foreground);
-        font-size: 1.1rem;
+        font-size: 1.5rem;
+        font-weight: 700;
         outline: none;
     }
-    input:focus {
-        border-color: var(--primary);
+    input::placeholder {
+        color: var(--muted-foreground);
+        opacity: 0.3;
+    }
+
+    .suffix {
+        position: absolute;
+        right: 1.2rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        height: 100%;
+    }
+    .max-btn {
+        background: var(--muted);
+        color: var(--muted-foreground);
+        border: none;
+        border-radius: 8px;
+        padding: 0.25rem 0.6rem;
+        font-size: 0.8rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+    .max-btn:hover {
+        background: var(--primary);
+        color: white;
     }
     .unit {
-        position: absolute;
-        right: 1rem;
         font-weight: 600;
         color: var(--muted-foreground);
+        font-size: 1rem;
     }
+
     .error-msg {
         color: var(--destructive);
-        font-size: 0.8rem;
+        font-size: 0.85rem;
+        margin-top: -0.25rem;
     }
 
     .summary-card {
         border: 1px solid var(--border);
-        border-radius: 12px;
-        padding: 1rem;
-        background: var(--secondary);
+        border-radius: 16px;
+        padding: 1.25rem;
+        background: var(--background);
     }
     .summary-row {
         display: flex;
         justify-content: space-between;
-        font-size: 0.9rem;
+        font-size: 0.95rem;
         margin-bottom: 0.5rem;
         color: var(--muted-foreground);
     }
@@ -290,39 +347,40 @@
         margin-bottom: 0;
         font-weight: 700;
         color: var(--foreground);
-        font-size: 1.05rem;
+        font-size: 1.1rem;
     }
     .total-text {
         color: var(--primary);
     }
 
     .modal-footer {
-        padding: 1.25rem;
-        border-top: 1px solid var(--border);
+        padding: 0 1.5rem 1.5rem 1.5rem;
+        border-top: none;
         display: flex;
-        gap: 1rem;
-        justify-content: flex-end;
+        gap: 0.75rem;
     }
     .btn-cancel,
     .btn-confirm {
-        padding: 0.75rem 1.5rem;
-        border-radius: 12px;
+        padding: 0.9rem;
+        border-radius: 14px;
         font-weight: 600;
+        font-size: 1rem;
         cursor: pointer;
         transition: all 0.2s;
         border: none;
+        flex: 1;
     }
     .btn-cancel {
-        background: transparent;
+        background: var(--muted);
         color: var(--muted-foreground);
+        flex: 0.4;
     }
     .btn-cancel:hover {
-        background: var(--muted);
+        background: var(--border);
     }
     .btn-confirm {
         background: var(--primary);
         color: var(--primary-foreground);
-        min-width: 100px;
         display: flex;
         align-items: center;
         justify-content: center;

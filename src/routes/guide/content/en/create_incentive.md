@@ -15,7 +15,7 @@ You earn revenue whenever other users chat with your character.
  accumulated earnings can be used as follows:
 
 ### 1. Convert to Neurons
-*   Instantly convert earnings to **Paid Neurons** (1:1 value, no fee).
+*   **(Event)** Currently converts at **1:1** value without fees!
 *   Use them to access advanced models or decorate characters.
 
 ### 2. Cash Out (Coming Soon)

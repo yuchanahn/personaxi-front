@@ -70,7 +70,7 @@
     "insufficientPoints": "보유 포인트가 부족합니다.",
     "minAmountError": "최소 {min} 포인트부터 전환할 수 있습니다.",
     "exchangeRate": "교환 비율",
-    "fee": "전환 수수료",
+    "fee": "전환 수수료 (무료 이벤트 중!)",
     "receiveAmount": "받을 뉴런",
     "convertAction": "전환하기",
     "success": "전환이 완료되었습니다.",
