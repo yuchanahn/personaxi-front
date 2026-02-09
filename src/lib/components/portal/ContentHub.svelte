@@ -726,6 +726,21 @@
         margin-left: 0.5rem;
     }
 
+    .nav-label-btn {
+        background: none;
+        border: none;
+        color: var(--muted-foreground);
+        font-size: 1.1rem;
+        font-weight: 500;
+        cursor: pointer;
+        padding: 0;
+        transition:
+            color 0.2s,
+            transform 0.1s;
+        white-space: nowrap; /* Prevent wrapping for long names (e.g. English) */
+        flex-shrink: 0;
+    }
+
     .nav-tab {
         background: none;
         border: none;
