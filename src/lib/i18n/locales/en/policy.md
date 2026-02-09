@@ -64,7 +64,7 @@ The Company shall process personal information only within the scope specified i
 
 2. The Company supervises entrusted parties to ensure that they process personal information safely in accordance with applicable laws at the time of signing the entrustment agreement.
 
-3. **Consent for International Transfer:** By registering as a Member and accepting this Privacy Policy, the data subject is deemed to have consented to the international transfer of personal information as described above. To withdraw consent, the data subject may request account termination through the account settings or by contacting support@personaxi.com.
+3. **Explicit Consent for International Transfer:** During the registration process, the Company shall explicitly inform the user via a separate consent box that "Your personal information will be transferred to overseas servers (USA - Google, Supabase, Oracle, etc.)" and shall only approve registration if the user acknowledges and consents to this via a checkbox. To withdraw consent, the data subject may request account termination through the account settings or by contacting support@personaxi.com.
 
 ---
 

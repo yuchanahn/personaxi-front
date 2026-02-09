@@ -138,6 +138,11 @@ By accessing or using personaxi ("Service"), operated by PersonaXI ("Company"), 
 
 4. **Sharing and Liability:** When manually sharing or distributing AI-generated content publicly, Members are responsible for ensuring that such content does not contain illegal, sexually explicit, violent, or discriminatory material. The Member bears full civil and criminal liability for any disputes arising from the sharing of content beyond the scope of private use, and the Company shall not be liable absent willful misconduct or gross negligence.
 
+5. **Technical Safety Measures:** The Company implements the following technical measures to block the generation of illegal content:
+   - **AI Model-Level Filtering:** Maintaining safety settings at the highest level to prevent the generation of harmful text at the source.
+   - **Real-time Monitoring:** Warning and blocking users upon detecting prohibited keywords (e.g., child exploitation, non-consensual sexual acts).
+   - **Three-Strike Policy:** Automatic account suspension and IP blocking upon three cumulative violation attempts.
+
 ---
 
 ### Chapter 8: Disclaimers and Other Matters
