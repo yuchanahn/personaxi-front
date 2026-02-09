@@ -508,6 +508,9 @@
     "typeLabel": "Type",
     "typeSelectDefault": "Select a type",
     "visibilityLabel": "Visibility",
+    "adultContentLabel": "Adult Content (19+)",
+    "adultContentDesc": "Mark this content as restricted to verified adults.",
+    "allAges": "All Ages",
     "public": "Public",
     "private": "Private",
     "mediaFiles": "Media Files",
@@ -751,7 +754,8 @@
     "yandere": "Yandere",
     "simulation": "Simulation",
     "vrm": "VRM",
-    "live2d": "Live2D"
+    "live2d": "Live2D",
+    "r18": "Adult (19+)"
   },
   "sort": {
     "popular": "Popular",

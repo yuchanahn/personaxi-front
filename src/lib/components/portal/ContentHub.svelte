@@ -141,20 +141,54 @@
         }
     }
 
+    // Helper to get excluded tags based on safety filter
+    $: excludedTags = safetyFilterEnabled ? ["tags.r18"] : [];
+
+    // Trigger reload when safety filter changes
+    $: if (safetyFilterEnabled !== undefined) {
+        triggerSafetyFilterReload();
+    }
+
+    function triggerSafetyFilterReload() {
+        if (activeTab === "home") {
+            loadFeaturedSections();
+        } else {
+            reloadAll();
+        }
+    }
+
     async function reloadAll() {
         isLoading.set(true);
-        if (activeTab === "home") {
-            await loadFeaturedSections();
-        } else {
+        try {
+            // ... existing logic but using loadContent with excludedTags
+            // Wait, reloadAll used 'loadContent(page, limit, currentSort...)'
+            // We need to pass tags if selectedCategory exists.
+
+            let tags: string[] = [];
+            if (activeTab === "2d") tags.push("tags.live2d");
+            if (activeTab === "3d") tags.push("tags.vrm");
+            if (selectedCategory) tags.push(selectedCategory);
+
+            // Define excluded tags (merge with safety filter)
+            let tabExcludedTags: string[] = [...excludedTags];
+            if (activeTab === "character") {
+                tabExcludedTags.push("tags.live2d", "tags.vrm");
+            }
+
             const data = await loadContent(
                 page,
                 limit,
                 currentSort,
-                currentContentType,
+                activeTab === "story" ? "story" : "character",
+                tags,
+                tabExcludedTags,
             );
-            contents.set(data);
+            contents.set(data || []);
+        } catch (e) {
+            console.error(e);
+        } finally {
+            isLoading.set(false);
         }
-        isLoading.set(false);
     }
 
     onMount(async () => {
@@ -167,7 +201,7 @@
             const isIOSStandalone = window.navigator.standalone === true;
             isPWA = isStandalone || isIOSStandalone;
         }
-        reloadAll();
+        triggerSafetyFilterReload();
     });
 
     // --- State for Home Dashboard ---
@@ -180,47 +214,68 @@
         // 1. New Arrivals (Strict Daily)
         isNewLoading.set(true);
         // Load ALL types for Home New Arrivals
-        loadContent(newPage, 10, "latest_daily", "all").then((data) => {
-            newContents.set(data);
-            if (data.length < 10) hasMoreNew = false;
-            isNewLoading.set(false);
-        });
+        loadContent(newPage, 10, "latest_daily", "all", [], excludedTags).then(
+            (data) => {
+                newContents.set(data);
+                if (data.length < 10) hasMoreNew = false;
+                isNewLoading.set(false);
+            },
+        );
 
         // 2. Popular Today (Realtime)
         isPopularLoading.set(true);
         // Load ALL types for Home Popular
-        loadContent(popularPage, 10, "realtime", "all").then((data) => {
-            popularContents.set(data);
-            if (data.length < 10) hasMorePopular = false;
-            isPopularLoading.set(false);
-        });
+        loadContent(popularPage, 10, "realtime", "all", [], excludedTags).then(
+            (data) => {
+                popularContents.set(data);
+                if (data.length < 10) hasMorePopular = false;
+                isPopularLoading.set(false);
+            },
+        );
 
         // 3. Fantasy (Journey to Another World)
         isFantasyLoading.set(true);
         // Load ALL types with fantasy tag
-        loadContent(1, 10, "popular", "all", ["tags.fantasy"]).then((data) => {
+        loadContent(
+            1,
+            10,
+            "popular",
+            "all",
+            ["tags.fantasy"],
+            excludedTags,
+        ).then((data) => {
             fantasyContents.set(data);
             isFantasyLoading.set(false);
         });
 
         // 4. Tech Demos (Live2D & VRM)
         isLive2dLoading.set(true);
-        loadContent(live2dPage, 10, "popular", "all", ["tags.live2d"]).then(
-            (data) => {
-                live2dContents.set(data);
-                if (data.length < 10) hasMoreLive2d = false;
-                isLive2dLoading.set(false);
-            },
-        );
+        loadContent(
+            live2dPage,
+            10,
+            "popular",
+            "all",
+            ["tags.live2d"],
+            excludedTags,
+        ).then((data) => {
+            live2dContents.set(data);
+            if (data.length < 10) hasMoreLive2d = false;
+            isLive2dLoading.set(false);
+        });
 
         isVrmLoading.set(true);
-        loadContent(vrmPage, 10, "popular", "all", ["tags.vrm"]).then(
-            (data) => {
-                vrmContents.set(data);
-                if (data.length < 10) hasMoreVrm = false;
-                isVrmLoading.set(false);
-            },
-        );
+        loadContent(
+            vrmPage,
+            10,
+            "popular",
+            "all",
+            ["tags.vrm"],
+            excludedTags,
+        ).then((data) => {
+            vrmContents.set(data);
+            if (data.length < 10) hasMoreVrm = false;
+            isVrmLoading.set(false);
+        });
     }
 
     async function handleLoadMore(type: "new" | "popular" | "live2d" | "vrm") {
@@ -228,7 +283,14 @@
             if ($isNewLoading || !hasMoreNew) return;
             isNewLoading.set(true);
             newPage++;
-            const data = await loadContent(newPage, 10, "latest_daily", "all");
+            const data = await loadContent(
+                newPage,
+                10,
+                "latest_daily",
+                "all",
+                [],
+                excludedTags,
+            );
             if (data.length > 0) {
                 newContents.update((c) => [...c, ...data]);
                 if (data.length < 10) hasMoreNew = false;
@@ -240,7 +302,14 @@
             if ($isPopularLoading || !hasMorePopular) return;
             isPopularLoading.set(true);
             popularPage++;
-            const data = await loadContent(popularPage, 10, "realtime", "all");
+            const data = await loadContent(
+                popularPage,
+                10,
+                "realtime",
+                "all",
+                [],
+                excludedTags,
+            );
             if (data.length > 0) {
                 popularContents.update((c) => [...c, ...data]);
                 if (data.length < 10) hasMorePopular = false;
@@ -252,9 +321,14 @@
             if ($isLive2dLoading || !hasMoreLive2d) return;
             isLive2dLoading.set(true);
             live2dPage++;
-            const data = await loadContent(live2dPage, 10, "popular", "all", [
-                "tags.live2d",
-            ]);
+            const data = await loadContent(
+                live2dPage,
+                10,
+                "popular",
+                "all",
+                ["tags.live2d"],
+                excludedTags,
+            );
             if (data.length > 0) {
                 live2dContents.update((c) => [...c, ...data]);
                 if (data.length < 10) hasMoreLive2d = false;
@@ -293,24 +367,21 @@
 
         if (category) tags.push(category);
 
-        // Define excluded tags
-        let excludedTags: string[] = [];
+        // Define excluded tags (merge with safety filter)
+        let tabExcludedTags: string[] = [...excludedTags]; // Copy global exclusions (R18)
         if (activeTab === "character") {
-            excludedTags.push("tags.live2d", "tags.vrm");
+            tabExcludedTags.push("tags.live2d", "tags.vrm");
         }
 
         if (category === null && tags.length === 0) {
-            // Using loadContentWithTags if we have excludedTags to enforce consistency,
-            // although loadContent might be sufficient if backend handles default exclusions.
-            // But strict control is better.
-            if (excludedTags.length > 0) {
+            if (tabExcludedTags.length > 0) {
                 data = await loadContentWithTags(
                     tags,
                     page,
                     limit,
                     currentSort,
                     currentContentType,
-                    excludedTags,
+                    tabExcludedTags,
                 );
             } else {
                 data = await loadContent(
@@ -325,14 +396,13 @@
         } else if (category === "liked") {
             data = await loadLikedContent();
         } else {
-            // Use loadContentWithTags
             data = await loadContentWithTags(
                 tags,
                 page,
                 limit,
                 currentSort,
                 currentContentType,
-                excludedTags,
+                tabExcludedTags,
             );
         }
         contents.set(data);
@@ -360,20 +430,21 @@
             tags.push(selectedCategory);
         }
 
-        let excludedTags: string[] = [];
+        // Define excluded tags (merge with safety filter)
+        let tabExcludedTags: string[] = [...excludedTags]; // Copy global exclusions (R18)
         if (activeTab === "character") {
-            excludedTags.push("tags.live2d", "tags.vrm");
+            tabExcludedTags.push("tags.live2d", "tags.vrm");
         }
 
         if (selectedCategory === null && tags.length === 0) {
-            if (excludedTags.length > 0) {
+            if (tabExcludedTags.length > 0) {
                 data = await loadContentWithTags(
                     tags, // empty
                     page,
                     limit,
                     sort,
                     currentContentType,
-                    excludedTags,
+                    tabExcludedTags,
                 );
             } else {
                 data = await loadContent(page, limit, sort, currentContentType);
@@ -383,19 +454,9 @@
         } else if (selectedCategory === "liked") {
             data = await loadLikedContent();
         } else if (selectedCategory === "search") {
-            // Keep search logic? Or is search separate?
-            // Search uses executeSearch. changeSort called during search?
-            // If search is active, executeSearch handles loading?
-            // But changeSort re-triggers loading.
-            // Existing logic: if selectedCategory is search, we might need to re-run search with new sort?
-            // The API loadContentWithName doesn't seem to support sort?
-            // Inspecting loadContentWithName: just q and locale.
-            // So sort might not work for search results yet.
-            // Let's implement basics first.
             if (searchType === "name") {
                 data = await loadContentWithName(query);
             } else {
-                // Fallback
                 data = await loadContent(page, limit, sort, currentContentType);
             }
         } else {
@@ -405,7 +466,7 @@
                 limit,
                 sort,
                 currentContentType,
-                excludedTags,
+                tabExcludedTags,
             );
         }
         contents.set(data);

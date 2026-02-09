@@ -1162,6 +1162,31 @@
                             </button>
                         </div>
                     </div>
+
+                    <div class="form-group">
+                        <label for="r18-toggle">
+                            {$t("editPage.adultContentLabel")}
+                        </label>
+                        <div class="toggle-container">
+                            <label class="toggle-switch">
+                                <input
+                                    id="r18-toggle"
+                                    type="checkbox"
+                                    checked={persona.tags.includes("1003")}
+                                    on:change={() => toggleTag("1003")}
+                                />
+                                <span class="slider"></span>
+                            </label>
+                            <span class:active={persona.tags.includes("1003")}>
+                                {persona.tags.includes("1003")
+                                    ? "19+"
+                                    : $t("editPage.allAges")}
+                            </span>
+                        </div>
+                        <p class="description">
+                            {$t("editPage.adultContentDesc")}
+                        </p>
+                    </div>
                 </div>
 
                 <div class="form-section-card">

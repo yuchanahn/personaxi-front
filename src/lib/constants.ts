@@ -32,4 +32,5 @@ export const allCategories = [
 
     { id: 1001, nameKey: "tags.vrm" },
     { id: 1002, nameKey: "tags.live2d" },
+    { id: 1003, nameKey: "tags.r18" },
 ];
