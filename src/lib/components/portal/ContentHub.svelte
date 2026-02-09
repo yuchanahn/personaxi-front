@@ -28,6 +28,18 @@
     // --- Safety Filter State ---
     let safetyFilterEnabled = false;
 
+    // Load state on mount/user change
+    $: if ($st_user) {
+        const stored = localStorage.getItem("safetyFilter") === "true";
+        if (stored && $st_user.data?.isVerified) {
+            safetyFilterEnabled = true;
+        } else if (stored && !$st_user.data?.isVerified) {
+            // Fix inconsistency
+            safetyFilterEnabled = false;
+            localStorage.setItem("safetyFilter", "false");
+        }
+    }
+
     function handleSafetyFilterToggle() {
         const user = get(st_user);
 
@@ -41,6 +53,7 @@
         // 2. Check if user is verified
         if (user.data?.isVerified) {
             safetyFilterEnabled = !safetyFilterEnabled;
+            localStorage.setItem("safetyFilter", String(safetyFilterEnabled));
             // TODO: Trigger reload/filter logic here if needed
             return;
         }
@@ -56,6 +69,7 @@
                     // Ideally, wait for st_user update then check.
                     // For now, let's assume success means verified.
                     safetyFilterEnabled = true;
+                    localStorage.setItem("safetyFilter", "true");
                 },
             });
         }
