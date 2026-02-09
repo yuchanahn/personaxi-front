@@ -24,11 +24,5 @@ These Terms of Service (the "Terms") govern the rights, obligations, and respons
 **Article 6 (Service Changes and Discontinuation)**
 The Company may modify or discontinue the Service due to operational or technical necessities, and will provide prior notice in such cases.
 
-**Article 7 (Adult Content and AI Ethics Policy)**
-1. **Compliance and Youth Protection**: The Company complies with relevant laws, including the Act on Promotion of Information and Communications Network Utilization and Information Protection, and the Act on the Protection of Children and Youth against Sex Offenses. The Company implements technical and administrative measures, such as age verification, to protect minors from exposure to harmful adult content.
-2. **Eligibility**: Adult content (19+) features are available only to Members aged 19 or older who have completed identity verification.
-3. **Prohibited Acts and Circumvention**: Members must not use the Service in a manner that circumvents the Company's service policies or technical safety measures (e.g., filtering), such as by inputting "jailbreak" prompts. Intentional creation or distribution of prohibited content, including child sexual exploitation material, deepfakes, or non-consensual recordings, may result in immediate and permanent suspension of service.
-4. **Sharing and Liability**: When manually sharing or distributing AI-generated content publicly, Members are responsible for ensuring that such content does not contain illegal, sexually explicit, violent, or discriminatory material. The Member bears full civil and criminal liability for any disputes arising from the sharing of content beyond the scope of private use, and the Company shall not be liable absent willful misconduct or gross negligence.
-
 **(Supplementary Provision)**
 These Terms are effective as of February 4, 2026.

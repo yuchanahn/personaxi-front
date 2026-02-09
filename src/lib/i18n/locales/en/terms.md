@@ -127,18 +127,31 @@ By accessing or using personaxi ("Service"), operated by PersonaXI ("Company"), 
 
 ---
 
-## Chapter 7: Disclaimers and Other Matters
+### Chapter 7: Adult Content and AI Ethics Policy
 
-### Article 18: Disclaimer of Liability
+#### Article 18 (Adult Content Usage Policy)
+1. **Compliance and Youth Protection:** The Company complies with relevant laws, including the Act on Promotion of Information and Communications Network Utilization and Information Protection, and the Act on the Protection of Children and Youth against Sex Offenses. The Company implements technical and administrative measures, such as age verification, to protect minors from exposure to harmful adult content.
+
+2. **Eligibility:** Adult content (19+) features are available only to Members aged 19 or older who have completed identity verification.
+
+3. **Prohibited Acts and Circumvention:** Members must not use the Service in a manner that circumvents the Company's service policies or technical safety measures (e.g., filtering), such as by inputting "jailbreak" prompts. Intentional creation or distribution of prohibited content, including child sexual exploitation material, deepfakes, or non-consensual recordings, may result in immediate and permanent suspension of service.
+
+4. **Sharing and Liability:** When manually sharing or distributing AI-generated content publicly, Members are responsible for ensuring that such content does not contain illegal, sexually explicit, violent, or discriminatory material. The Member bears full civil and criminal liability for any disputes arising from the sharing of content beyond the scope of private use, and the Company shall not be liable absent willful misconduct or gross negligence.
+
+---
+
+### Chapter 8: Disclaimers and Other Matters
+
+#### Article 19 (Disclaimer of Liability)
 1. The Company does not guarantee the accuracy or truthfulness of AI-generated responses. Members are advised to verify the appropriateness of such content using their own judgment before relying on it.
 2. The Company shall not be liable for service interruptions caused by third-party providers (e.g., Google Gemini, Oracle) or by Force Majeure events beyond the Company's control.
 
-### Article 19: Dispute Resolution and Customer Support
+#### Article 20 (Dispute Resolution and Customer Support)
 1. Members may contact the Company regarding any issues related to the use of the Service at support@personaxi.com.
 2. The Company shall review any disputes or complaints and communicate the result within **5–10 business days** of receipt.
 3. If a dispute related to payment remains unresolved through the above process, the Member may escalate the matter to the relevant consumer dispute resolution authority.
 
-### Article 20: Governing Law and Jurisdiction
+#### Article 21 (Governing Law and Jurisdiction)
 These Terms shall be governed by and construed in accordance with the laws of the **Republic of Korea**. Any disputes arising from the use of the Service shall be resolved in the court with jurisdiction over the location of the Company's principal place of business.
 
 ---
