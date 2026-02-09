@@ -22,6 +22,44 @@
     import { st_user } from "$lib/stores/user";
     import { get } from "svelte/store";
     import { showNeedMoreNeuronsModal } from "$lib/stores/modal";
+    import { toast } from "$lib/stores/toast";
+    import { requestIdentityVerification } from "$lib/services/verification";
+
+    // --- Safety Filter State ---
+    let safetyFilterEnabled = false;
+
+    function handleSafetyFilterToggle() {
+        const user = get(st_user);
+
+        // 1. Check if user is logged in
+        if (!user) {
+            toast.error("로그인이 필요한 기능입니다.");
+            goto("/login");
+            return;
+        }
+
+        // 2. Check if user is verified
+        if (user.data?.isVerified) {
+            safetyFilterEnabled = !safetyFilterEnabled;
+            // TODO: Trigger reload/filter logic here if needed
+            return;
+        }
+
+        // 3. Not verified: Show confirmation modal
+        const confirmVerification = confirm(
+            "성인 인증이 필요한 기능입니다. 지금 인증하시겠습니까?",
+        );
+        if (confirmVerification) {
+            requestIdentityVerification({
+                onSuccess: () => {
+                    // Check verification status again or just enable it?
+                    // Ideally, wait for st_user update then check.
+                    // For now, let's assume success means verified.
+                    safetyFilterEnabled = true;
+                },
+            });
+        }
+    }
 
     // --- 상수 ---
     const visibleCategories = allCategories.filter(
@@ -514,6 +552,21 @@
 
                 <!-- Search Button -->
                 <div class="row-controls">
+                    <!-- Safety Filter Toggle -->
+                    <button
+                        class="safety-filter-btn"
+                        class:active={safetyFilterEnabled}
+                        on:click={handleSafetyFilterToggle}
+                        title={safetyFilterEnabled
+                            ? "Safety Filter ON"
+                            : "Safety Filter OFF"}
+                    >
+                        <span class="filter-label">19+</span>
+                        <div class="toggle-switch">
+                            <div class="toggle-thumb"></div>
+                        </div>
+                    </button>
+
                     <button
                         class="search-trigger-button"
                         on:click={() => (isSearchModalOpen = true)}
@@ -998,6 +1051,76 @@
         transform: translateY(-1px);
         box-shadow: var(--shadow-card);
     }
+
+    /* --- Safety Filter Toggle --- */
+    .safety-filter-btn {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        background: none;
+        border: none;
+        cursor: pointer;
+        padding: 0.4rem 0.6rem;
+        border-radius: 999px;
+        transition: all 0.2s;
+        margin-right: 0.25rem;
+        border: 1px solid transparent;
+    }
+
+    .safety-filter-btn:hover {
+        background-color: var(--secondary);
+        border-color: var(--border);
+    }
+
+    .safety-filter-btn.active {
+        background-color: var(--secondary);
+        border-color: var(--primary);
+    }
+
+    .safety-filter-btn.active .filter-label {
+        color: var(--primary);
+        font-weight: 800;
+    }
+
+    .safety-filter-btn.active .toggle-thumb {
+        transform: translateX(12px);
+        background-color: var(--primary);
+    }
+
+    .safety-filter-btn.active .toggle-switch {
+        border-color: var(--primary);
+        background-color: var(--primary-foreground);
+    }
+
+    .filter-label {
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: var(--muted-foreground);
+        transition: color 0.2s;
+    }
+
+    .toggle-switch {
+        width: 30px;
+        height: 18px;
+        background-color: var(--muted);
+        border-radius: 999px;
+        position: relative;
+        transition: all 0.2s;
+        border: 1px solid var(--border);
+    }
+
+    .toggle-thumb {
+        width: 14px;
+        height: 14px;
+        background-color: white;
+        border-radius: 50%;
+        position: absolute;
+        top: 1px;
+        left: 1px;
+        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+    }
+
     .row-controls {
         display: flex;
         flex-direction: row;

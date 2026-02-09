@@ -87,6 +87,13 @@ export interface User {
         createdAt: string;
         hasReceivedFirstCreationReward: boolean;
         lastLoginIP: string;
+
+        // Identity Verification
+        isVerified?: boolean;
+        birthDate?: string;
+        gender?: string;
+        ci?: string;
+        di?: string;
     };
 }
 

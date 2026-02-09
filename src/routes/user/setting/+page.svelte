@@ -83,6 +83,30 @@
         }
     }
 
+    import { requestIdentityVerification } from "$lib/services/verification";
+
+    let isVerifying = false;
+
+    async function handleIdentityVerification() {
+        if (isVerifying) return;
+        isVerifying = true;
+
+        await requestIdentityVerification({
+            onSuccess: async () => {
+                // Refresh user data
+                const userRes = await getCurrentUser();
+                if (userRes) {
+                    user = userRes as User;
+                    st_user.set(user);
+                }
+                isVerifying = false;
+            },
+            onError: () => {
+                isVerifying = false;
+            },
+        });
+    }
+
     onMount(async () => {
         if (typeof window !== "undefined") {
             const isStandalone = window.matchMedia(
@@ -91,6 +115,15 @@
             // @ts-ignore
             const isIOSStandalone = window.navigator.standalone === true;
             isPWA = isStandalone || isIOSStandalone;
+
+            // Load PortOne SDK
+            if (!document.getElementById("portone-v2-sdk")) {
+                const script = document.createElement("script");
+                script.id = "portone-v2-sdk";
+                script.src = "https://cdn.portone.io/v2/browser-sdk.js";
+                script.defer = true;
+                document.body.appendChild(script);
+            }
         }
 
         try {
@@ -543,6 +576,38 @@
                                                 height="18"
                                             />
                                         </button>
+
+                                        {#if user.data.isVerified}
+                                            <span
+                                                title="Verified User"
+                                                class="verified-badge-wrapper"
+                                            >
+                                                <Icon
+                                                    icon="material-symbols:verified-rounded"
+                                                    class="verified-badge"
+                                                    width="20"
+                                                    height="20"
+                                                    color="#3b82f6"
+                                                />
+                                            </span>
+                                        {:else}
+                                            <button
+                                                class="verification-btn-small"
+                                                on:click={handleIdentityVerification}
+                                                disabled={isVerifying}
+                                                title="본인인증 (성인인증)"
+                                            >
+                                                <Icon
+                                                    icon="ph:shield-check-bold"
+                                                    width="14"
+                                                />
+                                                <span>
+                                                    {isVerifying
+                                                        ? "인증 중..."
+                                                        : "인증하기"}
+                                                </span>
+                                            </button>
+                                        {/if}
                                     </div>
                                 {:else}
                                     <div class="edit-inputs">
@@ -588,7 +653,6 @@
                                     </button>
                                 </div>
                             </div>
-
                             <!-- Right: Actions -->
                             <div class="profile-actions-section">
                                 {#if !isEditingProfile}
@@ -1724,7 +1788,6 @@
         background: var(--muted);
     }
 
-    /* 로그아웃 버튼: 설치 버튼과 높이 맞춤 */
     .logout-link-btn {
         display: flex;
         align-items: center;
@@ -1732,5 +1795,39 @@
         color: var(--muted-foreground);
         font-size: 0.85rem;
         padding: 0.5rem;
+    }
+
+    .verified-badge-wrapper {
+        display: flex;
+        align-items: center;
+        margin-left: 0.25rem;
+    }
+
+    .verification-btn-small {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        padding: 4px 10px;
+        background-color: transparent;
+        color: var(--muted-foreground);
+        border: 1px solid var(--border);
+        border-radius: 9999px; /* Pill shape */
+        font-size: 0.75rem;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s;
+        margin-left: 0.5rem;
+        height: 24px;
+    }
+
+    .verification-btn-small:hover {
+        background-color: var(--secondary);
+        color: var(--foreground);
+        border-color: var(--primary);
+    }
+
+    .verification-btn-small:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
     }
 </style>
