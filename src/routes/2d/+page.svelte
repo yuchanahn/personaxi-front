@@ -40,22 +40,28 @@
     lastSessionId = sessionId;
 
     if (sessionId) {
-      await loadChatHistory(sessionId ?? "");
+      // 1. Clear previous state immediately (Fixes race condition & ghosting)
+      messages.set([]);
+      persona = null;
+      showModelSelector = false;
 
-      // Show Model Selector only if it's a new session (empty chat)
-      // and if we haven't already selected a specific logic (implied by just checking messages for now)
-      if ($messages.length === 1) {
-        showModelSelector = true;
-      } else {
-        showModelSelector = false;
+      try {
+        // 2. Load Persona & Assets FIRST
+        const p = await loadPersona(sessionId);
+        const assets = await fetchAndSetAssetTypes(p.image_metadatas);
+        p.image_metadatas = assets;
+        persona = p;
+
+        // 3. Load Chat History
+        await loadChatHistory(sessionId ?? "");
+
+        // 4. Check for New Session state
+        if ($messages.length <= 1) {
+          showModelSelector = true;
+        }
+      } catch (e) {
+        console.error("Failed to load chat data:", e);
       }
-
-      loadPersona(sessionId).then((p) => {
-        fetchAndSetAssetTypes(p.image_metadatas).then((imgs) => {
-          p.image_metadatas = imgs;
-          persona = p;
-        });
-      });
     }
   };
 
