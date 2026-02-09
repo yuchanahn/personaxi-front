@@ -6,7 +6,9 @@
     import { api } from "$lib/api";
     import { toast } from "$lib/stores/toast";
     import { getPaymentHistory } from "$lib/api/user";
+    import { getCurrentUser } from "$lib/api/auth";
     import type { PaymentRecord } from "$lib/types";
+    import { st_user } from "$lib/stores/user";
 
     export let isOpen = false;
 
@@ -98,6 +100,12 @@
             }
 
             toast.success($t("paymentHistoryModal.refundRequested"));
+
+            // Refresh user data (credits)
+            const user = await getCurrentUser();
+            if (user) {
+                st_user.set(user);
+            }
 
             // Update local state immediately
             history = history.map((r) =>
