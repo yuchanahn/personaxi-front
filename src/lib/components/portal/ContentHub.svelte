@@ -142,7 +142,7 @@
     }
 
     // Helper to get excluded tags based on safety filter
-    $: excludedTags = safetyFilterEnabled ? ["tags.r18"] : [];
+    $: excludedTags = safetyFilterEnabled ? [] : ["tags.r18"];
 
     // Trigger reload when safety filter changes
     $: if (safetyFilterEnabled !== undefined) {
