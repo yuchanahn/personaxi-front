@@ -616,7 +616,9 @@
       "instructionsLimitExceeded": "Instructions cannot exceed 3000 characters.",
       "allFieldsRequired": "Please fill in all required fields.",
       "charLimitExceeded": "Character limit exceeded.",
-      "promptExamplesLimitExceeded": "Prompt examples must be under 200 chars and max 10 items."
+      "promptExamplesLimitExceeded": "Prompt examples must be under 200 chars and max 10 items.",
+      "bannedWordDetected": "Sensitive content detected. 'Adult Content' tag has been automatically enabled.",
+      "bannedWordHardDetected": "Forbidden word detected: "
     }
   },
   "chatSession": {

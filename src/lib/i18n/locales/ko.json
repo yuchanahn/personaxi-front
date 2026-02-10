@@ -615,7 +615,9 @@
       "instructionsLimitExceeded": "지시문은 3000자를 넘을 수 없습니다.",
       "allFieldsRequired": "모든 필수 항목을 입력해주세요.",
       "charLimitExceeded": "글자 수 제한을 초과했습니다.",
-      "promptExamplesLimitExceeded": "프롬프트 예시는 200자 이내, 최대 10개까지 가능합니다."
+      "promptExamplesLimitExceeded": "프롬프트 예시는 200자 이내, 최대 10개까지 가능합니다.",
+      "bannedWordDetected": "민감한 단어가 감지되었습니다. '성인 콘텐츠' 태그가 자동으로 활성화되었습니다.",
+      "bannedWordHardDetected": "금지된 단어가 포함되어 있습니다: "
     }
   },
   "verifyPage": {

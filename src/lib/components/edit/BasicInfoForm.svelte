@@ -3,6 +3,12 @@
     import Icon from "@iconify/svelte";
     import { onMount } from "svelte";
     import type { Persona } from "$lib/types";
+    import {
+        encodedHardList,
+        encodedSoftList,
+        decodeSafe,
+    } from "$lib/utils/encodedBannedWords";
+    import { toast } from "$lib/stores/toast";
 
     export let persona: Persona;
     export let previousPersonaType: string = "";
@@ -13,6 +19,58 @@
         } else {
             // R18 system tag (1003) is exempt from the 3-tag limit
             persona.tags = [...persona.tags, tagId];
+        }
+    }
+
+    // Decoded lists cache
+    let hardBannedWords: string[] = [];
+    let softBannedWords: string[] = [];
+    let lastToastedHardWord = ""; // Track last toasted word to prevent spam
+
+    onMount(() => {
+        // Lazy decode on mount
+        hardBannedWords = encodedHardList.map(decodeSafe).filter((w) => w);
+        softBannedWords = encodedSoftList.map(decodeSafe).filter((w) => w);
+    });
+
+    // Reactive check for banned words
+    $: if (hardBannedWords.length > 0 && (persona.name || persona.one_liner)) {
+        const textToCheck = (
+            persona.name +
+            " " +
+            (persona.one_liner || "")
+        ).toLowerCase();
+
+        // Hard Ban Check
+        const detectedHardWord = hardBannedWords.find(
+            (word) => word && textToCheck.includes(word.toLowerCase()),
+        );
+
+        if (detectedHardWord) {
+            // Only toast if it's a new word or different from the last one
+            if (lastToastedHardWord !== detectedHardWord) {
+                lastToastedHardWord = detectedHardWord;
+                toast.error(
+                    ($t("editPage.validation.bannedWordHardDetected") ||
+                        "Forbidden word detected: ") + detectedHardWord,
+                );
+            }
+        } else {
+            lastToastedHardWord = ""; // Reset if clear
+
+            // Soft Ban Check
+            const detectedSoftWord = softBannedWords.find(
+                (word) => word && textToCheck.includes(word.toLowerCase()),
+            );
+            if (detectedSoftWord) {
+                if (!persona.tags.includes("1003")) {
+                    toggleTag("1003");
+                    toast.warning(
+                        $t("editPage.validation.bannedWordDetected") ||
+                            "Sensitive content detected. 'Adult Content' tag has been automatically enabled.",
+                    );
+                }
+            }
         }
     }
 </script>
