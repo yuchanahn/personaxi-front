@@ -28,6 +28,21 @@
     "title": "채팅",
     "noChats": "아직 대화가 없습니다",
     "startNewChat": "새로운 페르소나와 대화를 시작해보세요.",
+    "myPersonas": "내가 만든 페르소나",
+    "liked": "좋아요한 페르소나",
+    "following": "팔로잉",
+    "newPersona": "새 페르소나 만들기",
+    "myProfile": "내 정보",
+    "logout": "로그아웃",
+    "installApp": "앱 설치",
+    "credits": "보유 뉴런",
+    "charge": "충전하기",
+    "creatorPoints": "크리에이터 포인트",
+    "creatorPointInfo": {
+      "title": "제작자 포인트란?",
+      "desc": "다른 사용자가 내 페르소나와 대화하거나 후원할 때 적립되는 포인트입니다. 일정 비율로 뉴런으로 전환하여 사용할 수 있습니다."
+    },
+    "transfer": "전환",
     "goExplore": "탐색하러 가기"
   },
   "settingPage": {

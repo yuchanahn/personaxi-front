@@ -451,7 +451,7 @@
                     on:click={() => switchTab("profile")}
                 >
                     <Icon icon="ph:user-bold" width="20" height="20" />
-                    <span class="tab-label">내 정보</span>
+                    <span class="tab-label">{$t("settingPage.myProfile")}</span>
                 </button>
                 <button
                     class="tab-item"
@@ -695,7 +695,11 @@
                                                     icon="tabler:logout"
                                                     width="18"
                                                 />
-                                                <span>로그아웃</span>
+                                                <span
+                                                    >{$t(
+                                                        "settingPage.logout",
+                                                    )}</span
+                                                >
                                             </button>
                                         </div>
                                         {#if !isPWA}
@@ -708,7 +712,11 @@
                                                     icon="material-symbols:download-rounded"
                                                     width="20"
                                                 />
-                                                <span>앱 설치</span>
+                                                <span
+                                                    >{$t(
+                                                        "settingPage.installApp",
+                                                    )}</span
+                                                >
                                             </button>
                                         {/if}
                                     </div>
