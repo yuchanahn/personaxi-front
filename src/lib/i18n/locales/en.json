@@ -391,7 +391,8 @@
     "spoilerWarning": "Spoiler Alert! View first scene?",
     "characterIntel": "Character Info",
     "totalImages": "Total {count}",
-    "hiddenImages": "Hidden {count}"
+    "hiddenImages": "Hidden {count}",
+    "defaultDescription": "Chat with {name}"
   },
   "auctionModal": {
     "createFailed": "Auction creation failed"

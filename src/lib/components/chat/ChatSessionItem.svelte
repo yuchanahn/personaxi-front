@@ -7,6 +7,7 @@
     import { locale, t } from "svelte-i18n";
     import moment from "moment";
     import "moment/dist/locale/ko";
+    import { loadPersona } from "$lib/api/edit_persona";
 
     export let session: ChatSession = {
         id: "",
@@ -22,6 +23,19 @@
     export let onDelete;
 
     $: currentLocale = $locale || "en";
+
+    // [Cache Strategy] Initialize avatar URL from local storage cache if available
+    let avatarUrl = session.avatar;
+    $: {
+        if (typeof localStorage !== "undefined") {
+            const cached = localStorage.getItem(`avatar_cache_${session.id}`);
+            if (cached) {
+                avatarUrl = cached;
+            } else {
+                avatarUrl = session.avatar;
+            }
+        }
+    }
 
     function formatTime(dateString: string, loc: string) {
         if (!dateString) return "";
@@ -51,13 +65,44 @@
 <div class="slot" class:space={session.type === ChatSessionType.SPACE}>
     {#if session.type !== ChatSessionType.SPACE}
         <button on:click={onClick}>
-            {#if session.avatar}
+            {#if avatarUrl}
                 <div class="avatar-container">
                     <AssetPreview
                         asset={{
-                            url: session.avatar,
+                            url: avatarUrl,
                             description: "avatar",
                             // type is undefined to allow auto-detection
+                        }}
+                        on:error={async () => {
+                            // [Fallback] If image load fails (e.g. 404), fetch latest persona info
+                            try {
+                                const persona = await loadPersona(session.id);
+                                if (persona) {
+                                    // Update avatar URL with latest one
+                                    // Prioritize static portrait if available
+                                    let newUrl = "";
+                                    if (persona.static_portrait_url) {
+                                        newUrl = persona.static_portrait_url;
+                                    } else if (persona.portrait_url) {
+                                        newUrl = persona.portrait_url;
+                                    }
+
+                                    if (newUrl) {
+                                        avatarUrl = newUrl;
+                                        // Update Cache
+                                        if (
+                                            typeof localStorage !== "undefined"
+                                        ) {
+                                            localStorage.setItem(
+                                                `avatar_cache_${session.id}`,
+                                                newUrl,
+                                            );
+                                        }
+                                    }
+                                }
+                            } catch (e) {
+                                console.error("Failed to refresh avatar", e);
+                            }
                         }}
                     />
                 </div>

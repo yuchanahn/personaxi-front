@@ -474,7 +474,8 @@
     "totalImages": "전체 {count}",
     "hiddenImages": "숨김 {count}",
     "linkCopied": "링크가 복사되었습니다!",
-    "linkCopyFailed": "링크 복사에 실패했습니다."
+    "linkCopyFailed": "링크 복사에 실패했습니다.",
+    "defaultDescription": "{name}과 대화하세요"
   },
   "editPage": {
     "title": "페르소나 편집",

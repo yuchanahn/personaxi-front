@@ -316,14 +316,18 @@
             name="description"
             content={persona.one_liner ||
                 persona.greeting ||
-                `${persona.name}과 대화하세요`}
+                $t("profilePage.defaultDescription", {
+                    values: { name: persona.name },
+                })}
         />
         <meta property="og:title" content="{persona.name} - PersonaXi" />
         <meta
             property="og:description"
             content={persona.one_liner ||
                 persona.greeting ||
-                `${persona.name}과 대화하세요`}
+                $t("profilePage.defaultDescription", {
+                    values: { name: persona.name },
+                })}
         />
         <meta
             property="og:image"
