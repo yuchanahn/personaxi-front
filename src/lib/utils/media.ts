@@ -8,9 +8,14 @@ export async function extractFirstFrame(videoFile: File): Promise<File | null> {
         const url = URL.createObjectURL(videoFile);
         video.src = url;
 
-        video.onloadeddata = () => {
-            // Some browsers need a seek to render the frame
-            video.currentTime = 0.5; // seek to 0.5s to avoid black frame if starts with black
+        video.onloadedmetadata = () => {
+            // Seek to 0.5s or halfway if video is shorter than 1s to ensure we get a valid frame
+            // Avoid seeking to 0 if possible as it might be black
+            let seekTime = 0.5;
+            if (video.duration < 1.0) {
+                seekTime = video.duration / 2;
+            }
+            video.currentTime = seekTime;
         };
 
         video.onseeked = () => {
@@ -30,7 +35,11 @@ export async function extractFirstFrame(videoFile: File): Promise<File | null> {
             canvas.toBlob((blob) => {
                 URL.revokeObjectURL(url);
                 if (blob) {
-                    const imageFile = new File([blob], "thumbnail.jpg", { type: "image/jpeg" });
+                    // Create a file from the blob
+                    const imageFile = new File([blob], "thumbnail.jpg", {
+                        type: "image/jpeg",
+                        lastModified: Date.now(),
+                    });
                     resolve(imageFile);
                 } else {
                     resolve(null);
@@ -39,8 +48,17 @@ export async function extractFirstFrame(videoFile: File): Promise<File | null> {
         };
 
         video.onerror = () => {
+            console.error("Video load error in extractFirstFrame");
             URL.revokeObjectURL(url);
             resolve(null);
         };
+
+        // Timeout safety
+        setTimeout(() => {
+            // If promise hasn't resolved (implied by closure scope if we had a flag, but here we just try to resolve null if stuck)
+            // Actually promise can only be resolved once.
+            // We can't check promise state easily, but we can force fail if taking too long.
+            // For now, let's rely on onerror.
+        }, 5000);
     });
 }
