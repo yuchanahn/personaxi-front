@@ -1,102 +1,202 @@
 <div align="center">
   <img src="static/logo.png" alt="PersonaXi" width="120" height="120" />
   
-  # PersonaXi
+  # 🎭 PersonaXi
   
-  **AI Creator Competition Platform**
+  ### VRM 3D Characters? Live2D 2D Characters? 
+  ### Chat with both in one place with AI! 🔥
 
   [🇺🇸 English](README.md) | [🇰🇷 한국어](README.ko.md)
   
-  [Visit Website](https://personaxi.com)
+  <br/>
+
+  <a href="https://personaxi.com">
+    <img src="https://img.shields.io/badge/🚀_Try_Now-FF6B6B?style=for-the-badge" />
+  </a>
+  <a href="https://personaxi.com/characters">
+    <img src="https://img.shields.io/badge/👥_Explore_Characters-4ECDC4?style=for-the-badge" />
+  </a>
   
   ---
-
-  ![Svelte](https://img.shields.io/badge/Svelte-4A4A55?style=for-the-badge&logo=svelte&logoColor=FF3E00)
-  ![TypeScript](https://img.shields.io/badge/typescript-%23007ACC.svg?style=for-the-badge&logo=typescript&logoColor=white)
-  ![Three.js](https://img.shields.io/badge/threejs-black?style=for-the-badge&logo=three.js&logoColor=white)
-  ![Live2D](https://img.shields.io/badge/Live2D-FF5050?style=for-the-badge&logo=live2d&logoColor=white)
-
+  
+  **"What if you could actually talk to your favorite characters?"**
+  
+  PersonaXi is the only AI character chat platform that supports  
+  **Real-time Voice Conversations** with both 3D and 2D characters.
+  
 </div>
 
-## Introduction
+---
 
-PersonaXi is a platform where you can create your own AI characters, chat with them, and compete with other creators.
-It supports both 2D and 3D characters and offers real-time voice conversation capabilities.
+## 🔥 Looking for this?
 
-## Key Features
+### ✨ Create a VTuber AI Assistant
+- Add AI to your VTuber character and let it chat with fans 24/7
+- Just upload your VRM file
+- Customize voice, tone, and personality
 
-- **3D VRM & Live2D Support** - Use either 3D or 2D models
-- **Advanced AI Conversation** - Powered by Gemini 2.5 for natural dialogue
-- **Creator Competition System** - Create great characters and earn rewards
-- **Real-time Voice** - Characters speak directly via TTS
-- **Multi-language Support** - Supports Korean and English
+### 💬 Chat with Favorite Characters
+- Both 2D illustrations and 3D models come to life
+- "How was your day?", "Listen to my worries" - anything goes
+- Voice Support - Characters speak directly to you
 
-## Tech Stack
+### 🎨 Create & Share Your Character
+- Upload models created with VRoid directly
+- Live2D illustrations are also supported
+- Earn creator rewards if your character becomes popular
 
-- **SvelteKit** - Framework
-- **TypeScript** - Type Safety
-- **Three.js** - 3D Rendering (VRM)
-- **pixi-live2d-display** - Live2D Rendering
-- **Supabase** - Auth & Storage
+---
 
-## Local Execution
+## 💎 Why PersonaXi?
 
-```bash
-# Clone
-git clone https://github.com/your-username/personaxi-front.git
-cd personaxi-front
+| Others | PersonaXi |
+|-----------|-----------|
+| Text Only | ✅ **Voice Conversation Support** |
+| 2D OR 3D | ✅ **Both 2D + 3D** |
+| Fixed Characters | ✅ **Create Your Own** |
+| English Only | ✅ **Full Korean/English Support** |
+| Simple Chatbot | ✅ **Expressions + Animations** |
 
-# Install Dependencies
-pnpm install
+---
 
-# Run Dev Server
-pnpm run dev
-```
+## 🌟 Top 3 Popular Characters
 
-Open `http://localhost:5173` in your browser.
+### 1. 🎤 Virtual Idol "Hana"
+> "Hello~ How are you feeling today? ♪"
 
-## Environment Variables
+- 3D VRM Model | Bright & Positive Personality
+- From daily chat to counseling
+- [Chat Now →](https://personaxi.com/character/hana)
 
-Create `.env` file:
-```env
-PUBLIC_SUPABASE_URL=your_supabase_url
-PUBLIC_SUPABASE_ANON_KEY=your_anon_key
-PUBLIC_API_URL=http://localhost:8080
-```
+### 2. 📚 Joseon Scholar "Yi Toegye"
+> "I wish to hear your concerns."
 
-## Project Structure
+- 3D Character in Hanbok | Philosophical Conversation
+- Solving modern worries with Joseon-era wisdom
+- [Chat Now →](https://personaxi.com/character/toegye)
 
-```
-src/
-├── routes/              # Pages (SvelteKit Routing)
-│   ├── 2d/             # 2D Chat
-│   ├── character/      # 3D VRM Chat
-│   ├── live2d/         # Live2D Chat
-│   ├── edit/           # Character Creation/Editing
-│   └── profile/        # Character Profile
-│
-├── lib/
-│   ├── components/     # Reusable Components
-│   ├── stores/         # Svelte Stores
-│   ├── api/            # API Client
-│   └── vrm/            # VRM Utilities
-│
-└── static/             # Static Files
-```
+### 3. 🎨 Live2D Cat Girl "Nabi"
+> "Meow~ Will you play with me today?"
 
-## Build
+- 2D Live2D Animation | Cute Tone
+- Loves games and anime
+- [Chat Now →](https://personaxi.com/character/nabi)
 
-```bash
-pnpm run build
-pnpm run preview  # Preview build result
-```
+[See More Characters →](https://personaxi.com/characters)
 
-## License
+---
 
-MIT
+## 🎁 Join Now
+
+- ✅ First Character Creation **FREE**
+- ✅ Daily Chat Credits **FREE Refill**
+- ✅ Unlimited Trial of Popular Characters (Limited Time)
+
+<div align="center">
+  <a href="https://personaxi.com/signup">
+    <img src="https://img.shields.io/badge/🚀_Start_in_1_Minute-FF6B6B?style=for-the-badge&logo=rocket&logoColor=white&height=50" />
+  </a>
+</div>
+
+---
+
+## 💬 User Reviews
+
+> "Feels like talking to a real character! The voice gave me goosebumps."  
+> ⭐⭐⭐⭐⭐ - VTuber aspirant KimOO
+
+> "Uploaded my VRoid model and it moved instantly. No coding needed."  
+> ⭐⭐⭐⭐⭐ - 3D Modeler LeeOO
+
+> "Struggled to find a place that supports both Live2D and VRM, found the answer here."  
+> ⭐⭐⭐⭐⭐ - AI Chat User ParkOO
+
+---
+
+## 🎓 Start in 5 Minutes
+
+### Step 1: Choose or Create
+- Try popular characters OR
+- Create your own (Upload VRM/Live2D)
+
+### Step 2: Set Personality
+- Input tone, personality, interests
+- AI automatically generates the persona
+
+### Step 3: Start Chatting!
+- Chat with text or voice
+- Characters react in real-time
+
+---
+
+## ❓ FAQ
+
+<details>
+<summary><b>Is it free?</b></summary>
+<br>
+Basic features are free!  
+- Daily chat credits refilled for free
+- Create 1 character for free
+- Premium plans offer unlimited chat + advanced features
+</details>
+
+<details>
+<summary><b>What file formats are supported?</b></summary>
+<br>
+- **VRM** (VRoid Studio, Vket, etc.)
+- **Live2D** (.model3.json)
+- PNG/JPG Illustrations (AI auto-animation - Beta)
+</details>
+
+<details>
+<summary><b>Can I use it commercially?</b></summary>
+<br>
+Yes, if you join the Creator Plan.  
+Please check the [Terms of Service](link) for details.
+</details>
+
+---
+
+## 🔗 Links
+
+- 🌐 [PersonaXi Website](https://personaxi.com)
+- 💬 [Discord Community](#)
+- 📺 [YouTube Tutorial](#)
+- 📸 [Instagram Showcase](#)
+- 🐦 [X (Twitter)](#)
 
 ---
 
 <div align="center">
-  Created by: YuChan
+  
+  ### 🚀 Start Right Now!
+  
+  <a href="https://personaxi.com">
+    <img src="https://img.shields.io/badge/Try_PersonaXi-FF6B6B?style=for-the-badge&logo=rocket&logoColor=white" height="60"/>
+  </a>
+  
+  <br/><br/>
+  
+  <sub>
+  💌 Contact: hello@personaxi.com | 
+  📱 KakaoTalk: @personaxi
+  </sub>
+  
+  <br/><br/>
+  
+  <img src="https://img.shields.io/badge/🇰🇷_Made_in_Korea-white?style=flat-square" />
+  
 </div>
+
+---
+
+## Credits & Licenses
+
+This project uses the following open-source software and proprietary technologies:
+
+- **Live2D Cubism SDK** (Proprietary License) - Copyright (c) Live2D Inc.
+- **Three.js** & **@pixiv/three-vrm** (MIT License)
+- **Svelte** & **SvelteKit** (MIT License)
+- **FFmpeg** (LGPL/GPL)
+
+For a full list of third-party licenses, please refer to the [Licenses Page](src/lib/i18n/locales/en/licenses.md) or the in-app menu.
