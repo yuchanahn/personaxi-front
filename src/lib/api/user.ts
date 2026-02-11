@@ -49,3 +49,19 @@ export async function getPaymentHistory(): Promise<PaymentRecord[]> {
     }
     return [];
 }
+
+export type CreditTransaction = {
+    id: number;
+    user_ssid: string;
+    amount: number;
+    reason: string;
+    created_at: string;
+};
+
+export async function getCreditHistory(): Promise<CreditTransaction[]> {
+    const res = await api.get("/api/user/credits/history");
+    if (res.ok) {
+        return await res.json();
+    }
+    return [];
+}

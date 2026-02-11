@@ -27,6 +27,10 @@
                 <span class="w-px h-2 bg-border/30"></span>
                 <span>{$t("footer.email")}</span>
             </div>
+            <div class="flex flex-col gap-1 mt-1">
+                <p>{$t("footer.liability")}</p>
+                <p>{$t("footer.grievance")}</p>
+            </div>
         </div>
 
         <div

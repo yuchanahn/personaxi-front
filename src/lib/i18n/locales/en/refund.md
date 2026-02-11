@@ -16,7 +16,11 @@ If you need assistance or have inquiries regarding Neuron products, please conta
 
 **Refund Process**
 
-Approved refunds will be processed using the same payment method used for the purchase. The refund processing time may vary depending on the payment provider, and you will be notified once the refund is complete.
+Approved refunds will be processed using the same payment method used for the purchase (e.g., **Credit Card Cancellation**). The refund processing time may vary depending on the payment provider, and you will be notified once the refund is complete.
+
+**Point Validity Period**
+
+Paid Neurons are valid for **1 year** from the date of purchase. Points that have exceeded this validity period will automatically expire, and expired points cannot be refunded or restored.
 
 **Verification Process**
 

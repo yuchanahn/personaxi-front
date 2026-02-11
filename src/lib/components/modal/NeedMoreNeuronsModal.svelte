@@ -406,6 +406,12 @@
                         {$t("footer.phone")} <span class="mx-1">|</span>
                         {$t("footer.email")}
                     </p>
+                    <p class="mt-1">
+                        {$t("footer.liability")}
+                    </p>
+                    <p>
+                        {$t("footer.grievance")}
+                    </p>
                 </div>
             </div>
 
@@ -840,7 +846,6 @@
         }
     }
 
-    /* Precautions Toggle Styles */
     .precautions-section {
         margin-top: 20px;
         background: var(--background);

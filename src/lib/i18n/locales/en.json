@@ -149,7 +149,36 @@
     },
     "cancel": "Cancel",
     "submit": "Submit Request",
-    "refundRequested": "Refund request submitted.\nWe will notify you via email."
+    "refundRequested": "Refund request submitted.\nWe will notify you via email.",
+    "tabs": {
+      "chargeHistory": "Charge History",
+      "usageHistory": "Usage History"
+    },
+    "noUsageHistory": "No usage history yet."
+  },
+  "creditReason": {
+    "chat_3d": "3D Chat",
+    "chat_live2d": "Live2D Chat",
+    "chat_2d": "2D Chat",
+    "image_generation": "Image Generation",
+    "attendance_bonus": "Attendance Bonus",
+    "event_bonus": "Event Bonus",
+    "admin_bonus": "Admin Grant",
+    "refund": "Refund",
+    "purchase": "Purchase",
+    "convert_point": "Point Conversion",
+    "initial_bonus": "Sign-up Bonus",
+    "first_persona_bonus": "First Persona Bonus",
+    "chat_start_2d": "Start 2D Chat",
+    "chat_start_3d": "Start 3D Chat",
+    "chat_start_live2d": "Start Live2D Chat"
+  },
+  "itemName": {
+    "pack_100": "Basic Neuron Pack (100 Neurons)",
+    "pack_300": "Value Neuron Pack (330 Neurons)",
+    "pack_500": "Premium Neuron Pack (550 Neurons)",
+    "pack_1000": "Unlimited Neuron Pack (1100 Neurons)",
+    "pack_50": "Trial Neuron Pack (50 Neurons)"
   },
   "paymentModal": {
     "pack100Name": "Basic Neuron Pack",
@@ -248,6 +277,17 @@
     "agreedToPolicies": ".",
     "title": "Legal Center"
   },
+  "footer": {
+    "companyName": "PersonaXI",
+    "address": "104-101, 306-15, Beonyeong-ro, Seobuk-gu, Cheonan-si, Chungcheongnam-do, Republic of Korea",
+    "ceo": "CEO: An Yu-chan",
+    "bizLicense": "Business License: 628-14-02633 (Simplified Taxpayer)",
+    "mailOrder": "E-Commerce License: 2025-ChungnamCheonan-2452",
+    "phone": "Phone: 070-8064-0436",
+    "email": "Email: contact@personaxi.com",
+    "liability": "PersonaXI is responsible for all transactions, refunds, and complaints.",
+    "grievance": "Grievance Officer: An Yu-chan (070-8064-0436)"
+  },
   "licenses": {
     "loadError": "Failed to load license information.",
     "pageTitle": "Licenses & Neurons - [Site/Service Name]"
@@ -326,6 +366,14 @@
     "message2": "as a gift!",
     "message3": "Now, use these neurons to have deeper conversations with your own 'digital life form'.",
     "confirm": "Confirm"
+  },
+  "cancellationRefund": {
+    "title": "Cancellation & Refund Policy",
+    "content": "Unused points can be fully refunded within 7 days of purchase. Refunds may be restricted if any portion has been used. Please refer to the Terms of Service for details."
+  },
+  "validityPolicy": {
+    "title": "Validity Period",
+    "content": "Charged points are valid for 1 year from the date of purchase. Points expired after 1 year will strictly expire."
   },
   "notEnoughNeuronsModal": {
     "title": "Not Enough Neurons!",
@@ -897,14 +945,5 @@
       "event": "Event",
       "notice": "Notice"
     }
-  },
-  "footer": {
-    "companyName": "PersonaXi",
-    "address": "104-101, 306-15 Beonyeong-ro, Seobuk-gu, Cheonan-si, Chungcheongnam-do, Republic of Korea",
-    "ceo": "Representative: An Yu-chan",
-    "bizLicense": "Biz License: 628-14-02633",
-    "mailOrder": "E-Commerce: 2025-ChungnamCheonan-2452",
-    "phone": "Phone: 070-8064-0436",
-    "email": "Email: personaxi2025@gmail.com"
   }
 }

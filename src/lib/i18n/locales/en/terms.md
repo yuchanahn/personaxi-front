@@ -92,7 +92,7 @@ By accessing or using personaxi ("Service"), operated by PersonaXI ("Company"), 
    - Partial refunds are not available due to the nature of digital content.
    - Refund requests shall be submitted to support@personaxi.com. The Company shall process the refund within **5–10 business days** of receipt.
 4. **Expiration:**
-   - Paid Neurons expire **5 years** from the date of purchase in accordance with applicable commercial laws.
+   - Paid Neurons expire **1 year** from the date of purchase in accordance with applicable commercial laws.
    - Free Neurons (Creator Points and promotional credits) expire in accordance with the notice period set by the Company (a minimum of **30 days** advance notice).
 
 ### Article 12: Right of Withdrawal
