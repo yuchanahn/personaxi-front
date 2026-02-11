@@ -531,8 +531,7 @@
                     bind:closeupScale
                     bind:closeupOffset
                     bind:isCloseup
-                    backgroundImage={persona.static_portrait_url ||
-                        "/chat_bg.png"}
+                    backgroundImage={"/chat_bg.png"}
                     scale={0.2}
                     {expressionMap}
                     {hitMotionMap}

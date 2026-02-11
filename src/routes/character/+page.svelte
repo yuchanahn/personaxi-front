@@ -136,7 +136,7 @@
     <VrmModelViewer
       bind:this={Viewer}
       {persona}
-      backgroundImage={persona.static_portrait_url || "/chat_bg.png"}
+      backgroundImage={"/chat_bg.png"}
       cssid={lastSessionId ?? ""}
       startVoiceUrl={isStartSpeech ? persona.start_voice_url : ""}
       bind:show={showChat}
