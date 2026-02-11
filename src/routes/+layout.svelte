@@ -103,6 +103,9 @@
                     "/policy",
                     "/privacy",
                     "/licenses",
+                    "/profile",
+                    "/hub",
+                    "/creator",
                 ];
                 const isPublic =
                     publicRoutes.includes($page.url.pathname) ||
