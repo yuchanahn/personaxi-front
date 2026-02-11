@@ -3,9 +3,11 @@
   
   # PersonaXi
   
-  **AI 페르소나 생성 & 크리에이터 경쟁 플랫폼**
+  **AI Creator Competition Platform**
+
+  [🇺🇸 English](README.md) | [🇰🇷 한국어](README.ko.md)
   
-  [웹사이트 방문](https://personaxi.com)
+  [Visit Website](https://personaxi.com)
   
   ---
 
@@ -16,85 +18,85 @@
 
 </div>
 
-## 뭐하는 곳?
+## Introduction
 
-나만의 AI 캐릭터를 만들고, 대화하고, 다른 크리에이터들과 경쟁하는 플랫폼입니다.
-2D/3D 캐릭터 모두 지원하고, 실시간 음성 대화도 가능해요.
+PersonaXi is a platform where you can create your own AI characters, chat with them, and compete with other creators.
+It supports both 2D and 3D characters and offers real-time voice conversation capabilities.
 
-## 주요 기능
+## Key Features
 
-- **3D VRM & Live2D 지원** - 3D 모델이든 2D 모델이든 다 됨
-- **고급 AI 대화** - Gemini 2.5 기반으로 자연스러운 대화
-- **크리에이터 경쟁 시스템** - 좋은 캐릭터 만들면 보상 받음
-- **실시간 음성** - TTS로 캐릭터가 직접 말함
-- **다국어 지원** - 한국어/영어 지원
+- **3D VRM & Live2D Support** - Use either 3D or 2D models
+- **Advanced AI Conversation** - Powered by Gemini 2.5 for natural dialogue
+- **Creator Competition System** - Create great characters and earn rewards
+- **Real-time Voice** - Characters speak directly via TTS
+- **Multi-language Support** - Supports Korean and English
 
-## 기술 스택
+## Tech Stack
 
-- **SvelteKit** - 프레임워크
-- **TypeScript** - 타입 안전성
-- **Three.js** - 3D 렌더링 (VRM)
-- **pixi-live2d-display** - Live2D 렌더링
-- **Supabase** - 인증 & 스토리지
+- **SvelteKit** - Framework
+- **TypeScript** - Type Safety
+- **Three.js** - 3D Rendering (VRM)
+- **pixi-live2d-display** - Live2D Rendering
+- **Supabase** - Auth & Storage
 
-## 로컬 실행
+## Local Execution
 
 ```bash
-# 클론
+# Clone
 git clone https://github.com/your-username/personaxi-front.git
 cd personaxi-front
 
-# 의존성 설치
+# Install Dependencies
 pnpm install
 
-# 개발 서버 실행
+# Run Dev Server
 pnpm run dev
 ```
 
-브라우저에서 `http://localhost:5173` 열기
+Open `http://localhost:5173` in your browser.
 
-## 환경 변수
+## Environment Variables
 
-`.env` 파일 생성:
+Create `.env` file:
 ```env
 PUBLIC_SUPABASE_URL=your_supabase_url
 PUBLIC_SUPABASE_ANON_KEY=your_anon_key
 PUBLIC_API_URL=http://localhost:8080
 ```
 
-## 프로젝트 구조
+## Project Structure
 
 ```
 src/
-├── routes/              # 페이지 (SvelteKit 라우팅)
-│   ├── 2d/             # 2D 채팅
-│   ├── character/      # 3D VRM 채팅
-│   ├── live2d/         # Live2D 채팅
-│   ├── edit/           # 캐릭터 생성/수정
-│   └── profile/        # 캐릭터 프로필
+├── routes/              # Pages (SvelteKit Routing)
+│   ├── 2d/             # 2D Chat
+│   ├── character/      # 3D VRM Chat
+│   ├── live2d/         # Live2D Chat
+│   ├── edit/           # Character Creation/Editing
+│   └── profile/        # Character Profile
 │
 ├── lib/
-│   ├── components/     # 재사용 컴포넌트
-│   ├── stores/         # Svelte 스토어
-│   ├── api/            # API 클라이언트
-│   └── vrm/            # VRM 관련 유틸
+│   ├── components/     # Reusable Components
+│   ├── stores/         # Svelte Stores
+│   ├── api/            # API Client
+│   └── vrm/            # VRM Utilities
 │
-└── static/             # 정적 파일
+└── static/             # Static Files
 ```
 
-## 빌드
+## Build
 
 ```bash
 pnpm run build
-pnpm run preview  # 빌드 결과 미리보기
+pnpm run preview  # Preview build result
 ```
 
-## 라이선스
+## License
 
 MIT
 
 ---
 
 <div align="center">
-  만든 사람: YuChan
+  Created by: YuChan
 </div>
