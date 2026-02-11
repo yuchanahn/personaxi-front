@@ -48,7 +48,7 @@
 
             <div class="flex items-center gap-2">
                 <a
-                    href="https://discord.gg/pyPb9Pp6"
+                    href="https://discord.gg/uJG9hWSrJx"
                     target="_blank"
                     rel="noopener noreferrer"
                     class="hover:text-[#5865F2] transition-colors p-1"

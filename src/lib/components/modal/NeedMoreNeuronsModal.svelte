@@ -209,7 +209,7 @@
             selectedOption.neurons + (selectedOption.bonus_amount || 0);
 
         const storeId = "store-04392323-c1ba-4c80-9812-ae8577171bb0";
-        const channelKey = "channel-key-e2e8e3dc-c4e4-45e1-8fb5-50ee82c9f8b2";
+        const channelKey = "channel-key-c50f76a9-fa6e-47be-80e4-f77b8b8d6248";
 
         const params = new URLSearchParams({
             paymentId,
