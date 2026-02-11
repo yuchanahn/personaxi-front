@@ -62,3 +62,26 @@ export async function extractFirstFrame(videoFile: File): Promise<File | null> {
         }, 5000);
     });
 }
+
+export async function checkVideoDuration(videoFile: File, maxDurationSeconds: number): Promise<{ valid: boolean; duration: number }> {
+    return new Promise((resolve) => {
+        const video = document.createElement("video");
+        video.preload = "metadata";
+        const url = URL.createObjectURL(videoFile);
+        video.src = url;
+
+        video.onloadedmetadata = () => {
+            URL.revokeObjectURL(url);
+            const duration = video.duration;
+            resolve({
+                valid: duration <= maxDurationSeconds,
+                duration: duration
+            });
+        };
+
+        video.onerror = () => {
+            URL.revokeObjectURL(url);
+            resolve({ valid: false, duration: 0 });
+        };
+    });
+}

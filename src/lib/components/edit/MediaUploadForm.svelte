@@ -5,7 +5,7 @@
     import { toast } from "$lib/stores/toast";
     import { confirmStore } from "$lib/stores/confirm";
     import { validateVRMLicense } from "$lib/utils/editPageUtils";
-    import { extractFirstFrame } from "$lib/utils/media";
+    import { extractFirstFrame, checkVideoDuration } from "$lib/utils/media";
     import { FFmpegManager } from "$lib/utils/ffmpeg";
     import {
         getUploadUrl,
@@ -69,6 +69,23 @@
 
             // Check if video
             if (originalFile.type.startsWith("video/")) {
+                // 1. Duration Check (Max 5s)
+                const { valid, duration } = await checkVideoDuration(
+                    originalFile,
+                    5,
+                );
+                if (!valid) {
+                    if (duration > 5) {
+                        toast.error(
+                            `Video is too long (${duration.toFixed(1)}s). Max 5 seconds allowed.`,
+                        );
+                    } else {
+                        toast.error("Failed to load video metadata.");
+                    }
+                    input.value = ""; // Reset input
+                    return;
+                }
+
                 const frame = await extractFirstFrame(originalFile);
                 if (frame) {
                     portraitImageFile = frame;
