@@ -1,10 +1,10 @@
 <div align="center">
   <img src="static/logo.png" alt="PersonaXi" width="120" height="120" />
   
-  # 🎭 PersonaXi
-  
-  ### VRM 3D 캐릭터? Live2D 2D 캐릭터? 
-  ### 이제 둘 다 한곳에서 AI 채팅 가능! 🔥
+  # PersonaXi — AI Persona Platform (VRM + Live2D, Real-time Voice Chat)
+  **Create 2D & 3D AI characters, talk by voice, and share or monetize your persona.**
+
+  ### VRM 3D? Live2D 2D? 이제 둘 다, 한곳에서 AI로 채팅하세요. 🔥
 
   [🇺🇸 English](README.md) | [🇰🇷 한국어](README.ko.md)
   
@@ -19,11 +19,9 @@
   
   ---
   
-  **"내가 좋아하는 캐릭터랑 실제로 대화할 수 있다면?"**
-  
-  PersonaXi는 3D/2D 캐릭터와 **음성으로 실시간 대화**할 수 있는  
-  국내 유일 AI 캐릭터 채팅 플랫폼입니다.
-  
+  <sub>
+  국내에서 **VRM (3D)**과 **Live2D (2D)** 아바타를 동시에 지원하며, 실시간 음성 대화가 가능한 AI 캐릭터 플랫폼입니다. (See <a href="#오픈소스-라이선스-및-크레딧">Legal & Privacy</a>)
+  </sub>
 </div>
 
 ---
@@ -166,6 +164,11 @@
 - 📺 [YouTube 튜토리얼](#)
 - 📸 [Instagram 쇼케이스](#)
 - 🐦 [X (Twitter)](#)
+
+## Legal & Privacy
+- 이용약관: https://personaxi.com/terms
+- 개인정보처리방침: https://personaxi.com/privacy
+- 콘텐츠 정책: https://personaxi.com/policy
 
 ---
 
