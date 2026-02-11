@@ -107,19 +107,17 @@
     const blocks: ChatLogItem[] = [];
     let partIndex = 0;
 
+    const replacePlaceholders = (text: string) => {
+      return text
+        .replaceAll("{{user}}", get(st_user)?.data?.nickname || "User")
+        .replaceAll("{{char}}", currentPersona?.name || "Character");
+    };
+
     const processedContent = content
       .replace(FIRST_SCENE_TAG_REGEX, () => {
         if (currentPersona?.first_scene) {
           let first_scene = currentPersona.first_scene;
-          first_scene = first_scene.replaceAll(
-            "{{user}}",
-            get(st_user)?.data?.nickname || "User",
-          );
-          first_scene = first_scene.replaceAll(
-            "{{char}}",
-            currentPersona.name || "Character",
-          );
-          return first_scene;
+          return replacePlaceholders(first_scene);
         }
         return "";
       })
@@ -154,7 +152,7 @@
           if (narrationContent) {
             blocks.push({
               type: "narration",
-              content: narrationContent,
+              content: replacePlaceholders(narrationContent),
               id: `${partId}-n-${subPartIndex++}`,
             });
           }
@@ -166,14 +164,12 @@
               /speaker="([^"]+)">([\s\S]*?)<\/dialogue>/,
             );
             if (m) {
-              let parsedSpeaker = m[1]
-                .replaceAll("{{char}}", currentPersona?.name || "Character")
-                .replaceAll("{{user}}", get(st_user)?.data?.nickname || "User");
+              let parsedSpeaker = replacePlaceholders(m[1]);
 
               blocks.push({
                 type: "dialogue",
                 speaker: parsedSpeaker,
-                content: m[2].trim(),
+                content: replacePlaceholders(m[2].trim()),
                 id: `${partId}-d-${subPartIndex++}`,
               });
             }
@@ -231,7 +227,7 @@
         if (remainingNarration) {
           blocks.push({
             type: "narration",
-            content: remainingNarration,
+            content: replacePlaceholders(remainingNarration),
             id: `${partId}-n-${subPartIndex++}`,
           });
         }
