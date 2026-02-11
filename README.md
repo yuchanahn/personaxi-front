@@ -13,7 +13,7 @@
   <a href="https://personaxi.com">
     <img src="https://img.shields.io/badge/🚀_Try_Now-FF6B6B?style=for-the-badge" />
   </a>
-  <a href="https://personaxi.com/characters">
+  <a href="https://personaxi.com/hub">
     <img src="https://img.shields.io/badge/👥_Explore_Characters-4ECDC4?style=for-the-badge" />
   </a>
   
@@ -61,28 +61,31 @@
 
 ## 🌟 Top 3 Popular Characters
 
-### 1. 🎤 Virtual Idol "Hana"
-> "Hello~ How are you feeling today? ♪"
-
-- 3D VRM Model | Bright & Positive Personality
-- From daily chat to counseling
-- [Chat Now →](https://personaxi.com/character/hana)
-
-### 2. 📚 Joseon Scholar "Yi Toegye"
-> "I wish to hear your concerns."
-
-- 3D Character in Hanbok | Philosophical Conversation
-- Solving modern worries with Joseon-era wisdom
-- [Chat Now →](https://personaxi.com/character/toegye)
-
-### 3. 🎨 Live2D Cat Girl "Nabi"
+### 1. 🎨 Live2D Cat Girl "Peroyang"
 > "Meow~ Will you play with me today?"
 
 - 2D Live2D Animation | Cute Tone
 - Loves games and anime
-- [Chat Now →](https://personaxi.com/character/nabi)
+- [Chat Now →](https://personaxi.com/profile?c=ae3f9f53-3e90-4cab-9edd-7369116007b8)
 
-[See More Characters →](https://personaxi.com/characters)
+### 2. High School Girl "Ranella"
+> "Hello~ How are you feeling today?"
+
+- 3D VRM Model | Bright & Positive Personality
+- From daily chat to counseling
+- [Chat Now →](https://personaxi.com/profile?c=10c94bb4-f0cf-4b36-a6cd-d00685745d65)
+
+### 3. Boyfriend & Girlfriend Characters
+> Erica | "How was your day?"
+> Dmitri | "What are you up to?"
+
+- Chat with male/female characters!
+- [Chat Now (Erica) →](https://personaxi.com/profile?c=50e4c4ca-7e41-4561-9d46-2cb513a6bf73)
+- [Chat Now (Dmitri) →](https://personaxi.com/profile?c=6acbce00-12f4-4c68-b064-936ba7ba2469)
+
+
+
+[See More Characters →](https://personaxi.com/hub)
 
 ---
 
@@ -93,7 +96,7 @@
 - ✅ Unlimited Trial of Popular Characters (Limited Time)
 
 <div align="center">
-  <a href="https://personaxi.com/signup">
+  <a href="https://personaxi.com/login">
     <img src="https://img.shields.io/badge/🚀_Start_in_1_Minute-FF6B6B?style=for-the-badge&logo=rocket&logoColor=white&height=50" />
   </a>
 </div>
@@ -135,9 +138,8 @@
 <summary><b>Is it free?</b></summary>
 <br>
 Basic features are free!  
-- Daily chat credits refilled for free
-- Create 1 character for free
-- Premium plans offer unlimited chat + advanced features
+- Get free Neurons (chat credits) upon signup!
+- Unlimited character creation!
 </details>
 
 <details>
@@ -145,13 +147,13 @@ Basic features are free!
 <br>
 - **VRM** (VRoid Studio, Vket, etc.)
 - **Live2D** (.model3.json)
-- PNG/JPG Illustrations (AI auto-animation - Beta)
+- PNG/JPG Illustrations (AI auto-animation coming soon)
 </details>
 
 <details>
 <summary><b>Can I use it commercially?</b></summary>
 <br>
-Yes, if you join the Creator Plan.  
+Creators can earn points!
 Please check the [Terms of Service](link) for details.
 </details>
 
@@ -178,8 +180,7 @@ Please check the [Terms of Service](link) for details.
   <br/><br/>
   
   <sub>
-  💌 Contact: hello@personaxi.com | 
-  📱 KakaoTalk: @personaxi
+  💌 Contact: contact@personaxi.com
   </sub>
   
   <br/><br/>

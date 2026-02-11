@@ -61,39 +61,42 @@
 
 ## 🌟 인기 캐릭터 TOP 3
 
-### 1. 🎤 버추얼 아이돌 "하나"
-> "안녕하세요~ 오늘 기분은 어때요? ♪"
-
-- 3D VRM 모델 | 밝고 긍정적 성격
-- 일상 대화부터 고민 상담까지
-- [지금 대화하기 →](https://personaxi.com/character/hana)
-
-### 2. 📚 조선시대 선비 "이퇴계"
-> "그대의 고민을 듣고 싶소이다."
-
-- 한복 입은 3D 캐릭터 | 철학적 대화
-- 현대 고민을 조선시대 시각으로 풀어줌
-- [지금 대화하기 →](https://personaxi.com/character/toegye)
-
-### 3. 🎨 Live2D 고양이 소녀 "나비"
+### 1. 🎨 Live2D 고양이 소녀 "페로냥"
 > "냐앙~ 오늘도 놀아줄거야?"
 
 - 2D Live2D 애니메이션 | 귀여운 말투
 - 게임, 애니 얘기 좋아함
-- [지금 대화하기 →](https://personaxi.com/character/nabi)
+- [지금 대화하기 →](https://personaxi.com/profile?c=ae3f9f53-3e90-4cab-9edd-7369116007b8)
 
-[더 많은 캐릭터 보기 →](https://personaxi.com/characters)
+### 2. 여고생 캐릭터 "라넬라"
+> "안녕하세요~ 오늘 기분은 어때요?"
+
+- 3D VRM 모델 | 밝고 긍정적 성격
+- 일상 대화부터 고민 상담까지
+- [지금 대화하기 →](https://personaxi.com/profile?c=10c94bb4-f0cf-4b36-a6cd-d00685745d65)
+
+### 3. 남사친 여사친 캐릭터들
+> 에리카 | "오늘 뭐했어?"
+> 드미트리 | "오늘 뭐해?"
+
+- 남/녀 캐릭터와 대화 해봐요!
+- [지금 대화하기(에리카) →](https://personaxi.com/profile?c=50e4c4ca-7e41-4561-9d46-2cb513a6bf73)
+- [지금 대화하기(드미트리) →](https://personaxi.com/profile?c=6acbce00-12f4-4c68-b064-936ba7ba2469)
+
+
+
+[더 많은 캐릭터 보기 →](https://personaxi.com/hub)
 
 ---
 
 ## 🎁 지금 가입하면
 
 - ✅ 첫 캐릭터 생성 **무료**
-- ✅ 매일 대화 크레딧 **무료 충전**
-- ✅ 인기 캐릭터 **무제한 체험** (기간 한정)
+- ✅ 뉴런(대화 크레딧) **무료 증정**
+- ✅ 인기 캐릭터 **무제한 체험** (뉴런 소모시까지)
 
 <div align="center">
-  <a href="https://personaxi.com/signup">
+  <a href="https://personaxi.com/login">
     <img src="https://img.shields.io/badge/🚀_1분만에_시작하기-FF6B6B?style=for-the-badge&logo=rocket&logoColor=white&height=50" />
   </a>
 </div>
@@ -135,9 +138,8 @@
 <summary><b>무료인가요?</b></summary>
 <br>
 기본 기능은 무료입니다!  
-- 매일 대화 크레딧 무료 충전
-- 캐릭터 1개 무료 생성
-- 프리미엄 플랜은 무제한 대화 + 고급 기능 제공
+- 가입시 무료 뉴런(캐릭터 채팅 이용권) 증정!
+- 캐릭터 무제한 생성!
 </details>
 
 <details>
@@ -145,13 +147,13 @@
 <br>
 - **VRM** (VRoid Studio, Vket 등)
 - **Live2D** (.model3.json)
-- PNG/JPG 일러스트 (AI가 자동 애니메이션 - 베타)
+- PNG/JPG 일러스트 (AI가 자동 애니메이션 지원예정)
 </details>
 
 <details>
 <summary><b>상업적 이용 가능한가요?</b></summary>
 <br>
-크리에이터 플랜 가입 시 가능합니다.  
+크리에이터가 되면 일정량의 포인트를 얻을 수 있어요!
 자세한 내용은 [이용약관](링크)을 확인해주세요.
 </details>
 
@@ -178,8 +180,7 @@
   <br/><br/>
   
   <sub>
-  💌 문의: hello@personaxi.com | 
-  📱 카카오톡: @personaxi
+  💌 문의: contact@personaxi.com
   </sub>
   
   <br/><br/>
