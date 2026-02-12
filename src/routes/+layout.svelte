@@ -171,6 +171,10 @@
         if (!token) {
             return;
         }
+
+        // Fetch pricing policy as soon as we have a token
+        pricingStore.fetchPricingPolicy();
+
         let user = await getCurrentUser();
         if (user) {
             if (user.state === "new") {

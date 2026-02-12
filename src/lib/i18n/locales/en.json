@@ -39,7 +39,7 @@
     "title": "Convert Transactions",
     "infoTitle": "Conversion Info",
     "infoDesc": "Convert Creator Points into Neurons to use for chatting or other features.",
-    "cashoutNotice": "Cash withdrawal feature will be supported in the future.",
+    "cashoutNotice": "The ability to withdraw creator points for cash will be supported in the future (Only for free points).",
     "convertAmount": "Amount to Convert",
     "max": "Max",
     "insufficientPoints": "Insufficient points.",

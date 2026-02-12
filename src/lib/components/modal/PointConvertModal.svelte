@@ -3,6 +3,7 @@
     import { createEventDispatcher } from "svelte";
     import { t } from "svelte-i18n";
     import Icon from "@iconify/svelte";
+    import NeuronIcon from "$lib/components/icons/NeuronIcon.svelte";
 
     export let isOpen: boolean = false;
     export let userPoints: number = 0;
@@ -128,7 +129,10 @@
                     <div class="divider"></div>
                     <div class="summary-row total">
                         <span>{$t("pointConvertModal.receiveAmount")}</span>
-                        <span class="total-text">+{resultNeurons} ⚡️</span>
+                        <span class="total-text">
+                            +{resultNeurons}
+                            <NeuronIcon size={18} color="currentColor" />
+                        </span>
                     </div>
                 </div>
             </div>
@@ -351,6 +355,10 @@
     }
     .total-text {
         color: var(--primary);
+        display: inline-flex;
+        align-items: center;
+        gap: 0.25rem;
+        white-space: nowrap;
     }
 
     .modal-footer {

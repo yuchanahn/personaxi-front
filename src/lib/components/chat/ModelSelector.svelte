@@ -4,6 +4,7 @@
     import Icon from "@iconify/svelte";
     import { fade, fly } from "svelte/transition";
     import { pricingStore } from "$lib/stores/pricing";
+    import NeuronIcon from "$lib/components/icons/NeuronIcon.svelte";
 
     export let isOpen = false;
     export let selectedModel = "gemini-flash-lite";
@@ -107,8 +108,10 @@
                             <span class="desc">{model.description}</span>
                         </div>
                         <div class="cost">
-                            <span class="neurons">{getCost(model.id)}</span>
-                            <span class="unit">neurons</span>
+                            <span class="neurons">
+                                {getCost(model.id)}
+                                <NeuronIcon size={12} color="currentColor" />
+                            </span>
                         </div>
                     </button>
                 {/each}
@@ -248,11 +251,9 @@
     .neurons {
         font-weight: 700;
         color: #fff;
-    }
-
-    .unit {
-        font-size: 0.7rem;
-        color: #6b7280;
+        display: flex;
+        align-items: center;
+        gap: 0.25rem;
     }
 
     .footer {

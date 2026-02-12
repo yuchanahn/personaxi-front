@@ -628,7 +628,7 @@
                 <!-- Search Button -->
                 <div class="row-controls">
                     <!-- Safety Filter Toggle -->
-                    <button
+                    <!-- <button
                         class="safety-filter-btn"
                         class:active={safetyFilterEnabled}
                         on:click={handleSafetyFilterToggle}
@@ -640,7 +640,7 @@
                         <div class="toggle-switch">
                             <div class="toggle-thumb"></div>
                         </div>
-                    </button>
+                    </button> -->
 
                     <button
                         class="search-trigger-button"

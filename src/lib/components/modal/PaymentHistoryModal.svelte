@@ -13,6 +13,7 @@
     import { getCurrentUser } from "$lib/api/auth";
     import type { PaymentRecord } from "$lib/types";
     import { st_user } from "$lib/stores/user";
+    import NeuronIcon from "$lib/components/icons/NeuronIcon.svelte";
 
     export let isOpen = false;
 
@@ -205,6 +206,32 @@
 
             <h2 class="modal-title">{$t("paymentHistoryModal.title")}</h2>
 
+            <div class="balance-summary">
+                <div class="balance-card">
+                    <span class="balance-label"
+                        >{$t("settingPage.credits")}</span
+                    >
+                    <div class="balance-value neuron">
+                        <NeuronIcon size={24} color="currentColor" />
+
+                        <span>{$st_user?.credits?.toLocaleString() || "0"}</span
+                        >
+                    </div>
+                </div>
+                <div class="balance-card">
+                    <span class="balance-label"
+                        >{$t("settingPage.creatorPoints")}</span
+                    >
+                    <div class="balance-value">
+                        <Icon icon="ph:coins-fill" class="point-icon" />
+                        <span
+                            >{$st_user?.creator_points?.toLocaleString() ||
+                                "0"}</span
+                        >
+                    </div>
+                </div>
+            </div>
+
             <div class="tabs">
                 <button
                     class="tab-btn"
@@ -394,10 +421,9 @@
                                                     {item.amount > 0
                                                         ? "+"
                                                         : ""}{item.amount.toLocaleString()}
-                                                    <Icon
-                                                        icon="ph:brain-fill"
-                                                        class="inline mb-0.5"
-                                                        width="14"
+                                                    <NeuronIcon
+                                                        size={14}
+                                                        color="currentColor"
                                                     />
                                                 </span>
                                             </div>
@@ -474,8 +500,47 @@
     .modal-title {
         font-size: 1.5rem;
         font-weight: 700;
-        margin: 0 0 1rem 0;
+        margin: 0 0 1.5rem 0;
         text-align: center;
+    }
+
+    .balance-summary {
+        display: flex;
+        gap: 1rem;
+        margin-bottom: 2rem;
+    }
+
+    .balance-card {
+        flex: 1;
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 0.75rem 1rem;
+        display: flex;
+        flex-direction: column;
+        gap: 0.25rem;
+    }
+
+    .balance-label {
+        font-size: 0.8rem;
+        color: var(--muted-foreground);
+        font-weight: 500;
+    }
+
+    .balance-value {
+        font-size: 1.25rem;
+        font-weight: 700;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .balance-value.neuron {
+        color: var(--primary);
+    }
+
+    .point-icon {
+        color: #fbbf24;
     }
 
     .tabs {
@@ -561,6 +626,14 @@
         align-items: center;
         font-weight: 600;
         font-size: 1rem;
+        gap: 0.5rem;
+    }
+
+    .item-amount {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.25rem;
+        white-space: nowrap;
     }
 
     .item-sub {

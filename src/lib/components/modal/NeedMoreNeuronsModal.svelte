@@ -41,6 +41,13 @@
     export let isOpen: boolean = false;
     export let isNeedNeurons: boolean = false;
 
+    $: if (isOpen) {
+        //아이템이 없을 경우만 패키지 정보를 가져온다.
+        if ($pricingStore.purchase_options.length === 0) {
+            pricingStore.fetchPricingPolicy();
+        }
+    }
+
     const dispatch = createEventDispatcher();
 
     // Escape 키 누르면 모달 닫기
@@ -150,7 +157,9 @@
     onMount(() => {
         window.addEventListener("keydown", handleKeydown);
 
-        pricingStore.fetchPricingPolicy();
+        if (isOpen) {
+            pricingStore.fetchPricingPolicy();
+        }
 
         if (!document.getElementById("portone-v2-sdk")) {
             const script = document.createElement("script");

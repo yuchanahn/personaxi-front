@@ -211,7 +211,7 @@
         </div>
     </div>
 
-    <div class="form-group">
+    <!-- <div class="form-group">
         <label for="r18-toggle">
             {$t("editPage.adultContentLabel")}
         </label>
@@ -250,7 +250,7 @@
         <p class="description" style="margin-top: 0.75rem;">
             {$t("editPage.adultContentDesc")}
         </p>
-    </div>
+    </div> -->
 </div>
 
 <style>
