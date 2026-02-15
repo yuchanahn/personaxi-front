@@ -152,7 +152,8 @@ export interface PaymentRecord {
     amount: number;
     currency: string;
     item_name: string;
-    status: 'paid' | 'pending' | 'refunded' | 'failed' | 'refund_requested';
+    status: 'paid' | 'pending' | 'refunded' | 'failed' | 'refund_requested' | 'completed';
     created_at: string;
     payment_method?: string;
+    variant_id?: string;
 }

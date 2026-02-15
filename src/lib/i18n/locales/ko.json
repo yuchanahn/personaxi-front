@@ -160,7 +160,8 @@
       "refunded": "환불됨",
       "failed": "실패",
       "refund_requested": "환불 요청됨",
-      "cancelled": "취소됨"
+      "cancelled": "취소됨",
+      "completed": "지급 완료"
     },
     "reasons": {
       "label": "환불 사유를 선택해주세요",
@@ -176,7 +177,8 @@
       "chargeHistory": "구매 내역",
       "usageHistory": "사용 내역"
     },
-    "noUsageHistory": "아직 사용 내역이 없습니다."
+    "noUsageHistory": "아직 사용 내역이 없습니다.",
+    "rewardItem": "보너스 뉴런"
   },
   "creditReason": {
     "chat_3d": "3D 채팅",

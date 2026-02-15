@@ -145,7 +145,16 @@
         }
     }
 
-    function formatItemName(name: string, amount: number): string {
+    function formatItemName(
+        name: string,
+        amount: number,
+        variantId?: string,
+    ): string {
+        if (variantId === "reward") {
+            const parts = name.split(" ");
+            const credits = parts[0] || "200";
+            return `${credits} ${$t("paymentHistoryModal.rewardItem")}`;
+        }
         if (amount === 1200) return $t("itemName.pack_1");
         if (amount === 5000) return $t("itemName.pack_2");
         if (amount === 10000) return $t("itemName.pack_3");
@@ -275,11 +284,20 @@
                                                     >{formatItemName(
                                                         record.item_name,
                                                         record.amount,
+                                                        record.variant_id,
                                                     )}</span
                                                 >
                                                 <span class="item-amount">
-                                                    {record.amount.toLocaleString()}
-                                                    {record.currency || "KRW"}
+                                                    {#if record.amount > 0}
+                                                        {record.amount.toLocaleString()}
+                                                        {record.currency ||
+                                                            "KRW"}
+                                                    {:else}
+                                                        <span
+                                                            style="color: var(--primary);"
+                                                            >무료</span
+                                                        >
+                                                    {/if}
                                                 </span>
                                             </div>
                                             <div class="item-sub">
@@ -666,6 +684,11 @@
     .status-refund_requested {
         background: hsl(45 93% 47% / 0.1);
         color: hsl(45 93% 47%);
+    }
+
+    .status-completed {
+        background: hsl(217 91% 60% / 0.1);
+        color: hsl(217 91% 60%);
     }
 
     .refund-btn {

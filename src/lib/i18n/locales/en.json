@@ -138,7 +138,8 @@
       "refunded": "Refunded",
       "failed": "Failed",
       "refund_requested": "Refund Requested",
-      "cancelled": "Cancelled"
+      "cancelled": "Cancelled",
+      "completed": "Completed"
     },
     "reasons": {
       "label": "Select a reason for refund",
@@ -154,7 +155,8 @@
       "chargeHistory": "Charge History",
       "usageHistory": "Usage History"
     },
-    "noUsageHistory": "No usage history yet."
+    "noUsageHistory": "No usage history yet.",
+    "rewardItem": "Bonus Neurons"
   },
   "creditReason": {
     "chat_3d": "3D Chat",

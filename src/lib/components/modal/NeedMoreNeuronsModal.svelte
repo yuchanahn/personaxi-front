@@ -93,7 +93,6 @@
             isPurchasing = false;
             return;
         }
-
         // Store return URL for redirect after payment
         localStorage.setItem("payment_return_url", $page.url.pathname);
         // Store history length for smart rewind
@@ -218,7 +217,8 @@
             selectedOption.neurons + (selectedOption.bonus_amount || 0);
 
         const storeId = "store-04392323-c1ba-4c80-9812-ae8577171bb0";
-        const channelKey = "channel-key-c50f76a9-fa6e-47be-80e4-f77b8b8d6248";
+        //const channelKey = "channel-key-c50f76a9-fa6e-47be-80e4-f77b8b8d6248";
+        const channelKey = "channel-key-b501c70e-2ab1-4c88-b67c-896889164efc";
 
         const params = new URLSearchParams({
             paymentId,

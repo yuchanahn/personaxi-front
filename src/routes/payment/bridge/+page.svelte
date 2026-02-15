@@ -11,6 +11,7 @@
     let amount = 0;
 
     onMount(async () => {
+        return;
         const query = $page.url.searchParams;
         productName = query.get("productName") || "";
         amount = Number(query.get("amount")) || 0;
@@ -44,6 +45,7 @@
     });
 
     async function startPayment() {
+        return;
         if (!window.PortOne) return;
 
         try {
