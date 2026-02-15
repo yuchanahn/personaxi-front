@@ -894,4 +894,34 @@
     .notice-content :global(li) {
         margin-bottom: 4px;
     }
+
+    /* Business Info (Minimalist) */
+    .business-info-minimal {
+        margin-top: 32px;
+        padding-top: 24px;
+        border-top: 1px solid var(--border);
+        text-align: center;
+        font-size: 0.7rem;
+        color: var(--muted-foreground);
+        opacity: 0.6;
+        line-height: 1.5;
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+    }
+
+    .business-info-minimal p {
+        margin: 0;
+    }
+
+    .mx-1 {
+        margin: 0 4px;
+        opacity: 0.3;
+    }
+
+    .font-bold {
+        font-weight: 700;
+        margin-bottom: 4px !important;
+        opacity: 0.9;
+    }
 </style>
