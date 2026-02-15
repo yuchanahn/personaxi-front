@@ -20,14 +20,14 @@ Characters containing the following will be **hidden without notice** and may le
 
 ---
 
-## 🔞 Adult Content (NSFW)
+## Content Safety & Operations
 
-R-18 content is allowed but **MUST be tagged**.
+PersonaXi operates a systematic content management system to ensuring a safe community for everyone.
 
-*   Check the `Adult (NSFW)` option during creation.
-*   It will only be visible to users who have completed **Age Verification**.
-*   Thumbnails must be safe for general audiences (explicit images may be blurred).
+*   **Safety Guardrails:** All AI-generated content is filtered according to our internal ethical guidelines. Profanity, hate speech, and dangerous content are monitored and restricted in real-time.
+*   **Content Moderation:** Content levels are managed according to universal standards. If content exceeds our operational policies, it may be restricted or adjusted by the system.
+*   **Thumbnail Safety:** All character thumbnails must be suitable for general audiences (publicly viewable). Images that do not meet these standards will be automatically **blurred** or hidden.
 
-> [!CAUTION]
-> **Liability**
-> The creator bears primary legal liability for User Generated Content (UGC). Please create responsibly.
+> [!IMPORTANT]
+> **Creator Responsibility**
+> Creators bear primary legal liability for User Generated Content (UGC). We strictly adhere to laws regarding child protection, copyright, and anti-social content. Violations may result in immediate content removal and account restriction without prior notice.

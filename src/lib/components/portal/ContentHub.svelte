@@ -628,6 +628,7 @@
                 <!-- Search Button -->
                 <div class="row-controls">
                     <!-- Safety Filter Toggle -->
+                    <!-- Safety Filter Toggle (Disabled for PG Review) -->
                     <!-- <button
                         class="safety-filter-btn"
                         class:active={safetyFilterEnabled}

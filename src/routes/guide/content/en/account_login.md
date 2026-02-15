@@ -20,6 +20,4 @@ Please select the same method you used to sign up.
 *   **Social Login**: Manage your password on that platform (Google, Kakao).
 *   **Email Login**: Use the `Forgot Password` link at the bottom of the login screen.
 
-> [!WARNING]
-> **Age Verification**
-> When accessing some Adult (NSFW) content, additional age verification may be required by local laws. Verification data is ephemeral and not stored.
+

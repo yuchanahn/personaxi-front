@@ -548,8 +548,8 @@
     "typeLabel": "유형",
     "typeSelectDefault": "유형을 선택하세요",
     "visibilityLabel": "공개 설정",
-    "adultContentLabel": "성인 콘텐츠 (19+)",
-    "adultContentDesc": "이 콘텐츠를 성인 인증된 사용자에게만 표시합니다.",
+    "adultContentLabel": "민감한 콘텐츠",
+    "adultContentDesc": "이 콘텐츠는 민감한 주제를 포함할 수 있습니다.",
     "allAges": "전체 이용가",
     "public": "공개",
     "private": "비공개",
@@ -657,7 +657,7 @@
       "allFieldsRequired": "모든 필수 항목을 입력해주세요.",
       "charLimitExceeded": "글자 수 제한을 초과했습니다.",
       "promptExamplesLimitExceeded": "프롬프트 예시는 200자 이내, 최대 10개까지 가능합니다.",
-      "bannedWordDetected": "민감한 단어가 감지되었습니다. '성인 콘텐츠' 태그가 자동으로 활성화되었습니다.",
+      "bannedWordDetected": "민감한 단어가 감지되었습니다. '위험 콘텐츠' 태그가 자동으로 활성화되었습니다.",
       "bannedWordHardDetected": "금지된 단어가 포함되어 있습니다: "
     }
   },
@@ -761,7 +761,7 @@
     "simulation": "시뮬레이션",
     "vrm": "VRM",
     "live2d": "Live2D",
-    "r18": "성인 (19+)"
+    "r18": "민감 콘텐츠 (Sensitive)"
   },
   "sort": {
     "popular": "인기순",

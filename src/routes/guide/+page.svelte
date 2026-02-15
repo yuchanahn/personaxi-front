@@ -107,11 +107,11 @@
                             titleKey: "guide.articles.account_noti",
                             fileName: "account_noti",
                         },
-                        {
-                            id: "acc_referral",
-                            titleKey: "guide.articles.account_referral",
-                            fileName: "account_referral",
-                        },
+                        // {
+                        //     id: "acc_referral",
+                        //     titleKey: "guide.articles.account_referral",
+                        //     fileName: "account_referral",
+                        // },
                         {
                             id: "acc_leave",
                             titleKey: "guide.articles.account_leave",
@@ -181,11 +181,11 @@
                             titleKey: "guide.articles.create_original",
                             fileName: "create_original",
                         },
-                        {
-                            id: "create_incentive",
-                            titleKey: "guide.articles.create_incentive",
-                            fileName: "create_incentive",
-                        },
+                        // {
+                        //     id: "create_incentive",
+                        //     titleKey: "guide.articles.create_incentive",
+                        //     fileName: "create_incentive",
+                        // },
                         {
                             id: "create_basic",
                             titleKey: "guide.articles.create_basic",
@@ -220,11 +220,11 @@
                             titleKey: "guide.articles.payment_guide",
                             fileName: "payment_guide",
                         },
-                        {
-                            id: "payment_member",
-                            titleKey: "guide.articles.payment_member",
-                            fileName: "payment_member",
-                        },
+                        // {
+                        //     id: "payment_member",
+                        //     titleKey: "guide.articles.payment_member",
+                        //     fileName: "payment_member",
+                        // },
                         {
                             id: "payment_refund",
                             titleKey: "guide.articles.payment_refund",
