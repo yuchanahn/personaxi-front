@@ -43,6 +43,8 @@
 
     import { supabase } from "$lib/supabase";
 
+    import { hideBackButton } from "$lib/utils/LayoutUtils";
+
     /* ────────────── PWA: Service Worker ────────────── */
     if ("serviceWorker" in navigator) {
         window.addEventListener("load", () => {
@@ -296,9 +298,11 @@
     <WelcomeModal neuronAmount={100} isOpen={welcomeModal} />
 
     {#if !["/hub", "/", "/maintenance", "/payment/complete"].includes($page.url.pathname)}
-        <button class="back-btn" on:click={handleBack}
-            ><Icon icon="weui:back-filled" width="12" height="24" />
-        </button>
+        {#if !$hideBackButton}
+            <button class="back-btn" on:click={handleBack}
+                ><Icon icon="weui:back-filled" width="12" height="24" />
+            </button>
+        {/if}
     {/if}
 
     <!-- Global Charge Modal -->

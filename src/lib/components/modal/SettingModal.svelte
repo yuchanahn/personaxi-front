@@ -21,6 +21,7 @@
     import { pricingStore } from "$lib/stores/pricing";
     import { messages } from "$lib/stores/messages";
     import { ttsState } from "$lib/stores/ttsStore";
+    import { hideBackButton } from "$lib/utils/LayoutUtils";
 
     export let isOpen: boolean = false;
     export let persona: Persona;
@@ -60,6 +61,7 @@
     // --- Session Images Logic ---
     $: {
         if (isOpen && $messages) {
+            hideBackButton.hide();
             // Extract markdown images ![](url)
             const regex = /!\[.*?\]\((.*?)\)/g;
             const imgs: string[] = [];
@@ -144,6 +146,7 @@
 
     onDestroy(() => {
         if (statusTimer) clearTimeout(statusTimer);
+        hideBackButton.show();
     });
 
     async function showStatus(message: string, duration: number = 2000) {

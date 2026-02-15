@@ -69,10 +69,10 @@
                         {$t("pointConvertModal.infoTitle")}
                     </p>
                     <p class="info-text">{$t("pointConvertModal.infoDesc")}</p>
-                    <p class="info-sub invalid">
+                    <!-- <p class="info-sub invalid">
                         <Icon icon="ph:warning-circle-bold" />
                         {$t("pointConvertModal.cashoutNotice")}
-                    </p>
+                    </p> -->
                 </div>
 
                 <div class="input-section">
