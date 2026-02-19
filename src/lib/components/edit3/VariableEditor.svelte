@@ -58,213 +58,184 @@
 </script>
 
 <div class="variable-editor">
-    <button
-        class="advanced-toggle"
-        on:click={() => (showAdvanced = !showAdvanced)}
-        type="button"
-    >
-        <Icon
-            icon={showAdvanced ? "ph:caret-down-bold" : "ph:caret-right-bold"}
-            width="14"
-        />
-        <Icon icon="ph:gear-six-duotone" width="18" />
-        <span>{$t("editPage.variableEditor.advancedToggle")}</span>
-        {#if persona.variables && persona.variables.length > 0}
-            <span class="badge">{persona.variables.length}</span>
-        {/if}
-    </button>
+    <div class="advanced-content">
+        <!-- Variable List -->
+        <div class="section">
+            <h4 class="section-title">
+                <Icon icon="ph:variable-duotone" width="16" />
+                {$t("editPage.variableEditor.sectionTitle")}
+            </h4>
+            <p class="section-desc">
+                {$t("editPage.variableEditor.sectionDesc", {
+                    values: { syntax: varSyntax },
+                })}
+            </p>
 
-    {#if showAdvanced}
-        <div class="advanced-content">
-            <!-- Variable List -->
-            <div class="section">
-                <h4 class="section-title">
-                    <Icon icon="ph:variable-duotone" width="16" />
-                    {$t("editPage.variableEditor.sectionTitle")}
-                </h4>
-                <p class="section-desc">
-                    {$t("editPage.variableEditor.sectionDesc", {
-                        values: { syntax: varSyntax },
-                    })}
-                </p>
-
-                {#if persona.variables && persona.variables.length > 0}
-                    <div class="var-list">
-                        {#each persona.variables as v, i}
-                            <div class="var-item">
-                                <div class="var-item-header">
-                                    <span class="var-name">{v.name}</span>
-                                    <span class="var-type">{v.var_type}</span>
-                                    <span class="var-default"
-                                        >{$t(
-                                            "editPage.variableEditor.defaultLabel",
-                                            {
-                                                values: {
-                                                    value: v.default_value,
-                                                },
+            {#if persona.variables && persona.variables.length > 0}
+                <div class="var-list">
+                    {#each persona.variables as v, i}
+                        <div class="var-item">
+                            <div class="var-item-header">
+                                <span class="var-name">{v.name}</span>
+                                <span class="var-type">{v.var_type}</span>
+                                <span class="var-default"
+                                    >{$t(
+                                        "editPage.variableEditor.defaultLabel",
+                                        {
+                                            values: {
+                                                value: v.default_value,
                                             },
-                                        )}</span
+                                        },
+                                    )}</span
+                                >
+                                {#if v.var_type === "number" && (v.min_value || v.max_value)}
+                                    <span class="var-range"
+                                        >{v.min_value || "−∞"}~{v.max_value ||
+                                            "∞"}</span
                                     >
-                                    {#if v.var_type === "number" && (v.min_value || v.max_value)}
-                                        <span class="var-range"
-                                            >{v.min_value ||
-                                                "−∞"}~{v.max_value || "∞"}</span
-                                        >
-                                    {/if}
-                                    <button
-                                        class="var-remove"
-                                        type="button"
-                                        on:click={() => removeVariable(i)}
-                                        title={$t(
-                                            "editPage.variableEditor.deleteTooltip",
-                                        )}
-                                    >
-                                        <Icon
-                                            icon="ph:trash-duotone"
-                                            width="14"
-                                        />
-                                    </button>
-                                </div>
-                                {#if v.description}
-                                    <div class="var-desc">{v.description}</div>
                                 {/if}
+                                <button
+                                    class="var-remove"
+                                    type="button"
+                                    on:click={() => removeVariable(i)}
+                                    title={$t(
+                                        "editPage.variableEditor.deleteTooltip",
+                                    )}
+                                >
+                                    <Icon icon="ph:trash-duotone" width="14" />
+                                </button>
                             </div>
-                        {/each}
-                    </div>
-                {/if}
+                            {#if v.description}
+                                <div class="var-desc">{v.description}</div>
+                            {/if}
+                        </div>
+                    {/each}
+                </div>
+            {/if}
 
-                <!-- Add Variable Form -->
-                <div class="add-var-form">
-                    <div class="add-var-row">
-                        <input
-                            class="var-input name-input"
-                            bind:value={newVarName}
-                            placeholder={$t(
-                                "editPage.variableEditor.namePlaceholder",
-                            )}
-                            maxlength="30"
-                        />
-                        <select class="var-select" bind:value={newVarType}>
-                            <option value="text"
-                                >{$t(
-                                    "editPage.variableEditor.typeText",
-                                )}</option
-                            >
-                            <option value="number"
-                                >{$t(
-                                    "editPage.variableEditor.typeNumber",
-                                )}</option
-                            >
-                            <option value="enum"
-                                >{$t(
-                                    "editPage.variableEditor.typeEnum",
-                                )}</option
-                            >
-                            <option value="boolean"
-                                >{$t(
-                                    "editPage.variableEditor.typeBoolean",
-                                )}</option
-                            >
-                        </select>
-                    </div>
-                    <div class="add-var-row">
-                        <input
-                            class="var-input default-input"
-                            bind:value={newVarDefault}
-                            placeholder={$t(
-                                "editPage.variableEditor.defaultPlaceholder",
-                            )}
-                            maxlength="50"
-                        />
-                        {#if newVarType === "number"}
-                            <input
-                                class="var-input range-input"
-                                bind:value={newVarMin}
-                                placeholder={$t(
-                                    "editPage.variableEditor.minPlaceholder",
-                                )}
-                                type="text"
-                                inputmode="numeric"
-                            />
-                            <input
-                                class="var-input range-input"
-                                bind:value={newVarMax}
-                                placeholder={$t(
-                                    "editPage.variableEditor.maxPlaceholder",
-                                )}
-                                type="text"
-                                inputmode="numeric"
-                            />
-                        {/if}
-                    </div>
-                    <div class="add-var-row">
-                        <input
-                            class="var-input desc-input"
-                            bind:value={newVarDesc}
-                            placeholder={$t(
-                                "editPage.variableEditor.descriptionPlaceholder",
-                            )}
-                            maxlength="100"
-                        />
-                        <button
-                            class="add-btn"
-                            type="button"
-                            on:click={addVariable}
-                            disabled={!newVarName.trim()}
+            <!-- Add Variable Form -->
+            <div class="add-var-form">
+                <div class="add-var-row">
+                    <input
+                        class="var-input name-input"
+                        bind:value={newVarName}
+                        placeholder={$t(
+                            "editPage.variableEditor.namePlaceholder",
+                        )}
+                        maxlength="30"
+                    />
+                    <select class="var-select" bind:value={newVarType}>
+                        <option value="text"
+                            >{$t("editPage.variableEditor.typeText")}</option
                         >
-                            <Icon icon="ph:plus-bold" width="14" />
-                        </button>
-                    </div>
+                        <option value="number"
+                            >{$t("editPage.variableEditor.typeNumber")}</option
+                        >
+                        <option value="enum"
+                            >{$t("editPage.variableEditor.typeEnum")}</option
+                        >
+                        <option value="boolean"
+                            >{$t("editPage.variableEditor.typeBoolean")}</option
+                        >
+                    </select>
+                </div>
+                <div class="add-var-row">
+                    <input
+                        class="var-input default-input"
+                        bind:value={newVarDefault}
+                        placeholder={$t(
+                            "editPage.variableEditor.defaultPlaceholder",
+                        )}
+                        maxlength="50"
+                    />
+                    {#if newVarType === "number"}
+                        <input
+                            class="var-input range-input"
+                            bind:value={newVarMin}
+                            placeholder={$t(
+                                "editPage.variableEditor.minPlaceholder",
+                            )}
+                            type="text"
+                            inputmode="numeric"
+                        />
+                        <input
+                            class="var-input range-input"
+                            bind:value={newVarMax}
+                            placeholder={$t(
+                                "editPage.variableEditor.maxPlaceholder",
+                            )}
+                            type="text"
+                            inputmode="numeric"
+                        />
+                    {/if}
+                </div>
+                <div class="add-var-row">
+                    <input
+                        class="var-input desc-input"
+                        bind:value={newVarDesc}
+                        placeholder={$t(
+                            "editPage.variableEditor.descriptionPlaceholder",
+                        )}
+                        maxlength="100"
+                    />
+                    <button
+                        class="add-btn"
+                        type="button"
+                        on:click={addVariable}
+                        disabled={!newVarName.trim()}
+                    >
+                        <Icon icon="ph:plus-bold" width="14" />
+                    </button>
                 </div>
             </div>
+        </div>
 
-            <!-- Status Template -->
-            <div class="section">
-                <h4 class="section-title">
-                    <Icon icon="ph:paint-brush-duotone" width="16" />
-                    {$t("editPage.variableEditor.statusTitle")}
-                </h4>
-                <p class="section-desc">
-                    {$t("editPage.variableEditor.statusDesc", {
-                        values: { syntax: varSyntax },
-                    })}
-                </p>
+        <!-- Status Template -->
+        <div class="section">
+            <h4 class="section-title">
+                <Icon icon="ph:paint-brush-duotone" width="16" />
+                {$t("editPage.variableEditor.statusTitle")}
+            </h4>
+            <p class="section-desc">
+                {$t("editPage.variableEditor.statusDesc", {
+                    values: { syntax: varSyntax },
+                })}
+            </p>
 
-                <textarea
-                    class="template-textarea"
-                    bind:value={persona.status_template}
-                    placeholder={`<div class="stats">
+            <textarea
+                class="template-textarea"
+                bind:value={persona.status_template}
+                placeholder={`<div class="stats">
   <div>📍 Location: {"{{{location}}}"}</div>
   <div>❤️ HP: {"{{{hp}}}"}</div>
 </div>`}
-                    rows="6"
-                ></textarea>
-            </div>
+                rows="6"
+            ></textarea>
+        </div>
 
-            <!-- Status Template CSS -->
-            <div class="section">
-                <h4 class="section-title">
-                    <Icon icon="ph:code-duotone" width="16" />
-                    {$t("editPage.variableEditor.cssTitle")}
-                </h4>
-                <p class="section-desc">
-                    {$t("editPage.variableEditor.cssDesc")}
-                </p>
+        <!-- Status Template CSS -->
+        <div class="section">
+            <h4 class="section-title">
+                <Icon icon="ph:code-duotone" width="16" />
+                {$t("editPage.variableEditor.cssTitle")}
+            </h4>
+            <p class="section-desc">
+                {$t("editPage.variableEditor.cssDesc")}
+            </p>
 
-                <textarea
-                    class="template-textarea css-textarea"
-                    bind:value={persona.status_template_css}
-                    placeholder={`.stats { 
+            <textarea
+                class="template-textarea css-textarea"
+                bind:value={persona.status_template_css}
+                placeholder={`.stats { 
   display: flex; 
   gap: 12px; 
   color: #aaa; 
   font-size: 0.85em; 
 }`}
-                    rows="5"
-                ></textarea>
-            </div>
+                rows="5"
+            ></textarea>
         </div>
-    {/if}
+    </div>
 </div>
 
 <style>

@@ -14,6 +14,7 @@
         savePersona,
         fetchAndSetAssetTypes,
     } from "$lib/api/edit_persona";
+    import { loreApi } from "$lib/api/lore";
     import type { Persona } from "$lib/types";
 
     import LoadingAnimation from "$lib/components/utils/LoadingAnimation.svelte";
@@ -49,6 +50,7 @@
     let firstSceneJson = "";
     let allVoices: any[] = [];
     let selectedVoiceId = "";
+    let pendingLoreLinks = new Set<string>();
 
     let last_id: string | null = null;
     let showRewardModal = false;
@@ -397,6 +399,19 @@
         try {
             const id: string | null = await savePersona(persona);
             if (id) {
+                // Handle pending lore links if new persona
+                if (!persona.id && pendingLoreLinks.size > 0) {
+                    try {
+                        await Promise.all(
+                            Array.from(pendingLoreLinks).map((loreId) =>
+                                loreApi.linkPersona(id, loreId, false),
+                            ),
+                        );
+                    } catch (e) {
+                        console.error("Failed to link lorebooks", e);
+                    }
+                }
+
                 showSuccess = true;
                 toast.success("저장 완료!");
                 clearDraft();
@@ -553,6 +568,7 @@
                 {availableExpressions}
                 {availableMotions}
                 {kintsugiTemplateId}
+                bind:pendingLoreLinks
             />
         {:else if currentStep === 4}
             <StepReview bind:persona {validationErrors} />
@@ -586,6 +602,7 @@
                     {availableExpressions}
                     {availableMotions}
                     {kintsugiTemplateId}
+                    bind:pendingLoreLinks
                 />
             {:else if currentStep + 1 === 4}
                 <StepReview bind:persona {validationErrors} />

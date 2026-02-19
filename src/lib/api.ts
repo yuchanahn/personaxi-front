@@ -83,6 +83,9 @@ export const api = {
             method: "DELETE",
         });
     },
+    put: (url: string, data: any, options?: AuthRequestInit) =>
+        fetchWithAuth(API_BASE_URL + url, { ...options, method: 'PUT', body: JSON.stringify(data) }),
+
 
     ws: async (
         path: string, // 예: '/ws' 또는 '/ws/tts'

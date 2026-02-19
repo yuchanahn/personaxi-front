@@ -676,6 +676,8 @@
       "bannedWordDetected": "Sensitive content detected. 'Adult Content' tag has been automatically enabled.",
       "bannedWordHardDetected": "Forbidden word detected: "
     },
+    "lorebookLabel": "Lorebook",
+    "lorebookDescription": "Provide additional context to the AI when specific keywords appear.",
     "variableEditor": {
       "advancedToggle": "Advanced Settings (Variable System)",
       "sectionTitle": "Define Variables",
@@ -949,6 +951,7 @@
       "create_incentive": "PersonaXi Incentive",
       "create_basic": "Basic Creation Guide",
       "create_expert": "Expert Mode Guide",
+      "create_lorebook": "Lorebook System Guide",
       "payment_guide": "Wing & Payment Guide",
       "payment_member": "PersonaXi Membership",
       "payment_refund": "Refund Policy",
@@ -970,5 +973,14 @@
       "event": "Event",
       "notice": "Notice"
     }
+  },
+  "lorebook": {
+    "title": "Example Lorebooks",
+    "createNew": "Create New",
+    "noLorebooks": "No lorebooks found.",
+    "noDescription": "No description",
+    "testContext": "Context Simulator",
+    "testDesc": "Type a message to see which Lore entries will be triggered.",
+    "testPlaceholder": "e.g. Walking into the ancient forest..."
   }
 }

@@ -201,6 +201,11 @@
                             titleKey: "guide.articles.create_expert",
                             fileName: "create_expert",
                         },
+                        {
+                            id: "create_lorebook",
+                            titleKey: "guide.articles.create_lorebook",
+                            fileName: "create_lorebook",
+                        },
                     ],
                 },
             ],
