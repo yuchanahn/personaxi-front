@@ -9,6 +9,7 @@
   import { get } from "svelte/store";
   import { st_user } from "$lib/stores/user";
   import ChatRenderer from "./ChatRenderer.svelte";
+  import VariableStatusPanel from "./VariableStatusPanel.svelte";
   import { interactiveChat } from "$lib/actions/interactiveChat";
   import { type Message } from "$lib/stores/messages";
   import { toast } from "$lib/stores/toast";
@@ -82,6 +83,12 @@
     id: string;
   }
 
+  interface VarsStatusBlock {
+    type: "vars_status";
+    id: string;
+    variables: Record<string, string>;
+  }
+
   type ChatLogItem =
     | NarrationBlock
     | UserInteractionBlock
@@ -91,7 +98,11 @@
     | CodeBlock
     | InputPromptBlock
     | SituationTriggerBlock
-    | MarkdownImageBlock;
+    | MarkdownImageBlock
+    | VarsStatusBlock;
+
+  // Regex for stripping <vars> tags from AI output (they carry data, not display content)
+  const VARS_TAG_REGEX = /(?:\s*)<vars>[\s\S]*?<\/vars>(?:\s*)/g;
 
   function parseAssistantContent(
     content: string,
@@ -114,6 +125,7 @@
     };
 
     const processedContent = content
+      .replace(VARS_TAG_REGEX, "") // Strip <vars> tags — they are data, not display content
       .replace(FIRST_SCENE_TAG_REGEX, () => {
         if (currentPersona?.first_scene) {
           let first_scene = currentPersona.first_scene;
@@ -241,7 +253,36 @@
 
   let chatLog: ChatLogItem[] = [];
 
+  // --- Variable System: compute accumulated state up to a given message index ---
+  function extractVarsUpToIndex(
+    msgs: Message[],
+    upTo: number,
+  ): Record<string, string> {
+    const state: Record<string, string> = {};
+    if (persona?.variables) {
+      for (const v of persona.variables) {
+        state[v.name] = v.default_value;
+      }
+    }
+    for (let j = 0; j <= upTo && j < msgs.length; j++) {
+      const msg = msgs[j];
+      if (msg.role !== "assistant") continue;
+      const matches = msg.content.matchAll(/<vars>([\s\S]*?)<\/vars>/g);
+      for (const match of matches) {
+        const body = match[1].trim();
+        for (const line of body.split("\n")) {
+          const eq = line.indexOf("=");
+          if (eq > 0) {
+            state[line.slice(0, eq).trim()] = line.slice(eq + 1).trim();
+          }
+        }
+      }
+    }
+    return state;
+  }
+
   export let showBackground: boolean = false;
+  export let showVariableStatus: boolean = false;
   let activeBackgroundImage: string | null = null;
   let waitingForImage = false;
   // Map to store URLs of loaded images by index to support background mode even for lazy-loaded assets
@@ -486,7 +527,13 @@
       let currentContent = visibleMessages[currentThrottleIndex].content;
 
       if (currentContent.length < targetContent.length) {
-        const charsToAdd = (CHARS_PER_SECOND * deltaTime) / 1000;
+        // Adaptive speed: If we are far behind, speed up
+        const remaining = targetContent.length - currentContent.length;
+        const baseSpeed = CHARS_PER_SECOND;
+        const speedMultiplier = 1 + remaining / 10; // Increase speed by 10% for every char behind
+        const effectiveSpeed = baseSpeed * speedMultiplier;
+
+        const charsToAdd = (effectiveSpeed * deltaTime) / 1000;
         currentThrottleCharIndex += charsToAdd;
 
         let nextLen = Math.floor(currentThrottleCharIndex);
@@ -609,6 +656,37 @@
           }
         } else {
           blocks = parseAssistantContent(msg.content, messageId, persona);
+
+          // Inject inline variable status panel after this assistant message
+          // Only show if:
+          // 1. Feature is enabled
+          // 2. Persona has variables
+          // 3. Message is fully typed (content length matches) OR it's not the last message
+          // 4. If it IS the last message, ensure loading is finished
+          const isLastMessage = i === visibleMessages.length - 1;
+          const isTypingComplete =
+            !isLastMessage ||
+            (msg.content.length === ($messages[i]?.content?.length || 0) &&
+              !isLoading);
+
+          if (
+            showVariableStatus &&
+            isTypingComplete &&
+            persona?.status_template &&
+            persona?.variables &&
+            persona.variables.length > 0
+          ) {
+            const varsAtThisPoint = extractVarsUpToIndex(visibleMessages, i);
+            blocks.push({
+              type: "vars_status",
+              id: `${messageId}-vars`,
+              variables: varsAtThisPoint,
+            });
+            // Force scroll to bottom when status panel appears
+            if (autoScroll) {
+              tick().then(() => scrollToBottom());
+            }
+          }
 
           const is2D =
             persona?.personaType === "2D" || persona?.personaType === "2.5D";
@@ -785,6 +863,14 @@
           loading="lazy"
           on:load={() => handleImageLoad(i, item.url)}
           on:error={() => handleImageError(i)}
+        />
+      </div>
+    {:else if item.type === "vars_status"}
+      <div class="vars-status-inline">
+        <VariableStatusPanel
+          template={persona?.status_template || ""}
+          css={persona?.status_template_css || ""}
+          variables={item.variables}
         />
       </div>
     {:else if item.type === "situation_trigger"}

@@ -4,6 +4,7 @@
     import { tick } from "svelte";
     import FirstSceneBuilder from "$lib/components/FirstSceneBuilder.svelte";
     import KintsugiForm from "$lib/components/edit/KintsugiForm.svelte";
+    import VariableEditor from "$lib/components/edit3/VariableEditor.svelte";
     import type { Persona } from "$lib/types";
 
     export let persona: Persona;
@@ -210,6 +211,9 @@
             />
         {/if}
     </div>
+
+    <!-- Variable System (Advanced Settings) -->
+    <VariableEditor bind:persona />
 </div>
 
 <style>

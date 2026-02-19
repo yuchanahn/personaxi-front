@@ -30,6 +30,7 @@
     export let showImage: boolean = true;
     export let autoScroll: boolean = true;
     export let showBackground: boolean = false;
+    export let showVariableStatus: boolean = false;
     export let showChat: boolean = true;
     export let closeupScale: number = 1.0;
     export let closeupOffset: number = 0.0;
@@ -638,6 +639,38 @@
                                 >
                             </button>
                         {/if}
+
+                        {#if mode === "2d"}
+                            <button
+                                class="action-item"
+                                on:click={() =>
+                                    (showVariableStatus = !showVariableStatus)}
+                                disabled={isLoading}
+                            >
+                                <div class="action-left">
+                                    <Icon
+                                        icon={showVariableStatus
+                                            ? "ph:code-bold"
+                                            : "ph:code-slash-bold"}
+                                    />
+                                    <span
+                                        >{showVariableStatus
+                                            ? $t(
+                                                  "settingModal.hideVariableStatus",
+                                              )
+                                            : $t(
+                                                  "settingModal.showVariableStatus",
+                                              )}
+                                    </span>
+                                </div>
+                                <span
+                                    class="toggle"
+                                    class:on={showVariableStatus}
+                                    ><span class="knob"></span></span
+                                >
+                            </button>
+                        {/if}
+
                         <button
                             class="action-item"
                             on:click={handleResetChat}

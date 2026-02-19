@@ -497,8 +497,8 @@
     "outputLengthShort": "Short",
     "outputLengthLong": "Long",
     "sessionImages": "Session Images",
-    "viewAllImages": "View All Images",
-    "hideImages": "Hide Images",
+    "viewAllImages": "View All",
+    "hideImages": "Hide",
     "noImages": "No images generated in this session.",
     "showImage": "Show Image",
     "hideImage": "Hide Image",
@@ -507,13 +507,16 @@
     "hideGeneratedImages": "Hide Generated Images",
     "report": "Report",
     "showChatWindow": "Show Chat Window",
-    "ttsConnected": "TTS Connected",
+    "ttsConnected": "Voice Connected",
     "ttsConnecting": "Connecting...",
-    "enableTTS": "Enable TTS",
+    "enableTTS": "TTS Voice",
     "changeView": "Change View",
     "closeupZoom": "Zoom Level",
-    "closeupPosition": "Vertical Position",
-    "closeupMode": "Change View"
+    "closeupPosition": "Position",
+    "closeupMode": "Closeup Mode",
+    "showBackground": "Background Mode (Hide Chat)",
+    "showVariableStatus": "Show Variable Status",
+    "hideVariableStatus": "Hide Variable Status"
   },
   "reportModal": {
     "title": "Report Content",
@@ -672,6 +675,26 @@
       "promptExamplesLimitExceeded": "Prompt examples must be under 200 chars and max 10 items.",
       "bannedWordDetected": "Sensitive content detected. 'Adult Content' tag has been automatically enabled.",
       "bannedWordHardDetected": "Forbidden word detected: "
+    },
+    "variableEditor": {
+      "advancedToggle": "Advanced Settings (Variable System)",
+      "sectionTitle": "Define Variables",
+      "sectionDesc": "Use {syntax} in prompts to dynamically substitute values. AI updates variables each turn.",
+      "defaultLabel": "Default: {value}",
+      "deleteTooltip": "Delete",
+      "namePlaceholder": "Variable name (e.g. location)",
+      "defaultPlaceholder": "Default value",
+      "typeText": "Text",
+      "typeNumber": "Number",
+      "typeEnum": "Enum",
+      "typeBoolean": "Boolean",
+      "descriptionPlaceholder": "Description (e.g. user's affinity)",
+      "minPlaceholder": "Min",
+      "maxPlaceholder": "Max",
+      "statusTitle": "Status Panel Design",
+      "statusDesc": "Design the status panel with HTML. {syntax} will be replaced with actual values.",
+      "cssTitle": "Status Panel CSS",
+      "cssDesc": "Write CSS to style the status panel."
     }
   },
   "chatSession": {

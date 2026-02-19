@@ -10,6 +10,15 @@ export interface ImageMetadata {
     is_secret?: boolean;
 }
 
+export interface PersonaVariable {
+    name: string;
+    var_type: 'text' | 'number' | 'enum' | 'boolean';
+    default_value: string;
+    description?: string;
+    min_value?: string;
+    max_value?: string;
+}
+
 export interface Persona {
     id: string;
     owner_id: string[];
@@ -39,6 +48,11 @@ export interface Persona {
     is_liked?: boolean; // Optional, as it's only present when fetched with user context
     chat_count: number;
     start_voice_url?: string;
+
+    // Variable System
+    variables?: PersonaVariable[];
+    status_template?: string;
+    status_template_css?: string;
 }
 
 export interface ESFPrompt {

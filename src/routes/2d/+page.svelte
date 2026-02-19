@@ -115,6 +115,7 @@
   let showImage = $settings.showImage ?? true;
   let autoScroll = $settings.autoScroll ?? true;
   let showBackground = $settings.showBackground ?? false;
+  let showVariableStatus = $settings.showVariableStatus ?? false;
 
   // Sync back to persistent settings when local values change
   $: {
@@ -123,6 +124,7 @@
       showImage,
       autoScroll,
       showBackground,
+      showVariableStatus,
     }));
   }
 
@@ -170,6 +172,7 @@
     bind:showImage
     bind:autoScroll
     bind:showBackground
+    bind:showVariableStatus
     on:close={() => (isSettingsModalOpen = false)}
   />
 {/if}
@@ -194,6 +197,7 @@
       {autoScroll}
       SendMessage={send}
       {showBackground}
+      {showVariableStatus}
       bind:showRatioOptions
     />
     <ChatInput

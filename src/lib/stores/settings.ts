@@ -17,6 +17,7 @@ export interface AppSettings {
     showImage: boolean;
     autoScroll: boolean;
     showBackground: boolean;
+    showVariableStatus: boolean;
 }
 
 function isValidTheme(value: any): value is Theme {
@@ -41,7 +42,8 @@ function initializeSettings(): AppSettings {
         enableInteractionTrigger: false,
         showImage: true,
         autoScroll: true,
-        showBackground: false
+        showBackground: false,
+        showVariableStatus: true
     };
 
     if (!browser) {
@@ -86,6 +88,9 @@ function initializeSettings(): AppSettings {
             }
             if (typeof savedSettings.showBackground === 'boolean') {
                 settings.showBackground = savedSettings.showBackground;
+            }
+            if (typeof savedSettings.showVariableStatus === 'boolean') {
+                settings.showVariableStatus = savedSettings.showVariableStatus;
             }
         } catch (e) {
             console.error("Failed to parse settings from localStorage", e);
