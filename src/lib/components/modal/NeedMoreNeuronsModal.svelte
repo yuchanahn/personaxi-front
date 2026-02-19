@@ -295,7 +295,7 @@
                             class="promo-action-btn"
                             on:click={() => {
                                 closeModal();
-                                goto("/edit");
+                                goto("/edit3");
                             }}
                         >
                             {$t("needNeuronsModal.getFreeNeurons")}

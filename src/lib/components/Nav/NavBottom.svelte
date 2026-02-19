@@ -20,7 +20,7 @@
             label: $t("nav.chat"),
         },
         {
-            href: "/edit",
+            href: "/edit3",
             icon: "ph:plus-circle-duotone",
             label: $t("nav.create"),
         },

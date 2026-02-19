@@ -93,7 +93,7 @@
             />
             <span>{$t("chatSession.system.feed")}</span>
         </a>
-        <a href="/edit" class="sidebar-link">
+        <a href="/edit3" class="sidebar-link">
             <Icon icon="ph:plus-circle-duotone" width="24" height="24" />
             <span>{$t("chatSession.system.create")}</span>
         </a>

@@ -465,6 +465,16 @@
         .panel-right {
             display: flex;
             border-left: 1px solid var(--border);
+            pointer-events: none;
+            opacity: 0.5;
+            user-select: none;
+            overflow: hidden;
+            mask-image: linear-gradient(to bottom, black 60%, transparent 100%);
+            -webkit-mask-image: linear-gradient(
+                to bottom,
+                black 60%,
+                transparent 100%
+            );
         }
 
         .panel-body {
