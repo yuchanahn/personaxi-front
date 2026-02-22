@@ -670,7 +670,6 @@
               !isLoading);
 
           if (
-            showVariableStatus &&
             isTypingComplete &&
             persona?.status_template &&
             persona?.variables &&
@@ -683,7 +682,7 @@
               variables: varsAtThisPoint,
             });
             // Force scroll to bottom when status panel appears
-            if (autoScroll) {
+            if (autoScroll && showVariableStatus) {
               tick().then(() => scrollToBottom());
             }
           }
@@ -865,7 +864,7 @@
           on:error={() => handleImageError(i)}
         />
       </div>
-    {:else if item.type === "vars_status"}
+    {:else if item.type === "vars_status" && showVariableStatus}
       <div class="vars-status-inline">
         <VariableStatusPanel
           template={persona?.status_template || ""}

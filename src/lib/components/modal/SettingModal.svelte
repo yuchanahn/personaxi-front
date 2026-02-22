@@ -42,6 +42,7 @@
     const dispatch = createEventDispatcher();
 
     let isLoading = false;
+    let isSavingNote = false;
     let isConfirmingDelete = false;
     let statusMessage = "";
     let showReportModal = false;
@@ -52,6 +53,7 @@
 
     // --- New Features State ---
     let userNote = "";
+    let showUserNote = false;
     let outputLength = 100; // Default UI value
     let showSessionImages = false;
     let sessionImages: string[] = [];
@@ -169,6 +171,28 @@
             });
             if (!res.ok) throw new Error(await res.text());
             await res.json();
+            chatSessions.update((sessions) => {
+                const existingIndex = sessions.findIndex(
+                    (s) => s.id === persona.id,
+                );
+                if (existingIndex !== -1) {
+                    sessions[existingIndex].llmType = selectedLLM.id;
+                    return [...sessions];
+                } else {
+                    return [
+                        ...sessions,
+                        {
+                            id: persona.id,
+                            name: persona.name,
+                            createdAt: new Date().toISOString(),
+                            type: persona.personaType || "2D",
+                            avatar: persona.portrait_url,
+                            llmType: selectedLLM.id,
+                            userNote: userNote,
+                        } as any,
+                    ];
+                }
+            });
             changeLLMType(selectedLLM.id);
             await showStatus("✅ Saved!");
         } catch (error) {
@@ -216,6 +240,49 @@
         }
     }
 
+    async function handleSaveNote() {
+        if (!persona?.id) return;
+        isSavingNote = true;
+        await showStatus("Saving...", 0);
+        try {
+            const res = await api.post(`/api/chat/char/sessions/note`, {
+                cssid: persona.id,
+                userNote: userNote,
+            });
+            if (!res.ok) throw new Error(await res.text());
+
+            chatSessions.update((sessions) => {
+                const existingIndex = sessions.findIndex(
+                    (s) => s.id === persona.id,
+                );
+                if (existingIndex !== -1) {
+                    sessions[existingIndex].userNote = userNote;
+                    return [...sessions];
+                } else {
+                    return [
+                        ...sessions,
+                        {
+                            id: persona.id,
+                            name: persona.name,
+                            createdAt: new Date().toISOString(),
+                            type: persona.personaType || "2D",
+                            avatar: persona.portrait_url,
+                            llmType: selectedLLM.id,
+                            userNote: userNote,
+                        } as any,
+                    ];
+                }
+            });
+
+            await showStatus("✅ Saved!");
+        } catch (error) {
+            console.error("Failed to save user note:", error);
+            await showStatus("❌ Error!", 2000);
+        } finally {
+            isSavingNote = false;
+        }
+    }
+
     function handleKeydown(event: KeyboardEvent) {
         if (event.key === "Escape") {
             if (selectedImage) {
@@ -243,6 +310,9 @@
                 console.error("Failed to load user:", e);
             }
         })();
+
+        const session = $chatSessions.find((s) => s.id === persona.id);
+        userNote = session?.userNote || "";
     }
 </script>
 
@@ -304,6 +374,59 @@
                             {$t("settingModal.costDisplay")}
                             <NeuronIcon size={14} />{selectedLLM.cost}
                         </p>
+                    </div>
+                {/if}
+
+                <!-- 2. User Note -->
+                {#if mode === "2d"}
+                    <div class="settings-card">
+                        <div class="card-header">
+                            <Icon icon="ph:notepad-bold" />
+                            <span>{$t("settingModal.userNote")}</span>
+                        </div>
+                        <button
+                            class="view-images-btn"
+                            on:click={() => (showUserNote = !showUserNote)}
+                        >
+                            <span
+                                >{showUserNote
+                                    ? $t("common.hide")
+                                    : $t("common.show")}</span
+                            >
+                            <Icon
+                                icon={showUserNote
+                                    ? "ph:caret-up-bold"
+                                    : "ph:caret-down-bold"}
+                            />
+                        </button>
+                        {#if showUserNote}
+                            <div
+                                class="note-wrapper"
+                                transition:slide={{ duration: 200 }}
+                            >
+                                <textarea
+                                    bind:value={userNote}
+                                    placeholder={$t(
+                                        "settingModal.userNotePlaceholder",
+                                    )}
+                                    disabled={isLoading || isSavingNote}
+                                    rows="3"
+                                    class="user-note-textarea"
+                                ></textarea>
+                                <button
+                                    class="action-item"
+                                    on:click={handleSaveNote}
+                                    disabled={isLoading || isSavingNote}
+                                >
+                                    <div class="action-left">
+                                        <Icon icon="ph:floppy-disk-bold" />
+                                        <span
+                                            >{$t("settingModal.saveNote")}</span
+                                        >
+                                    </div>
+                                </button>
+                            </div>
+                        {/if}
                     </div>
                 {/if}
 
@@ -1113,6 +1236,28 @@
         color: var(--muted-foreground);
         font-weight: 500;
         margin-left: 2px;
+    }
+
+    /* User Note */
+    .user-note-textarea {
+        width: 100%;
+        background: var(--background);
+        color: var(--foreground);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 12px;
+        font-family: inherit;
+        font-size: 14px;
+        resize: vertical;
+        min-height: 80px;
+        margin-bottom: 8px;
+    }
+    .user-note-textarea:focus {
+        outline: 1px solid var(--primary);
+        border-color: var(--primary);
+    }
+    .note-wrapper {
+        padding: 0 16px 16px 16px;
     }
 
     .range-wrapper {

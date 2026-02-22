@@ -14,10 +14,11 @@ export type ChatSession = {
     name: string;
     createdAt: string;
     type: ChatSessionType;
-    llmType: string; // Optional field for LLM type
     avatar?: string;
     lastMessage?: string;
     lastMessageAt?: string;
+    userNote?: string;
+    llmType?: string;
 };
 
 export const chatSessions = writable<ChatSession[]>([]);
