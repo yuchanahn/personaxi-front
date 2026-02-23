@@ -49,10 +49,12 @@ export function interactiveChat(node: HTMLElement, callback: (payload: string) =
             }
 
             // 시간이 아예 입력되지 않았어도 시작 가능하게 강제 기본값
-            if (birthHour === null || birthMinute === null) {
-                birthHour = 12;
-                birthMinute = 0;
-            }
+            //if (birthHour === null || birthMinute === null) {
+            //    birthHour = 12;
+            //    birthMinute = 0;
+            //
+            //    console.log(`2. [saju] ${birthHour}:${birthMinute} ${gender}`);
+            //}
 
             if (!push && birthDate && birthHour !== null && birthMinute !== null) {
                 let prompt = "";
