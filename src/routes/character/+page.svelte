@@ -113,26 +113,6 @@
     style="opacity: {pinkOpacity};"
   ></div>
   {#if persona}
-    <TtsStatusModal
-      impl_connectTTS={async () => {
-        await connectTTSSocket(async (audio: ArrayBuffer | null) => {
-          if (!audio) {
-            toast.error("TTS Server Busy");
-            return;
-          }
-          // Copy same logic as onMount or refactor to function
-          if (Viewer && Viewer.speek) {
-            Viewer.speek(audio);
-          } else {
-            console.warn("Viewer not ready for TTS audio.");
-          }
-        });
-      }}
-      impl_disconnectTTS={() => {
-        disconnectTTSSocket();
-      }}
-    />
-
     <VrmModelViewer
       bind:this={Viewer}
       {persona}
@@ -153,6 +133,23 @@
       bind:closeupScale
       bind:closeupOffset
       bind:isCloseup
+      impl_connectTTS={async () => {
+        await connectTTSSocket(async (audio: ArrayBuffer | null) => {
+          if (!audio) {
+            toast.error("TTS Server Busy");
+            return;
+          }
+          // Copy same logic as onMount or refactor to function
+          if (Viewer && Viewer.speek) {
+            Viewer.speek(audio);
+          } else {
+            console.warn("Viewer not ready for TTS audio.");
+          }
+        });
+      }}
+      impl_disconnectTTS={() => {
+        disconnectTTSSocket();
+      }}
       impl_changeCamera={() => (isCloseup = !isCloseup)}
       {affectionScore}
     />

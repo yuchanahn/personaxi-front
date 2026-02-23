@@ -17,6 +17,7 @@
   export let isCloseup: boolean = false;
 
   let isSettingsModalOpen = false;
+  let mode: "2d" | "3d" | "live2d" = "3d";
   export let affectionScore = 0; // Default
 
   function handleAffectionUpdate(e: CustomEvent) {
@@ -30,6 +31,14 @@
       "affection-update",
       handleAffectionUpdate as EventListener,
     );
+
+    if (persona.personaType === "2D") {
+      mode = "2d";
+    } else if (persona.personaType === "3D") {
+      mode = "3d";
+    } else if (persona.personaType === "2.5D") {
+      mode = "live2d";
+    }
   });
 
   onDestroy(() => {
@@ -54,7 +63,7 @@
     bind:closeupScale
     bind:closeupOffset
     bind:isCloseup
-    mode="live2d"
+    {mode}
     on:close={() => (isSettingsModalOpen = false)}
   />
 {/if}

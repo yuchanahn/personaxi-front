@@ -145,6 +145,8 @@
         } catch (e) {
             console.error("Failed to load likes:", e);
         }
+
+        console.log("mode:", mode);
     });
 
     onDestroy(() => {
@@ -492,7 +494,7 @@
                 {/if}
 
                 <!-- Autonomy Settings -->
-                {#if mode === "3d" || mode === "live2d"}
+                {#if mode === "live2d"}
                     <div class="settings-card">
                         <div class="card-header">
                             <Icon icon="ph:sparkle-duotone" />
