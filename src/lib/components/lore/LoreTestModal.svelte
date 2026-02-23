@@ -131,7 +131,7 @@
         display: flex;
         justify-content: center;
         align-items: center;
-        z-index: 1000;
+        z-index: 20000;
         backdrop-filter: blur(5px);
     }
     .modal-container {
@@ -251,12 +251,27 @@
         padding: 1rem;
     }
 
-    /* Ensure content inside container scrolls if needed */
     .test-body {
         display: flex;
         flex-direction: column;
         gap: 0.75rem;
         overflow: hidden;
         flex: 1;
+    }
+
+    @media (max-width: 768px) {
+        .modal-backdrop {
+            padding: 0;
+            align-items: flex-end;
+        }
+        .modal-container {
+            width: 100%;
+            height: 95dvh;
+            max-height: 95dvh;
+            border-bottom-left-radius: 0;
+            border-bottom-right-radius: 0;
+            border-bottom: none;
+            padding-bottom: env(safe-area-inset-bottom);
+        }
     }
 </style>

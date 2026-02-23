@@ -3,6 +3,7 @@
     import { fade } from "svelte/transition";
     import Icon from "@iconify/svelte";
     import LoreEditor from "./LoreEditor.svelte";
+    import { hideBackButton } from "$lib/utils/LayoutUtils";
 
     export let loreId: string | null = null;
 
@@ -21,11 +22,13 @@
     onMount(() => {
         window.addEventListener("keydown", handleKeydown);
         document.body.style.overflow = "hidden"; // Prevent background scrolling
+        hideBackButton.hide();
     });
 
     onDestroy(() => {
         window.removeEventListener("keydown", handleKeydown);
         document.body.style.overflow = "";
+        hideBackButton.show();
     });
 </script>
 
@@ -54,7 +57,7 @@
         display: flex;
         justify-content: center;
         align-items: center;
-        z-index: 1000;
+        z-index: 20000;
         backdrop-filter: blur(5px);
         padding: 1rem; /* prevent edge touching on small screens */
         box-sizing: border-box;
@@ -69,7 +72,7 @@
         box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
         width: 100%;
         max-width: 900px;
-        height: 85vh; /* Fixed height for editor */
+        height: 85dvh; /* Fixed height for editor */
         border: 1px solid var(--border);
         display: flex;
         flex-direction: column;
@@ -104,5 +107,22 @@
         overflow: hidden; /* Editor handles its own scroll */
         display: flex;
         flex-direction: column;
+    }
+
+    @media (max-width: 768px) {
+        .modal-backdrop {
+            padding: 0;
+            align-items: flex-end;
+        }
+        .modal-container {
+            height: 95dvh; /* Almost full height */
+            max-height: 95dvh;
+            border-bottom-left-radius: 0;
+            border-bottom-right-radius: 0;
+            border-bottom: none;
+            padding-bottom: env(
+                safe-area-inset-bottom
+            ); /* Fix home bar crash on iOS */
+        }
     }
 </style>

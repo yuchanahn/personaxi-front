@@ -596,4 +596,46 @@
         color: var(--foreground);
         font-weight: normal;
     }
+
+    @media (max-width: 768px) {
+        .editor-layout {
+            flex-direction: column;
+            overflow-y: auto; /* Allow entire layout to scroll vertically */
+            display: block; /* switch to block to avoid flex squishing */
+            height: 100%;
+        }
+        .sidebar {
+            width: 100%;
+            height: auto; /* Do not restrict to 40% */
+            border-right: none;
+            border-bottom: 1px solid var(--border);
+            flex: none;
+        }
+        .main-panel {
+            padding: 1rem;
+            overflow-y: visible; /* Let it stretch */
+            flex: none;
+            height: auto; /* Allow full height expansion */
+            padding-bottom: calc(
+                5rem + env(safe-area-inset-bottom)
+            ); /* Ensure enough safe scrolling space at bottom */
+        }
+        .row {
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+        .checkbox-field {
+            padding-top: 0.5rem;
+            justify-content: flex-start;
+        }
+        .entries-list {
+            flex: none;
+            max-height: 35vh; /* Allow list to be moderately tall but independently scrollable */
+            min-height: 120px;
+        }
+        .editor-actions {
+            margin-bottom: 2rem; /* Add extra room at the bottom for scrolling */
+            flex-wrap: wrap; /* Wrap buttons if screen is too narrow */
+        }
+    }
 </style>
