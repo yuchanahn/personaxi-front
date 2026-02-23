@@ -492,13 +492,11 @@
         display: flex;
         justify-content: center;
         align-items: flex-end; /* Align bottom for mobile sheet */
-        padding-bottom: env(safe-area-inset-bottom);
         z-index: 10001; /* Higher than NavBottom (9999) */
         backdrop-filter: blur(8px);
     }
 
     .modal-backdrop.chat-mode {
-        padding-bottom: env(safe-area-inset-bottom);
     }
 
     .modal-content {
@@ -737,6 +735,7 @@
     /* Footer */
     .modal-footer {
         padding: 24px;
+        padding-bottom: calc(24px + env(safe-area-inset-bottom));
         background: var(--card);
         border-top: 1px solid var(--border);
         display: flex;
