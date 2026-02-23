@@ -496,16 +496,13 @@
         backdrop-filter: blur(8px);
     }
 
-    .modal-backdrop.chat-mode {
-    }
-
     .modal-content {
         background-color: var(--card);
         border-top-left-radius: 24px;
         border-top-right-radius: 24px;
         width: 100%;
         max-width: 500px;
-        max-height: 85vh; /* Allow it to be tall but not full screen */
+        max-height: 85dvh; /* Allow it to be tall but not full screen */
         box-shadow: var(--shadow-popover);
         display: flex;
         flex-direction: column;
@@ -524,7 +521,7 @@
         .modal-content {
             border-radius: 24px;
             border-bottom: 1px solid var(--border);
-            max-height: 90vh;
+            max-height: 90dvh;
         }
     }
 
