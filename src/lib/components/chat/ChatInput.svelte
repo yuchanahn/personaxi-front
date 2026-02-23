@@ -4,6 +4,7 @@
   import { t } from "svelte-i18n";
   import SttComponent from "../stt/SttComponent.svelte";
   import { st_user } from "$lib/stores/user";
+  import { toast } from "$lib/stores/toast";
 
   import { pricingStore } from "$lib/stores/pricing";
   import { onMount, tick } from "svelte";
@@ -193,7 +194,9 @@
           bind:isListening
           onSpeechComplete={(text) => {
             prompt = text;
-            if (!isDisabled) SendPrompt();
+            if (!isDisabled) {
+              SendPrompt();
+            }
           }}
         />
       </div>

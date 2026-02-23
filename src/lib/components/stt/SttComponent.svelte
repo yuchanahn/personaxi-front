@@ -63,7 +63,7 @@
         <button
             class="mic-button"
             class:listening={isListening}
-            on:click={toggleListen}
+            onclick={toggleListen}
             aria-label={isListening ? "음성 인식 중지" : "음성 인식 시작"}
         >
             <Icon icon="mdi:microphone" width="32" height="32" />
@@ -145,10 +145,6 @@
         line-height: 1.5;
         overflow-wrap: break-word;
         box-sizing: border-box;
-    }
-
-    .transcript-box p {
-        margin: 0;
     }
 
     .error {
