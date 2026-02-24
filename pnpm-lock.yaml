@@ -8,6 +8,9 @@ importers:
 
   .:
     dependencies:
+      '@astrodraw/astrochart':
+        specifier: ^3.0.2
+        version: 3.0.2
       '@ffmpeg/ffmpeg':
         specifier: ^0.12.15
         version: 0.12.15
@@ -32,6 +35,9 @@ importers:
       chinese-calendar:
         specifier: ^1.0.3
         version: 1.0.3
+      circular-natal-horoscope-js:
+        specifier: ^1.1.0
+        version: 1.1.0
       eventsource-parser:
         specifier: ^3.0.3
         version: 3.0.3
@@ -144,6 +150,9 @@ packages:
 
   '@asamuzakjp/nwsapi@2.3.9':
     resolution: {integrity: sha512-n8GuYSrI9bF7FFZ/SjhwevlHc8xaVlb/7HmHelnc/PZXBD2ZR49NnN9sMMuDdEGPeeRQ5d0hqlSlEpgCX3Wl0Q==}
+
+  '@astrodraw/astrochart@3.0.2':
+    resolution: {integrity: sha512-LopHZSXjL4FZm5xLeti6kp9z+x08vte8yA+imstZu5c1XpGyU0YR7cdML56FY594AWvNfafN8fkt2YNtwo2pzQ==}
 
   '@csstools/color-helpers@5.1.0':
     resolution: {integrity: sha512-S11EXWJyy0Mz5SYvRmY8nJYTFFd1LCNV+7cXyAgQtOOuzb4EsgfqDufL+9esx72/eLhsRdGZwaldu/h+E4t4BA==}
@@ -937,6 +946,9 @@ packages:
     resolution: {integrity: sha512-+IxzY9BZOQd/XuYPRmrvEVjF/nqj5kgT4kEq7VofrDoM1MxoRjEWkrCC3EtLi59TVawxTAn+orJwFQcrqEN1+g==}
     engines: {node: '>=18'}
 
+  circular-natal-horoscope-js@1.1.0:
+    resolution: {integrity: sha512-MsOrwRa6pgDpv9tgnhB7sKhjQcWInSW0DnbF9XFnByKLFBJGHyLZOZGBS3JBDUvL1Ot+8eotqWMx9D3VxpkqxA==}
+
   cli-color@2.0.4:
     resolution: {integrity: sha512-zlnpg0jNcibNrO7GG9IeHH7maWFeCz+Ja1wx/7tZNU5ASSSSZ+/qZciM0/LHCYxSdqv5h2sdbQ/PXYdOuetXvA==}
     engines: {node: '>=0.10'}
@@ -1283,6 +1295,9 @@ packages:
     engines: {node: '>=10'}
     hasBin: true
 
+  moment-timezone@0.5.48:
+    resolution: {integrity: sha512-f22b8LV1gbTO2ms2j2z13MuPogNoh5UzxL3nzNAYKGraILnbGc9NEE6dyiiiLv46DGRb8A4kg8UKWLjPthxBHw==}
+
   moment-timezone@0.6.0:
     resolution: {integrity: sha512-ldA5lRNm3iJCWZcBCab4pnNL3HSZYXVb/3TYr75/1WCTWYuTqYUb5f/S384pncYjJ88lbO8Z4uPDvmoluHJc8Q==}
 
@@ -1497,6 +1512,9 @@ packages:
     engines: {node: '>=14.17'}
     hasBin: true
 
+  tz-lookup@6.1.25:
+    resolution: {integrity: sha512-fFewT9o1uDzsW1QnUU1ValqaihFnwiUiiHr1S79/fxOzKXYYvX+EHeRnpvQJ9B3Qg67wPXT6QF2Esc4pFOrvLg==}
+
   undici-types@7.16.0:
     resolution: {integrity: sha512-Zz+aZWSj8LE6zoxD+xrjh4VfkIG8Ya6LvYkZqtUQGJPZjYl53ypCaUwWqo7eI0x66KBGeRo+mlBEkMSeSZ38Nw==}
 
@@ -1646,6 +1664,8 @@ snapshots:
       lru-cache: 11.2.4
 
   '@asamuzakjp/nwsapi@2.3.9': {}
+
+  '@astrodraw/astrochart@3.0.2': {}
 
   '@csstools/color-helpers@5.1.0': {}
 
@@ -2254,6 +2274,12 @@ snapshots:
 
   chownr@3.0.0: {}
 
+  circular-natal-horoscope-js@1.1.0:
+    dependencies:
+      moment: 2.30.1
+      moment-timezone: 0.5.48
+      tz-lookup: 6.1.25
+
   cli-color@2.0.4:
     dependencies:
       d: 1.0.2
@@ -2647,6 +2673,10 @@ snapshots:
 
   mkdirp@3.0.1: {}
 
+  moment-timezone@0.5.48:
+    dependencies:
+      moment: 2.30.1
+
   moment-timezone@0.6.0:
     dependencies:
       moment: 2.30.1
@@ -2898,6 +2928,8 @@ snapshots:
   type@2.7.3: {}
 
   typescript@5.8.3: {}
+
+  tz-lookup@6.1.25: {}
 
   undici-types@7.16.0: {}
 
