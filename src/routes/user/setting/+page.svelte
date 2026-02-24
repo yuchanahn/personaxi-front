@@ -816,7 +816,9 @@
                                 <div class="stat-value-container">
                                     <div class="stat-value-row">
                                         <span class="stat-value-large"
-                                            >{user.creator_points || 0}</span
+                                            >{(
+                                                user.creator_points || 0
+                                            ).toFixed(2)}</span
                                         >
                                         <span class="stat-unit">Points</span>
                                     </div>

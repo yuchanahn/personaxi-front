@@ -55,7 +55,7 @@ export async function loadChatHistory(sessionId: string, callback?: (esfprompt: 
                 recent_turns: [],
             };
             callback?.(esf);
-            messages.set([{ role: "assistant", content: "<first_scene>" }]);
+            messages.set([{ role: "assistant", content: "<first_scene>", done: true }]);
             console.warn("No chat history found for session:", sessionId);
             return;
         }
@@ -88,15 +88,16 @@ export async function loadChatHistory(sessionId: string, callback?: (esfprompt: 
 
         messages.set(
             [
-                { role: "assistant", content: "<first_scene>" },
+                { role: "assistant", content: "<first_scene>", done: true },
                 ...history.map((msg: any) => ({
                     role: msg.role,
-                    content: msg.role === 'assistant' ? parseESFResponse(msg.content) : msg.content
+                    content: msg.role === 'assistant' ? parseESFResponse(msg.content) : msg.content,
+                    done: true,
                 }))
             ]
         );
     } else {
-        messages.set([{ role: "assistant", content: "<first_scene>" }]);
+        messages.set([{ role: "assistant", content: "<first_scene>", done: true }]);
     }
 }
 
@@ -110,9 +111,9 @@ export async function resetChatHistory(sessionId: string) {
     if (res.ok) {
         const r = await res.json();
         console.log("Reset chat history response:", r);
-        messages.set([{ role: "assistant", content: "<first_scene>" }]);
+        messages.set([{ role: "assistant", content: "<first_scene>", done: true }]);
     } else {
-        messages.set([{ role: "assistant", content: "<first_scene>" }]);
+        messages.set([{ role: "assistant", content: "<first_scene>", done: true }]);
     }
 }
 
@@ -190,6 +191,14 @@ export async function sendPromptStream(cid: string, prompt: string, type?: strin
             //}
         }
     }, type, onError).then(() => {
+        // Mark the last assistant message as done — this signal flows
+        // through $messages into the throttle loop in ChatWindow
+        messages.update((m) => {
+            const updated = [...m];
+            const last = updated.at(-1);
+            if (last?.role === 'assistant') last.done = true;
+            return updated;
+        });
         onDone?.();
         console.log(aiText)
     });

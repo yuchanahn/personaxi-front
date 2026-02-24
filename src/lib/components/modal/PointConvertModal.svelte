@@ -13,14 +13,15 @@
     let amount: number | null = null;
     let isLoading = false;
 
-    // Configuration (Mock)
+    // Configuration
     const FEE_RATE = 0; // 0% fee (Event)
     const EXCHANGE_RATE = 1; // 1 Point = 1 Neuron
-    const MIN_AMOUNT = 100;
+    const MIN_AMOUNT = 1; // Need at least 1 whole point
 
-    $: fee = amount ? Math.floor(amount * FEE_RATE) : 0;
+    $: fee = amount ? amount * FEE_RATE : 0;
     $: resultNeurons = amount ? Math.floor((amount - fee) * EXCHANGE_RATE) : 0;
-    $: isValid = amount && amount >= MIN_AMOUNT && amount <= userPoints;
+    $: isValid =
+        amount && Math.floor(amount) >= MIN_AMOUNT && amount <= userPoints;
 
     function handleClose() {
         dispatch("close");
@@ -79,7 +80,9 @@
                     <div class="label-row">
                         <span>{$t("pointConvertModal.convertAmount")}</span>
                         <span class="max-text"
-                            >{$t("pointConvertModal.max")}: {userPoints} P</span
+                            >{$t("pointConvertModal.max")}: {userPoints.toFixed(
+                                2,
+                            )} P</span
                         >
                     </div>
 
@@ -91,6 +94,7 @@
                             placeholder="0"
                             min="0"
                             max={userPoints}
+                            step="0.01"
                         />
                         <div class="suffix">
                             {#if userPoints > 0 && amount !== userPoints}
@@ -108,7 +112,7 @@
                         <p class="error-msg">
                             {$t("pointConvertModal.insufficientPoints")}
                         </p>
-                    {:else if amount && amount < MIN_AMOUNT}
+                    {:else if amount && Math.floor(amount) < MIN_AMOUNT}
                         <p class="error-msg">
                             {$t("pointConvertModal.minAmountError", {
                                 values: { min: MIN_AMOUNT },

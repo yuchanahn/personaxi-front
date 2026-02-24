@@ -14,6 +14,7 @@
   import { type Message } from "$lib/stores/messages";
   import { toast } from "$lib/stores/toast";
   import { api } from "$lib/api";
+  import { json } from "@sveltejs/kit";
 
   export let isLoading: boolean = false;
   export let showChat: boolean = true;
@@ -102,7 +103,7 @@
     | VarsStatusBlock;
 
   // Regex for stripping <vars> tags from AI output (they carry data, not display content)
-  const VARS_TAG_REGEX = /(?:\s*)<vars>[\s\S]*?<\/vars>(?:\s*)/g;
+  const VARS_TAG_REGEX = /(?:\s*)<vars\b[^>]*>[\s\S]*?<\/vars>(?:\s*)/gi;
 
   function parseAssistantContent(
     content: string,
@@ -126,6 +127,7 @@
 
     const processedContent = content
       .replace(VARS_TAG_REGEX, "") // Strip <vars> tags — they are data, not display content
+      .replace(/(?:\s*)<vars\b[^>]*>[\s\S]*$/i, "") // Strip incomplete <vars> tags during stream
       .replace(FIRST_SCENE_TAG_REGEX, () => {
         if (currentPersona?.first_scene) {
           let first_scene = currentPersona.first_scene;
@@ -319,6 +321,7 @@
   let throttleFrame: number;
   let currentThrottleIndex = -1;
   let currentThrottleCharIndex = 0;
+  let typingDone = true; // true when throttle finishes + stream done
 
   // Sync visibleMessages with global messages
   $: updateVisibleMessages($messages);
@@ -414,6 +417,7 @@
       visibleMessages = [...visibleMessages, { ...newMsg, content: "" }];
       currentThrottleIndex = newIndex;
       currentThrottleCharIndex = 0;
+      typingDone = false; // New assistant message started
       startThrottleLoop();
     } else if (globalMsgs.length === visibleMessages.length) {
       const idx = globalMsgs.length - 1;
@@ -612,6 +616,13 @@
       } else {
         if (Math.floor(currentThrottleCharIndex) >= targetContent.length) {
           cancelThrottle();
+          // Check if the stream is also done (msg.done flag)
+          const msgDone = globalMsgs[currentThrottleIndex]?.done === true;
+          if (msgDone && !typingDone) {
+            typingDone = true;
+            // Trigger Svelte reactivity so chatLog rebuilds with typingDone=true
+            visibleMessages = [...visibleMessages];
+          }
         }
       }
     }
@@ -657,17 +668,8 @@
         } else {
           blocks = parseAssistantContent(msg.content, messageId, persona);
 
-          // Inject inline variable status panel after this assistant message
-          // Only show if:
-          // 1. Feature is enabled
-          // 2. Persona has variables
-          // 3. Message is fully typed (content length matches) OR it's not the last message
-          // 4. If it IS the last message, ensure loading is finished
           const isLastMessage = i === visibleMessages.length - 1;
-          const isTypingComplete =
-            !isLastMessage ||
-            (msg.content.length === ($messages[i]?.content?.length || 0) &&
-              !isLoading);
+          const isTypingComplete = !isLastMessage || typingDone;
 
           if (
             isTypingComplete &&
@@ -681,14 +683,13 @@
               id: `${messageId}-vars`,
               variables: varsAtThisPoint,
             });
-            // Force scroll to bottom when status panel appears
+
             if (autoScroll && showVariableStatus) {
               tick().then(() => scrollToBottom());
             }
           }
 
-          const is2D =
-            persona?.personaType === "2D" || persona?.personaType === "2.5D";
+          const is2D = persona?.personaType === "2D";
           if (
             is2D &&
             i === $messages.length - 1 &&

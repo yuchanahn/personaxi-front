@@ -86,4 +86,12 @@ export async function handleSendToCharacter(cid: string, prompt: string, model?:
         },
         "3d"
     );
+
+    // Mark the last assistant message as done
+    messages.update((m) => {
+        const updated = [...m];
+        const last = updated.at(-1);
+        if (last?.role === 'assistant') last.done = true;
+        return updated;
+    });
 }
