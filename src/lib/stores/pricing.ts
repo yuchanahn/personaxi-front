@@ -10,6 +10,7 @@ export interface PricingPolicy {
 export interface PurchaseOption {
     neurons: number;
     price_krw: number;
+    price_usd?: number;
     price_display: string;
     item_id: string;
     bonus_ratio?: number;

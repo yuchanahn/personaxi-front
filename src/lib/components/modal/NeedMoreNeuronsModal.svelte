@@ -1,7 +1,7 @@
 <script lang="ts">
     import { goto } from "$app/navigation";
     import { getCurrentUser } from "$lib/api/auth";
-    import { createEventDispatcher, onDestroy, onMount } from "svelte";
+    import { createEventDispatcher, onDestroy, onMount, tick } from "svelte";
     import { t } from "svelte-i18n";
     import Icon from "@iconify/svelte";
     import NeuronIcon from "../icons/NeuronIcon.svelte";
@@ -14,6 +14,116 @@
     import { slide, fly, fade } from "svelte/transition";
     import { page } from "$app/stores";
     import { v4 as uuidv4 } from "uuid";
+    import { api } from "$lib/api";
+
+    // --- IP-based country detection ---
+    let isKorean: boolean | null = null; // null = loading
+    let paypalContainerEl: HTMLDivElement;
+    let lastRenderedOptionId: string | null = null;
+
+    async function detectCountry() {
+        try {
+            const res = await fetch("https://ipapi.co/json/");
+            const data = await res.json();
+            isKorean = data.country_code === "KR";
+            console.log(
+                `[GeoIP] Country: ${data.country_code}, isKorean: ${isKorean}`,
+            );
+        } catch (e) {
+            console.warn("[GeoIP] Detection failed, defaulting to Korean:", e);
+            isKorean = true; // Fallback to Korean (PortOne)
+        }
+    }
+
+    // --- PayPal Checkout Flow ---
+    function tryRenderPayPalButtons() {
+        // @ts-ignore
+        if (!window.paypal || !paypalContainerEl) return;
+        if (!selectedOption || !agreedToPolicies) return;
+
+        // Skip if already rendered for this option
+        if (lastRenderedOptionId === selectedOption.item_id) return;
+
+        paypalContainerEl.innerHTML = "";
+
+        const currentItemId = selectedOption.item_id;
+
+        // @ts-ignore
+        window.paypal
+            .Buttons({
+                style: {
+                    layout: "vertical",
+                    color: "gold",
+                    shape: "rect",
+                    label: "paypal",
+                    height: 45,
+                },
+                createOrder: async () => {
+                    try {
+                        const res = await api.post("/api/paypal/create-order", {
+                            item_id: selectedOption.item_id,
+                        });
+                        if (!res.ok) {
+                            const err = await res.json().catch(() => ({}));
+                            throw new Error(
+                                err.error || "Failed to create order",
+                            );
+                        }
+                        const data = await res.json();
+                        return data.orderID;
+                    } catch (e: any) {
+                        toast.error(
+                            e.message || "Failed to create PayPal order",
+                        );
+                        throw e;
+                    }
+                },
+                onApprove: async (data: any) => {
+                    isPurchasing = true;
+                    try {
+                        const res = await api.post("/api/paypal/capture", {
+                            orderID: data.orderID,
+                        });
+                        if (!res.ok) {
+                            const err = await res.json().catch(() => ({}));
+                            throw new Error(
+                                err.error || "Payment capture failed",
+                            );
+                        }
+                        const result = await res.json();
+
+                        // Refresh user data
+                        const user = await getCurrentUser();
+                        if (user) st_user.set(user);
+
+                        toast.success(
+                            `Payment successful! +${result.neurons} Neurons`,
+                        );
+                        closeModal();
+                    } catch (e: any) {
+                        toast.error(e.message || "Payment failed");
+                    } finally {
+                        isPurchasing = false;
+                    }
+                },
+                onError: (err: any) => {
+                    console.error("[PayPal] Button error:", err);
+                    toast.error("PayPal encountered an error.");
+                },
+            })
+            .render(paypalContainerEl)
+            .then(() => {
+                lastRenderedOptionId = currentItemId;
+            });
+    }
+
+    // Trigger PayPal render from explicit user actions (not $: reactive)
+    function maybeRenderPayPal() {
+        if (isKorean !== false) return;
+        if (!selectedOption || !agreedToPolicies || !paypalContainerEl) return;
+        // setTimeout to escape Svelte's update cycle
+        setTimeout(() => tryRenderPayPalButtons(), 100);
+    }
 
     let noticeContent = "";
     let isNoticeOpen = true;
@@ -62,9 +172,6 @@
         dispatch("close");
     }
 
-    onMount(() => {
-        window.addEventListener("keydown", handleKeydown);
-    });
     onDestroy(() => {
         window.removeEventListener("keydown", handleKeydown);
     });
@@ -81,6 +188,8 @@
     function selectOption(option: any) {
         selectedOptionId = option.id;
         selectedOption = option;
+        lastRenderedOptionId = null; // Reset so PayPal re-renders for new option
+        maybeRenderPayPal();
     }
 
     // PortOne V2
@@ -155,15 +264,28 @@
 
     onMount(() => {
         window.addEventListener("keydown", handleKeydown);
+        detectCountry();
 
         if (isOpen) {
             pricingStore.fetchPricingPolicy();
         }
 
+        // Load PortOne SDK
         if (!document.getElementById("portone-v2-sdk")) {
             const script = document.createElement("script");
             script.id = "portone-v2-sdk";
             script.src = "https://cdn.portone.io/v2/browser-sdk.js";
+            script.defer = true;
+            document.body.appendChild(script);
+        }
+
+        // Load PayPal SDK
+        if (!document.getElementById("paypal-sdk")) {
+            const script = document.createElement("script");
+            script.id = "paypal-sdk";
+            // TODO: Replace PLACEHOLDER with actual PayPal Client ID
+            script.src =
+                "https://www.paypal.com/sdk/js?client-id=ATj3iC5_ZaCmh54RLvDfhd80nWHfZV1l1TMih0exrj6ZLSL-xz8PQ1wrrIxbdKfCqiADWBIcmbKoHztr&currency=USD";
             script.defer = true;
             document.body.appendChild(script);
         }
@@ -198,8 +320,22 @@
     }
 
     function getStandardPrice(totalNeurons: number) {
-        // baseline: 1 neuron = 10 KRW
+        // baseline: 1 neuron = 10 KRW or $0.008 USD
+        if (isKorean === false) {
+            return +(totalNeurons * 0.008).toFixed(2);
+        }
         return totalNeurons * 10;
+    }
+
+    function getDisplayPrice(option: any): string {
+        if (isKorean === false && option.price_usd) {
+            return `$${option.price_usd.toFixed(2)}`;
+        }
+        return option.price_display;
+    }
+
+    function getDisplayCurrency(): string {
+        return isKorean === false ? "$" : "₩";
     }
 
     function getPaymentParams() {
@@ -306,7 +442,7 @@
 
                 <!-- Pricing Options List -->
                 <div class="pricing-list">
-                    {#each $pricingStore.purchase_options as option, i}
+                    {#each $pricingStore.purchase_options.filter((o) => isKorean !== false || (o.price_usd && o.price_usd > 0)) as option, i}
                         {@const isSelected = selectedOption === option}
                         {@const iconProps = getProductIconProps(i)}
                         {@const bonusPercent = getBonusPercentage(option)}
@@ -361,16 +497,24 @@
 
                                 <div class="price-container">
                                     <!-- Discount Logic matching shop page -->
-                                    {#if option.price_krw < standardPrice}
+                                    {#if isKorean !== false && option.price_krw < standardPrice}
                                         <span class="old-price">
                                             {standardPrice.toLocaleString()}₩
                                         </span>
+                                    {:else if isKorean === false}
+                                        {@const usdStandard =
+                                            getStandardPrice(totalNeurons)}
+                                        {#if option.price_usd && option.price_usd < usdStandard}
+                                            <span class="old-price">
+                                                ${usdStandard.toFixed(2)}
+                                            </span>
+                                        {/if}
                                     {/if}
                                     <span
                                         class="current-price"
                                         class:highlight={isSelected}
                                     >
-                                        {option.price_display}
+                                        {getDisplayPrice(option)}
                                     </span>
                                 </div>
                             </div>
@@ -432,6 +576,7 @@
                         <input
                             type="checkbox"
                             bind:checked={agreedToPolicies}
+                            on:change={() => maybeRenderPayPal()}
                         />
                         <span class="checkbox-custom">
                             {#if agreedToPolicies}
@@ -455,25 +600,51 @@
                     <span>{$t("shop.current_neurons")}</span>
                     <strong>{current_neurons_count.toLocaleString()} N</strong>
                 </div>
-                <button
-                    class="purchase-btn"
-                    disabled={isPurchasing ||
-                        !selectedOption ||
-                        !agreedToPolicies}
-                    on:click={handleRecharge}
-                >
-                    {#if isPurchasing}
-                        <span class="spinner"></span>
-                    {:else if selectedOption}
-                        {$t("shop.purchase_button", {
-                            values: {
-                                price: selectedOption.price_display,
-                            },
-                        })}
-                    {:else}
-                        {$t("shop.select_option")}
+                {#if isKorean === null}
+                    <!-- Loading country detection -->
+                    <div class="loading-geo">
+                        <Icon icon="svg-spinners:ring-resize" width="20" />
+                    </div>
+                {:else if isKorean}
+                    <!-- Korean: PortOne card payment -->
+                    <button
+                        class="purchase-btn"
+                        disabled={isPurchasing ||
+                            !selectedOption ||
+                            !agreedToPolicies}
+                        on:click={handleRecharge}
+                    >
+                        {#if isPurchasing}
+                            <span class="spinner"></span>
+                        {:else if selectedOption}
+                            {$t("shop.purchase_button", {
+                                values: {
+                                    price: selectedOption.price_display,
+                                },
+                            })}
+                        {:else}
+                            {$t("shop.select_option")}
+                        {/if}
+                    </button>
+                {:else}
+                    <!-- International: PayPal -->
+                    <div
+                        class="paypal-button-container"
+                        bind:this={paypalContainerEl}
+                        style:display={selectedOption && agreedToPolicies
+                            ? "block"
+                            : "none"}
+                    ></div>
+                    {#if !selectedOption || !agreedToPolicies}
+                        <button class="purchase-btn" disabled={true}>
+                            {#if !selectedOption}
+                                {$t("shop.select_option")}
+                            {:else}
+                                PayPal Checkout
+                            {/if}
+                        </button>
                     {/if}
-                </button>
+                {/if}
             </div>
         </div>
     </div>
@@ -509,6 +680,7 @@
         border: 1px solid var(--border);
         border-bottom: none;
         overflow: hidden;
+        overflow-y: auto; /* Allow scrolling for PayPal card form expansion */
         color: var(--foreground);
     }
 
@@ -738,6 +910,7 @@
         display: flex;
         flex-direction: column;
         gap: 3px;
+        overflow: visible; /* Allow PayPal card form to expand */
     }
 
     .policy-agreement {
@@ -919,5 +1092,19 @@
         font-weight: 700;
         margin-bottom: 4px !important;
         opacity: 0.9;
+    }
+
+    .paypal-button-container {
+        width: 100%;
+        min-height: 50px;
+        overflow: visible; /* PayPal card form needs room */
+    }
+
+    .loading-geo {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding: 12px 0;
+        opacity: 0.5;
     }
 </style>
