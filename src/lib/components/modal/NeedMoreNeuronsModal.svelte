@@ -442,7 +442,7 @@
 
                 <!-- Pricing Options List -->
                 <div class="pricing-list">
-                    {#each $pricingStore.purchase_options.filter((o) => isKorean !== false || (o.price_usd && o.price_usd > 0)) as option, i}
+                    {#each $pricingStore.purchase_options.filter((o) => isKorean === null || (isKorean ? o.price_krw > 0 : o.price_usd && o.price_usd > 0)) as option, i}
                         {@const isSelected = selectedOption === option}
                         {@const iconProps = getProductIconProps(i)}
                         {@const bonusPercent = getBonusPercentage(option)}
