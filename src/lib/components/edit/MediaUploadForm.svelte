@@ -19,7 +19,8 @@
     export let allVoices: any[] = [];
     export let selectedVoiceId: string;
 
-    const supabaseURL = "/storage/v1/object/public/personaxi-assets/";
+    const supabaseURL =
+        "https://uohepkqmwbstbmnkoqju.supabase.co/storage/v1/object/public/personaxi-assets/";
 
     let vrmFile: File | null = null;
     let live2dFile: File | null = null;
@@ -69,15 +70,15 @@
 
             // Check if video
             if (originalFile.type.startsWith("video/")) {
-                // 1. Duration Check (Max 5s)
+                // 1. Duration Check (Max 6s)
                 const { valid, duration } = await checkVideoDuration(
                     originalFile,
-                    5,
+                    6,
                 );
                 if (!valid) {
-                    if (duration > 5) {
+                    if (duration > 6) {
                         toast.error(
-                            `Video is too long (${duration.toFixed(1)}s). Max 5 seconds allowed.`,
+                            `Video is too long (${duration.toFixed(1)}s). Max 6 seconds allowed.`,
                         );
                     } else {
                         toast.error("Failed to load video metadata.");

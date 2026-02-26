@@ -97,6 +97,7 @@
     />
 {:else if asset.type === "video"}
     <video
+        src={asset.url}
         autoplay
         loop
         muted
@@ -106,7 +107,6 @@
         on:loadeddata={() => dispatch("load", { url: asset.url })}
         on:error={() => dispatch("error", { url: asset.url })}
     >
-        <source src={asset.url} type="video/mp4" />
         <track kind="captions" />
         Your browser does not support the video tag.
     </video>
