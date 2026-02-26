@@ -196,8 +196,6 @@
         margin: 0;
         white-space: pre-wrap;
         color: #2d3436;
-        font-family: -apple-system, BlinkMacSystemFont, "Pretendard", "Segoe UI",
-            Roboto, sans-serif;
         font-size: 1.05rem;
         font-weight: 600;
         line-height: 1.5;
