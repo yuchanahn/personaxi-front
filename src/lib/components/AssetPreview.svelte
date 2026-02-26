@@ -29,8 +29,9 @@
     let videoEl: HTMLVideoElement | null = null;
 
     $: if (asset.type === "video" && videoEl && asset.url) {
-        videoEl.load();
-        videoEl.play?.().catch(() => {});
+        // Do NOT call videoEl.load() or videoEl.play() here.
+        // On iOS, load() resets autoplay, and play() outside user gesture is blocked.
+        // The autoplay attribute handles playback natively.
     }
 
     $: {
@@ -102,13 +103,11 @@
         loop
         muted
         playsinline
-        crossorigin="anonymous"
         class="asset-preview-media gif-like-video"
         bind:this={videoEl}
         on:loadeddata={() => dispatch("load", { url: asset.url })}
         on:error={() => dispatch("error", { url: asset.url })}
     >
-        <track kind="captions" />
         Your browser does not support the video tag.
     </video>
 {:else if asset.type === "unknown"}
