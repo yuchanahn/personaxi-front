@@ -102,6 +102,7 @@
         loop
         muted
         playsinline
+        crossorigin="anonymous"
         class="asset-preview-media gif-like-video"
         bind:this={videoEl}
         on:loadeddata={() => dispatch("load", { url: asset.url })}

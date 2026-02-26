@@ -1,4 +1,4 @@
-const VERSION = 'v0.3.2';                            // ← 버전만 올리면 배포된 SW가 교체됨
+const VERSION = 'v0.3.3';                            // ← 버전만 올리면 배포된 SW가 교체됨
 const PRECACHE = `precache-${VERSION}`;          // 정적 자산
 const RUNTIME = `runtime-${VERSION}`;           // 동적 캐시
 
@@ -45,7 +45,7 @@ self.addEventListener('fetch', event => {
     }
 
     // 2) 정적 자산(정적 import, 폰트 등) → 캐시 우선
-    if (request.destination && ['script', 'style', 'worker', 'font', 'image'].includes(request.destination)) {
+    if (request.destination && ['script', 'style', 'worker', 'font', 'image', 'video'].includes(request.destination)) {
         event.respondWith(
             caches.match(request).then(cached =>
                 cached ||
