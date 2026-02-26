@@ -168,25 +168,36 @@ body {
     --shadow-date-field-focus: 0 0 0 4px hsla(270, 90%, 60%, 0.20);
 }
 
-/* Light scrollbar */
+/* Auto-hiding scrollbar (Chrome/Safari/Edge) */
 :root ::-webkit-scrollbar {
-    width: 8px;
-    height: 8px;
+    width: 6px;
+    height: 6px;
 }
 
 :root ::-webkit-scrollbar-track {
-    background: var(--scrollbar-track);
-    border-radius: var(--radius-sm);
+    background: transparent;
 }
 
 :root ::-webkit-scrollbar-thumb {
-    background: var(--scrollbar-thumb);
-    border-radius: var(--radius-sm);
-    transition: background var(--transition-fast);
+    background: transparent;
+    border-radius: 3px;
+    transition: background 0.3s ease;
 }
 
-:root ::-webkit-scrollbar-thumb:hover {
-    background: hsl(220 10% 70%);
+:root *:hover::-webkit-scrollbar-thumb {
+    background: var(--scrollbar-thumb);
+}
+
+:root *:hover::-webkit-scrollbar-thumb:hover {
+    background: hsl(220 10% 65%);
+}
+
+/* Firefox: thin scrollbar (auto-hide not supported via CSS) */
+@-moz-document url-prefix() {
+    * {
+        scrollbar-width: thin;
+        scrollbar-color: var(--scrollbar-thumb) transparent;
+    }
 }
 
 :root ::selection {
@@ -378,23 +389,26 @@ body {
 }
 
 [data-theme="dark"] ::-webkit-scrollbar {
-    width: 8px;
-    height: 8px;
+    width: 6px;
+    height: 6px;
 }
 
 [data-theme="dark"] ::-webkit-scrollbar-track {
-    background: var(--scrollbar-track);
-    border-radius: var(--radius-sm);
+    background: transparent;
 }
 
 [data-theme="dark"] ::-webkit-scrollbar-thumb {
-    background: var(--scrollbar-thumb);
-    border-radius: var(--radius-sm);
-    transition: background var(--transition-fast);
+    background: transparent;
+    border-radius: 3px;
+    transition: background 0.3s ease;
 }
 
-[data-theme="dark"] ::-webkit-scrollbar-thumb:hover {
-    background: hsl(220, 20%, 35%);
+[data-theme="dark"] *:hover::-webkit-scrollbar-thumb {
+    background: var(--scrollbar-thumb);
+}
+
+[data-theme="dark"] *:hover::-webkit-scrollbar-thumb:hover {
+    background: hsl(220, 20%, 40%);
 }
 
 [data-theme="dark"] ::selection {
@@ -654,8 +668,6 @@ body {
     html {
         -webkit-text-size-adjust: 100%;
         font-variation-settings: normal;
-        scrollbar-width: thin;
-        scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
     }
 
     body {
