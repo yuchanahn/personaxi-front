@@ -99,6 +99,7 @@
 {:else if asset.type === "video"}
     <video
         src={asset.url}
+        poster={asset.static_url || undefined}
         autoplay
         loop
         muted
