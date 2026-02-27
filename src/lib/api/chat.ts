@@ -236,7 +236,19 @@ export async function impl_sendPromptStream(
         const { events, done } = await tickSSEStream2(reader, decoder, { buffer });
 
         for (const event of events) {
-            if (event.type === 'affection') {
+            if (event.type === 'error') {
+                // Handle LLM error from server
+                try {
+                    const errorData = JSON.parse(event.data);
+                    console.error("🚫 Server Error:", errorData.message);
+                    window.dispatchEvent(new CustomEvent('chat-error', { detail: errorData }));
+                } catch (e) {
+                    console.error("🚫 Server Error:", event.data);
+                    window.dispatchEvent(new CustomEvent('chat-error', { detail: { message: event.data } }));
+                }
+                onError?.(new Error("Server error"));
+                return;
+            } else if (event.type === 'affection') {
                 // Handle affection update
                 try {
                     const affectionData = JSON.parse(event.data);

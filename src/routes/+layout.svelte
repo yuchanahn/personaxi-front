@@ -72,6 +72,15 @@
     onMount(() => {
         if (!browser) return;
 
+        // Global chat error handler — show toast when LLM fails
+        const handleChatError = (e: CustomEvent) => {
+            toast.error(
+                e.detail?.message ||
+                    "일시적인 오류가 발생했어요. 다시 시도해주세요.",
+            );
+        };
+        window.addEventListener("chat-error", handleChatError as EventListener);
+
         pricingStore.fetchPricingPolicy();
 
         // 1. 초기 세션 로드
