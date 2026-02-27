@@ -27,6 +27,7 @@
     };
 
     let videoEl: HTMLVideoElement | null = null;
+    let videoReady = false;
 
     $: if (asset.type === "video" && videoEl && asset.url) {
         // Do NOT call videoEl.load() or videoEl.play() here.
@@ -40,6 +41,9 @@
             !asset.type &&
             !(asset.is_secret && !asset.url) &&
             !isFetching;
+
+        // Reset video state when asset changes
+        videoReady = false;
 
         if (shouldFetchType && asset.url) {
             const cachedType = getCachedType(asset.url);
@@ -97,20 +101,33 @@
         on:error={() => dispatch("error", { url: asset.url })}
     />
 {:else if asset.type === "video"}
-    <video
-        src={asset.url}
-        poster={asset.static_url || undefined}
-        autoplay
-        loop
-        muted
-        playsinline
-        class="asset-preview-media gif-like-video"
-        bind:this={videoEl}
-        on:loadeddata={() => dispatch("load", { url: asset.url })}
-        on:error={() => dispatch("error", { url: asset.url })}
-    >
-        Your browser does not support the video tag.
-    </video>
+    <div class="video-container">
+        {#if !videoReady}
+            <img
+                src={asset.static_url || "/placeholder-portrait.png"}
+                alt="preview"
+                class="asset-preview-media video-poster-layer"
+            />
+        {/if}
+        <video
+            src={asset.url}
+            poster={asset.static_url || undefined}
+            autoplay
+            loop
+            muted
+            playsinline
+            class="asset-preview-media gif-like-video"
+            class:video-visible={videoReady}
+            bind:this={videoEl}
+            on:playing={() => {
+                videoReady = true;
+            }}
+            on:loadeddata={() => dispatch("load", { url: asset.url })}
+            on:error={() => dispatch("error", { url: asset.url })}
+        >
+            Your browser does not support the video tag.
+        </video>
+    </div>
 {:else if asset.type === "unknown"}
     <div class="fallback">
         <Icon icon="ph:file-duotone" width="48" height="48" />
@@ -147,6 +164,29 @@
 
     .gif-like-video {
         pointer-events: none;
+        opacity: 0;
+        transition: opacity 0.15s ease;
+    }
+
+    .gif-like-video.video-visible {
+        opacity: 1;
+    }
+
+    .video-container {
+        position: relative;
+        width: 100%;
+        height: 100%;
+    }
+
+    .video-poster-layer {
+        position: absolute;
+        inset: 0;
+        z-index: 1;
+    }
+
+    .video-container video {
+        position: relative;
+        z-index: 2;
     }
 
     .fallback {
