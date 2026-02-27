@@ -17,7 +17,7 @@
   let Viewer: VrmModelViewer;
   let showChat: boolean = false;
 
-  let affectionScore = 100;
+  let affectionScore = 0;
   let blackOpacity = 1;
   let pinkOpacity = 0;
 
@@ -85,6 +85,7 @@
       if (sessionId) {
         persona = null;
         // Reset state
+        affectionScore = 0;
 
         Promise.all([
           loadChatHistory(sessionId, (esf) => {

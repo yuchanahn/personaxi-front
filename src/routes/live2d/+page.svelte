@@ -112,6 +112,7 @@
                 motionExprMap = {};
                 expressionMap = {}; // Reset map
                 hitMotionMap = {}; // Reset map
+                affectionScore = 0; // Reset affection for new session
 
                 Promise.all([
                     loadChatHistory(sessionId, (esf) => {
