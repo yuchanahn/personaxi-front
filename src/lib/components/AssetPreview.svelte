@@ -28,6 +28,7 @@
 
     let videoEl: HTMLVideoElement | null = null;
     let videoReady = false;
+    let lastAssetUrl = "";
 
     $: if (asset.type === "video" && videoEl && asset.url) {
         // Do NOT call videoEl.load() or videoEl.play() here.
@@ -42,8 +43,11 @@
             !(asset.is_secret && !asset.url) &&
             !isFetching;
 
-        // Reset video state when asset changes
-        videoReady = false;
+        // Only reset video state when URL actually changes
+        if (asset?.url && asset.url !== lastAssetUrl) {
+            lastAssetUrl = asset.url;
+            videoReady = false;
+        }
 
         if (shouldFetchType && asset.url) {
             const cachedType = getCachedType(asset.url);
