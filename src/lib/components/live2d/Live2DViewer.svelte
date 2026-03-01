@@ -28,17 +28,18 @@
     let isLoaded = false;
     let hasPlayedStartVoice = false;
 
-    $: if (isLoaded && currentModel && startVoiceUrl && !hasPlayedStartVoice) {
-        console.log("[Live2D] Autoplay Start Voice:", startVoiceUrl);
+    $: if (isLoaded && currentModel && !hasPlayedStartVoice) {
         hasPlayedStartVoice = true;
-        setTimeout(() => {
-            speak(startVoiceUrl as string);
-        }, 500);
-    } else if (!hasPlayedStartVoice) {
-        hasPlayedStartVoice = true;
-        setTimeout(() => {
-            autonomy?.setEmotion("SLEEP");
-        }, 500);
+        if (startVoiceUrl) {
+            console.log("[Live2D] Autoplay Start Voice:", startVoiceUrl);
+            setTimeout(() => {
+                speak(startVoiceUrl as string);
+            }, 500);
+        } else {
+            setTimeout(() => {
+                autonomy?.setEmotion("SLEEP");
+            }, 500);
+        }
     }
 
     let showDebug = false;
