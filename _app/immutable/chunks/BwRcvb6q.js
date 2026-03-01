@@ -1,0 +1,1 @@
+import{F as d,I as n,G as u,ao as c,s as p}from"./BUDlkbfV.js";function y(f,o,r){d(()=>{var a=n(()=>o(f,r?.())||{});if(r&&a?.update){var t=!1,s={};u(()=>{var e=r();c(e),t&&p(s,e)&&(s=e,a.update(e))}),t=!0}if(a?.destroy)return()=>a.destroy()})}export{y as a};

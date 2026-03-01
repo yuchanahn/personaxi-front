@@ -1,0 +1,1 @@
+import{w as o}from"./e6l8DgL1.js";const s=o({isOpen:!1,isNeedNeurons:!1});function r(e=!0){s.set({isOpen:!0,isNeedNeurons:e})}function a(){s.update(e=>({...e,isOpen:!1}))}export{a as c,s as n,r as s};
