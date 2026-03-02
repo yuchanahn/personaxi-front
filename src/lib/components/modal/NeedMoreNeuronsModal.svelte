@@ -15,6 +15,7 @@
     import { page } from "$app/stores";
     import { v4 as uuidv4 } from "uuid";
     import { api } from "$lib/api";
+    import { env } from "$env/dynamic/public";
 
     // --- IP-based country detection ---
     let isKorean: boolean | null = null; // null = loading
@@ -33,6 +34,8 @@
             console.warn("[GeoIP] Detection failed, defaulting to Korean:", e);
             isKorean = true; // Fallback to Korean (PortOne)
         }
+
+        isKorean = false;
     }
 
     // --- PayPal Checkout Flow ---
@@ -122,6 +125,14 @@
     function maybeRenderPayPal() {
         if (isKorean !== false) return;
         if (!selectedOption || !agreedToPolicies || !paypalContainerEl) return;
+
+        // If PayPal SDK hasn't loaded yet, try again shortly
+        // @ts-ignore
+        if (!window.paypal) {
+            setTimeout(() => maybeRenderPayPal(), 200);
+            return;
+        }
+
         // setTimeout to escape Svelte's update cycle
         setTimeout(() => tryRenderPayPalButtons(), 100);
     }
@@ -280,9 +291,12 @@
             document.body.appendChild(script);
         }
 
-        // Load PayPal SDK with dynamic currency
-        loadPayPalSDK();
+        // Load PayPal SDK is now handled by a reactive statement below
     });
+
+    $: if ($locale && typeof window !== "undefined") {
+        setTimeout(() => loadPayPalSDK(), 50);
+    }
 
     let current_neurons_count: number = 0;
     $: current_neurons_count = $st_user?.credits || 0;
@@ -347,15 +361,39 @@
     }
 
     function loadPayPalSDK() {
-        // Remove old SDK if currency changed
-        const oldScript = document.getElementById("paypal-sdk");
-        if (oldScript) oldScript.remove();
+        if (typeof window === "undefined" || !document) return;
 
         const currency = getPayPalCurrency();
+
+        // Remove old SDK if currency changed
+        const oldScript = document.getElementById(
+            "paypal-sdk",
+        ) as HTMLScriptElement;
+        if (oldScript) {
+            if (oldScript.src.includes(`currency=${currency}`)) {
+                return; // already loaded for this currency
+            }
+            oldScript.remove();
+            // @ts-ignore
+            delete window.paypal;
+        }
+
         const script = document.createElement("script");
         script.id = "paypal-sdk";
-        script.src = `https://www.paypal.com/sdk/js?client-id=ATj3iC5_ZaCmh54RLvDfhd80nWHfZV1l1TMih0exrj6ZLSL-xz8PQ1wrrIxbdKfCqiADWBIcmbKoHztr&currency=${currency}`;
+
+        const clientId =
+            env.PUBLIC_PAYPAL_CLIENT_ID ||
+            "ATj3iC5_ZaCmh54RLvDfhd80nWHfZV1l1TMih0exrj6ZLSL-xz8PQ1wrrIxbdKfCqiADWBIcmbKoHztr";
+        script.src = `https://www.paypal.com/sdk/js?client-id=${clientId}&currency=${currency}`;
         script.defer = true;
+
+        script.onload = () => {
+            if (selectedOption) {
+                lastRenderedOptionId = null; // force re-render with new currency
+            }
+            maybeRenderPayPal();
+        };
+
         document.body.appendChild(script);
     }
 

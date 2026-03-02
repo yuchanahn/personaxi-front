@@ -38,11 +38,11 @@
     <section class="review-section">
         <h3 class="section-title">
             <Icon icon="ph:tag-duotone" width="20" />
-            카테고리 태그 선택
+            {$t("edit3.review.selectTags")}
             <span class="required">*</span>
         </h3>
         <p class="section-hint">
-            캐릭터의 장르/성격을 나타내는 태그를 최대 3개 선택하세요. ({selectedCount}/3)
+            {$t("edit3.review.tagsHint", { values: { count: selectedCount } })}
         </p>
         <div class="tags-grid">
             {#each categoryTags as category (category.id)}
@@ -64,7 +64,7 @@
     <section class="review-section">
         <h3 class="section-title">
             <Icon icon="ph:eye-duotone" width="20" />
-            미리보기
+            {$t("edit3.review.preview")}
         </h3>
 
         <div class="preview-card">
@@ -84,14 +84,14 @@
             </div>
             <div class="preview-info">
                 <h4 class="preview-name">
-                    {persona.name || "이름 없음"}
+                    {persona.name || $t("edit3.review.noName")}
                 </h4>
                 {#if persona.one_liner}
                     <p class="preview-oneliner">{persona.one_liner}</p>
                 {/if}
                 <div class="preview-meta">
                     <span class="preview-type">
-                        {persona.personaType || "타입 미선택"}
+                        {persona.personaType || $t("edit3.review.noType")}
                     </span>
                     <span class="preview-visibility">
                         <Icon
@@ -100,7 +100,9 @@
                                 : "ph:lock"}
                             width="14"
                         />
-                        {persona.visibility === "public" ? "공개" : "비공개"}
+                        {persona.visibility === "public"
+                            ? $t("edit3.review.public")
+                            : $t("edit3.review.private")}
                     </span>
                 </div>
                 {#if persona.greeting}
@@ -118,7 +120,7 @@
             <div class="validation-box">
                 <h4 class="validation-title">
                     <Icon icon="ph:warning-circle-duotone" width="20" />
-                    작성이 필요한 항목
+                    {$t("edit3.review.requiredItems")}
                 </h4>
                 <ul class="validation-list">
                     {#each validationErrors as err}
@@ -131,9 +133,7 @@
         <section class="review-section">
             <div class="success-box">
                 <Icon icon="ph:check-circle-duotone" width="24" />
-                <span
-                    >모든 필수 항목이 작성되었습니다. 저장할 준비가 되었어요!</span
-                >
+                <span>{$t("edit3.review.allReady")}</span>
             </div>
         </section>
     {/if}

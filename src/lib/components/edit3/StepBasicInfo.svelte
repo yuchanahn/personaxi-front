@@ -44,8 +44,7 @@
                 : $t("editPage.oneLinerLabel", { default: "한줄 소개" })}
         </label>
         <p class="field-hint">
-            프로필 카드에 표시됩니다. 매력적인 한 줄로 사람들의 관심을
-            끌어보세요!
+            {$t("edit3.basicInfo.oneLinerHint")}
         </p>
         <input
             id="e3-oneliner"
@@ -73,7 +72,7 @@
             {$t("editPage.greetingLabel", { default: "인사말" })}
             <span class="required">*</span>
         </label>
-        <p class="field-hint">프로필 페이지에서 캐릭터가 하는 첫 인사입니다.</p>
+        <p class="field-hint">{$t("edit3.basicInfo.greetingHint")}</p>
         <textarea
             id="e3-greeting"
             class="field-textarea"

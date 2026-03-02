@@ -960,6 +960,66 @@
       "notice": "공지"
     }
   },
+  "edit3": {
+    "steps": {
+      "type": "캐릭터 타입",
+      "basicInfo": "기본 정보",
+      "media": "미디어 & 에셋",
+      "prompt": "프롬프트",
+      "review": "태그 & 검토"
+    },
+    "validation": {
+      "typeRequired": "캐릭터 타입을 선택해주세요.",
+      "nameRequired": "캐릭터 이름을 입력해주세요.",
+      "greetingRequired": "인사말을 입력해주세요.",
+      "firstSceneRequired": "첫 장면을 작성해주세요.",
+      "kintsugiDescRequired": "Kintsugi 설명(Description)을 입력해주세요.",
+      "instructionRequired": "지시사항을 입력해주세요.",
+      "tagsRequired": "카테고리 태그를 최소 1개 선택해주세요.",
+      "fillRequiredFirst": "필수 항목을 먼저 입력해주세요."
+    },
+    "toast": {
+      "saveSuccess": "저장 완료!",
+      "draftLoaded": "이전에 작성 중이던 캐릭터를 불러왔습니다."
+    },
+    "type": {
+      "character": "캐릭터",
+      "story": "스토리",
+      "chat": "Chat",
+      "chatDesc": "텍스트와 이미지 기반의 대화형 캐릭터. 가장 간편하게 시작할 수 있어요.",
+      "live2d": "Live2D",
+      "live2dDesc": "Live2D 모델로 표정과 모션이 살아있는 캐릭터를 만들어보세요.",
+      "vrm3d": "3D (VRM)",
+      "vrm3dDesc": "VRM 3D 모델을 사용하는 입체적인 캐릭터를 만들어보세요.",
+      "whatToMake": "무엇을 만들까요?",
+      "selectCharType": "캐릭터 타입 선택"
+    },
+    "basicInfo": {
+      "oneLinerHint": "프로필 카드에 표시됩니다. 매력적인 한 줄로 사람들의 관심을 끌어보세요!",
+      "greetingHint": "프로필 페이지에서 캐릭터가 하는 첫 인사입니다."
+    },
+    "media": {
+      "title": "미디어 & 에셋",
+      "desc": "캐릭터의 프로필 이미지, 에셋, 모델 파일을 업로드하세요."
+    },
+    "prompt": {
+      "firstSceneHint": "대화가 시작될 때의 첫 장면을 작성하세요. 에셋 이미지를 본문에 넣으려면 <img 0>, <img 1> 형태의 태그를 삽입하세요.",
+      "firstScenePlaceholder": "예: 학교 옥상에서 바람이 불어오는 오후. {{char}}가 난간에 기대어 하늘을 바라보고 있다.",
+      "instructionHint": "캐릭터의 성격, 말투, 행동 규칙 등을 자유롭게 작성하세요.",
+      "lorebookHint": "특정 키워드가 등장할 때 AI에게 추가 정보를 제공합니다."
+    },
+    "review": {
+      "selectTags": "카테고리 태그 선택",
+      "tagsHint": "캐릭터의 장르/성격을 나타내는 태그를 최대 3개 선택하세요. ({{count}}/3)",
+      "preview": "미리보기",
+      "noName": "이름 없음",
+      "noType": "타입 미선택",
+      "public": "공개",
+      "private": "비공개",
+      "requiredItems": "작성이 필요한 항목",
+      "allReady": "모든 필수 항목이 작성되었습니다. 저장할 준비가 되었어요!"
+    }
+  },
   "hubBanner": {
     "event": {
       "title": "첫 페르소나 생성 시 뉴런 지급!",

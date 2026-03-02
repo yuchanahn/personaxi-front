@@ -960,6 +960,66 @@
       "notice": "お知らせ"
     }
   },
+  "edit3": {
+    "steps": {
+      "type": "キャラクタータイプ",
+      "basicInfo": "基本情報",
+      "media": "メディア＆アセット",
+      "prompt": "プロンプト",
+      "review": "タグ＆レビュー"
+    },
+    "validation": {
+      "typeRequired": "キャラクタータイプを選択してください。",
+      "nameRequired": "キャラクター名を入力してください。",
+      "greetingRequired": "挨拶文を入力してください。",
+      "firstSceneRequired": "最初のシーンを作成してください。",
+      "kintsugiDescRequired": "Kintsugiの説明（Description）を入力してください。",
+      "instructionRequired": "指示事項を入力してください。",
+      "tagsRequired": "カテゴリータグを少なくとも1つ選択してください。",
+      "fillRequiredFirst": "必須項目を先に入力してください。"
+    },
+    "toast": {
+      "saveSuccess": "保存完了！",
+      "draftLoaded": "以前作成中だったキャラクターを読み込みました。"
+    },
+    "type": {
+      "character": "キャラクター",
+      "story": "ストーリー",
+      "chat": "Chat",
+      "chatDesc": "テキストと画像ベースの対話型キャラクター。最も簡単に始められます。",
+      "live2d": "Live2D",
+      "live2dDesc": "Live2Dモデルで表情やモーションが生き生きとしたキャラクターを作成します。",
+      "vrm3d": "3D (VRM)",
+      "vrm3dDesc": "VRM3Dモデルを使用した立体的なキャラクターを作成します。",
+      "whatToMake": "何を作りますか？",
+      "selectCharType": "キャラクタータイプの選択"
+    },
+    "basicInfo": {
+      "oneLinerHint": "プロフィールカードに表示されます。魅力的な一言で人々の関心を惹きましょう！",
+      "greetingHint": "プロフィールページでキャラクターがする最初の挨拶です。"
+    },
+    "media": {
+      "title": "メディア＆アセット",
+      "desc": "キャラクターのプロフィール画像、アセット、モデルファイルをアップロードしてください。"
+    },
+    "prompt": {
+      "firstSceneHint": "会話が始まる時の最初のシーンを作成してください。アセット画像を本文に入れるには <img 0> のようなタグを挿入してください。",
+      "firstScenePlaceholder": "例：学校の屋上で風が吹く午後。{{char}}が手すりに寄りかかり空を眺めている。",
+      "instructionHint": "キャラクターの性格、言葉遣い、行動ルールなどを自由に記述してください。",
+      "lorebookHint": "特定のキーワードが登場した際にAIに追加情報を提供します。"
+    },
+    "review": {
+      "selectTags": "カテゴリータグの選択",
+      "tagsHint": "キャラクターのジャンル/性格を表すタグを最大3つまで選択してください。({{count}}/3)",
+      "preview": "プレビュー",
+      "noName": "名前なし",
+      "noType": "タイプ未選択",
+      "public": "公開",
+      "private": "非公開",
+      "requiredItems": "作成が必要な項目",
+      "allReady": "すべての必須項目が入力されました。保存の準備ができました！"
+    }
+  },
   "hubBanner": {
     "event": {
       "title": "最初のペルソナ作成でニューロン付与！",

@@ -984,6 +984,66 @@
     "testContext": "Context Simulator",
     "testPlaceholder": "e.g. Walking into the ancient forest..."
   },
+  "edit3": {
+    "steps": {
+      "type": "Character Type",
+      "basicInfo": "Basic Info",
+      "media": "Media & Assets",
+      "prompt": "Prompt",
+      "review": "Tags & Review"
+    },
+    "validation": {
+      "typeRequired": "Please select a character type.",
+      "nameRequired": "Please enter a character name.",
+      "greetingRequired": "Please enter a greeting.",
+      "firstSceneRequired": "Please write the first scene.",
+      "kintsugiDescRequired": "Please enter Kintsugi Description.",
+      "instructionRequired": "Please enter instructions.",
+      "tagsRequired": "Please select at least 1 category tag.",
+      "fillRequiredFirst": "Please fill out the required fields first."
+    },
+    "toast": {
+      "saveSuccess": "Saved successfully!",
+      "draftLoaded": "Loaded a previously drafted character."
+    },
+    "type": {
+      "character": "Character",
+      "story": "Story",
+      "chat": "Chat",
+      "chatDesc": "Interactive character based on text and images.",
+      "live2d": "Live2D",
+      "live2dDesc": "Create a character with vivid expressions and motions.",
+      "vrm3d": "3D (VRM)",
+      "vrm3dDesc": "Create a three-dimensional character using a VRM 3D model.",
+      "whatToMake": "What would you like to create?",
+      "selectCharType": "Select Character Type"
+    },
+    "basicInfo": {
+      "oneLinerHint": "Displayed on the profile card. Grab attention with a catchy line!",
+      "greetingHint": "The character's first greeting on their profile page."
+    },
+    "media": {
+      "title": "Media & Assets",
+      "desc": "Upload profile images, assets, and model files."
+    },
+    "prompt": {
+      "firstSceneHint": "Write the first scene when the conversation starts. E.g. <img 0>.",
+      "firstScenePlaceholder": "e.g. A windy afternoon on the school rooftop. {{char}} is leaning.",
+      "instructionHint": "Freely write about the character's personality, tone, etc.",
+      "lorebookHint": "Provides extra context to the AI when certain keywords appear."
+    },
+    "review": {
+      "selectTags": "Select Category Tags",
+      "tagsHint": "Select up to 3 tags describing the genre/personality. ({{count}}/3)",
+      "preview": "Preview",
+      "noName": "No Name",
+      "noType": "No Type Selected",
+      "public": "Public",
+      "private": "Private",
+      "requiredItems": "Required Items",
+      "allReady": "All required items are filled. Ready to save!"
+    }
+  },
   "hubBanner": {
     "event": {
       "title": "Neuron Reward for First Persona!",

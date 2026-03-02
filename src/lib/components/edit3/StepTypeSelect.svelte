@@ -13,9 +13,17 @@
         badge?: string;
     }
 
-    const contentTypes: { value: string; label: string; icon: string }[] = [
-        { value: "character", label: "캐릭터", icon: "ph:robot-duotone" },
-        { value: "story", label: "스토리", icon: "ph:book-open-duotone" },
+    $: contentTypes = [
+        {
+            value: "character",
+            label: $t("edit3.type.character"),
+            icon: "ph:robot-duotone",
+        },
+        {
+            value: "story",
+            label: $t("edit3.type.story"),
+            icon: "ph:book-open-duotone",
+        },
     ];
 
     $: characterTypes = getCharacterTypes(persona.contentType);
@@ -25,8 +33,8 @@
             {
                 type: "2D",
                 icon: "ph:chat-circle-dots-duotone",
-                label: "Chat",
-                desc: "텍스트와 이미지 기반의 대화형 캐릭터. 가장 간편하게 시작할 수 있어요.",
+                label: $t("edit3.type.chat"),
+                desc: $t("edit3.type.chatDesc"),
             },
         ];
 
@@ -35,15 +43,15 @@
                 {
                     type: "2.5D",
                     icon: "ph:monitor-play-duotone",
-                    label: "Live2D",
-                    desc: "Live2D 모델로 표정과 모션이 살아있는 캐릭터를 만들어보세요.",
+                    label: $t("edit3.type.live2d"),
+                    desc: $t("edit3.type.live2dDesc"),
                     badge: "beta",
                 },
                 {
                     type: "3D",
                     icon: "ph:cube-duotone",
-                    label: "3D (VRM)",
-                    desc: "VRM 3D 모델을 사용하는 입체적인 캐릭터를 만들어보세요.",
+                    label: $t("edit3.type.vrm3d"),
+                    desc: $t("edit3.type.vrm3dDesc"),
                     badge: "beta",
                 },
             );
@@ -69,7 +77,7 @@
     <section class="type-section">
         <h3 class="section-title">
             <Icon icon="ph:squares-four-duotone" width="22" />
-            무엇을 만들까요?
+            {$t("edit3.type.whatToMake")}
         </h3>
         <div class="content-type-grid">
             {#each contentTypes as ct}
@@ -89,7 +97,7 @@
     <section class="type-section">
         <h3 class="section-title">
             <Icon icon="ph:paint-brush-duotone" width="22" />
-            캐릭터 타입 선택
+            {$t("edit3.type.selectCharType")}
         </h3>
         <div class="type-cards-grid">
             {#each characterTypes as card}

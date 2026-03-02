@@ -15,9 +15,9 @@
 
 <div class="step-media">
     <div class="section-header">
-        <h3>미디어 & 에셋</h3>
+        <h3>{$t("edit3.media.title")}</h3>
         <p class="section-desc">
-            캐릭터의 프로필 이미지, 에셋, 모델 파일을 업로드하세요.
+            {$t("edit3.media.desc")}
         </p>
     </div>
 

@@ -61,13 +61,12 @@
     let autoSaveInterval: ReturnType<typeof setInterval>;
     const AUTO_SAVE_KEY = "edit3_draft";
 
-    // ── Step Labels ──
-    const stepLabels = [
-        "캐릭터 타입",
-        "기본 정보",
-        "미디어 & 에셋",
-        "프롬프트",
-        "태그 & 검토",
+    $: stepLabels = [
+        $t("edit3.steps.type"),
+        $t("edit3.steps.basicInfo"),
+        $t("edit3.steps.media"),
+        $t("edit3.steps.prompt"),
+        $t("edit3.steps.review"),
     ];
 
     // ── Reactive ──
@@ -136,18 +135,23 @@
         kDesc: string,
     ): string[] {
         const errors: string[] = [];
-        if (!p.personaType) errors.push("캐릭터 타입을 선택해주세요.");
-        if (!p.name.trim()) errors.push("캐릭터 이름을 입력해주세요.");
-        if (!p.greeting.trim()) errors.push("인사말을 입력해주세요.");
-        if (!p.first_scene.trim()) errors.push("첫 장면을 작성해주세요.");
+        if (!p.personaType)
+            errors.push(get(t)("edit3.validation.typeRequired"));
+        if (!p.name.trim())
+            errors.push(get(t)("edit3.validation.nameRequired"));
+        if (!p.greeting.trim())
+            errors.push(get(t)("edit3.validation.greetingRequired"));
+        if (!p.first_scene.trim())
+            errors.push(get(t)("edit3.validation.firstSceneRequired"));
         if (template === kintsugiId) {
             if (!kDesc.trim())
-                errors.push("Kintsugi 설명(Description)을 입력해주세요.");
+                errors.push(get(t)("edit3.validation.kintsugiDescRequired"));
         } else {
-            if (!instruction.trim()) errors.push("지시사항을 입력해주세요.");
+            if (!instruction.trim())
+                errors.push(get(t)("edit3.validation.instructionRequired"));
         }
         if (p.tags.filter((id) => parseInt(id) < 1000).length === 0)
-            errors.push("카테고리 태그를 최소 1개 선택해주세요.");
+            errors.push(get(t)("edit3.validation.tagsRequired"));
         return errors;
     }
 
@@ -184,7 +188,7 @@
     }
 
     function handleValidationFail() {
-        toast.warning("필수 항목을 먼저 입력해주세요.");
+        toast.warning(get(t)("edit3.validation.fillRequiredFirst"));
     }
 
     // ── Load Persona ──
@@ -413,7 +417,7 @@
                 }
 
                 showSuccess = true;
-                toast.success("저장 완료!");
+                toast.success(get(t)("edit3.toast.saveSuccess"));
                 clearDraft();
 
                 setTimeout(() => (showSuccess = false), 2000);
@@ -516,7 +520,7 @@
         if (!id) {
             const hasDraft = loadDraft();
             if (hasDraft) {
-                toast.info("이전에 작성 중이던 캐릭터를 불러왔습니다.");
+                toast.info(get(t)("edit3.toast.draftLoaded"));
             }
         }
 
