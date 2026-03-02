@@ -2,6 +2,7 @@ import { api } from "$lib/api";
 import { getCurrentUser } from "$lib/api/auth";
 import { st_user } from "$lib/stores/user";
 import { toast } from "$lib/stores/toast";
+import { toastError } from "$lib/utils/errorMapper";
 import type { User } from "$lib/types";
 
 export interface VerificationOptions {
@@ -14,9 +15,8 @@ export async function requestIdentityVerification(options?: VerificationOptions)
     if (typeof window === "undefined") return;
 
     // Ensure PortOne SDK is loaded
-    // @ts-ignore
     if (!window.PortOne) {
-        toast.error("인증 모듈을 불러오는 중입니다. 잠시 후 다시 시도해주세요.");
+        toastError("verificationLoading");
         return;
     }
 
@@ -30,7 +30,7 @@ export async function requestIdentityVerification(options?: VerificationOptions)
 
         if (response.code != null) {
             console.error("Verification Error:", response);
-            toast.error(response.message || "본인인증 실패");
+            toastError(response.message || "verificationFailed");
             options?.onError?.(response);
             return;
         }
@@ -50,12 +50,12 @@ export async function requestIdentityVerification(options?: VerificationOptions)
             }
             options?.onSuccess?.();
         } else {
-            toast.error("인증 정보 저장에 실패했습니다.");
+            toastError("verificationSaveFailed");
             options?.onError?.(new Error("Failed to save verification data"));
         }
     } catch (e) {
         console.error("Verification Exception:", e);
-        toast.error("본인인증 중 오류가 발생했습니다.");
+        toastError("verificationError");
         options?.onError?.(e);
     }
 }

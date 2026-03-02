@@ -1,0 +1,721 @@
+
+> personaxi-front@0.0.1 build
+> vite build
+
+The following Vite config options will be overridden by SvelteKit:
+  - build.ssr
+[36mvite v6.3.5 [32mbuilding SSR bundle for production...[36m[39m
+transforming...
+?ㅽ썑 9:50:12 [vite-plugin-svelte] src/routes/guide/+page.svelte:507:24 Visible, non-interactive elements with a click event must be accompanied by a keyboard event handler. Consider whether an interactive element such as `<button type="button">` or `<a>` might be more appropriate
+https://svelte.dev/e/a11y_click_events_have_key_events
+505:                             </button>
+506:                         </div>
+507:                         <div
+                                  ^
+508:                             class="fixed inset-0 z-40 bg-transparent"
+509:                             on:click={() => (isLangMenuOpen = false)}
+?ㅽ썑 9:50:12 [vite-plugin-svelte] src/routes/guide/+page.svelte:507:24 `<div>` with a click handler must have an ARIA role
+https://svelte.dev/e/a11y_no_static_element_interactions
+505:                             </button>
+506:                         </div>
+507:                         <div
+                                  ^
+508:                             class="fixed inset-0 z-40 bg-transparent"
+509:                             on:click={() => (isLangMenuOpen = false)}
+?ㅽ썑 9:50:12 [vite-plugin-svelte] src/routes/edit2/+page.svelte:470:16 `<div>` with a dragstart handler must have an ARIA role
+https://svelte.dev/e/a11y_no_static_element_interactions
+468:         <div class="node-list">
+469:             {#each sidebarItems as item}
+470:                 <div
+                          ^
+471:                     class="sidebar-item"
+472:                     draggable="true"
+?ㅽ썑 9:50:12 [vite-plugin-svelte] src/routes/edit2/+page.svelte:489:4 Non-interactive element `<div>` should not be assigned mouse or keyboard event listeners
+https://svelte.dev/e/a11y_no_noninteractive_element_interactions
+487: 
+488:     <!-- Main Canvas -->
+489:     <div
+              ^
+490:         class="canvas-wrapper"
+491:         bind:this={canvasRef}
+?ㅽ썑 9:50:12 [vite-plugin-svelte] src/routes/payment/complete/+page.svelte:184:4 Unused CSS selector ".success-icon"
+https://svelte.dev/e/css_unused_selector
+182:     }
+183: 
+184:     .success-icon {
+                      ^
+185:         color: #10b981; /* Green */
+186:     }
+?ㅽ썑 9:50:12 [vite-plugin-svelte] src/routes/payment/complete/+page.svelte:188:4 Unused CSS selector ".error-icon"
+https://svelte.dev/e/css_unused_selector
+186:     }
+187: 
+188:     .error-icon {
+                    ^
+189:         color: #ef4444; /* Red */
+190:     }
+?ㅽ썑 9:50:12 [vite-plugin-svelte] src/routes/live2d/+page.svelte:724:4 Unused CSS selector ".debug-controls"
+https://svelte.dev/e/css_unused_selector
+722:     }
+723: 
+724:     .debug-controls {
+                        ^
+725:         position: fixed;
+726:         bottom: 80px;
+?ㅽ썑 9:50:12 [vite-plugin-svelte] src/routes/live2d/+page.svelte:734:4 Unused CSS selector ".debug-btn"
+https://svelte.dev/e/css_unused_selector
+732:     }
+733: 
+734:     .debug-btn {
+                   ^
+735:         background: rgba(0, 0, 0, 0.8);
+736:         color: #0f0;
+?ㅽ썑 9:50:12 [vite-plugin-svelte] src/routes/live2d/+page.svelte:747:4 Unused CSS selector ".debug-btn:hover"
+https://svelte.dev/e/css_unused_selector
+745:     }
+746: 
+747:     .debug-btn:hover {
+                         ^
+748:         background: rgba(0, 255, 0, 0.2);
+749:         box-shadow: 0 0 15px rgba(0, 255, 0, 0.5);
+?ㅽ썑 9:50:12 [vite-plugin-svelte] src/routes/privacy-chat-logs/+page.svelte:39:4 Unused CSS selector "h2"
+https://svelte.dev/e/css_unused_selector
+37:         color: #333;
+38:     }
+39:     h2 {
+          ^
+40:         color: #2c3e50;
+41:         font-size: 2em;
+?ㅽ썑 9:50:12 [vite-plugin-svelte] src/routes/privacy-chat-logs/+page.svelte:47:4 Unused CSS selector "h3"
+https://svelte.dev/e/css_unused_selector
+45:         padding-bottom: 5px;
+46:     }
+47:     h3 {
+          ^
+48:         color: #34495e;
+49:         font-size: 1.5em;
+?ㅽ썑 9:50:12 [vite-plugin-svelte] src/routes/privacy-chat-logs/+page.svelte:53:4 Unused CSS selector "p"
+https://svelte.dev/e/css_unused_selector
+51:         margin-bottom: 10px;
+52:     }
+53:     p,
+         ^
+54:     ul {
+55:         margin-bottom: 15px;
+?ㅽ썑 9:50:12 [vite-plugin-svelte] src/routes/privacy-chat-logs/+page.svelte:54:4 Unused CSS selector "ul"
+https://svelte.dev/e/css_unused_selector
+52:     }
+53:     p,
+54:     ul {
+          ^
+55:         margin-bottom: 15px;
+56:     }
+?ㅽ썑 9:50:12 [vite-plugin-svelte] src/routes/privacy-chat-logs/+page.svelte:57:4 Unused CSS selector "ul"
+https://svelte.dev/e/css_unused_selector
+55:         margin-bottom: 15px;
+56:     }
+57:     ul {
+          ^
+58:         list-style-type: disc;
+59:         margin-left: 20px;
+?ㅽ썑 9:50:12 [vite-plugin-svelte] src/routes/profile/+page.svelte:894:4 Unused CSS selector ".indicator-dots"
+https://svelte.dev/e/css_unused_selector
+892:     }
+893: 
+894:     .indicator-dots {
+                        ^
+895:         position: absolute;
+896:         bottom: 12px;
+?ㅽ썑 9:50:12 [vite-plugin-svelte] src/routes/profile/+page.svelte:907:4 Unused CSS selector ".dot"
+https://svelte.dev/e/css_unused_selector
+905:         backdrop-filter: blur(2px);
+906:     }
+907:     .dot {
+             ^
+908:         width: 6px;
+909:         height: 6px;
+?ㅽ썑 9:50:12 [vite-plugin-svelte] src/routes/profile/+page.svelte:917:4 Unused CSS selector ".dot:hover"
+https://svelte.dev/e/css_unused_selector
+915:         transition: all 0.2s;
+916:     }
+917:     .dot:hover {
+                   ^
+918:         background-color: rgba(255, 255, 255, 0.8);
+919:     }
+?ㅽ썑 9:50:12 [vite-plugin-svelte] src/routes/profile/+page.svelte:920:4 Unused CSS selector ".dot.active"
+https://svelte.dev/e/css_unused_selector
+918:         background-color: rgba(255, 255, 255, 0.8);
+919:     }
+920:     .dot.active {
+                    ^
+921:         background-color: white;
+922:         transform: scale(1.2);
+?ㅽ썑 9:50:12 [vite-plugin-svelte] src/routes/user/setting/+page.svelte:1741:8 Unused CSS selector ".logout-text"
+https://svelte.dev/e/css_unused_selector
+1739:         .tab-label,
+1740:         .btn-label,
+1741:         .logout-text {
+                          ^
+1742:             display: none;
+1743:         }
+?ㅽ썑 9:50:12 [vite-plugin-svelte] src/routes/verify/+page.svelte:85:4 Unused CSS selector ".icon"
+https://svelte.dev/e/css_unused_selector
+83:         box-shadow: var(--shadow-card);
+84:     }
+85:     .icon {
+             ^
+86:         font-size: 4rem;
+87:         margin-bottom: 1.5rem;
+?ㅽ썑 9:50:12 [vite-plugin-svelte] src/routes/verify/+page.svelte:89:4 Unused CSS selector ".icon.verifying"
+https://svelte.dev/e/css_unused_selector
+87:         margin-bottom: 1.5rem;
+88:     }
+89:     .icon.verifying {
+                       ^
+90:         color: var(--primary);
+91:     }
+?ㅽ썑 9:50:12 [vite-plugin-svelte] src/routes/verify/+page.svelte:92:4 Unused CSS selector ".icon.success"
+https://svelte.dev/e/css_unused_selector
+90:         color: var(--primary);
+91:     }
+92:     .icon.success {
+                     ^
+93:         color: #22c55e; /* 珥덈줉??*/
+94:     }
+?ㅽ썑 9:50:12 [vite-plugin-svelte] src/routes/verify/+page.svelte:95:4 Unused CSS selector ".icon.error"
+https://svelte.dev/e/css_unused_selector
+93:         color: #22c55e; /* 珥덈줉??*/
+94:     }
+95:     .icon.error {
+                   ^
+96:         color: var(--destructive);
+97:     }
+?ㅽ썑 9:50:12 [vite-plugin-svelte] src/lib/components/sidebar/Sidebar.svelte:79:4 Visible, non-interactive elements with a click event must be accompanied by a keyboard event handler. Consider whether an interactive element such as `<button type="button">` or `<a>` might be more appropriate
+https://svelte.dev/e/a11y_click_events_have_key_events
+77: 
+78: {#if isMobile && showSidebar}
+79:     <div class="sidebar-overlay" on:click={() => (showSidebar = false)} />
+                                                                              ^
+80: {/if}
+81: 
+?ㅽ썑 9:50:12 [vite-plugin-svelte] src/lib/components/sidebar/Sidebar.svelte:79:4 `<div>` with a click handler must have an ARIA role
+https://svelte.dev/e/a11y_no_static_element_interactions
+77: 
+78: {#if isMobile && showSidebar}
+79:     <div class="sidebar-overlay" on:click={() => (showSidebar = false)} />
+                                                                              ^
+80: {/if}
+81: 
+?ㅽ썑 9:50:12 [vite-plugin-svelte] src/lib/components/sidebar/Sidebar.svelte:79:4 Self-closing HTML tags for non-void elements are ambiguous ??use `<div ...></div>` rather than `<div ... />`
+https://svelte.dev/e/element_invalid_self_closing_tag
+77: 
+78: {#if isMobile && showSidebar}
+79:     <div class="sidebar-overlay" on:click={() => (showSidebar = false)} />
+                                                                              ^
+80: {/if}
+81: 
+?ㅽ썑 9:50:12 [vite-plugin-svelte] src/lib/components/cheat/CheatConsole.svelte:147:4 Unused CSS selector ".console-header p"
+https://svelte.dev/e/css_unused_selector
+145:     }
+146: 
+147:     .console-header p {
+                          ^
+148:         margin: 0;
+149:         font-size: 0.9em;
+?ㅽ썑 9:50:12 [vite-plugin-svelte] src/lib/components/cheat/CheatConsole.svelte:192:4 Unused CSS selector ".console-output p:has(span)"
+https://svelte.dev/e/css_unused_selector
+190: 
+191:     /* 硫붿떆吏 ??낅퀎 ?됱긽 */
+192:     .console-output p:has(span) {
+                                    ^
+193:         /* span???ы븿??p ?쒓렇 */
+194:         color: #fff; /* 湲곕낯 */
+?ㅽ썑 9:50:12 [vite-plugin-svelte] src/lib/components/cheat/CheatConsole.svelte:196:4 Unused CSS selector ".console-output p:has(span.error)"
+https://svelte.dev/e/css_unused_selector
+194:         color: #fff; /* 湲곕낯 */
+195:     }
+196:     .console-output p:has(span.error) {
+                                          ^
+197:         color: #ff6b6b; /* 鍮④컙??*/
+198:     }
+?ㅽ썑 9:50:12 [vite-plugin-svelte] src/lib/components/cheat/CheatConsole.svelte:199:4 Unused CSS selector ".console-output p:has(span.success)"
+https://svelte.dev/e/css_unused_selector
+197:         color: #ff6b6b; /* 鍮④컙??*/
+198:     }
+199:     .console-output p:has(span.success) {
+                                            ^
+200:         color: #4caf50; /* 珥덈줉??*/
+201:     }
+?ㅽ썑 9:50:12 [vite-plugin-svelte] src/lib/components/cheat/CheatConsole.svelte:202:4 Unused CSS selector ".console-output p:has(span.warning)"
+https://svelte.dev/e/css_unused_selector
+200:         color: #4caf50; /* 珥덈줉??*/
+201:     }
+202:     .console-output p:has(span.warning) {
+                                            ^
+203:         color: #ffc107; /* ?몃???*/
+204:     }
+?ㅽ썑 9:50:12 [vite-plugin-svelte] src/lib/components/cheat/CheatConsole.svelte:205:4 Unused CSS selector ".console-output p:has(span.info)"
+https://svelte.dev/e/css_unused_selector
+203:         color: #ffc107; /* ?몃???*/
+204:     }
+205:     .console-output p:has(span.info) {
+                                         ^
+206:         color: #2196f3; /* ?뚮???*/
+207:     }
+?ㅽ썑 9:50:13 [vite-plugin-svelte] src/lib/components/modal/WelcomeModal.svelte:23:4 Visible, non-interactive elements with a click event must be accompanied by a keyboard event handler. Consider whether an interactive element such as `<button type="button">` or `<a>` might be more appropriate
+https://svelte.dev/e/a11y_click_events_have_key_events
+21: 
+22: {#if isOpen}
+23:     <div class="modal-overlay" on:click={closeModal}>
+              ^
+24:         <div class="modal-content" on:click={(e) => e.stopPropagation()}>
+25:             <button class="close-button" on:click={closeModal}>&times;</button>
+?ㅽ썑 9:50:13 [vite-plugin-svelte] src/lib/components/modal/WelcomeModal.svelte:23:4 `<div>` with a click handler must have an ARIA role
+https://svelte.dev/e/a11y_no_static_element_interactions
+21: 
+22: {#if isOpen}
+23:     <div class="modal-overlay" on:click={closeModal}>
+              ^
+24:         <div class="modal-content" on:click={(e) => e.stopPropagation()}>
+25:             <button class="close-button" on:click={closeModal}>&times;</button>
+?ㅽ썑 9:50:13 [vite-plugin-svelte] src/lib/components/modal/WelcomeModal.svelte:24:8 Visible, non-interactive elements with a click event must be accompanied by a keyboard event handler. Consider whether an interactive element such as `<button type="button">` or `<a>` might be more appropriate
+https://svelte.dev/e/a11y_click_events_have_key_events
+22: {#if isOpen}
+23:     <div class="modal-overlay" on:click={closeModal}>
+24:         <div class="modal-content" on:click={(e) => e.stopPropagation()}>
+                  ^
+25:             <button class="close-button" on:click={closeModal}>&times;</button>
+26: 
+?ㅽ썑 9:50:13 [vite-plugin-svelte] src/lib/components/modal/WelcomeModal.svelte:24:8 `<div>` with a click handler must have an ARIA role
+https://svelte.dev/e/a11y_no_static_element_interactions
+22: {#if isOpen}
+23:     <div class="modal-overlay" on:click={closeModal}>
+24:         <div class="modal-content" on:click={(e) => e.stopPropagation()}>
+                  ^
+25:             <button class="close-button" on:click={closeModal}>&times;</button>
+26: 
+?ㅽ썑 9:50:13 [vite-plugin-svelte] src/lib/components/modal/WelcomeModal.svelte:116:4 Unused CSS selector ".promo-box svg"
+https://svelte.dev/e/css_unused_selector
+114:         justify-content: center;
+115:     }
+116:     .promo-box svg {
+                       ^
+117:         color: #facc15; /* ?대윴 ?꾩씠肄??됱긽 */
+118:     }
+?ㅽ썑 9:50:13 [vite-plugin-svelte] src/lib/components/chat/ChatWindow.svelte:1143:2 Unused CSS selector ".situation-btn"
+https://svelte.dev/e/css_unused_selector
+1141:   }
+1142: 
+1143:   .situation-btn {
+                      ^
+1144:     background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%);
+1145:     color: white;
+?ㅽ썑 9:50:13 [vite-plugin-svelte] src/lib/components/chat/ChatWindow.svelte:1159:2 Unused CSS selector ".situation-btn:hover:not(:disabled)"
+https://svelte.dev/e/css_unused_selector
+1157:   }
+1158: 
+1159:   .situation-btn:hover:not(:disabled) {
+                                           ^
+1160:     transform: translateY(-2px);
+1161:     box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4);
+?ㅽ썑 9:50:13 [vite-plugin-svelte] src/lib/components/chat/ChatWindow.svelte:1164:2 Unused CSS selector ".situation-btn:disabled"
+https://svelte.dev/e/css_unused_selector
+1162:   }
+1163: 
+1164:   .situation-btn:disabled {
+                               ^
+1165:     opacity: 0.7;
+1166:     cursor: not-allowed;
+?ㅽ썑 9:50:13 [vite-plugin-svelte] src/lib/components/chat/ChatWindow.svelte:1238:2 Unused CSS selector ".assistant-placeholder"
+https://svelte.dev/e/css_unused_selector
+1236:     font-style: italic;
+1237:   }
+1238:   .assistant-placeholder {
+                              ^
+1239:     align-self: flex-start;
+1240:   }
+?ㅽ썑 9:50:13 [vite-plugin-svelte] src/lib/components/chat/ChatWindow.svelte:1346:2 Unused CSS selector ".hidden-inline"
+https://svelte.dev/e/css_unused_selector
+1344:     color: var(--muted-foreground);
+1345:   }
+1346:   .hidden-inline {
+                      ^
+1347:     display: none !important;
+1348:   }
+?ㅽ썑 9:50:13 [vite-plugin-svelte] src/lib/components/modal/SettingModal.svelte:479:44 Screenreaders already announce `<img>` elements as an image
+https://svelte.dev/e/a11y_img_redundant_alt
+477:                                                 (selectedImage = img)}
+478:                                         >
+479:                                             <img
+                                                   ^
+480:                                                 src={img}
+481:                                                 alt="Session Image"
+?ㅽ썑 9:50:13 [vite-plugin-svelte] src/lib/components/modal/SettingModal.svelte:642:40 A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control
+640:                                 <div class="slider-group" transition:slide>
+641:                                     <div class="slider-item">
+642:                                         <label class="slider-label"
+                                              ^
+643:                                             >{$t(
+644:                                                 "settingModal.closeupZoom",
+?ㅽ썑 9:50:13 [vite-plugin-svelte] src/lib/components/modal/SettingModal.svelte:664:40 A form label must be associated with a control
+https://svelte.dev/e/a11y_label_has_associated_control
+662:                                     </div>
+663:                                     <div class="slider-item">
+664:                                         <label class="slider-label"
+                                              ^
+665:                                             >{$t(
+666:                                                 "settingModal.closeupPosition",
+?ㅽ썑 9:50:13 [vite-plugin-svelte] src/lib/components/modal/SettingModal.svelte:40:15 Component has unused export property 'impl_changeCamera'. If it is for external reference only, please consider using `export const impl_changeCamera`
+https://svelte.dev/e/export_let_unused
+38:     export let impl_connectTTS: () => void | Promise<void> = () => {};
+39:     export let impl_disconnectTTS: () => void | Promise<void> = () => {};
+40:     export let impl_changeCamera: () => void | Promise<void> = () => {};
+                                                                ^
+41: 
+42:     const dispatch = createEventDispatcher();
+?ㅽ썑 9:50:13 [vite-plugin-svelte] src/lib/components/modal/SettingModal.svelte:1002:4 Unused CSS selector ".memo-area"
+https://svelte.dev/e/css_unused_selector
+1000:     }
+1001: 
+1002:     .memo-area {
+                    ^
+1003:         width: 100%;
+1004:         padding: 8px;
+?ㅽ썑 9:50:13 [vite-plugin-svelte] src/lib/components/modal/SettingModal.svelte:1155:4 Unused CSS selector ".action-arrow"
+https://svelte.dev/e/css_unused_selector
+1153:         gap: 10px;
+1154:     }
+1155:     .action-arrow {
+                       ^
+1156:         color: var(--muted-foreground);
+1157:         font-size: 12px;
+?ㅽ썑 9:50:13 [vite-plugin-svelte] src/lib/components/chat/ModelSelector.svelte:236:4 Unused CSS selector ".check-icon"
+https://svelte.dev/e/css_unused_selector
+234:     }
+235: 
+236:     .check-icon {
+                    ^
+237:         color: var(--primary, #fbbf24);
+238:     }
+?ㅽ썑 9:50:13 [vite-plugin-svelte] src/lib/components/modal/NoticeModal.svelte:241:4 Unused CSS selector ".modal-body strong"
+https://svelte.dev/e/css_unused_selector
+239: 
+240:     /* --- strong ?쒓렇 ?ㅽ????섏젙 --- */
+241:     .modal-body strong {
+                           ^
+242:         font-weight: 700;
+243:         color: #ffffff;
+?ㅽ썑 9:50:13 [vite-plugin-svelte] src/lib/components/modal/NoticeModal.svelte:284:4 Unused CSS selector ".tech-list"
+https://svelte.dev/e/css_unused_selector
+282:     }
+283: 
+284:     .tech-list {
+                   ^
+285:         list-style-type: "?∽툘";
+286:         padding-left: 1.5rem;
+?ㅽ썑 9:50:13 [vite-plugin-svelte] src/lib/components/modal/NoticeModal.svelte:289:4 Unused CSS selector ".tech-list li"
+https://svelte.dev/e/css_unused_selector
+287:     }
+288: 
+289:     .tech-list li {
+                      ^
+290:         padding-left: 0.5rem;
+291:         margin-bottom: 0.5rem;
+?ㅽ썑 9:50:13 [vite-plugin-svelte] src/lib/components/modal/NoticeModal.svelte:294:4 Unused CSS selector ".final-notice strong"
+https://svelte.dev/e/css_unused_selector
+292:     }
+293: 
+294:     .final-notice strong {
+                             ^
+295:         font-weight: 700;
+296:     }
+?ㅽ썑 9:50:13 [vite-plugin-svelte] src/lib/components/chat3D/ChatControls3D.svelte:8:13 Component has unused export property 'cssid'. If it is for external reference only, please consider using `export const cssid`
+https://svelte.dev/e/export_let_unused
+ 6:   import { onMount, onDestroy } from "svelte";
+ 7: 
+ 8:   export let cssid: string;
+                              ^
+ 9:   export let showChat: boolean;
+10:   export let persona: Persona; // persona prop 異붽?
+?ㅽ썑 9:50:13 [vite-plugin-svelte] src/lib/components/chat3D/ChatControls3D.svelte:104:2 Unused CSS selector ".settings-button"
+https://svelte.dev/e/css_unused_selector
+102:   }
+103: 
+104:   .settings-button,
+                       ^
+105:   .toggle-chat-button {
+106:     background: none;
+?ㅽ썑 9:50:13 [vite-plugin-svelte] src/lib/components/chat3D/ChatControls3D.svelte:105:2 Unused CSS selector ".toggle-chat-button"
+https://svelte.dev/e/css_unused_selector
+103: 
+104:   .settings-button,
+105:   .toggle-chat-button {
+                          ^
+106:     background: none;
+107:     border: none;
+?ㅽ썑 9:50:13 [vite-plugin-svelte] src/lib/components/chat3D/ChatControls3D.svelte:115:2 Unused CSS selector ".settings-button svg"
+https://svelte.dev/e/css_unused_selector
+113:   }
+114: 
+115:   .settings-button svg,
+                           ^
+116:   .toggle-chat-button svg {
+117:     width: 32px;
+?ㅽ썑 9:50:13 [vite-plugin-svelte] src/lib/components/chat3D/ChatControls3D.svelte:116:2 Unused CSS selector ".toggle-chat-button svg"
+https://svelte.dev/e/css_unused_selector
+114: 
+115:   .settings-button svg,
+116:   .toggle-chat-button svg {
+                              ^
+117:     width: 32px;
+118:     height: 32px;
+?ㅽ썑 9:50:13 [vite-plugin-svelte] src/lib/components/chat3D/ChatControls3D.svelte:121:2 Unused CSS selector ".settings-button:hover"
+https://svelte.dev/e/css_unused_selector
+119:   }
+120: 
+121:   .settings-button:hover,
+                             ^
+122:   .toggle-chat-button:hover {
+123:     color: #ffffff;
+?ㅽ썑 9:50:13 [vite-plugin-svelte] src/lib/components/chat3D/ChatControls3D.svelte:122:2 Unused CSS selector ".toggle-chat-button:hover"
+https://svelte.dev/e/css_unused_selector
+120: 
+121:   .settings-button:hover,
+122:   .toggle-chat-button:hover {
+                                ^
+123:     color: #ffffff;
+124:   }
+?ㅽ썑 9:50:14 [vite-plugin-svelte] src/lib/components/chat3D/VrmModelViewer.svelte:21:13 Component has unused export property 'cssid'. If it is for external reference only, please consider using `export const cssid`
+https://svelte.dev/e/export_let_unused
+19: 
+20:   export let persona: Persona | null;
+21:   export let cssid: string | null = null;
+                                     ^
+22:   export let show: boolean = true;
+23:   export let backgroundImage: string | null = null;
+?ㅽ썑 9:50:14 [vite-plugin-svelte] src/lib/components/chat3D/VrmModelViewer.svelte:706:2 Unused CSS selector ".camera-controls"
+https://svelte.dev/e/css_unused_selector
+704:   }
+705: 
+706:   .camera-controls {
+                       ^
+707:     position: absolute;
+708:     bottom: 20px;
+?ㅽ썑 9:50:14 [vite-plugin-svelte] src/lib/components/chat3D/VrmModelViewer.svelte:724:2 Unused CSS selector ".hit-controls"
+https://svelte.dev/e/css_unused_selector
+722:   }
+723: 
+724:   .hit-controls {
+                    ^
+725:     position: absolute;
+726:     bottom: 220px;
+?ㅽ썑 9:50:14 [vite-plugin-svelte] src/lib/components/chat3D/VrmModelViewer.svelte:742:2 Unused CSS selector ".slider-group"
+https://svelte.dev/e/css_unused_selector
+740:   }
+741: 
+742:   .slider-group {
+                    ^
+743:     display: flex;
+744:     align-items: center;
+?ㅽ썑 9:50:14 [vite-plugin-svelte] src/lib/components/chat3D/VrmModelViewer.svelte:748:2 Unused CSS selector ".slider-group label"
+https://svelte.dev/e/css_unused_selector
+746:   }
+747: 
+748:   .slider-group label {
+                          ^
+749:     width: 80px; /* ?쇰꺼 ?덈퉬 怨좎젙 */
+750:   }
+?ㅽ썑 9:50:14 [vite-plugin-svelte] src/lib/components/chat3D/VrmModelViewer.svelte:752:2 Unused CSS selector ".slider-group input[type="range"]"
+https://svelte.dev/e/css_unused_selector
+750:   }
+751: 
+752:   .slider-group input[type="range"] {
+                                        ^
+753:     flex: 1; /* ?щ씪?대뜑媛 ?⑥? 怨듦컙??紐⑤몢 李⑥??섎룄濡?*/
+754:   }
+?ㅽ썑 9:50:14 [vite-plugin-svelte] src/lib/components/chat3D/VrmModelViewer.svelte:756:2 Unused CSS selector ".slider-group span"
+https://svelte.dev/e/css_unused_selector
+754:   }
+755: 
+756:   .slider-group span {
+                         ^
+757:     width: 40px; /* ?レ옄 ?쒖떆 怨듦컙 ?뺣낫 */
+758:     text-align: right;
+?ㅽ썑 9:50:14 [vite-plugin-svelte] src/lib/components/chat/ChatSessionItem.svelte:23:15 Component has unused export property 'onDelete'. If it is for external reference only, please consider using `export const onDelete`
+https://svelte.dev/e/export_let_unused
+21:     };
+22:     export let onClick;
+23:     export let onDelete;
+                           ^
+24: 
+25:     $: currentLocale = $locale || "en";
+?ㅽ썑 9:50:14 [vite-plugin-svelte] src/lib/components/chat/ChatSessionItem.svelte:216:4 Unused CSS selector ".slot-delete"
+https://svelte.dev/e/css_unused_selector
+214:     }
+215: 
+216:     .slot-delete {
+                     ^
+217:         margin-left: auto;
+218:     }
+?ㅽ썑 9:50:14 [vite-plugin-svelte] src/lib/components/modal/FirstCreationRewardModal.svelte:31:4 Visible, non-interactive elements with a click event must be accompanied by a keyboard event handler. Consider whether an interactive element such as `<button type="button">` or `<a>` might be more appropriate
+https://svelte.dev/e/a11y_click_events_have_key_events
+29: 
+30: {#if isOpen}
+31:     <div class="modal-backdrop" on:click|self={closeModal}>
+              ^
+32:         <div class="confetti" />
+33:         <div class="confetti" />
+?ㅽ썑 9:50:14 [vite-plugin-svelte] src/lib/components/modal/FirstCreationRewardModal.svelte:31:4 `<div>` with a click handler must have an ARIA role
+https://svelte.dev/e/a11y_no_static_element_interactions
+29: 
+30: {#if isOpen}
+31:     <div class="modal-backdrop" on:click|self={closeModal}>
+              ^
+32:         <div class="confetti" />
+33:         <div class="confetti" />
+?ㅽ썑 9:50:14 [vite-plugin-svelte] src/lib/components/modal/FirstCreationRewardModal.svelte:32:8 Self-closing HTML tags for non-void elements are ambiguous ??use `<div ...></div>` rather than `<div ... />`
+https://svelte.dev/e/element_invalid_self_closing_tag
+30: {#if isOpen}
+31:     <div class="modal-backdrop" on:click|self={closeModal}>
+32:         <div class="confetti" />
+                                    ^
+33:         <div class="confetti" />
+34:         <div class="confetti" />
+?ㅽ썑 9:50:14 [vite-plugin-svelte] src/lib/components/modal/FirstCreationRewardModal.svelte:33:8 Self-closing HTML tags for non-void elements are ambiguous ??use `<div ...></div>` rather than `<div ... />`
+https://svelte.dev/e/element_invalid_self_closing_tag
+31:     <div class="modal-backdrop" on:click|self={closeModal}>
+32:         <div class="confetti" />
+33:         <div class="confetti" />
+                                    ^
+34:         <div class="confetti" />
+35: 
+?ㅽ썑 9:50:14 [vite-plugin-svelte] src/lib/components/modal/FirstCreationRewardModal.svelte:34:8 Self-closing HTML tags for non-void elements are ambiguous ??use `<div ...></div>` rather than `<div ... />`
+https://svelte.dev/e/element_invalid_self_closing_tag
+32:         <div class="confetti" />
+33:         <div class="confetti" />
+34:         <div class="confetti" />
+                                    ^
+35: 
+36:         <div class="modal-content">
+?ㅽ썑 9:50:14 [vite-plugin-svelte] src/lib/components/edit3/StepPrompt.svelte:22:15 Component has unused export property 'pendingLoreLinks'. If it is for external reference only, please consider using `export const pendingLoreLinks`
+https://svelte.dev/e/export_let_unused
+20:     export let availableMotions: string[];
+21:     export let kintsugiTemplateId: string;
+22:     export let pendingLoreLinks = new Set<string>();
+                                   ^
+23: 
+24:     let firstSceneTextarea: HTMLTextAreaElement;
+?ㅽ썑 9:50:14 [vite-plugin-svelte] src/lib/components/portal/ContentHub.svelte:1133:4 Unused CSS selector ".safety-filter-btn"
+https://svelte.dev/e/css_unused_selector
+1131: 
+1132:     /* --- Safety Filter Toggle --- */
+1133:     .safety-filter-btn {
+                            ^
+1134:         display: flex;
+1135:         align-items: center;
+?ㅽ썑 9:50:14 [vite-plugin-svelte] src/lib/components/portal/ContentHub.svelte:1147:4 Unused CSS selector ".safety-filter-btn:hover"
+https://svelte.dev/e/css_unused_selector
+1145:     }
+1146: 
+1147:     .safety-filter-btn:hover {
+                                  ^
+1148:         background-color: var(--secondary);
+1149:         border-color: var(--border);
+?ㅽ썑 9:50:14 [vite-plugin-svelte] src/lib/components/portal/ContentHub.svelte:1152:4 Unused CSS selector ".safety-filter-btn.active"
+https://svelte.dev/e/css_unused_selector
+1150:     }
+1151: 
+1152:     .safety-filter-btn.active {
+                                   ^
+1153:         background-color: var(--secondary);
+1154:         border-color: var(--primary);
+?ㅽ썑 9:50:14 [vite-plugin-svelte] src/lib/components/portal/ContentHub.svelte:1157:4 Unused CSS selector ".safety-filter-btn.active .filter-label"
+https://svelte.dev/e/css_unused_selector
+1155:     }
+1156: 
+1157:     .safety-filter-btn.active .filter-label {
+                                                 ^
+1158:         color: var(--primary);
+1159:         font-weight: 800;
+?ㅽ썑 9:50:14 [vite-plugin-svelte] src/lib/components/portal/ContentHub.svelte:1162:4 Unused CSS selector ".safety-filter-btn.active .toggle-thumb"
+https://svelte.dev/e/css_unused_selector
+1160:     }
+1161: 
+1162:     .safety-filter-btn.active .toggle-thumb {
+                                                 ^
+1163:         transform: translateX(12px);
+1164:         background-color: var(--primary);
+?ㅽ썑 9:50:14 [vite-plugin-svelte] src/lib/components/portal/ContentHub.svelte:1167:4 Unused CSS selector ".safety-filter-btn.active .toggle-switch"
+https://svelte.dev/e/css_unused_selector
+1165:     }
+1166: 
+1167:     .safety-filter-btn.active .toggle-switch {
+                                                  ^
+1168:         border-color: var(--primary);
+1169:         background-color: var(--primary-foreground);
+?ㅽ썑 9:50:14 [vite-plugin-svelte] src/lib/components/portal/ContentHub.svelte:1172:4 Unused CSS selector ".filter-label"
+https://svelte.dev/e/css_unused_selector
+1170:     }
+1171: 
+1172:     .filter-label {
+                       ^
+1173:         font-size: 0.85rem;
+1174:         font-weight: 600;
+?ㅽ썑 9:50:14 [vite-plugin-svelte] src/lib/components/portal/ContentHub.svelte:1179:4 Unused CSS selector ".toggle-switch"
+https://svelte.dev/e/css_unused_selector
+1177:     }
+1178: 
+1179:     .toggle-switch {
+                        ^
+1180:         width: 30px;
+1181:         height: 18px;
+?ㅽ썑 9:50:14 [vite-plugin-svelte] src/lib/components/portal/ContentHub.svelte:1189:4 Unused CSS selector ".toggle-thumb"
+https://svelte.dev/e/css_unused_selector
+1187:     }
+1188: 
+1189:     .toggle-thumb {
+                       ^
+1190:         width: 14px;
+1191:         height: 14px;
+?ㅽ썑 9:50:14 [vite-plugin-svelte] src/lib/components/feed/FeedItem.svelte:109:0 Visible, non-interactive elements with a click event must be accompanied by a keyboard event handler. Consider whether an interactive element such as `<button type="button">` or `<a>` might be more appropriate
+https://svelte.dev/e/a11y_click_events_have_key_events
+107: </script>
+108: 
+109: <div class="feed-item" on:click={() => dispatch("click")}>
+           ^
+110:     <!-- Background Image -->
+111:     <div class="image-layer">
+?ㅽ썑 9:50:14 [vite-plugin-svelte] src/lib/components/feed/FeedItem.svelte:109:0 `<div>` with a click handler must have an ARIA role
+https://svelte.dev/e/a11y_no_static_element_interactions
+107: </script>
+108: 
+109: <div class="feed-item" on:click={() => dispatch("click")}>
+           ^
+110:     <!-- Background Image -->
+111:     <div class="image-layer">
+?ㅽ썑 9:50:14 [vite-plugin-svelte] src/lib/components/feed/FeedItem.svelte:125:12 Visible, non-interactive elements with a click event must be accompanied by a keyboard event handler. Consider whether an interactive element such as `<button type="button">` or `<a>` might be more appropriate
+https://svelte.dev/e/a11y_click_events_have_key_events
+123:     <div class="info-layer">
+124:         <div class="header">
+125:             <div class="creator-badge" on:click={handleCreatorClick}>
+                       ^
+126:                 <Icon icon="ph:user-circle-duotone" />
+127:                 <span>{persona.creator_name}</span>
+?ㅽ썑 9:50:14 [vite-plugin-svelte] src/lib/components/feed/FeedItem.svelte:125:12 `<div>` with a click handler must have an ARIA role
+https://svelte.dev/e/a11y_no_static_element_interactions
+123:     <div class="info-layer">
+124:         <div class="header">
+125:             <div class="creator-badge" on:click={handleCreatorClick}>
+                       ^
+126:                 <Icon icon="ph:user-circle-duotone" />
+127:                 <span>{persona.creator_name}</span>
+[32m??[39m 142 modules transformed.
+??[39m Build failed in 2.85s
+error during build:
+Could not resolve "./ContentHubSkeleton.svelte" from "src/lib/components/portal/ContentHub.svelte"
+file: C:/YuChan/PersonaXi/personaxi-front/src/lib/components/portal/ContentHub.svelte
+    at getRollupError (file:///C:/YuChan/PersonaXi/personaxi-front/node_modules/.pnpm/rollup@4.41.1/node_modules/rollup/dist/es/shared/parseAst.js:400:41)
+    at error (file:///C:/YuChan/PersonaXi/personaxi-front/node_modules/.pnpm/rollup@4.41.1/node_modules/rollup/dist/es/shared/parseAst.js:396:42)
+    at ModuleLoader.handleInvalidResolvedId (file:///C:/YuChan/PersonaXi/personaxi-front/node_modules/.pnpm/rollup@4.41.1/node_modules/rollup/dist/es/shared/node-entry.js:21389:24)
+    at file:///C:/YuChan/PersonaXi/personaxi-front/node_modules/.pnpm/rollup@4.41.1/node_modules/rollup/dist/es/shared/node-entry.js:21349:26

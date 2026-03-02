@@ -21,6 +21,7 @@
     import Footer from "$lib/components/common/Footer.svelte";
     import { st_user } from "$lib/stores/user";
     import { get } from "svelte/store";
+    import { toastError } from "$lib/utils/errorMapper";
     import { showNeedMoreNeuronsModal } from "$lib/stores/modal";
     import { toast } from "$lib/stores/toast";
     import { requestIdentityVerification } from "$lib/services/verification";
@@ -45,7 +46,7 @@
 
         // 1. Check if user is logged in
         if (!user) {
-            toast.error("로그인이 필요한 기능입니다.");
+            toastError("loginRequired");
             goto("/login");
             return;
         }

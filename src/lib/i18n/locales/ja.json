@@ -959,5 +959,33 @@
       "event": "イベント",
       "notice": "お知らせ"
     }
+  },
+  "notification": {
+    "neurons_charged": "{{paid}} ニューロンチャージ完了（+{{bonus}}ボーナス）",
+    "payment_refunded": "決済 {{paymentId}} の払い戻し完了。{{neurons}} ニューロンが差し引かれました。",
+    "refund_approved": "払い戻しのリクエストが承認され処理されました。",
+    "welcome_bonus": "ようこそ！ {{neurons}} ニューロンを受け取りました。（{{days}}日有効）",
+    "first_creation_reward": "初のペルソナ作成おめでとうございます！ {{neurons}} ニューロンを受け取りました。（{{days}}日有効）",
+    "new_follower": "さんがあなたをフォローしました。",
+    "persona_liked": "さんがあなたのペルソナを「いいね」しました。",
+    "admin_gift": "{{neurons}} 無料のニューロンを受け取りました！ （{{days}}日有効）",
+    "new_persona": "さんが新しいペルソナを作成しました: {{name}}",
+    "updated_persona": "さんがペルソナを更新しました: {{name}}"
+  },
+  "errors": {
+    "ERR_INSUFFICIENT_CREDITS": "クレジットが不足しているため、リクエストを処理できません。",
+    "ERR_RATE_LIMIT": "リクエストが多すぎます。後でもう一度お試しください。",
+    "ERR_ACCOUNT_SUSPENDED": "アカウントが停止されました。",
+    "ERR_PRICE_NOT_CONFIGURED": "この通貨の価格が設定されていません。",
+    "ERR_UNSUPPORTED_CURRENCY": "サポートされていない通貨です。",
+    "ERR_INVALID_ITEM": "無効なアイテムです。",
+    "saveBeforeChat": "保存後にチャットできます。",
+    "verificationLoading": "認証モジュールを読み込み中です。しばらくしてから再試行してください。",
+    "verificationFailed": "本人認証に失敗しました。",
+    "verificationSaveFailed": "認証情報の保存に失敗しました。",
+    "verificationError": "本人認証中にエラーが発生しました。",
+    "audioBlocked": "画面をタッチしてください（音声ブロック）",
+    "loginRequired": "ログインが必要です。",
+    "calculationError": "計算中にエラーが発生しました。入力値を確認してください。"
   }
 }

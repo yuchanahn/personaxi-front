@@ -4,6 +4,7 @@ import type { Notification } from '$lib/types';
 import { accessToken } from './auth';
 import { st_user } from './user'; // Assuming user store has the current user info
 import { toast } from '$lib/stores/toast';
+import { _ } from 'svelte-i18n';
 
 function createNotificationStore() {
     const { subscribe, set, update } = writable<Notification[]>([]);
@@ -25,7 +26,23 @@ function createNotificationStore() {
                 }
             });
             if (res.ok) {
-                const data = await res.json();
+                let data = await res.json();
+
+                if (data) {
+                    const t = get(_);
+                    data = data.map((n: Notification) => {
+                        if (n.contentKey) {
+                            try {
+                                const params = n.contentParams ? JSON.parse(n.contentParams) : {};
+                                n.content = t(`notification.${n.contentKey.split('.').pop()}`, params) || n.content;
+                            } catch (e) {
+                                console.error("Failed to parse notification params", e);
+                            }
+                        }
+                        return n;
+                    });
+                }
+
                 if (offset === 0) {
                     set(data || []);
                 } else {
@@ -144,6 +161,17 @@ function createNotificationStore() {
                 (payload) => {
                     console.log('New notification received!', payload);
                     const newNotif = payload.new as Notification;
+
+                    // i18n translation for incoming real-time notifications
+                    const t = get(_);
+                    if (newNotif.contentKey) {
+                        try {
+                            const params = newNotif.contentParams ? JSON.parse(newNotif.contentParams) : {};
+                            newNotif.content = t(`notification.${newNotif.contentKey.split('.').pop()}`, params) || newNotif.content;
+                        } catch (e) {
+                            console.error("Failed to parse notification params", e);
+                        }
+                    }
 
                     // Add to list
                     update(n => [newNotif, ...n]);

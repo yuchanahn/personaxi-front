@@ -144,6 +144,8 @@ export interface Notification {
     resourceId?: string;
     resourceType?: string;
     title?: string; // For announcements
+    contentKey?: string;
+    contentParams?: string;
     content: string;
     isRead: boolean;
     createdAt: string;

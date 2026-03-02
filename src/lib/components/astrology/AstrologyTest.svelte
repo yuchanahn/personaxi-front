@@ -2,6 +2,7 @@
     import { onMount, tick } from "svelte";
     import { Chart } from "@astrodraw/astrochart";
     import { toast } from "$lib/stores/toast";
+    import { toastError } from "$lib/utils/errorMapper";
 
     let year: number = 2000;
     let month: number = 8;
@@ -133,7 +134,7 @@
             radixChart = chart.radix(astroData);
         } catch (error) {
             console.error("차트 계산 중 오류 발생:", error);
-            toast.error("계산 중 오류가 발생했습니다. 입력값을 확인해주세요.");
+            toastError("calculationError");
         } finally {
             isLoading = false;
         }
@@ -147,13 +148,13 @@
             );
         } catch (err) {
             console.error("클립보드 복사 실패:", err);
-            toast.error("클립보드 복사에 실패했습니다.");
+            toastError("클립보드 복사에 실패했습니다.");
         }
     }
 
     function generateLLMPrompt() {
         if (!horoscopeData) {
-            toast.error("차트 데이터가 없습니다.");
+            toastError("차트 데이터가 없습니다.");
             return;
         }
 

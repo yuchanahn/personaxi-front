@@ -13,6 +13,8 @@
   import { interactiveChat } from "$lib/actions/interactiveChat";
   import { type Message } from "$lib/stores/messages";
   import { toast } from "$lib/stores/toast";
+  import { toastError } from "$lib/utils/errorMapper";
+  import { fade, slide } from "svelte/transition";
   import { api } from "$lib/api";
   import { json } from "@sveltejs/kit";
 
@@ -762,10 +764,10 @@
 
       if (!response.ok) {
         if (response.status === 402) {
-          toast.error("Not enough Neurons!");
+          toastError("ERR_INSUFFICIENT_CREDITS");
         } else {
           const errData = await response.json();
-          toast.error(errData.error || "Image generation failed");
+          toastError(errData.error || "Image generation failed");
         }
         return;
       }
@@ -788,7 +790,7 @@
       }
     } catch (e) {
       console.error("Failed to generate image", e);
-      toast.error("Network error during generation");
+      toastError("Network error during generation");
     } finally {
       isGeneratingImage = false;
     }

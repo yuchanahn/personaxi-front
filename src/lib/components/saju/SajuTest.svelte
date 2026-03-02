@@ -10,7 +10,7 @@
         type Gan,
         generateSajuAnalysisPrompt, // Gan 타입 import 추가
     } from "./SajuTest"; // 사용 중이신 파일 경로 (예: ./saju)
-    import { toast } from "$lib/stores/toast";
+    import { toastError } from "$lib/utils/errorMapper";
 
     // --- 상태 변수 ---
     let year: number = 2000;
@@ -228,7 +228,7 @@
             );
         } catch (error) {
             console.error("사주 계산 중 오류 발생:", error);
-            toast.error("계산 중 오류가 발생했습니다. 입력값을 확인해주세요.");
+            toastError("calculationError");
         }
     }
 

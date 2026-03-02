@@ -1,4 +1,4 @@
-import { toast } from "$lib/stores/toast"; // Toast 경로는 프로젝트에 맞게 수정하세요
+import { toastError } from "$lib/utils/errorMapper";
 
 /**
  * Safari 호환성을 위한 오디오 싱글톤 매니저
@@ -160,7 +160,7 @@ export class SafeAudioManager {
                     console.warn("Autoplay blocked or interrupted:", e);
                     cleanup();
                     // 사용자가 아직 클릭하지 않았을 가능성이 높음
-                    toast.error("화면을 터치해주세요 (Audio Blocked)");
+                    toastError("audioBlocked");
                     // 여기서 화면에 글자 보이기
                     onError?.(new Error("Audio Blocked"));
                     resolve(false);

@@ -984,5 +984,33 @@
     "testContext": "Context Simulator",
     "testDesc": "Type a message to see which Lore entries will be triggered.",
     "testPlaceholder": "e.g. Walking into the ancient forest..."
+  },
+  "notification": {
+    "neurons_charged": "{{paid}} Neurons charged (+{{bonus}} Bonus)",
+    "payment_refunded": "Payment {{paymentId}} Refunded. {{neurons}} Neurons deducted.",
+    "refund_approved": "Refund request has been approved and processed.",
+    "welcome_bonus": "Welcome! You received {{neurons}} Neurons (Valid for {{days}} days).",
+    "first_creation_reward": "Congratulations on your first Persona! You received {{neurons}} Neurons (Valid for {{days}} days).",
+    "new_follower": "started following you.",
+    "persona_liked": "liked your persona.",
+    "admin_gift": "You received {{neurons}} free neurons! (Expires in {{days}} days)",
+    "new_persona": "created a new persona: {{name}}",
+    "updated_persona": "updated persona: {{name}}"
+  },
+  "errors": {
+    "ERR_INSUFFICIENT_CREDITS": "Not enough credits to process the request.",
+    "ERR_RATE_LIMIT": "Too many requests. Please try again later.",
+    "ERR_ACCOUNT_SUSPENDED": "Your account has been suspended.",
+    "ERR_PRICE_NOT_CONFIGURED": "Price is not configured for this currency.",
+    "ERR_UNSUPPORTED_CURRENCY": "Unsupported currency.",
+    "ERR_INVALID_ITEM": "Invalid item.",
+    "saveBeforeChat": "Save first to start chat.",
+    "verificationLoading": "Loading verification module. Please try again soon.",
+    "verificationFailed": "Verification Failed.",
+    "verificationSaveFailed": "Failed to save verification info.",
+    "verificationError": "An error occurred during verification.",
+    "audioBlocked": "Please touch the screen (Audio Blocked).",
+    "loginRequired": "Login is required.",
+    "calculationError": "An error occurred during calculation. Please check your input."
   }
 }

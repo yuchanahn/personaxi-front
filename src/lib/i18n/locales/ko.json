@@ -959,5 +959,33 @@
       "event": "이벤트",
       "notice": "공지"
     }
+  },
+  "notification": {
+    "neurons_charged": "{{paid}} 뉴런 충전 (+{{bonus}} 보너스)",
+    "payment_refunded": "결제 {{paymentId}} 환불. {{neurons}} 뉴런 차감.",
+    "refund_approved": "환불 요청이 승인 및 처리되었습니다.",
+    "welcome_bonus": "환영합니다! {{neurons}} 뉴런을 받으셨습니다 ({{days}}일 유효).",
+    "first_creation_reward": "첫 페르소나 생성을 축하합니다! {{neurons}} 뉴런을 받으셨습니다 ({{days}}일 유효).",
+    "new_follower": "님이 팔로우를 시작했습니다.",
+    "persona_liked": "님이 페르소나를 좋아합니다.",
+    "admin_gift": "{{neurons}} 무료 뉴런을 받으셨습니다! ({{days}}일 유효)",
+    "new_persona": "님이 새 페르소나를 만들었습니다: {{name}}",
+    "updated_persona": "님이 페르소나를 업데이트했습니다: {{name}}"
+  },
+  "errors": {
+    "ERR_INSUFFICIENT_CREDITS": "크레딧이 부족하여 요청을 처리할 수 없습니다.",
+    "ERR_RATE_LIMIT": "현재 요청이 너무 많습니다. 잠시 후 다시 시도해주세요.",
+    "ERR_ACCOUNT_SUSPENDED": "계정이 정지되었습니다.",
+    "ERR_PRICE_NOT_CONFIGURED": "해당 상품의 결제 통화가 설정되지 않았습니다.",
+    "ERR_UNSUPPORTED_CURRENCY": "지원하지 않는 통화입니다.",
+    "ERR_INVALID_ITEM": "잘못된 상품 정보입니다.",
+    "saveBeforeChat": "저장 후 대화할 수 있습니다.",
+    "verificationLoading": "인증 모듈을 불러오는 중입니다. 잠시 후 다시 시도해주세요.",
+    "verificationFailed": "본인인증 실패",
+    "verificationSaveFailed": "인증 정보 저장에 실패했습니다.",
+    "verificationError": "본인인증 중 오류가 발생했습니다.",
+    "audioBlocked": "화면을 터치해주세요 (오디오 차단됨)",
+    "loginRequired": "로그인이 필요한 기능입니다.",
+    "calculationError": "계산 중 오류가 발생했습니다. 입력값을 확인해주세요."
   }
 }
