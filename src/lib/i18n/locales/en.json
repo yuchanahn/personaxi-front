@@ -785,6 +785,7 @@
   "settingPageModal": {
     "korean": "Korean",
     "english": "English",
+    "japanese": "Japanese",
     "deleteAccount": "Delete Account",
     "deleteAccountConfirm": "Are you sure you want to delete your account? This action cannot be undone. (Your personas will be preserved)",
     "deleteAccountSuccess": "Account deleted successfully.",

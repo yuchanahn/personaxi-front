@@ -4,6 +4,7 @@ import { get } from 'svelte/store';
 
 register('en', () => import('$lib/i18n/locales/en.json'));
 register('ko', () => import('$lib/i18n/locales/ko.json'));
+register('ja', () => import('$lib/i18n/locales/ja.json'));
 
 const initialLocale = get(settings).language;
 

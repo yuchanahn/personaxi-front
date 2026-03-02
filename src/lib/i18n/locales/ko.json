@@ -84,6 +84,7 @@
     "deleteAccountFail": "회원 탈퇴에 실패했습니다.",
     "korean": "한국어",
     "english": "영어",
+    "japanese": "일본어",
     "description": "앱의 표시 언어와 테마를 변경하세요.",
     "language": "언어",
     "title": "설정",

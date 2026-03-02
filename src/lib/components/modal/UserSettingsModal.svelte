@@ -67,7 +67,7 @@
             <div class="setting-group">
                 <!-- svelte-ignore a11y_label_has_associated_control -->
                 <label>{$t("settingPageModal.language")}</label>
-                <div class="button-group">
+                <div class="button-group lang-group">
                     <button
                         class:active={$settings.language === "ko"}
                         on:click={() => ($settings.language = "ko")}
@@ -79,6 +79,12 @@
                         on:click={() => ($settings.language = "en")}
                     >
                         {$t("settingPageModal.english")}
+                    </button>
+                    <button
+                        class:active={$settings.language === "ja"}
+                        on:click={() => ($settings.language = "ja")}
+                    >
+                        {$t("settingPageModal.japanese")}
                     </button>
                 </div>
             </div>
@@ -187,6 +193,9 @@
         background-color: var(--muted);
         padding: 0.25rem;
         border-radius: var(--radius-button);
+    }
+    .button-group.lang-group {
+        grid-template-columns: 1fr 1fr 1fr;
     }
     .button-group button {
         background: none;

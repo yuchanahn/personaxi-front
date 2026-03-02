@@ -2,7 +2,7 @@ import { writable } from 'svelte/store';
 import { browser } from '$app/environment';
 
 export type Theme = 'light' | 'dark';
-export type Language = 'ko' | 'en';
+export type Language = 'ko' | 'en' | 'ja';
 export type FontSize = 'medium' | 'large';
 
 export interface AppSettings {

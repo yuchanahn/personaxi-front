@@ -491,6 +491,18 @@
                                         icon="ph:check"
                                     />{/if}
                             </button>
+                            <button
+                                class="w-full text-left px-4 py-2 text-sm hover:bg-muted/50 transition-colors flex items-center justify-between {$locale ===
+                                'ja'
+                                    ? 'text-primary font-medium'
+                                    : 'text-muted-foreground'}"
+                                on:click={() => setLanguage("ja")}
+                            >
+                                <span>日本語</span>
+                                {#if $locale === "ja"}<Icon
+                                        icon="ph:check"
+                                    />{/if}
+                            </button>
                         </div>
                         <div
                             class="fixed inset-0 z-40 bg-transparent"
