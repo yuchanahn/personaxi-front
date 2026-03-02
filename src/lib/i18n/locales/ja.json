@@ -960,6 +960,18 @@
       "notice": "お知らせ"
     }
   },
+  "hubBanner": {
+    "event": {
+      "title": "最初のペルソナ作成でニューロン付与！",
+      "subtitle": "今すぐ自分だけのAIアバターを作成して、特別な報酬を受け取りましょう。",
+      "action": "ペルソナを作成する"
+    },
+    "guide": {
+      "title": "PersonaXi ガイドブック",
+      "subtitle": "アプリのご利用は初めてですか？初心者のための詳細なガイドをご確認ください。",
+      "action": "ガイドを見る"
+    }
+  },
   "notification": {
     "neurons_charged": "{{paid}} ニューロンチャージ完了（+{{bonus}}ボーナス）",
     "payment_refunded": "決済 {{paymentId}} の払い戻し完了。{{neurons}} ニューロンが差し引かれました。",

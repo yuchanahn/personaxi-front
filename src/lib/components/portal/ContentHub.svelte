@@ -25,6 +25,30 @@
     import { showNeedMoreNeuronsModal } from "$lib/stores/modal";
     import { toast } from "$lib/stores/toast";
     import { requestIdentityVerification } from "$lib/services/verification";
+    import HubBanner from "./HubBanner.svelte";
+
+    $: hubBanners = [
+        {
+            id: "event_neurons",
+            title: $t("hubBanner.event.title"),
+            subtitle: $t("hubBanner.event.subtitle"),
+            imageUrl: "/images/hub_banner_event_anime.png",
+            linkUrl: "/edit3",
+            actionText: $t("hubBanner.event.action"),
+            bgColor:
+                "linear-gradient(to right, rgba(0,0,0,0.9) 0%, rgba(99,102,241,0) 80%)",
+        },
+        {
+            id: "guidebook",
+            title: $t("hubBanner.guide.title"),
+            subtitle: $t("hubBanner.guide.subtitle"),
+            imageUrl: "/images/hub_banner_guide_anime.png",
+            linkUrl: "/guide",
+            actionText: $t("hubBanner.guide.action"),
+            bgColor:
+                "linear-gradient(to right, rgba(0,0,0,0.9) 0%, rgba(244,63,94,0) 80%)",
+        },
+    ];
 
     // --- Safety Filter State ---
     let safetyFilterEnabled = false;
@@ -698,6 +722,9 @@
 
     <div class="hub-container">
         <div class="hub-content max-w-screen-xl mx-auto w-full">
+            <!-- Top Banners -->
+            <HubBanner banners={hubBanners} />
+
             <!-- HOME DASHBOARD VIEW -->
             <!-- If we are in home tab AND NOT searching/filtering, show dashboard -->
             {#if activeTab === "home" && !selectedCategory}

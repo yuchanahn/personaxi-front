@@ -982,8 +982,19 @@
     "noLorebooks": "No lorebooks found.",
     "noDescription": "No description",
     "testContext": "Context Simulator",
-    "testDesc": "Type a message to see which Lore entries will be triggered.",
     "testPlaceholder": "e.g. Walking into the ancient forest..."
+  },
+  "hubBanner": {
+    "event": {
+      "title": "Neuron Reward for First Persona!",
+      "subtitle": "Create your own AI avatar now and get a special reward.",
+      "action": "Create Persona"
+    },
+    "guide": {
+      "title": "PersonaXi Guidebook",
+      "subtitle": "New to the app? Check out our detailed guide for beginners.",
+      "action": "View Guide"
+    }
   },
   "notification": {
     "neurons_charged": "{{paid}} Neurons charged (+{{bonus}} Bonus)",

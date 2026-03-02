@@ -960,6 +960,18 @@
       "notice": "공지"
     }
   },
+  "hubBanner": {
+    "event": {
+      "title": "첫 페르소나 생성 시 뉴런 지급!",
+      "subtitle": "지금 바로 나만의 AI 아바타를 만들고 특별한 보상을 받아보세요.",
+      "action": "페르소나 만들기"
+    },
+    "guide": {
+      "title": "PersonaXi 가이드북",
+      "subtitle": "앱 사용이 처음이신가요? 초보자를 위한 상세한 가이드를 확인해보세요.",
+      "action": "가이드 보기"
+    }
+  },
   "notification": {
     "neurons_charged": "{{paid}} 뉴런 충전 (+{{bonus}} 보너스)",
     "payment_refunded": "결제 {{paymentId}} 환불. {{neurons}} 뉴런 차감.",
