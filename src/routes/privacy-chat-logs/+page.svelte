@@ -7,7 +7,12 @@
 
     let loc = get(locale) || "en";
 
-    import(`$lib/i18n/locales/${loc}/privacy-chat-logs.md?raw`)
+    (loc === "ko"
+        ? import(`$lib/i18n/locales/ko/privacy-chat-logs.md?raw`)
+        : loc === "ja"
+          ? import(`$lib/i18n/locales/ja/privacy-chat-logs.md?raw`)
+          : import(`$lib/i18n/locales/en/privacy-chat-logs.md?raw`)
+    )
         .then(async (module) => {
             chatLogPolicyContent = await marked(module.default);
         })

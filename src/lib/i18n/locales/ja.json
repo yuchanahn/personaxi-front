@@ -1004,13 +1004,13 @@
     },
     "prompt": {
       "firstSceneHint": "会話が始まる時の最初のシーンを作成してください。アセット画像を本文に入れるには <img 0> のようなタグを挿入してください。",
-      "firstScenePlaceholder": "例：学校の屋上で風が吹く午後。{{char}}が手すりに寄りかかり空を眺めている。",
+      "firstScenePlaceholder": "例：学校の屋上で風が吹く午後。{char}が手すりに寄りかかり空を眺めている。",
       "instructionHint": "キャラクターの性格、言葉遣い、行動ルールなどを自由に記述してください。",
       "lorebookHint": "特定のキーワードが登場した際にAIに追加情報を提供します。"
     },
     "review": {
       "selectTags": "カテゴリータグの選択",
-      "tagsHint": "キャラクターのジャンル/性格を表すタグを最大3つまで選択してください。({{count}}/3)",
+      "tagsHint": "キャラクターのジャンル/性格を表すタグを最大3つまで選択してください。({count}/3)",
       "preview": "プレビュー",
       "noName": "名前なし",
       "noType": "タイプ未選択",
@@ -1033,16 +1033,16 @@
     }
   },
   "notification": {
-    "neurons_charged": "{{paid}} ニューロンチャージ完了（+{{bonus}}ボーナス）",
-    "payment_refunded": "決済 {{paymentId}} の払い戻し完了。{{neurons}} ニューロンが差し引かれました。",
+    "neurons_charged": "{paid} ニューロンチャージ完了（+{bonus}ボーナス）",
+    "payment_refunded": "決済 {paymentId} の払い戻し完了。{neurons} ニューロンが差し引かれました。",
     "refund_approved": "払い戻しのリクエストが承認され処理されました。",
-    "welcome_bonus": "ようこそ！ {{neurons}} ニューロンを受け取りました。（{{days}}日有効）",
-    "first_creation_reward": "初のペルソナ作成おめでとうございます！ {{neurons}} ニューロンを受け取りました。（{{days}}日有効）",
+    "welcome_bonus": "ようこそ！ {neurons} ニューロンを受け取りました。（{days}日有効）",
+    "first_creation_reward": "初のペルソナ作成おめでとうございます！ {neurons} ニューロンを受け取りました。（{days}日有効）",
     "new_follower": "さんがあなたをフォローしました。",
     "persona_liked": "さんがあなたのペルソナを「いいね」しました。",
-    "admin_gift": "{{neurons}} 無料のニューロンを受け取りました！ （{{days}}日有効）",
-    "new_persona": "さんが新しいペルソナを作成しました: {{name}}",
-    "updated_persona": "さんがペルソナを更新しました: {{name}}"
+    "admin_gift": "{neurons} 無料のニューロンを受け取りました！ （{days}日有効）",
+    "new_persona": "さんが新しいペルソナを作成しました: {name}",
+    "updated_persona": "さんがペルソナを更新しました: {name}"
   },
   "errors": {
     "ERR_INSUFFICIENT_CREDITS": "クレジットが不足しているため、リクエストを処理できません。",

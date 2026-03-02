@@ -6,7 +6,12 @@
     let policyContent = "";
     let loc = get(locale) || "en";
 
-    import(`$lib/i18n/locales/${loc}/policy.md?raw`)
+    (loc === "ko"
+        ? import(`$lib/i18n/locales/ko/policy.md?raw`)
+        : loc === "ja"
+          ? import(`$lib/i18n/locales/ja/policy.md?raw`)
+          : import(`$lib/i18n/locales/en/policy.md?raw`)
+    )
         .then(async (module) => {
             policyContent = await marked(module.default);
         })

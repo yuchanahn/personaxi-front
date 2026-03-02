@@ -7,7 +7,12 @@
 
     let loc = get(locale) || "en";
 
-    import(`$lib/i18n/locales/${loc}/terms.md?raw`)
+    (loc === "ko"
+        ? import(`$lib/i18n/locales/ko/terms.md?raw`)
+        : loc === "ja"
+          ? import(`$lib/i18n/locales/ja/terms.md?raw`)
+          : import(`$lib/i18n/locales/en/terms.md?raw`)
+    )
         .then(async (module) => {
             termsContent = await marked(module.default);
         })

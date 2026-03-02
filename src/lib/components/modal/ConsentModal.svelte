@@ -43,9 +43,36 @@
         async function loadContent(loc: string | null | undefined) {
             if (!loc) return;
             try {
+                let termsPromise, policyPromise;
+                switch (loc) {
+                    case "ko":
+                        termsPromise = import(
+                            "$lib/i18n/locales/ko/terms.md?raw"
+                        );
+                        policyPromise = import(
+                            "$lib/i18n/locales/ko/policy.md?raw"
+                        );
+                        break;
+                    case "ja":
+                        termsPromise = import(
+                            "$lib/i18n/locales/ja/terms.md?raw"
+                        );
+                        policyPromise = import(
+                            "$lib/i18n/locales/ja/policy.md?raw"
+                        );
+                        break;
+                    default:
+                        termsPromise = import(
+                            "$lib/i18n/locales/en/terms.md?raw"
+                        );
+                        policyPromise = import(
+                            "$lib/i18n/locales/en/policy.md?raw"
+                        );
+                }
+
                 const [termsModule, policyModule] = await Promise.all([
-                    import(`$lib/i18n/locales/${loc}/terms.md?raw`),
-                    import(`$lib/i18n/locales/${loc}/policy.md?raw`),
+                    termsPromise,
+                    policyPromise,
                 ]);
                 termsOfServiceContent = marked(termsModule.default) as string;
                 privacyPolicyContent = marked(policyModule.default) as string;

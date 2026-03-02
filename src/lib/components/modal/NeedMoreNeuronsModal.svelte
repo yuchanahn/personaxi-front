@@ -101,7 +101,12 @@
                         if (user) st_user.set(user);
 
                         toast.success(
-                            `Payment successful! +${result.neurons} Neurons`,
+                            $t("shop.neurons_charged", {
+                                values: {
+                                    paid: result.neurons,
+                                    bonus: result.bonus || 0,
+                                },
+                            }),
                         );
                         closeModal();
                     } catch (e: any) {
@@ -142,7 +147,19 @@
 
     $: loc = $locale || "en";
     $: if (loc) {
-        import(`$lib/i18n/locales/${loc}/shop_notice.md?raw`)
+        let loadPromise;
+        switch (loc) {
+            case "ko":
+                loadPromise = import("$lib/i18n/locales/ko/shop_notice.md?raw");
+                break;
+            case "ja":
+                loadPromise = import("$lib/i18n/locales/ja/shop_notice.md?raw");
+                break;
+            default:
+                loadPromise = import("$lib/i18n/locales/en/shop_notice.md?raw");
+        }
+
+        loadPromise
             .then(async (module) => {
                 noticeContent = await marked(module.default);
             })
@@ -263,7 +280,14 @@
             if (user) {
                 st_user.set(user);
             }
-            toast.success("Payment successful! Neurons updated.");
+            toast.success(
+                $t("shop.neurons_charged", {
+                    values: {
+                        paid: selectedOption.neurons,
+                        bonus: selectedOption.bonus_amount || 0,
+                    },
+                }),
+            );
 
             closeModal();
             isPurchasing = false;

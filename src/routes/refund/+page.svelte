@@ -8,7 +8,12 @@
     let loc = get(locale) || "en";
 
     // Load refund.md based on locale
-    import(`$lib/i18n/locales/${loc}/refund.md?raw`)
+    (loc === "ko"
+        ? import(`$lib/i18n/locales/ko/refund.md?raw`)
+        : loc === "ja"
+          ? import(`$lib/i18n/locales/ja/refund.md?raw`)
+          : import(`$lib/i18n/locales/en/refund.md?raw`)
+    )
         .then(async (module) => {
             refundContent = await marked(module.default);
         })

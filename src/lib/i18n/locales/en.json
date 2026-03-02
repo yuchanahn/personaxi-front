@@ -1028,13 +1028,13 @@
     },
     "prompt": {
       "firstSceneHint": "Write the first scene when the conversation starts. E.g. <img 0>.",
-      "firstScenePlaceholder": "e.g. A windy afternoon on the school rooftop. {{char}} is leaning.",
+      "firstScenePlaceholder": "e.g. A windy afternoon on the school rooftop. {char} is leaning.",
       "instructionHint": "Freely write about the character's personality, tone, etc.",
       "lorebookHint": "Provides extra context to the AI when certain keywords appear."
     },
     "review": {
       "selectTags": "Select Category Tags",
-      "tagsHint": "Select up to 3 tags describing the genre/personality. ({{count}}/3)",
+      "tagsHint": "Select up to 3 tags describing the genre/personality. ({count}/3)",
       "preview": "Preview",
       "noName": "No Name",
       "noType": "No Type Selected",
@@ -1057,16 +1057,16 @@
     }
   },
   "notification": {
-    "neurons_charged": "{{paid}} Neurons charged (+{{bonus}} Bonus)",
-    "payment_refunded": "Payment {{paymentId}} Refunded. {{neurons}} Neurons deducted.",
+    "neurons_charged": "{paid} Neurons charged (+{bonus} Bonus)",
+    "payment_refunded": "Payment {paymentId} Refunded. {neurons} Neurons deducted.",
     "refund_approved": "Refund request has been approved and processed.",
-    "welcome_bonus": "Welcome! You received {{neurons}} Neurons (Valid for {{days}} days).",
-    "first_creation_reward": "Congratulations on your first Persona! You received {{neurons}} Neurons (Valid for {{days}} days).",
+    "welcome_bonus": "Welcome! You received {neurons} Neurons (Valid for {days} days).",
+    "first_creation_reward": "Congratulations on your first Persona! You received {neurons} Neurons (Valid for {days} days).",
     "new_follower": "started following you.",
     "persona_liked": "liked your persona.",
-    "admin_gift": "You received {{neurons}} free neurons! (Expires in {{days}} days)",
-    "new_persona": "created a new persona: {{name}}",
-    "updated_persona": "updated persona: {{name}}"
+    "admin_gift": "You received {neurons} free neurons! (Expires in {days} days)",
+    "new_persona": "created a new persona: {name}",
+    "updated_persona": "updated persona: {name}"
   },
   "errors": {
     "ERR_INSUFFICIENT_CREDITS": "Not enough credits to process the request.",

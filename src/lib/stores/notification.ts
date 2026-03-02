@@ -34,7 +34,7 @@ function createNotificationStore() {
                         if (n.contentKey) {
                             try {
                                 const params = n.contentParams ? JSON.parse(n.contentParams) : {};
-                                n.content = t(`notification.${n.contentKey.split('.').pop()}`, params) || n.content;
+                                n.content = t(`notification.${n.contentKey.split('.').pop()}`, { values: params }) || n.content;
                             } catch (e) {
                                 console.error("Failed to parse notification params", e);
                             }

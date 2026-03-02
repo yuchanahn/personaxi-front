@@ -114,7 +114,17 @@
                     >{notification.actorName}</span
                 >
             {/if}
-            {notification.content}
+            {#if notification.contentKey}
+                {#if notification.contentParams}
+                    {$t(notification.contentKey, {
+                        values: JSON.parse(notification.contentParams),
+                    })}
+                {:else}
+                    {$t(notification.contentKey)}
+                {/if}
+            {:else}
+                {notification.content}
+            {/if}
         </p>
 
         <span
