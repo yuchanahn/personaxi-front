@@ -35,7 +35,7 @@
             isKorean = true; // Fallback to Korean (PortOne)
         }
 
-        isKorean = false;
+        //isKorean = false;
     }
 
     // --- PayPal Checkout Flow ---
