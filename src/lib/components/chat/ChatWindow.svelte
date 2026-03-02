@@ -1045,6 +1045,7 @@
     flex-direction: column;
     gap: 1rem;
     overflow-y: auto;
+    overflow-x: hidden;
     position: relative;
     padding-top: 50px;
     scroll-behavior: smooth;

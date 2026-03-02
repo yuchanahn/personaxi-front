@@ -4,8 +4,27 @@
     color: #6e6e6e;
     line-height: 1.7;
     word-break: break-word;
+    max-width: 100%;
+    box-sizing: border-box;
 
     font-size: 0.9em;
+}
+
+/* Prevent AI-generated content from overflowing on mobile */
+.markdown-body>* {
+    max-width: 100% !important;
+    box-sizing: border-box;
+}
+
+.markdown-body table {
+    display: block;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+.markdown-body img {
+    max-width: 100%;
+    height: auto;
 }
 
 .markdown-body h1,
