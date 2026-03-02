@@ -62,6 +62,7 @@
                     try {
                         const res = await api.post("/api/paypal/create-order", {
                             item_id: selectedOption.item_id,
+                            currency: getPayPalCurrency(),
                         });
                         if (!res.ok) {
                             const err = await res.json().catch(() => ({}));
@@ -279,16 +280,8 @@
             document.body.appendChild(script);
         }
 
-        // Load PayPal SDK
-        if (!document.getElementById("paypal-sdk")) {
-            const script = document.createElement("script");
-            script.id = "paypal-sdk";
-            // TODO: Replace PLACEHOLDER with actual PayPal Client ID
-            script.src =
-                "https://www.paypal.com/sdk/js?client-id=ATj3iC5_ZaCmh54RLvDfhd80nWHfZV1l1TMih0exrj6ZLSL-xz8PQ1wrrIxbdKfCqiADWBIcmbKoHztr&currency=USD";
-            script.defer = true;
-            document.body.appendChild(script);
-        }
+        // Load PayPal SDK with dynamic currency
+        loadPayPalSDK();
     });
 
     let current_neurons_count: number = 0;
@@ -319,23 +312,51 @@
         return 0;
     }
 
+    function getPayPalCurrency(): string {
+        if ($locale === "ja") return "JPY";
+        return "USD";
+    }
+
+    function getCurrentCurrency(): string {
+        if (isKorean) return "KRW";
+        if ($locale === "ja") return "JPY";
+        return "USD";
+    }
+
     function getStandardPrice(totalNeurons: number) {
-        // baseline: 1 neuron = 10 KRW or $0.008 USD
-        if (isKorean === false) {
-            return +(totalNeurons * 0.008).toFixed(2);
-        }
-        return totalNeurons * 10;
+        const currency = getCurrentCurrency();
+        if (currency === "JPY") return totalNeurons * 1.2;
+        if (currency === "USD") return +(totalNeurons * 0.008).toFixed(2);
+        return totalNeurons * 10; // KRW
     }
 
     function getDisplayPrice(option: any): string {
-        if (isKorean === false && option.price_usd) {
-            return `$${option.price_usd.toFixed(2)}`;
-        }
-        return option.price_display;
+        const currency = getCurrentCurrency();
+        const price = option.prices?.[currency];
+        if (price == null) return "—";
+        if (currency === "KRW") return `₩${price.toLocaleString()}`;
+        if (currency === "JPY") return `¥${Math.floor(price).toLocaleString()}`;
+        return `$${price.toFixed(2)}`;
     }
 
     function getDisplayCurrency(): string {
-        return isKorean === false ? "$" : "₩";
+        const currency = getCurrentCurrency();
+        if (currency === "JPY") return "¥";
+        if (currency === "USD") return "$";
+        return "₩";
+    }
+
+    function loadPayPalSDK() {
+        // Remove old SDK if currency changed
+        const oldScript = document.getElementById("paypal-sdk");
+        if (oldScript) oldScript.remove();
+
+        const currency = getPayPalCurrency();
+        const script = document.createElement("script");
+        script.id = "paypal-sdk";
+        script.src = `https://www.paypal.com/sdk/js?client-id=ATj3iC5_ZaCmh54RLvDfhd80nWHfZV1l1TMih0exrj6ZLSL-xz8PQ1wrrIxbdKfCqiADWBIcmbKoHztr&currency=${currency}`;
+        script.defer = true;
+        document.body.appendChild(script);
     }
 
     function getPaymentParams() {
@@ -348,7 +369,7 @@
         const orderName =
             selectedOption.name ||
             `${(selectedOption.neurons + (selectedOption.bonus_amount || 0)).toLocaleString()} Neurons`;
-        const totalAmount = selectedOption.price_krw;
+        const totalAmount = selectedOption.prices?.KRW || 0;
         const credits =
             selectedOption.neurons + (selectedOption.bonus_amount || 0);
 
@@ -442,7 +463,7 @@
 
                 <!-- Pricing Options List -->
                 <div class="pricing-list">
-                    {#each $pricingStore.purchase_options.filter((o) => isKorean === null || (isKorean ? o.price_krw > 0 : o.price_usd && o.price_usd > 0)) as option, i}
+                    {#each $pricingStore.purchase_options.filter((o) => isKorean === null || o.prices?.[getCurrentCurrency()] > 0) as option, i}
                         {@const isSelected = selectedOption === option}
                         {@const iconProps = getProductIconProps(i)}
                         {@const bonusPercent = getBonusPercentage(option)}
@@ -497,18 +518,10 @@
 
                                 <div class="price-container">
                                     <!-- Discount Logic matching shop page -->
-                                    {#if isKorean !== false && option.price_krw < standardPrice}
+                                    {#if (option.prices?.[getCurrentCurrency()] || 0) > 0 && (option.prices?.[getCurrentCurrency()] || 0) < standardPrice}
                                         <span class="old-price">
-                                            {standardPrice.toLocaleString()}₩
+                                            {getDisplayCurrency()}{standardPrice.toLocaleString()}
                                         </span>
-                                    {:else if isKorean === false}
-                                        {@const usdStandard =
-                                            getStandardPrice(totalNeurons)}
-                                        {#if option.price_usd && option.price_usd < usdStandard}
-                                            <span class="old-price">
-                                                ${usdStandard.toFixed(2)}
-                                            </span>
-                                        {/if}
                                     {/if}
                                     <span
                                         class="current-price"
@@ -522,50 +535,52 @@
                     {/each}
                 </div>
 
-                <!-- Precautions Toggle -->
-                <div class="precautions-section">
-                    <button
-                        class="toggle-btn"
-                        on:click={() => (isNoticeOpen = !isNoticeOpen)}
-                    >
-                        <Icon icon="ph:info-bold" width="16" />
-                        <span
-                            >{$t("shop.notice.title", {
-                                default: "Precautions",
-                            })}</span
+                {#if isKorean}
+                    <!-- Precautions Toggle (Korean PG Compliance) -->
+                    <div class="precautions-section">
+                        <button
+                            class="toggle-btn"
+                            on:click={() => (isNoticeOpen = !isNoticeOpen)}
                         >
-                        <Icon
-                            icon="ph:caret-down-bold"
-                            width="16"
-                            class="caret {isNoticeOpen ? 'open' : ''}"
-                        />
-                    </button>
-                    {#if isNoticeOpen}
-                        <div class="notice-content" transition:slide>
-                            {@html noticeContent}
-                        </div>
-                    {/if}
-                </div>
-                <!-- Business Info (Minimalist) -->
-                <div class="business-info-minimal">
-                    <p class="font-bold">{$t("footer.companyName")}</p>
-                    <p>
-                        {$t("footer.ceo")} <span class="mx-1">|</span>
-                        {$t("footer.bizLicense")}
-                    </p>
-                    <p>{$t("footer.address")}</p>
-                    <p>{$t("footer.mailOrder")}</p>
-                    <p>
-                        {$t("footer.phone")} <span class="mx-1">|</span>
-                        {$t("footer.email")}
-                    </p>
-                    <p class="mt-1">
-                        {$t("footer.liability")}
-                    </p>
-                    <p>
-                        {$t("footer.grievance")}
-                    </p>
-                </div>
+                            <Icon icon="ph:info-bold" width="16" />
+                            <span
+                                >{$t("shop.notice.title", {
+                                    default: "Precautions",
+                                })}</span
+                            >
+                            <Icon
+                                icon="ph:caret-down-bold"
+                                width="16"
+                                class="caret {isNoticeOpen ? 'open' : ''}"
+                            />
+                        </button>
+                        {#if isNoticeOpen}
+                            <div class="notice-content" transition:slide>
+                                {@html noticeContent}
+                            </div>
+                        {/if}
+                    </div>
+                    <!-- Business Info (Korean Law Requirement) -->
+                    <div class="business-info-minimal">
+                        <p class="font-bold">{$t("footer.companyName")}</p>
+                        <p>
+                            {$t("footer.ceo")} <span class="mx-1">|</span>
+                            {$t("footer.bizLicense")}
+                        </p>
+                        <p>{$t("footer.address")}</p>
+                        <p>{$t("footer.mailOrder")}</p>
+                        <p>
+                            {$t("footer.phone")} <span class="mx-1">|</span>
+                            {$t("footer.email")}
+                        </p>
+                        <p class="mt-1">
+                            {$t("footer.liability")}
+                        </p>
+                        <p>
+                            {$t("footer.grievance")}
+                        </p>
+                    </div>
+                {/if}
             </div>
 
             <!-- Footer: Purchase Button -->
@@ -619,7 +634,7 @@
                         {:else if selectedOption}
                             {$t("shop.purchase_button", {
                                 values: {
-                                    price: selectedOption.price_display,
+                                    price: getDisplayPrice(selectedOption),
                                 },
                             })}
                         {:else}
