@@ -234,9 +234,9 @@
     "searchResult": "Search Results: \"{query}\"",
     "nav": {
       "home": "Home",
-      "character": "Character",
+      "character": "Chat",
       "story": "Story",
-      "companion": "Virtual",
+      "companion": "Live",
       "2d": "2D",
       "3d": "3D"
     }

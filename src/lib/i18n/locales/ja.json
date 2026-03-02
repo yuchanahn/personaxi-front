@@ -287,9 +287,9 @@
     "searchResult": "\"{query}\" の検索結果",
     "nav": {
       "home": "ホーム",
-      "character": "キャラクター",
+      "character": "チャット",
       "story": "ストーリー",
-      "companion": "バーチャル",
+      "companion": "ライブ",
       "2d": "2D",
       "3d": "3D"
     }

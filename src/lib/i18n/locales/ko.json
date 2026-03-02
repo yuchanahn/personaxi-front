@@ -287,9 +287,9 @@
     "searchResult": "\"{query}\" 검색 결과",
     "nav": {
       "home": "홈",
-      "character": "캐릭터",
-      "story": "스토리",
-      "companion": "버추얼",
+      "character": "대화",
+      "story": "이야기",
+      "companion": "라이브",
       "2d": "2D",
       "3d": "3D"
     }
