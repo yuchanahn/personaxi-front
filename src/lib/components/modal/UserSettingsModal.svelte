@@ -72,19 +72,19 @@
                         class:active={$settings.language === "ko"}
                         on:click={() => ($settings.language = "ko")}
                     >
-                        {$t("settingPageModal.korean")}
+                        한국어
                     </button>
                     <button
                         class:active={$settings.language === "en"}
                         on:click={() => ($settings.language = "en")}
                     >
-                        {$t("settingPageModal.english")}
+                        English
                     </button>
                     <button
                         class:active={$settings.language === "ja"}
                         on:click={() => ($settings.language = "ja")}
                     >
-                        {$t("settingPageModal.japanese")}
+                        日本語
                     </button>
                 </div>
             </div>
