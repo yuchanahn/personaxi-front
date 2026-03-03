@@ -23,7 +23,6 @@ export function handleSelect(id: string) {
                     case "3": goto(`/user/setting`); break;
                     case "4": goto(`/user/persona`); break;
                     case "5": goto(`/edit`); break;
-                    case "100": goto(`/legal`);
                 }
                 break;
             default:

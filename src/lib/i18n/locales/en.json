@@ -273,11 +273,9 @@
     "privacyPolicy": "Privacy Policy",
     "termsOfService": "Terms of Service",
     "licensesAndCredits": "Licenses & Neurons",
-    "chatLogConsent": "Chat/Log Data Collection Consent",
     "refundPolicy": "Refund Policy",
     "checkedAndAgree": "I have read and agree to the ",
-    "agreedToPolicies": ".",
-    "title": "Legal Center"
+    "agreedToPolicies": "."
   },
   "footer": {
     "companyName": "PersonaXI",
@@ -297,10 +295,6 @@
   "policy": {
     "loadError": "Failed to load privacy policy.",
     "pageTitle": "Privacy Policy - [Site/Service Name]"
-  },
-  "privacyChatLogs": {
-    "loadError": "Failed to load chat and log data collection consent information.",
-    "pageTitle": "Chat & Log Data Collection Consent - [Site/Service Name]"
   },
   "terms": {
     "loadError": "Failed to load terms of service.",
@@ -331,8 +325,7 @@
     "search": "Search",
     "user": "User",
     "feed": "Feed",
-    "create": "Create",
-    "legal": "Legal"
+    "create": "Create"
   },
   "welcomeModal": {
     "title": "Welcome to PersonaXI!",
@@ -391,19 +384,15 @@
     "title": "Service Agreement",
     "privacyPolicyTab": "Privacy Policy",
     "termsOfServiceTab": "Terms of Service",
-    "chatLogsConsentTab": "Chat & Log Data Consent",
     "agreePrivacy": "I agree to the Privacy Policy.",
     "agreeTerms": "I agree to the Terms of Service.",
-    "agreeChatLogs": "I agree to Chat & Log Data Collection.",
     "agreeToAll": "Agree to all terms and conditions.",
     "confirmButton": "Confirm",
     "alertAllAgreed": "You must agree to all required terms.",
     "privacyPolicyTitle": "Privacy Policy",
     "privacyPolicyContent": "Privacy Policy content goes here...",
     "termsOfServiceTitle": "Terms of Service",
-    "termsOfServiceContent": "Terms of Service content goes here...",
-    "chatLogsConsentTitle": "Chat & Log Data Collection Consent",
-    "chatLogsConsentContent": "Details about chat and log data collection..."
+    "termsOfServiceContent": "Terms of Service content goes here..."
   },
   "profilePage": {
     "translating": "Translating content. You can see the results by refreshing the page shortly.",

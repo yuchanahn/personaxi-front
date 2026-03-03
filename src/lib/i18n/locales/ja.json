@@ -322,11 +322,9 @@
     "privacyPolicy": "プライバシーポリシー",
     "termsOfService": "利用規約",
     "licensesAndCredits": "ライセンス",
-    "chatLogConsent": "チャット・ログ収集同意",
     "refundPolicy": "返金ポリシー",
     "agreedToPolicies": "を確認し同意します",
-    "checkedAndAgree": " ",
-    "title": "ポリシー"
+    "checkedAndAgree": " "
   },
   "footer": {
     "companyName": "ペルソナエックスアイ",
@@ -346,10 +344,6 @@
   "policy": {
     "loadError": "プライバシーポリシーの読み込みに失敗しました。",
     "pageTitle": "プライバシーポリシー - PersonaXi"
-  },
-  "privacyChatLogs": {
-    "loadError": "チャット・ログ収集同意情報の読み込みに失敗しました。",
-    "pageTitle": "チャット・ログ収集同意 - PersonaXi"
   },
   "terms": {
     "loadError": "利用規約の読み込みに失敗しました。",
@@ -376,8 +370,7 @@
       "search": "探索",
       "user": "ユーザー",
       "feed": "フィード",
-      "create": "作成",
-      "legal": "法務"
+      "create": "作成"
     }
   },
   "feed": {
@@ -422,19 +415,15 @@
     "title": "サービス利用同意",
     "privacyPolicyTab": "プライバシーポリシー",
     "termsOfServiceTab": "利用規約",
-    "chatLogsConsentTab": "チャット・ログデータ同意",
     "agreePrivacy": "プライバシーポリシーに同意します。",
     "agreeTerms": "利用規約に同意します。",
-    "agreeChatLogs": "チャット・ログデータ収集に同意します。",
     "agreeToAll": "すべての規約に同意します。",
     "confirmButton": "確認",
     "alertAllAgreed": "すべての必須規約に同意する必要があります。",
     "privacyPolicyTitle": "プライバシーポリシー",
     "privacyPolicyContent": "当[サイト/サービス名]は、ユーザーの個人情報を大切にし、「個人情報保護法」および関連法規を遵守しています。本プライバシーポリシーを通じて、ユーザーが提供する個人情報がどのような用途と方法で利用されているか、また個人情報保護のためにどのような措置が取られているかをお知らせします。",
     "termsOfServiceTitle": "利用規約",
-    "termsOfServiceContent": "本規約は[サイト/サービス名]（以下「当社」）が提供するすべてのサービスの利用に関して、当社と会員間の権利、義務および責任事項、その他必要事項を規定することを目的とします。",
-    "chatLogsConsentTitle": "チャット・ログデータ収集・利用同意のご案内",
-    "chatLogsConsentContent": "当[サイト/サービス名]は、サービスの改善およびユーザー体験の向上のために、チャット内容およびサービス利用ログデータを収集・利用する場合があります。"
+    "termsOfServiceContent": "本規約は[サイト/サービス名]（以下「当社」）が提供するすべてのサービスの利用に関して、当社と会員間の権利、義務および責任事項、その他必要事項を規定することを目的とします。"
   },
   "noticeModal": {
     "title": "オープンイベントのご案内",
