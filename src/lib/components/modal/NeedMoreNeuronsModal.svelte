@@ -407,7 +407,7 @@
 
         const clientId =
             env.PUBLIC_PAYPAL_CLIENT_ID ||
-            "ATj3iC5_ZaCmh54RLvDfhd80nWHfZV1l1TMih0exrj6ZLSL-xz8PQ1wrrIxbdKfCqiADWBIcmbKoHztr";
+            "AVQtXt7J8sqnSUJHbvbUYiy2CXQ0_4dOL_SQ6kvTzmg52rPzMws5GFRrG_hHDeDPNJ0KGR97UpUAnMfQ";
         script.src = `https://www.paypal.com/sdk/js?client-id=${clientId}&currency=${currency}`;
         script.defer = true;
 
