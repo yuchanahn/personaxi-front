@@ -48,7 +48,8 @@
       try {
         // 2. Load Persona & Assets FIRST
         const p = await loadPersona(sessionId);
-        const assets = await fetchAndSetAssetTypes(p.image_metadatas);
+        const metadatas = p.image_metadatas ?? [];
+        const assets = await fetchAndSetAssetTypes(metadatas);
         p.image_metadatas = assets;
         persona = p;
 
