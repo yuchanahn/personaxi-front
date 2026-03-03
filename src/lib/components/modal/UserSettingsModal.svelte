@@ -13,6 +13,9 @@
     export let isOpen: boolean = false;
     const dispatch = createEventDispatcher();
 
+    let isOverseas = false;
+    let isCheckingIp = true;
+
     function closeModal() {
         isOpen = false;
         dispatch("close");
@@ -43,8 +46,21 @@
         }
     }
 
-    onMount(() => {
+    onMount(async () => {
         window.addEventListener("keydown", handleKeydown);
+        try {
+            const res = await fetch("https://ipapi.co/json/");
+            if (res.ok) {
+                const data = await res.json();
+                if (data.country_code !== "KR") {
+                    isOverseas = true;
+                }
+            }
+        } catch (e) {
+            console.error("Failed to check IP", e);
+        } finally {
+            isCheckingIp = false;
+        }
     });
     onDestroy(() => {
         window.removeEventListener("keydown", handleKeydown);
@@ -109,6 +125,59 @@
                     </button>
                 </div>
             </div>
+
+            <div class="setting-group">
+                <!-- svelte-ignore a11y_label_has_associated_control -->
+                <label>
+                    <Icon icon="ph:warning-circle-bold" />
+                    {$t("tags.r18")}
+                    {#if isCheckingIp}
+                        <span class="status-badge checking">IP Checking...</span
+                        >
+                    {:else if !isOverseas}
+                        <span class="status-badge disabled">KR Restricted</span>
+                    {/if}
+                </label>
+                <div class="filter-description">
+                    {#if isCheckingIp}
+                        접속 지역을 확인하는 중입니다... / Checking region...
+                    {:else if !isOverseas}
+                        청소년 보호를 위한 19세 확인 인증 절차 연동 준비 중으로,
+                        임시 비활성화 취치되었습니다. (Disabled in KR region
+                        temporarily)
+                    {:else}
+                        청소년 보호를 위해 혹시 모를 AI의 민감한 발화나 이미지
+                        수위를 제한하는 기능입니다. (Youth protection filter for
+                        sensitive contents)
+                    {/if}
+                </div>
+                <div class="button-group">
+                    <button
+                        class:active={!$settings.safetyFilterEnabled}
+                        on:click={() => {
+                            if (isOverseas)
+                                $settings.safetyFilterEnabled = false;
+                        }}
+                        disabled={!isOverseas || isCheckingIp}
+                    >
+                        <Icon icon="ph:shield-check-bold" />
+                        Safe
+                    </button>
+                    <button
+                        class:active={$settings.safetyFilterEnabled}
+                        class:danger-active={$settings.safetyFilterEnabled}
+                        on:click={() => {
+                            if (isOverseas)
+                                $settings.safetyFilterEnabled = true;
+                        }}
+                        disabled={!isOverseas || isCheckingIp}
+                    >
+                        <Icon icon="ph:warning-bold" />
+                        Allow
+                    </button>
+                </div>
+            </div>
+
             <!-- Delete Account Section -->
             <div class="delete-account-section">
                 <button class="delete-button" on:click={handleDeleteAccount}>
@@ -216,6 +285,36 @@
         background-color: var(--background);
         color: var(--foreground);
         box-shadow: var(--shadow-mini);
+    }
+    .button-group button.danger-active {
+        color: var(--danger);
+    }
+    .button-group button:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+    .filter-description {
+        font-size: 0.85rem;
+        color: var(--muted-foreground);
+        margin-bottom: 0.75rem;
+        line-height: 1.4;
+    }
+    .status-badge {
+        font-size: 0.75rem;
+        padding: 0.2rem 0.5rem;
+        border-radius: 12px;
+        margin-left: 0.5rem;
+        vertical-align: middle;
+        font-weight: 500;
+    }
+    .status-badge.checking {
+        background-color: var(--muted);
+        color: var(--muted-foreground);
+    }
+    .status-badge.disabled {
+        background-color: hsl(from var(--danger) h s l / 0.1);
+        color: var(--danger);
+        border: 1px solid hsl(from var(--danger) h s l / 0.2);
     }
 
     .delete-account-section {

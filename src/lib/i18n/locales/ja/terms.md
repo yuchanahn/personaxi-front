@@ -127,21 +127,19 @@ By accessing or using personaxi ("Service"), operated by PersonaXI ("Company"), 
 
 ---
 
-### Chapter 7: Adult Content and AI Ethics Policy
+### 第7章 青少年保護およびセンシティブコンテンツ運用ポリシー
 
-#### Article 18 (Adult Content Usage Policy)
-1. **Compliance and Youth Protection:** The Company complies with relevant laws, including the Act on Promotion of Information and Communications Network Utilization and Information Protection, and the Act on the Protection of Children and Youth against Sex Offenses. The Company implements technical and administrative measures, such as age verification, to protect minors from exposure to harmful adult content.
+#### 第18条 (センシティブコンテンツの管理と青少年保護)
+1. **センシティブコンテンツの定義:** 「センシティブコンテンツ」とは、合法的な範囲内において、成人向けの表現、暴力性、社会的な議論の要素を含む、年齢制限を要するコンテンツを意味します。ただし、児童ポルノ、児童の性的搾取物、違法な撮影物など、法令に違反する違法コンテンツは絶対に含まれず、本サービス内での作成および流通は厳重に禁止されます。
 
-2. **Eligibility:** Adult content (19+) features are available only to Members aged 19 or older who have completed identity verification.
+2. **年齢確認および認証:** センシティブコンテンツの年齢制限枠（19歳以上）にアクセスしたり、「セーフティフィルター」の設定を変更しようとする会員は、必ず実名に基づく本人認証機能（モバイル認証など）を通じて成人であることを証明しなければなりません。未成年アカウントからのアクセスはシステムにより根本的に遮断されます。また、他人の名義の盗用や認証の偽造が発覚した場合は、アカウントが直ちに永久停止されます。当社は、関連法令に従い、年齢認証情報およびアクセスログを最低6ヶ月間保存します。
 
-3. **Prohibited Acts and Circumvention:** Members must not use the Service in a manner that circumvents the Company's service policies or technical safety measures (e.g., filtering), such as by inputting "jailbreak" prompts. Intentional creation or distribution of prohibited content, including child sexual exploitation material, deepfakes, or non-consensual recordings, may result in immediate and permanent suspension of service.
+3. **フィルター設定の変更と利用者の責任:** 成人認証を完了した利用者は、本人の明示的な同意と自発的な意思に基づき、アクセス制限を緩和するための「セーフティフィルター」設定を変更することができます。この機能は、遮断ポリシーを単に違法に迂回するものではなく、自律的な評価システムにおける選択的な権限でのみ運用されます。利用者はフィルターの設定をいつでも元に戻すことができます。ただし、虚偽の情報による登録（VPNの不正利用など）、またはセンシティブコンテンツを故意に外部へ流出、再配布、クロールなどにより拡散させた場合、それに伴う一切の法的責任は利用者本人が負うものとします。
 
-4. **Sharing and Liability:** When manually sharing or distributing AI-generated content publicly, Members are responsible for ensuring that such content does not contain illegal, sexually explicit, violent, or discriminatory material. The Member bears full civil and criminal liability for any disputes arising from the sharing of content beyond the scope of private use, and the Company shall not be liable absent willful misconduct or gross negligence.
-
-5. **Technical Safety Measures:** The Company implements the following technical measures to block the generation of illegal content:
-   - **AI Model-Level Filtering:** Maintaining safety settings at the highest level to prevent the generation of harmful text at the source.
-   - **Real-time Monitoring:** Warning and blocking users upon detecting prohibited keywords (e.g., child exploitation, non-consensual sexual acts).
-   - **Three-Strike Policy:** Automatic account suspension and IP blocking upon three cumulative violation attempts.
+4. **プラットフォームの管理義務と技術的措置:** 当社は単なる免責を主張せず、違法コンテンツの流通を防止するため、以下の積極的な措置を講じます：
+   - **AIレベルでの事前/事後分類フィルター:** 違法コンテンツ（児童搾取物やディープフェイク等）の作成を根本から遮断する自動キーワード・文脈検閲システムを導入。
+   - **報告受付と即時対応措置:** 監視体制およびユーザーの報告受付時に、問題のあるコンテンツをただちに非公開（ブラインド処理）および削除。
+   - **法的措置と協力義務:** フィルターの強制的なバイパス（「ジェイルブレイク」プロンプトの入力等）を試みたユーザーに対しては、スリーストライク制度によりアカウントおよびIPを永久追放します。また、政府機関等からの適法な情報開示要求に対し、関連ログおよび提出可能なデータを提供する法的義務を果たします。
 
 ---
 

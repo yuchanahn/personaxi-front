@@ -127,21 +127,19 @@ By accessing or using personaxi ("Service"), operated by PersonaXI ("Company"), 
 
 ---
 
-### Chapter 7: Adult Content and AI Ethics Policy
+### Chapter 7: Youth Protection and Sensitive Content Policy
 
-#### Article 18 (Adult Content Usage Policy)
-1. **Compliance and Youth Protection:** The Company complies with relevant laws, including the Act on Promotion of Information and Communications Network Utilization and Information Protection, and the Act on the Protection of Children and Youth against Sex Offenses. The Company implements technical and administrative measures, such as age verification, to protect minors from exposure to harmful adult content.
+#### Article 18 (Sensitive Content Management and Youth Protection)
+1. **Definition of Sensitive Content:** "Sensitive Content" refers to age-restricted material containing adult-oriented expressions, violence, or socially controversial elements strictly within the boundaries of legal compliance. Illegal content such as child sexual exploitation material (CSAM) and non-consensual recordings are never classified as Sensitive Content and are strictly prohibited from being generated or distributed on the Service.
 
-2. **Eligibility:** Adult content (19+) features are available only to Members aged 19 or older who have completed identity verification.
+2. **Age Verification and Certification:** Any Member wishing to access the age-restricted tier (19+) or adjust the Safety Filter settings must complete a real-name-based age verification process (e.g., identity verification via mobile carriers) to prove they are adults. Access by minor accounts is structurally blocked. Any detection of identity theft or falsified verification will result in immediate permanent account suspension. The Company retains age verification data and related access logs for a minimum of 6 months in accordance with legal requirements.
 
-3. **Prohibited Acts and Circumvention:** Members must not use the Service in a manner that circumvents the Company's service policies or technical safety measures (e.g., filtering), such as by inputting "jailbreak" prompts. Intentional creation or distribution of prohibited content, including child sexual exploitation material, deepfakes, or non-consensual recordings, may result in immediate and permanent suspension of service.
+3. **Safety Filter Adjustments and Member Liability:** Members who have completed adult verification may, at their explicit consent and voluntary discretion, adjust the 'Safety Filter' to allow access to Sensitive Content within the permitted age tier. This feature does not bypass the Service's core safety measures but operates within a self-regulated content rating system. Members may re-enable the filter at any time. However, any Member who attempts to circumvent access (e.g., via VPN) or intentionally redistributes, leaks, or crawls Sensitive Content externally bears full legal responsibility for such actions.
 
-4. **Sharing and Liability:** When manually sharing or distributing AI-generated content publicly, Members are responsible for ensuring that such content does not contain illegal, sexually explicit, violent, or discriminatory material. The Member bears full civil and criminal liability for any disputes arising from the sharing of content beyond the scope of private use, and the Company shall not be liable absent willful misconduct or gross negligence.
-
-5. **Technical Safety Measures:** The Company implements the following technical measures to block the generation of illegal content:
-   - **AI Model-Level Filtering:** Maintaining safety settings at the highest level to prevent the generation of harmful text at the source.
-   - **Real-time Monitoring:** Warning and blocking users upon detecting prohibited keywords (e.g., child exploitation, non-consensual sexual acts).
-   - **Three-Strike Policy:** Automatic account suspension and IP blocking upon three cumulative violation attempts.
+4. **Platform's Management Obligations and Technical Measures:** The Company does not disclaim all responsibility but proactively implements measures to prevent the distribution of illegal information:
+   - **AI Contextual Classification & Pre/Post Filtering:** Operating automated AI-level keyword and context-filtering systems to permanently block the generation of illegal materials (CSAM, deepfakes, etc.).
+   - **Immediate Reporting and Blind Mechanisms:** Instantly blinding and removing illicit content upon detection through monitoring or user reports.
+   - **Sanctions and Compliance with Authorities:** Members attempting to bypass safety protocols ("jailbreak" prompts) face permanent account and IP bans through a "three-strike" policy. The Company shall fully comply with requests from government authorities to providing relevant data and access logs required by law.
 
 ---
 

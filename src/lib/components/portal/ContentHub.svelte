@@ -19,6 +19,7 @@
     import { slide } from "svelte/transition";
     import InstallPrompt from "$lib/components/common/InstallPrompt.svelte";
     import Footer from "$lib/components/common/Footer.svelte";
+    import { settings } from "$lib/stores/settings";
     import { st_user } from "$lib/stores/user";
     import { get } from "svelte/store";
     import { toastError } from "$lib/utils/errorMapper";
@@ -26,6 +27,9 @@
     import { toast } from "$lib/stores/toast";
     import { requestIdentityVerification } from "$lib/services/verification";
     import HubBanner from "./HubBanner.svelte";
+
+    let isOverseas = false;
+    let isCheckingIp = true;
 
     $: hubBanners = [
         {
@@ -50,54 +54,24 @@
         },
     ];
 
-    // --- Safety Filter State ---
-    let safetyFilterEnabled = false;
+    function handleHubSafetyToggle() {
+        if (isCheckingIp) return;
 
-    // Load state on mount/user change
-    $: if ($st_user) {
-        const stored = localStorage.getItem("safetyFilter") === "true";
-        if (stored && $st_user.data?.isVerified) {
-            safetyFilterEnabled = true;
-        } else if (stored && !$st_user.data?.isVerified) {
-            // Fix inconsistency
-            safetyFilterEnabled = false;
-            localStorage.setItem("safetyFilter", "false");
+        if (!isOverseas) {
+            toast.error(
+                "국내 접속 시 19세 제반 인증 연동 전까지 필터 해제가 제한됩니다. (KR region restricted)",
+            );
+            return;
         }
-    }
 
-    function handleSafetyFilterToggle() {
         const user = get(st_user);
-
-        // 1. Check if user is logged in
         if (!user) {
             toastError("loginRequired");
             goto("/login");
             return;
         }
 
-        // 2. Check if user is verified
-        if (user.data?.isVerified) {
-            safetyFilterEnabled = !safetyFilterEnabled;
-            localStorage.setItem("safetyFilter", String(safetyFilterEnabled));
-            // TODO: Trigger reload/filter logic here if needed
-            return;
-        }
-
-        // 3. Not verified: Show confirmation modal
-        const confirmVerification = confirm(
-            "성인 인증이 필요한 기능입니다. 지금 인증하시겠습니까?",
-        );
-        if (confirmVerification) {
-            requestIdentityVerification({
-                onSuccess: () => {
-                    // Check verification status again or just enable it?
-                    // Ideally, wait for st_user update then check.
-                    // For now, let's assume success means verified.
-                    safetyFilterEnabled = true;
-                    localStorage.setItem("safetyFilter", "true");
-                },
-            });
-        }
+        $settings.safetyFilterEnabled = !$settings.safetyFilterEnabled;
     }
 
     // --- 상수 ---
@@ -167,10 +141,10 @@
     }
 
     // Helper to get excluded tags based on safety filter
-    $: excludedTags = safetyFilterEnabled ? [] : ["tags.r18"];
+    $: excludedTags = $settings.safetyFilterEnabled ? [] : ["tags.r18"];
 
     // Trigger reload when safety filter changes
-    $: if (safetyFilterEnabled !== undefined) {
+    $: if ($settings.safetyFilterEnabled !== undefined) {
         triggerSafetyFilterReload();
     }
 
@@ -217,6 +191,21 @@
     }
 
     onMount(async () => {
+        // Check IP for Safety Filter
+        try {
+            const res = await fetch("https://ipapi.co/json/");
+            if (res.ok) {
+                const data = await res.json();
+                if (data.country_code !== "KR") {
+                    isOverseas = true;
+                }
+            }
+        } catch (e) {
+            console.error("Failed to check IP", e);
+        } finally {
+            isCheckingIp = false;
+        }
+
         // Check if running as PWA
         if (typeof window !== "undefined") {
             const isStandalone = window.matchMedia(
@@ -653,20 +642,20 @@
                 <!-- Search Button -->
                 <div class="row-controls">
                     <!-- Safety Filter Toggle -->
-                    <!-- Safety Filter Toggle (Disabled for PG Review) -->
-                    <!-- <button
+                    <button
                         class="safety-filter-btn"
-                        class:active={safetyFilterEnabled}
-                        on:click={handleSafetyFilterToggle}
-                        title={safetyFilterEnabled
+                        class:active={$settings.safetyFilterEnabled}
+                        class:disabled={!isOverseas || isCheckingIp}
+                        on:click={handleHubSafetyToggle}
+                        title={$settings.safetyFilterEnabled
                             ? "Safety Filter ON"
                             : "Safety Filter OFF"}
                     >
-                        <span class="filter-label">19+</span>
+                        <span class="filter-label">{$t("tags.r18")}</span>
                         <div class="toggle-switch">
                             <div class="toggle-thumb"></div>
                         </div>
-                    </button> -->
+                    </button>
 
                     <button
                         class="search-trigger-button"
