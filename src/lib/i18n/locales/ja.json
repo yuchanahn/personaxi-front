@@ -811,7 +811,8 @@
     "simulation": "シミュレーション",
     "vrm": "VRM",
     "live2d": "Live2D",
-    "r18": "セーフティフィルター"
+    "r18": "(成人)",
+    "safetyFilter": "セーフティフィルター"
   },
   "sort": {
     "popular": "人気順",

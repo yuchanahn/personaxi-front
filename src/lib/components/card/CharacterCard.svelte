@@ -6,6 +6,7 @@
     import { allCategories } from "$lib/constants";
     import { t } from "svelte-i18n";
     import AssetPreview from "$lib/components/AssetPreview.svelte";
+    import { settings } from "$lib/stores/settings";
 
     export let content: PersonaDTO;
 
@@ -87,11 +88,13 @@
             <div class="tags-line">
                 {#if content.tags}
                     {#each content.tags as tag}
-                        <span
-                            >#{$t(
-                                `${allCategories.find((category) => category.id.toString() === tag)?.nameKey || "tags.untagged"}`,
-                            )}</span
-                        >
+                        {#if !(tag === "1003" && $settings.safetyFilterOn)}
+                            <span
+                                >#{$t(
+                                    `${allCategories.find((category) => category.id.toString() === tag)?.nameKey || "tags.untagged"}`,
+                                )}</span
+                            >
+                        {/if}
                     {/each}
                 {/if}
             </div>

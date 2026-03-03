@@ -826,7 +826,8 @@
     "simulation": "Simulation",
     "vrm": "VRM",
     "live2d": "Live2D",
-    "r18": "Safety Filter"
+    "r18": "(Adult)",
+    "safetyFilter": "Safety Filter"
   },
   "sort": {
     "popular": "Popular",

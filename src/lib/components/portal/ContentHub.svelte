@@ -71,12 +71,15 @@
             return;
         }
 
-        $settings.safetyFilterEnabled = !$settings.safetyFilterEnabled;
+        $settings.safetyFilterOn = !$settings.safetyFilterOn;
     }
 
     // --- 상수 ---
     const visibleCategories = allCategories.filter(
         (c) => c.id !== 1001 && c.id !== 1002,
+    );
+    $: dynamicCategories = visibleCategories.filter(
+        (c) => !($settings.safetyFilterOn && c.id === 1003),
     );
 
     // --- 상태 관리 ---
@@ -141,10 +144,10 @@
     }
 
     // Helper to get excluded tags based on safety filter
-    $: excludedTags = $settings.safetyFilterEnabled ? [] : ["tags.r18"];
+    $: excludedTags = $settings.safetyFilterOn ? ["tags.r18"] : [];
 
     // Trigger reload when safety filter changes
-    $: if ($settings.safetyFilterEnabled !== undefined) {
+    $: if ($settings.safetyFilterOn !== undefined) {
         triggerSafetyFilterReload();
     }
 
@@ -644,14 +647,16 @@
                     <!-- Safety Filter Toggle -->
                     <button
                         class="safety-filter-btn"
-                        class:active={$settings.safetyFilterEnabled}
+                        class:active={$settings.safetyFilterOn}
                         class:disabled={!isOverseas || isCheckingIp}
                         on:click={handleHubSafetyToggle}
-                        title={$settings.safetyFilterEnabled
+                        title={$settings.safetyFilterOn
                             ? "Safety Filter ON"
                             : "Safety Filter OFF"}
                     >
-                        <span class="filter-label">{$t("tags.r18")}</span>
+                        <span class="filter-label"
+                            >{$t("tags.safetyFilter")}</span
+                        >
                         <div class="toggle-switch">
                             <div class="toggle-thumb"></div>
                         </div>
@@ -696,7 +701,7 @@
                 >
                     {$t("contentHub.all")}
                 </button>
-                {#each visibleCategories as category (category.id)}
+                {#each dynamicCategories as category (category.id)}
                     <button
                         class="cat-chip"
                         class:active={selectedCategory === category.nameKey}

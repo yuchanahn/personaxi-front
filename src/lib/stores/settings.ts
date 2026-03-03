@@ -18,7 +18,7 @@ export interface AppSettings {
     autoScroll: boolean;
     showBackground: boolean;
     showVariableStatus: boolean;
-    safetyFilterEnabled: boolean;
+    safetyFilterOn: boolean;
 }
 
 function isValidTheme(value: any): value is Theme {
@@ -45,7 +45,7 @@ function initializeSettings(): AppSettings {
         autoScroll: true,
         showBackground: false,
         showVariableStatus: true,
-        safetyFilterEnabled: false
+        safetyFilterOn: true
     };
 
     if (!browser) {
@@ -94,8 +94,8 @@ function initializeSettings(): AppSettings {
             if (typeof savedSettings.showVariableStatus === 'boolean') {
                 settings.showVariableStatus = savedSettings.showVariableStatus;
             }
-            if (typeof savedSettings.safetyFilterEnabled === 'boolean') {
-                settings.safetyFilterEnabled = savedSettings.safetyFilterEnabled;
+            if (typeof savedSettings.safetyFilterOn === 'boolean') {
+                settings.safetyFilterOn = savedSettings.safetyFilterOn;
             }
         } catch (e) {
             console.error("Failed to parse settings from localStorage", e);

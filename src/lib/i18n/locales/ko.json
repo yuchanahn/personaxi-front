@@ -811,7 +811,8 @@
     "simulation": "시뮬레이션",
     "vrm": "VRM",
     "live2d": "Live2D",
-    "r18": "세이프티 필터"
+    "r18": "(성인)",
+    "safetyFilter": "세이프티 필터"
   },
   "sort": {
     "popular": "인기순",

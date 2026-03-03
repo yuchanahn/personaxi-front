@@ -130,7 +130,7 @@
                 <!-- svelte-ignore a11y_label_has_associated_control -->
                 <label>
                     <Icon icon="ph:warning-circle-bold" />
-                    {$t("tags.r18")}
+                    {$t("tags.safetyFilter")}
                     {#if isCheckingIp}
                         <span class="status-badge checking">IP Checking...</span
                         >
@@ -153,10 +153,9 @@
                 </div>
                 <div class="button-group">
                     <button
-                        class:active={!$settings.safetyFilterEnabled}
+                        class:active={$settings.safetyFilterOn}
                         on:click={() => {
-                            if (isOverseas)
-                                $settings.safetyFilterEnabled = false;
+                            if (isOverseas) $settings.safetyFilterOn = true;
                         }}
                         disabled={!isOverseas || isCheckingIp}
                     >
@@ -164,11 +163,10 @@
                         Safe
                     </button>
                     <button
-                        class:active={$settings.safetyFilterEnabled}
-                        class:danger-active={$settings.safetyFilterEnabled}
+                        class:active={!$settings.safetyFilterOn}
+                        class:danger-active={!$settings.safetyFilterOn}
                         on:click={() => {
-                            if (isOverseas)
-                                $settings.safetyFilterEnabled = true;
+                            if (isOverseas) $settings.safetyFilterOn = false;
                         }}
                         disabled={!isOverseas || isCheckingIp}
                     >
