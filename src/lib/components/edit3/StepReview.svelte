@@ -114,6 +114,31 @@
         </div>
     </section>
 
+    <!-- Monetization Check for 3D/Live2D -->
+    {#if persona.personaType === "live2d" || persona.personaType === "vrm3d" || persona.live2d_model_url || persona.vrm_url}
+        <section class="review-section">
+            <h3 class="section-title">
+                <Icon icon="ph:coin-duotone" width="20" />
+                {$t("edit3.review.monetizationTitle")}
+            </h3>
+            <div class="monetization-box">
+                <p class="monetization-warning">
+                    {$t("edit3.review.monetizationWarning")}
+                </p>
+                <label class="monetization-checkbox">
+                    <input
+                        type="checkbox"
+                        bind:checked={persona.commercialRightsConfirmed}
+                    />
+                    <span>{$t("edit3.review.monetizationCheckbox")}</span>
+                </label>
+                <p class="monetization-note">
+                    {$t("edit3.review.monetizationNote")}
+                </p>
+            </div>
+        </section>
+    {/if}
+
     <!-- Validation -->
     {#if validationErrors.length > 0}
         <section class="review-section">
@@ -322,5 +347,48 @@
         color: hsl(130, 60%, 40%);
         font-size: 0.9rem;
         font-weight: 600;
+    }
+
+    /* ── Monetization Box ── */
+    .monetization-box {
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+        padding: 1.25rem;
+        border-radius: 12px;
+        background: hsla(40, 90%, 55%, 0.08);
+        border: 1px solid hsla(40, 90%, 55%, 0.3);
+    }
+
+    .monetization-warning {
+        font-size: 0.9rem;
+        color: var(--foreground);
+        margin: 0;
+        line-height: 1.5;
+    }
+
+    .monetization-checkbox {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.95rem;
+        font-weight: 600;
+        cursor: pointer;
+        padding: 0.25rem 0;
+        user-select: none;
+    }
+
+    .monetization-checkbox input[type="checkbox"] {
+        width: 1.15rem;
+        height: 1.15rem;
+        accent-color: var(--primary);
+        cursor: pointer;
+    }
+
+    .monetization-note {
+        font-size: 0.8rem;
+        color: var(--destructive);
+        margin: 0;
+        font-weight: 500;
     }
 </style>

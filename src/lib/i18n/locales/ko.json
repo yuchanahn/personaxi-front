@@ -1018,7 +1018,11 @@
       "public": "공개",
       "private": "비공개",
       "requiredItems": "작성이 필요한 항목",
-      "allReady": "모든 필수 항목이 작성되었습니다. 저장할 준비가 되었어요!"
+      "allReady": "모든 필수 항목이 작성되었습니다. 저장할 준비가 되었어요!",
+      "monetizationTitle": "수익 창출 및 저작권 확인",
+      "monetizationWarning": "Live2D 또는 3D(VRM) 모델로 제작자 포인트(뉴런)를 받으시려면, 해당 모델이 본인 소유이거나 상업적 이용이 허가된 모델이어야 합니다.",
+      "monetizationCheckbox": "네, 이 모델은 상업적 이용이 가능함을 확인합니다.",
+      "monetizationNote": "* 미확인 시 수익 창출이 제한됩니다."
     }
   },
   "hubBanner": {

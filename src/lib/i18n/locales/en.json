@@ -1040,7 +1040,11 @@
       "public": "Public",
       "private": "Private",
       "requiredItems": "Required Items",
-      "allReady": "All required items are filled. Ready to save!"
+      "allReady": "All required items are filled. Ready to save!",
+      "monetizationTitle": "Monetization & Commercial Rights",
+      "monetizationWarning": "To receive Creator Points (Neurons) for Live2D or 3D (VRM) models, you must own the model or have permission for commercial use.",
+      "monetizationCheckbox": "Yes, I confirm that this model can be used commercially.",
+      "monetizationNote": "* If not confirmed, monetization will be restricted."
     }
   },
   "hubBanner": {

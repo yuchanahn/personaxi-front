@@ -1016,7 +1016,11 @@
       "public": "公開",
       "private": "非公開",
       "requiredItems": "作成が必要な項目",
-      "allReady": "すべての必須項目が入力されました。保存の準備ができました！"
+      "allReady": "すべての必須項目が入力されました。保存の準備ができました！",
+      "monetizationTitle": "収益化および著作権の確認",
+      "monetizationWarning": "Live2Dまたは3D(VRM)モデルでクリエイターポイント（ニューロン）を受け取るには、モデルを所有しているか、商用利用が許可されている必要があります。",
+      "monetizationCheckbox": "はい、このモデルは商用利用可能であることを確認します。",
+      "monetizationNote": "* 未確認の場合、収益化は制限されます。"
     }
   },
   "hubBanner": {

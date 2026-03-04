@@ -53,6 +53,9 @@ export interface Persona {
     variables?: PersonaVariable[];
     status_template?: string;
     status_template_css?: string;
+
+    // Commercial Rights (For Live2D & VRM Monetization)
+    commercialRightsConfirmed?: boolean;
 }
 
 export interface ESFPrompt {
@@ -83,6 +86,9 @@ export interface PersonaDTO {
     image_count: number;
     owner_id: string[];
     tags: string[];
+
+    // Commercial Rights (For Live2D & VRM Monetization)
+    commercialRightsConfirmed?: boolean;
 }
 export interface User {
     id: string;
