@@ -193,7 +193,7 @@
     "purchase": "뉴런 구매",
     "convert_point": "포인트 전환",
     "initial_bonus": "가입 보너스",
-    "first_persona_bonus": "첫 페르소나 생성 보너스",
+    "first_persona_bonus": "첫 번째 콘텐츠 생성 보너스",
     "chat_start_2d": "2D 채팅 시작",
     "chat_start_3d": "3D 채팅 시작",
     "chat_start_live2d": "Live2D 채팅 시작"
@@ -433,12 +433,14 @@
   },
   "noticeModal": {
     "title": "오픈 이벤트 안내",
-    "subtitle": "선착순 500명 한정!",
-    "description1": "<strong>PersonaXi</strong>의 정식 오픈을 기념하여 선착순 500명에게 특별한 혜택을 드립니다!",
-    "description2": "지금 가입하고 첫 페르소나를 만들면 <strong>총 300 뉴런</strong>을 무료로 받을 수 있어요!",
+    "subtitle": "나만의 AI 파트너, 그 이상의 존재",
+    "description1": "나만의 AI 캐릭터를 만들고, 3D, 2D, 라이브2D로 자유롭게 호흡하며 이야기를 만들어 보세요.",
+    "description2": "지금 가입하고 첫 번째 콘텐츠를 만들면 <strong>총 300 뉴런</strong>을 무료로 받을 수 있어요!",
+    "button": "이벤트 참여하기",
+    "freeRewardTitle": "무료 뉴런 보상 안내",
     "benefitTitle": "이벤트 혜택",
     "benefit1": "가입 보너스: <strong>100 뉴런</strong>",
-    "benefit2": "첫 캐릭터 생성: <strong>+200 뉴런</strong>",
+    "benefit2": "첫 번째 콘텐츠 생성: <strong>+200 뉴런</strong>",
     "benefitTotal": "총 <strong>300 뉴런</strong> 무료 지급!",
     "noteTitle": "안내사항",
     "note1": "이벤트는 선착순 500명 한정이며, 조기 마감될 수 있습니다.",
@@ -1021,9 +1023,9 @@
   },
   "hubBanner": {
     "event": {
-      "title": "첫 페르소나 생성 시 뉴런 지급!",
+      "title": "첫 번째 콘텐츠 생성 시 뉴런 지급!",
       "subtitle": "지금 바로 나만의 AI 아바타를 만들고 특별한 보상을 받아보세요.",
-      "action": "페르소나 만들기"
+      "action": "콘텐츠 만들기"
     },
     "guide": {
       "title": "PersonaXi 가이드북",
@@ -1036,7 +1038,7 @@
     "payment_refunded": "결제 {paymentId} 환불. {neurons} 뉴런 차감.",
     "refund_approved": "환불 요청이 승인 및 처리되었습니다.",
     "welcome_bonus": "환영합니다! {neurons} 뉴런을 받으셨습니다 ({days}일 유효).",
-    "first_creation_reward": "첫 페르소나 생성을 축하합니다! {neurons} 뉴런을 받으셨습니다 ({days}일 유효).",
+    "first_creation_reward": "첫 번째 콘텐츠 생성을 축하합니다! {neurons} 뉴런을 받으셨습니다 ({days}일 유효).",
     "new_follower": "님이 팔로우를 시작했습니다.",
     "persona_liked": "님이 페르소나를 좋아합니다.",
     "admin_gift": "{neurons} 무료 뉴런을 받으셨습니다! ({days}일 유효)",

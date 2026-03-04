@@ -170,7 +170,7 @@
     "purchase": "Purchase",
     "convert_point": "Point Conversion",
     "initial_bonus": "Sign-up Bonus",
-    "first_persona_bonus": "First Persona Bonus",
+    "first_persona_bonus": "First Content Bonus",
     "chat_start_2d": "Start 2D Chat",
     "chat_start_3d": "Start 3D Chat",
     "chat_start_live2d": "Start Live2D Chat"
@@ -344,10 +344,10 @@
     "title": "Launch Event",
     "subtitle": "First 500 Users Only!",
     "description1": "To celebrate the official launch of <strong>PersonaXi</strong>, we're giving special rewards to the first 500 users!",
-    "description2": "Sign up now and create your first persona to get <strong>300 Neurons</strong> for free!",
+    "description2": "Sign up now and create your first content to get <strong>300 Neurons</strong> for free!",
     "benefitTitle": "Event Benefits",
     "benefit1": "Sign-up Bonus: <strong>100 Neurons</strong>",
-    "benefit2": "First Persona Creation: <strong>+200 Neurons</strong>",
+    "benefit2": "First Content Creation: <strong>+200 Neurons</strong>",
     "benefitTotal": "Total <strong>300 Neurons</strong> FREE!",
     "noteTitle": "Notice",
     "note1": "This event is limited to the first 500 users and may end early.",
@@ -355,14 +355,14 @@
     "confirm": "Join the Event"
   },
   "firstPersonaCreatedModal": {
-    "title": "First Persona Created!",
+    "title": "First Content Created!",
     "message1": "To celebrate your first step,",
     "message2": "you've received {amount} Neurons as a gift!",
     "message3": "Now, use these neurons to have deeper conversations with your own 'digital life form'.",
     "confirm": "Confirm"
   },
   "firstCreationRewardModal": {
-    "title": "🎉 First Persona Created!",
+    "title": "🎉 First Content Created!",
     "message1": "To celebrate your first step,",
     "message2": "as a gift!",
     "message3": "Now, use these neurons to have deeper conversations with your own 'digital life form'.",
@@ -381,7 +381,7 @@
     "description": "Please recharge your neurons to continue the conversation.",
     "rechargeTitle": "Recharge Neurons!",
     "rechargeDescription": "Recharge neurons to enjoy more conversations.",
-    "firstCreationReward": "Get 200 Neurons for your first Persona creation!",
+    "firstCreationReward": "Get 200 Neurons for your first Content creation!",
     "getFreeNeurons": "Get Free Neurons",
     "currentNeurons": "Current: {count} Neurons",
     "rechargeAlert": "You need more neurons to continue. Please recharge your account."
@@ -1045,9 +1045,9 @@
   },
   "hubBanner": {
     "event": {
-      "title": "Neuron Reward for First Persona!",
+      "title": "Neuron Reward for First Content!",
       "subtitle": "Create your own AI avatar now and get a special reward.",
-      "action": "Create Persona"
+      "action": "Create Content"
     },
     "guide": {
       "title": "PersonaXi Guidebook",
@@ -1060,7 +1060,7 @@
     "payment_refunded": "Payment {paymentId} Refunded. {neurons} Neurons deducted.",
     "refund_approved": "Refund request has been approved and processed.",
     "welcome_bonus": "Welcome! You received {neurons} Neurons (Valid for {days} days).",
-    "first_creation_reward": "Congratulations on your first Persona! You received {neurons} Neurons (Valid for {days} days).",
+    "first_creation_reward": "Congratulations on your first Content! You received {neurons} Neurons (Valid for {days} days).",
     "new_follower": "started following you.",
     "persona_liked": "liked your persona.",
     "admin_gift": "You received {neurons} free neurons! (Expires in {days} days)",

@@ -193,7 +193,7 @@
     "purchase": "ニューロン購入",
     "convert_point": "ポイント変換",
     "initial_bonus": "登録ボーナス",
-    "first_persona_bonus": "初ペルソナ作成ボーナス",
+    "first_persona_bonus": "初コンテンツ作成ボーナス",
     "chat_start_2d": "2Dチャット開始",
     "chat_start_3d": "3Dチャット開始",
     "chat_start_live2d": "Live2Dチャット開始"
@@ -435,10 +435,10 @@
     "title": "オープンイベントのご案内",
     "subtitle": "先着500名限定！",
     "description1": "<strong>PersonaXi</strong>の正式オープンを記念して、先着500名様に特別な特典をお届けします！",
-    "description2": "今すぐ登録して最初のペルソナを作ると、<strong>合計300ニューロン</strong>を無料でもらえます！",
+    "description2": "今すぐ登録して最初のコンテンツを作ると、<strong>合計300ニューロン</strong>を無料でもらえます！",
     "benefitTitle": "イベント特典",
     "benefit1": "登録ボーナス：<strong>100ニューロン</strong>",
-    "benefit2": "初キャラクター作成：<strong>+200ニューロン</strong>",
+    "benefit2": "初コンテンツ作成：<strong>+200ニューロン</strong>",
     "benefitTotal": "合計<strong>300ニューロン</strong>無料付与！",
     "noteTitle": "ご案内事項",
     "note1": "イベントは先着500名限定で、早期終了する場合があります。",
@@ -446,7 +446,7 @@
     "confirm": "イベントに参加する"
   },
   "firstPersonaCreatedModal": {
-    "title": "初めてのペルソナ作成！",
+    "title": "初めてのコンテンツ作成！",
     "message1": "第一歩を記念して、",
     "message2": "{amount}ニューロンをプレゼントしました！",
     "message3": "このニューロンを使って、あなただけの「デジタル生命体」とより深い会話を楽しんでください。",
@@ -1021,9 +1021,9 @@
   },
   "hubBanner": {
     "event": {
-      "title": "最初のペルソナ作成でニューロン付与！",
+      "title": "最初のコンテンツ作成でニューロン付与！",
       "subtitle": "今すぐ自分だけのAIアバターを作成して、特別な報酬を受け取りましょう。",
-      "action": "ペルソナを作成する"
+      "action": "コンテンツを作成する"
     },
     "guide": {
       "title": "PersonaXi ガイドブック",
@@ -1036,7 +1036,7 @@
     "payment_refunded": "決済 {paymentId} の払い戻し完了。{neurons} ニューロンが差し引かれました。",
     "refund_approved": "払い戻しのリクエストが承認され処理されました。",
     "welcome_bonus": "ようこそ！ {neurons} ニューロンを受け取りました。（{days}日有効）",
-    "first_creation_reward": "初のペルソナ作成おめでとうございます！ {neurons} ニューロンを受け取りました。（{days}日有効）",
+    "first_creation_reward": "初のコンテンツ作成おめでとうございます！ {neurons} ニューロンを受け取りました。（{days}日有効）",
     "new_follower": "さんがあなたをフォローしました。",
     "persona_liked": "さんがあなたのペルソナを「いいね」しました。",
     "admin_gift": "{neurons} 無料のニューロンを受け取りました！ （{days}日有効）",
