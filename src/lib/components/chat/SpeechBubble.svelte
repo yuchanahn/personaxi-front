@@ -76,8 +76,8 @@
     }
 
     function splitSentences(text: string): string[] {
-        // 1. 문장 부호(. ? ! ~) 또는 줄바꿈을 기준으로 1차 분할
-        const regex = /([^.?!~\n]+[.?!~\n]*)/g;
+        // 1. 문장 부호(. ? ! ~ 。 ？ ！) 또는 줄바꿈을 기준으로 1차 분할
+        const regex = /([^.?!~。？！\n]+[.?!~。？！\n]*)/g;
         const matches = text.match(regex);
         if (!matches) return [text];
 
