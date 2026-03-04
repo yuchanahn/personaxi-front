@@ -5,6 +5,8 @@
     import { marked } from "marked";
     import markedAlert from "marked-alert";
     import DOMPurify from "isomorphic-dompurify";
+    import { onMount } from "svelte";
+    import { api } from "$lib/api";
 
     // Configure Marked with Alerts
     marked.use(markedAlert());
@@ -30,12 +32,17 @@
 
     type Notice = {
         id: string;
-        titleKey: string;
-        descKey: string;
-        date: string;
-        tagKey: string;
-        tagColor: string;
-        fileName: string;
+        type: string;
+        title_ko: string;
+        title_en: string;
+        title_ja: string;
+        content_ko: string;
+        content_en: string;
+        content_ja: string;
+        tag_color: string;
+        is_active: boolean;
+        created_at: string;
+        date?: string; // Derived representation
     };
 
     // 🗂️ Data Structure
@@ -271,35 +278,24 @@
     ];
 
     // Notices List
-    let notices: Notice[] = [
-        {
-            id: "n1",
-            titleKey: "guide.notices.launch_title",
-            descKey: "guide.notices.launch_desc",
-            date: "2026.01.29",
-            tagKey: "guide.tags.notice",
-            tagColor: "bg-blue-500",
-            fileName: "notice_launch",
-        },
-        {
-            id: "n2",
-            titleKey: "guide.notices.event_title",
-            descKey: "guide.notices.event_desc",
-            date: "2026.01.29",
-            tagKey: "guide.tags.event",
-            tagColor: "bg-purple-500",
-            fileName: "notice_event",
-        },
-        {
-            id: "n3",
-            titleKey: "guide.notices.maintenance_title",
-            descKey: "guide.notices.maintenance_desc",
-            date: "2026.01.30",
-            tagKey: "guide.tags.maintenance",
-            tagColor: "bg-orange-500",
-            fileName: "notice_maintenance",
-        },
-    ];
+    let notices: Notice[] = [];
+
+    onMount(async () => {
+        try {
+            const res = await api.get2(`/api/public/notices`);
+            if (res.ok) {
+                const data = await res.json();
+                notices = data.map((n: any) => ({
+                    ...n,
+                    date: new Date(n.created_at)
+                        .toLocaleDateString()
+                        .replace(/\.$/, ""),
+                }));
+            }
+        } catch (e) {
+            console.error("Failed to load DB notices", e);
+        }
+    });
 
     let activeArticle: Article | null =
         guideCategories[0]?.children?.[0]?.articles?.[0] || null;
@@ -328,7 +324,15 @@
                 }
             } else if (currentTab === "notice" && activeNotice) {
                 noticeContentHtml = "";
-                const html = await loadContent(activeNotice.fileName, $locale);
+                let contentRaw = activeNotice.content_ko;
+                if ($locale === "en")
+                    contentRaw =
+                        activeNotice.content_en || activeNotice.content_ko;
+                if ($locale === "ja")
+                    contentRaw =
+                        activeNotice.content_ja || activeNotice.content_ko;
+
+                const html = await marked.parse(contentRaw || "No content.");
                 if (currentReqId === requestId) {
                     noticeContentHtml = DOMPurify.sanitize(html);
                 }
@@ -702,8 +706,8 @@
                                     <div class="flex justify-between mb-3">
                                         <div class="flex items-center gap-2">
                                             <span
-                                                class="{notice.tagColor} text-white text-[10px] font-bold px-2 py-0.5 rounded-full uppercase"
-                                                >{$t(notice.tagKey)}</span
+                                                class="{notice.tag_color} text-white text-[10px] font-bold px-2 py-0.5 rounded-full uppercase"
+                                                >{notice.type}</span
                                             >
                                             <span
                                                 class="text-xs text-muted-foreground font-mono"
@@ -714,12 +718,18 @@
                                     <h3
                                         class="text-lg font-bold text-foreground mb-2 group-hover:text-primary"
                                     >
-                                        {$t(notice.titleKey)}
+                                        {$locale === "ko"
+                                            ? notice.title_ko
+                                            : $locale === "en"
+                                              ? notice.title_en ||
+                                                notice.title_ko
+                                              : notice.title_ja ||
+                                                notice.title_ko}
                                     </h3>
                                     <p
                                         class="text-sm text-muted-foreground line-clamp-2"
                                     >
-                                        {$t(notice.descKey)}
+                                        )}...
                                     </p>
                                 </button>
                             {/each}
@@ -737,13 +747,19 @@
                             </button>
                             <header class="mb-8 border-b border-border/50 pb-6">
                                 <span
-                                    class="{activeNotice.tagColor} text-white text-[10px] font-bold px-2 py-0.5 rounded-full uppercase"
-                                    >{$t(activeNotice.tagKey)}</span
+                                    class="{activeNotice.tag_color} text-white text-[10px] font-bold px-2 py-0.5 rounded-full uppercase"
+                                    >{activeNotice.type}</span
                                 >
                                 <h1
                                     class="text-3xl font-bold text-foreground mt-3"
                                 >
-                                    {$t(activeNotice.titleKey)}
+                                    {$locale === "ko"
+                                        ? activeNotice.title_ko
+                                        : $locale === "en"
+                                          ? activeNotice.title_en ||
+                                            activeNotice.title_ko
+                                          : activeNotice.title_ja ||
+                                            activeNotice.title_ko}
                                 </h1>
                                 <span
                                     class="text-sm text-muted-foreground font-mono mt-2 block"
