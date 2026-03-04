@@ -1048,6 +1048,11 @@
     }
   },
   "hubBanner": {
+    "discord": {
+      "title": "PersonaXi Official Community",
+      "subtitle": "Share tips with creators and meet new personas.",
+      "action": "Join Community →"
+    },
     "event": {
       "title": "Neuron Reward for First Content!",
       "subtitle": "Create your own AI avatar now and get a special reward.",
