@@ -654,9 +654,7 @@
                             ? "Safety Filter ON"
                             : "Safety Filter OFF"}
                     >
-                        <span class="filter-label"
-                            >{$t("tags.safetyFilter")}</span
-                        >
+                        <Icon icon="ph:shield-check-bold" width="18" />
                         <div class="toggle-switch">
                             <div class="toggle-thumb"></div>
                         </div>
@@ -1171,23 +1169,19 @@
     }
 
     .safety-filter-btn.active {
-        background-color: var(--secondary);
-        border-color: var(--primary);
-    }
-
-    .safety-filter-btn.active .filter-label {
-        color: var(--primary);
-        font-weight: 800;
+        background-color: hsla(140, 60%, 40%, 0.1);
+        border-color: hsl(140, 60%, 40%);
+        color: hsl(140, 60%, 40%);
     }
 
     .safety-filter-btn.active .toggle-thumb {
         transform: translateX(12px);
-        background-color: var(--primary);
+        background-color: hsl(140, 60%, 40%);
     }
 
     .safety-filter-btn.active .toggle-switch {
-        border-color: var(--primary);
-        background-color: var(--primary-foreground);
+        border-color: hsl(140, 60%, 40%);
+        background-color: hsla(140, 60%, 40%, 0.15);
     }
 
     .filter-label {

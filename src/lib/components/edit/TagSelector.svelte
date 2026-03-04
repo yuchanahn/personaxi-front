@@ -2,6 +2,7 @@
     import { t } from "svelte-i18n";
     import { allCategories } from "$lib/constants";
     import { toast } from "$lib/stores/toast";
+    import type { Persona } from "$lib/types";
 
     export let persona: Persona;
 

@@ -1,9 +1,18 @@
 <script lang="ts">
     import { t } from "svelte-i18n";
     import Icon from "@iconify/svelte";
+    import { settings } from "$lib/stores/settings";
     import type { Persona } from "$lib/types";
 
     export let persona: Persona;
+
+    function toggleAdult() {
+        if (persona.tags.includes("1003")) {
+            persona.tags = persona.tags.filter((id) => id !== "1003");
+        } else {
+            persona.tags = [...persona.tags, "1003"];
+        }
+    }
 </script>
 
 <div class="step-basic">
@@ -135,6 +144,61 @@
             </button>
         </div>
     </div>
+
+    <!-- Adult Rating Toggle (Only when Safety Filter is OFF) -->
+    {#if !$settings.safetyFilterOn}
+        <div class="field-group">
+            <label class="field-label">
+                <Icon icon="ph:warning-octagon-duotone" width="18" />
+                {$t("editPage.adultContentLabel", { default: "연령 등급" })}
+            </label>
+            <p class="field-hint">
+                {$t("editPage.adultContentDesc", {
+                    default:
+                        "성적인 묘사나 폭력성이 포함된 경우 연령 제한을 설정합니다.",
+                })}
+            </p>
+            <div class="visibility-toggle">
+                <button
+                    class="vis-btn"
+                    class:active={!persona.tags.includes("1003")}
+                    on:click={() => {
+                        if (persona.tags.includes("1003")) {
+                            toggleAdult();
+                        }
+                    }}
+                >
+                    <Icon icon="ph:baby-duotone" width="20" />
+                    <div class="vis-text">
+                        <span class="vis-label"
+                            >{$t("editPage.allAges", {
+                                default: "전체이용가",
+                            })}</span
+                        >
+                        <span class="vis-desc"
+                            >{$t("editPage.allAgesDesc")}</span
+                        >
+                    </div>
+                </button>
+                <button
+                    class="vis-btn"
+                    class:active={persona.tags.includes("1003")}
+                    class:danger-active={persona.tags.includes("1003")}
+                    on:click={() => {
+                        if (!persona.tags.includes("1003")) {
+                            toggleAdult();
+                        }
+                    }}
+                >
+                    <Icon icon="ph:warning-octagon-duotone" width="20" />
+                    <div class="vis-text">
+                        <span class="vis-label">{$t("editPage.adult")}</span>
+                        <span class="vis-desc">{$t("editPage.adultDesc")}</span>
+                    </div>
+                </button>
+            </div>
+        </div>
+    {/if}
 </div>
 
 <style>
@@ -250,6 +314,12 @@
     .vis-btn.active {
         border-color: var(--primary);
         background: hsla(var(--primary-hsl, 0 0% 50%) / 0.08);
+        color: var(--foreground);
+    }
+
+    .vis-btn.danger-active {
+        border-color: var(--destructive);
+        background: hsla(0, 80%, 50%, 0.08);
         color: var(--foreground);
     }
 
