@@ -241,6 +241,12 @@
       "3d": "3D"
     }
   },
+  "ageVerificationModal": {
+    "title": "Age Verification",
+    "message": "This feature may include adult content. Are you an adult?",
+    "confirm": "Yes, I am an adult",
+    "cancel": "No"
+  },
   "content": {
     "newArrivals": "Just Arrived",
     "todaysPopular": "Trending Now",

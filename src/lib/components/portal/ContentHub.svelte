@@ -28,8 +28,14 @@
     import { requestIdentityVerification } from "$lib/services/verification";
     import HubBanner from "./HubBanner.svelte";
 
+    let isAgeVerificationModalOpen = false;
+
     let isOverseas = false;
     let isCheckingIp = true;
+
+    // Testing overrides
+    let isLocalhost = false;
+    let simulatedCountryCode = "KR";
 
     $: hubBanners = [
         {
@@ -71,7 +77,28 @@
             return;
         }
 
-        $settings.safetyFilterOn = !$settings.safetyFilterOn;
+        if ($settings.safetyFilterOn) {
+            // Turning OFF the filter (enabling adult content)
+            isAgeVerificationModalOpen = true;
+        } else {
+            // Turning ON the filter
+            $settings.safetyFilterOn = true;
+        }
+    }
+
+    function confirmAgeVerification() {
+        $settings.safetyFilterOn = false;
+        isAgeVerificationModalOpen = false;
+    }
+
+    function cancelAgeVerification() {
+        isAgeVerificationModalOpen = false;
+    }
+
+    function handleSimulatedCountryChange(e: Event) {
+        const target = e.target as HTMLSelectElement;
+        simulatedCountryCode = target.value;
+        isOverseas = simulatedCountryCode !== "KR";
     }
 
     // --- 상수 ---
@@ -194,12 +221,19 @@
     }
 
     onMount(async () => {
+        // Check if running locally for testing purposes
+        isLocalhost =
+            window.location.hostname === "localhost" ||
+            window.location.hostname === "127.0.0.1";
+
         // Check IP for Safety Filter
         try {
             const res = await fetch("https://ipapi.co/json/");
             if (res.ok) {
                 const data = await res.json();
-                if (data.country_code !== "KR") {
+                if (isLocalhost) {
+                    isOverseas = simulatedCountryCode !== "KR";
+                } else if (data.country_code !== "KR") {
                     isOverseas = true;
                 }
             }
@@ -563,6 +597,37 @@
         </div>
     {/if}
 
+    <!-- Age Verification Modal -->
+    {#if isAgeVerificationModalOpen}
+        <!-- svelte-ignore a11y_click_events_have_key_events -->
+        <!-- svelte-ignore a11y_no_static_element_interactions -->
+        <div class="modal-overlay" on:click={cancelAgeVerification}>
+            <div
+                class="modal-content age-verification-modal"
+                on:click|stopPropagation
+            >
+                <button class="close-button" on:click={cancelAgeVerification}>
+                    <Icon icon="mdi:close" />
+                </button>
+                <h2>{$t("ageVerificationModal.title")}</h2>
+                <p class="age-verification-message">
+                    {$t("ageVerificationModal.message")}
+                </p>
+                <div class="age-verification-actions">
+                    <button class="cancel-btn" on:click={cancelAgeVerification}>
+                        {$t("ageVerificationModal.cancel")}
+                    </button>
+                    <button
+                        class="confirm-btn"
+                        on:click={confirmAgeVerification}
+                    >
+                        {$t("ageVerificationModal.confirm")}
+                    </button>
+                </div>
+            </div>
+        </div>
+    {/if}
+
     <!-- Header Section -->
     <div class="header-section">
         <div
@@ -644,6 +709,18 @@
 
                 <!-- Search Button -->
                 <div class="row-controls">
+                    {#if isLocalhost}
+                        <select
+                            class="local-country-select"
+                            bind:value={simulatedCountryCode}
+                            on:change={handleSimulatedCountryChange}
+                            title="로컬 테스트용 국가 코드"
+                        >
+                            <option value="KR">Korea</option>
+                            <option value="US">Overseas</option>
+                        </select>
+                    {/if}
+
                     <!-- Safety Filter Toggle -->
                     <button
                         class="safety-filter-btn"
@@ -1118,6 +1195,54 @@
         cursor: pointer;
     }
 
+    /* Age Verification Modal Styles */
+    .age-verification-modal {
+        max-width: 400px;
+        text-align: center;
+    }
+
+    .age-verification-message {
+        margin: 1.5rem 0;
+        color: var(--foreground);
+        font-size: 1rem;
+        line-height: 1.5;
+    }
+
+    .age-verification-actions {
+        display: flex;
+        gap: 1rem;
+        margin-top: 1.5rem;
+    }
+
+    .age-verification-actions button {
+        flex: 1;
+        padding: 0.75rem;
+        border-radius: 8px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s;
+        border: none;
+    }
+
+    .age-verification-actions .cancel-btn {
+        background-color: var(--secondary);
+        color: var(--foreground);
+    }
+
+    .age-verification-actions .cancel-btn:hover {
+        background-color: var(--border);
+    }
+
+    .age-verification-actions .confirm-btn {
+        background-color: var(--destructive);
+        color: white;
+    }
+
+    .age-verification-actions .confirm-btn:hover {
+        opacity: 0.9;
+        transform: translateY(-1px);
+    }
+
     .search-trigger-button {
         background: none;
         border: none;
@@ -1220,6 +1345,17 @@
         align-items: right;
         padding-right: 0.5rem;
     }
+
+    .local-country-select {
+        margin-right: 0.5rem;
+        padding: 0.25rem 0.5rem;
+        background: var(--card);
+        color: var(--foreground);
+        border: 1px solid var(--border);
+        border-radius: var(--radius-sm);
+        font-size: 0.8rem;
+    }
+
     /* --- Mobile --- */
     @media (max-width: 768px) {
         .header-section {

@@ -294,6 +294,12 @@
       "3d": "3D"
     }
   },
+  "ageVerificationModal": {
+    "title": "年齢確認",
+    "message": "この機能には成人向けコンテンツが含まれる場合があります。あなたは成人ですか？",
+    "confirm": "はい、成人です",
+    "cancel": "いいえ"
+  },
   "content": {
     "newArrivals": "新しい出会い",
     "todaysPopular": "話題の中心",
