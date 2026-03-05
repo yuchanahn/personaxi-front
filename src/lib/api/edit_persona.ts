@@ -4,6 +4,7 @@ import { api, API_BASE_URL } from "$lib/api";
 import { settings } from "$lib/stores/settings";
 import { accessToken } from "$lib/stores/auth";
 import { get } from "svelte/store";
+import { xorEncryptDecrypt } from "$lib/utils/crypto";
 
 
 export async function getUploadUrl(
@@ -129,7 +130,7 @@ export async function uploadLive2DZip(
 ): Promise<{ model3_json_url: string; expressions: string[]; motions: string[] }> {
     // 1. Load ZIP
     const zip = await JSZip.loadAsync(file);
-    const filesToUpload: { name: string; originalName: string; data: Blob }[] = [];
+    const filesToUpload: { name: string; originalName: string; data: Blob; decryptedText?: string }[] = [];
     let totalSize = 0;
     let model3JsonPath = "";
     let originalModel3JsonPath = "";
@@ -179,6 +180,16 @@ export async function uploadLive2DZip(
             }
         }
 
+        let fileTextForEditing: string | undefined = undefined;
+        if (basicExt === 'json') {
+            fileTextForEditing = await blob.text();
+        }
+
+        // Encrypt the blob contents
+        const buffer = await blob.arrayBuffer();
+        const encryptedBuffer = await xorEncryptDecrypt(buffer);
+        let finalBlob = new Blob([encryptedBuffer], { type: blob.type });
+
         // [Sanitization] Check for non-ASCII characters in both folders and filename
         const parts = relativePath.split('/');
         const filename = parts.pop() || "";
@@ -213,8 +224,8 @@ export async function uploadLive2DZip(
             renames.set(relativePath, finalPath);
         }
 
-        filesToUpload.push({ name: finalPath, originalName: relativePath, data: blob });
-        totalSize += blob.size;
+        filesToUpload.push({ name: finalPath, originalName: relativePath, data: finalBlob, decryptedText: fileTextForEditing });
+        totalSize += finalBlob.size;
 
         if (relativePath.endsWith('model3.json')) {
             model3JsonPath = finalPath; // Update to new name if renamed
@@ -230,8 +241,8 @@ export async function uploadLive2DZip(
     if (renames.size > 0 && originalModel3JsonPath) {
         try {
             const modelEntry = filesToUpload.find(f => f.name === model3JsonPath);
-            if (modelEntry) {
-                const text = await modelEntry.data.text();
+            if (modelEntry && modelEntry.decryptedText !== undefined) {
+                const text = modelEntry.decryptedText;
                 let newText = text;
 
                 // Determine directories for relative path calculation
@@ -262,7 +273,11 @@ export async function uploadLive2DZip(
                     }
                 }
 
-                modelEntry.data = new Blob([newText], { type: "application/json" });
+                modelEntry.decryptedText = newText;
+                const newClearBlob = new Blob([newText], { type: "application/json" });
+                const newClearBuffer = await newClearBlob.arrayBuffer();
+                const newEncBuffer = await xorEncryptDecrypt(newClearBuffer);
+                modelEntry.data = new Blob([newEncBuffer], { type: "application/json" });
                 console.log("[Sanitization] Patched model3.json with renamed references.");
             }
         } catch (e) {
@@ -273,8 +288,8 @@ export async function uploadLive2DZip(
     // [Auto-Fix] Patch model3.json to include all motion files found in ZIP
     try {
         const modelEntry = filesToUpload.find(f => f.name === model3JsonPath);
-        if (modelEntry) {
-            const text = await modelEntry.data.text();
+        if (modelEntry && modelEntry.decryptedText !== undefined) {
+            const text = modelEntry.decryptedText;
             const modelJson = JSON.parse(text);
             let modified = false;
 
@@ -334,11 +349,18 @@ export async function uploadLive2DZip(
 
             if (modified) {
                 console.log("[Auto-Fix] model3.json patched with new motions:", modelJson);
-                const newBlob = new Blob([JSON.stringify(modelJson, null, 2)], { type: "application/json" });
-                modelEntry.data = newBlob;
+                const newClearText = JSON.stringify(modelJson, null, 2);
+                modelEntry.decryptedText = newClearText;
+                const newClearBlob = new Blob([newClearText], { type: "application/json" });
+                const newClearBuffer = await newClearBlob.arrayBuffer();
+                const newEncBuffer = await xorEncryptDecrypt(newClearBuffer);
+                const newEncBlob = new Blob([newEncBuffer], { type: "application/json" });
+
                 // Update size for progress calculation
-                totalSize -= text.length; // Approximate
-                totalSize += newBlob.size;
+                totalSize -= modelEntry.data.size;
+                totalSize += newEncBlob.size;
+
+                modelEntry.data = newEncBlob;
             }
         }
     } catch (e) {
@@ -348,8 +370,8 @@ export async function uploadLive2DZip(
     // [Auto-Fix] Patch model3.json for Expressions
     try {
         const modelEntry = filesToUpload.find(f => f.name === model3JsonPath);
-        if (modelEntry) {
-            const text = await modelEntry.data.text();
+        if (modelEntry && modelEntry.decryptedText !== undefined) {
+            const text = modelEntry.decryptedText;
             const modelJson = JSON.parse(text);
             let modified = false;
 
@@ -396,8 +418,14 @@ export async function uploadLive2DZip(
 
             if (modified) {
                 console.log("[Auto-Fix] model3.json patched with new expressions:", modelJson);
-                const newBlob = new Blob([JSON.stringify(modelJson, null, 2)], { type: "application/json" });
-                modelEntry.data = newBlob;
+                const newClearText = JSON.stringify(modelJson, null, 2);
+                modelEntry.decryptedText = newClearText;
+                const newClearBlob = new Blob([newClearText], { type: "application/json" });
+                const newClearBuffer = await newClearBlob.arrayBuffer();
+                const newEncBuffer = await xorEncryptDecrypt(newClearBuffer);
+                const newEncBlob = new Blob([newEncBuffer], { type: "application/json" });
+
+                modelEntry.data = newEncBlob;
                 // Note: Size update is approximate as we might have modified it in the motion block too.
                 // Ideally we should have one pass, but this is safe enough.
             }

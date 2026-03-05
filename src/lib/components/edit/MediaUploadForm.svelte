@@ -130,6 +130,8 @@
         }
     }
 
+    import { xorEncryptDecrypt } from "$lib/utils/crypto";
+
     async function uploadVrmFile() {
         const MAX_RETRIES = 3;
 
@@ -153,9 +155,22 @@
 
                 vrm_progress = 0.01;
 
-                await uploadFileWithProgress(signedURL, vrmFile!, (percent) => {
-                    vrm_progress = Math.round(percent);
-                });
+                // Encrypt the VRM file
+                const buffer = await vrmFile!.arrayBuffer();
+                const encryptedBuffer = await xorEncryptDecrypt(buffer);
+                const encryptedFile = new File(
+                    [encryptedBuffer],
+                    vrmFile!.name,
+                    { type: vrmFile!.type },
+                );
+
+                await uploadFileWithProgress(
+                    signedURL,
+                    encryptedFile,
+                    (percent) => {
+                        vrm_progress = Math.round(percent);
+                    },
+                );
                 persona.vrm_url = `${supabaseURL}${fileName}`;
                 vrm_progress = 0;
 

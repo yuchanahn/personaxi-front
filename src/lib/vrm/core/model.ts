@@ -132,11 +132,38 @@ export class Model {
         this.camera = camera;
         const loader = createVRMLoader();
 
+        let loadUrl = url;
+        let objectUrl: string | null = null;
+
         try {
-            this.gltf = await loader.loadAsync(url);
+            // Intercept and decrypt if it's from our Supabase bucket
+            if (url.includes("uohepkqmwbstbmnkoqju.supabase.co")) {
+                const cryptoModule = await import("$lib/utils/crypto");
+                console.log("[VRM Loader] Fetching and decrypting VRM asset...");
+                const res = await fetch(url);
+                if (!res.ok) throw new Error("Failed to fetch VRM file");
+                const encryptedBuffer = await res.arrayBuffer();
+
+                const header = String.fromCharCode(...new Uint8Array(encryptedBuffer.slice(0, 4)));
+                if (header === 'glTF') {
+                    console.log("[VRM Loader] Legacy unencrypted model detected.");
+                    loadUrl = url;
+                } else {
+                    const decryptedBuffer = await cryptoModule.xorEncryptDecrypt(encryptedBuffer);
+                    const blob = new Blob([decryptedBuffer], { type: "application/octet-stream" });
+                    objectUrl = URL.createObjectURL(blob);
+                    loadUrl = objectUrl;
+                }
+            }
+
+            this.gltf = await loader.loadAsync(loadUrl);
         } catch (e) {
-            console.warn('VRM load failed. Fallback to sample model.');
+            console.warn('VRM load failed (or was decrypted incorrectly). Fallback to sample model.', e);
             this.gltf = await loader.loadAsync('./AvatarSample_B.vrm');
+        } finally {
+            if (objectUrl) {
+                URL.revokeObjectURL(objectUrl);
+            }
         }
 
         this.vrm = this.gltf.userData.vrm;

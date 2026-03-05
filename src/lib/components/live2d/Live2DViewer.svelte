@@ -42,7 +42,7 @@
         }
     }
 
-    let showDebug = false;
+    let showDebug = true;
     let debugInfo = {
         modelUrl: "",
         currentEmotion: "None",
@@ -492,7 +492,148 @@
                     antialias: false,
                 });
 
-                const model = await PIXI.live2d.Live2DModel.from(modelUrl, {
+                // Import dynamically since this is client-side code
+                const cryptoModule = await import("$lib/utils/crypto");
+
+                // Helper to load and decrypt Live2D
+                async function loadEncryptedLive2D(url: string) {
+                    const isSupabase = url.includes(
+                        "uohepkqmwbstbmnkoqju.supabase.co",
+                    );
+                    if (!isSupabase) return url;
+
+                    const basePath = url.substring(0, url.lastIndexOf("/") + 1);
+
+                    // 1. Fetch model3.json and check if it's encrypted
+                    const res = await fetch(url);
+                    if (!res.ok) throw new Error("Failed to fetch model3.json");
+                    const buffer = await res.arrayBuffer();
+
+                    let modelJson;
+                    try {
+                        const plainText = new TextDecoder().decode(buffer);
+                        modelJson = JSON.parse(plainText);
+                        // If we are here, it's NOT encrypted! Just use the original URL!
+                        console.log(
+                            "[Live2D Viewer] Legacy unencrypted model detected. Loading directly from URL.",
+                        );
+                        return url;
+                    } catch (e) {
+                        // It IS encrypted.
+                        const decryptedJsonBuffer =
+                            await cryptoModule.xorEncryptDecrypt(buffer);
+                        const jsonStr = new TextDecoder().decode(
+                            decryptedJsonBuffer,
+                        );
+                        modelJson = JSON.parse(jsonStr);
+                    }
+
+                    const createDataUrl = async (
+                        blob: Blob,
+                    ): Promise<string> => {
+                        return new Promise((resolve, reject) => {
+                            const reader = new FileReader();
+                            reader.onloadend = () =>
+                                resolve(reader.result as string);
+                            reader.onerror = reject;
+                            reader.readAsDataURL(blob);
+                        });
+                    };
+
+                    // 2. Helper to fetch and decrypt a relative path, returning a data URL
+                    const createDecryptedDataUrl = async (
+                        relativeOrAbsolutePath: string,
+                    ) => {
+                        let fullUrl = relativeOrAbsolutePath;
+                        if (
+                            !fullUrl.startsWith("http") &&
+                            !fullUrl.startsWith("data:")
+                        ) {
+                            fullUrl = new URL(relativeOrAbsolutePath, basePath)
+                                .href;
+                        }
+
+                        const fallbackExt =
+                            fullUrl.split(".").pop()?.toLowerCase() || "";
+                        const mimeTypes: Record<string, string> = {
+                            png: "image/png",
+                            jpg: "image/jpeg",
+                            jpeg: "image/jpeg",
+                            json: "application/json",
+                            moc3: "application/octet-stream",
+                        };
+                        const mime =
+                            mimeTypes[fallbackExt] ||
+                            "application/octet-stream";
+
+                        const fileRes = await fetch(fullUrl);
+                        if (!fileRes.ok)
+                            throw new Error("Failed to fetch " + fullUrl);
+                        const fileBuffer = await fileRes.arrayBuffer();
+                        const decryptedFileBuffer =
+                            await cryptoModule.xorEncryptDecrypt(fileBuffer);
+                        const blob = new Blob([decryptedFileBuffer], {
+                            type: mime,
+                        });
+                        return await createDataUrl(blob);
+                    };
+
+                    // 3. Discover all file paths.
+                    // Recursively traverse modelJson and replace paths.
+                    const replacePaths = async (obj: any) => {
+                        if (Array.isArray(obj)) {
+                            for (let i = 0; i < obj.length; i++) {
+                                if (
+                                    typeof obj[i] === "string" &&
+                                    obj[i].match(
+                                        /\.(moc3|png|jpg|jpeg|tga|atlas|json)$/i,
+                                    )
+                                ) {
+                                    obj[i] = await createDecryptedDataUrl(
+                                        obj[i],
+                                    );
+                                } else if (
+                                    typeof obj[i] === "object" &&
+                                    obj[i] !== null
+                                ) {
+                                    await replacePaths(obj[i]);
+                                }
+                            }
+                        } else if (typeof obj === "object" && obj !== null) {
+                            for (const key of Object.keys(obj)) {
+                                if (
+                                    typeof obj[key] === "string" &&
+                                    obj[key].match(
+                                        /\.(moc3|png|jpg|jpeg|tga|atlas|json)$/i,
+                                    )
+                                ) {
+                                    obj[key] = await createDecryptedDataUrl(
+                                        obj[key],
+                                    );
+                                } else if (
+                                    typeof obj[key] === "object" &&
+                                    obj[key] !== null
+                                ) {
+                                    await replacePaths(obj[key]);
+                                }
+                            }
+                        }
+                    };
+
+                    await replacePaths(modelJson);
+
+                    // 4. Create data URL for model3.json itself
+                    const blobJson = new Blob([JSON.stringify(modelJson)], {
+                        type: "application/json",
+                    });
+
+                    const finalDataUrl = await createDataUrl(blobJson);
+                    return finalDataUrl + "#dummy.model3.json";
+                }
+
+                const finalUrl = await loadEncryptedLive2D(modelUrl);
+
+                const model = await PIXI.live2d.Live2DModel.from(finalUrl, {
                     autoInteract: false,
                 });
 

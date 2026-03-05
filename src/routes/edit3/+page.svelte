@@ -267,9 +267,29 @@
     async function loadLive2DMetadata(url: string) {
         if (!url) return;
         try {
+            const cryptoModule = await import("$lib/utils/crypto");
             const response = await fetch(url);
             if (!response.ok) throw new Error("Failed to fetch model3.json");
-            const data = await response.json();
+
+            let data;
+            if (url.includes("uohepkqmwbstbmnkoqju.supabase.co")) {
+                const buffer = await response.arrayBuffer();
+
+                try {
+                    const plainText = new TextDecoder().decode(buffer);
+                    data = JSON.parse(plainText);
+                    console.log(
+                        "[Live2D Viewer] Legacy unencrypted model detected in edit3.",
+                    );
+                } catch (e) {
+                    const decryptedBuffer =
+                        await cryptoModule.xorEncryptDecrypt(buffer);
+                    const jsonStr = new TextDecoder().decode(decryptedBuffer);
+                    data = JSON.parse(jsonStr);
+                }
+            } else {
+                data = await response.json();
+            }
 
             let rawExprs: any[] = [];
             if (data.FileReferences?.Expressions)
