@@ -59,6 +59,35 @@
     let isDragging = false;
     let autonomyDebugState = "CALM"; // ✨ Debug State
     let currentAutonomyEmotion = "CALM"; // ✨ Sleep Effect State
+    const DISABLE_ALL_MOTIONS = true;
+    let originalMotionDefinitions: Record<string, any[]> | null = null;
+
+    function disableAllMotions(model: any) {
+        if (!DISABLE_ALL_MOTIONS) return;
+        const mgr = model?.internalModel?.motionManager;
+        if (!mgr) return;
+
+        if (!originalMotionDefinitions && mgr.definitions) {
+            // Keep a snapshot for possible future manual-only restore.
+            originalMotionDefinitions = { ...mgr.definitions };
+        }
+
+        if (typeof mgr.stopAllMotions === "function") {
+            mgr.stopAllMotions();
+        } else if (typeof mgr.stopAll === "function") {
+            mgr.stopAll();
+        } else if (typeof mgr.stop === "function") {
+            mgr.stop();
+        }
+
+        mgr.update = () => true;
+
+        mgr.definitions = {};
+        if (Array.isArray(mgr.queue)) {
+            mgr.queue = [];
+        }
+        console.log("🔒 All Live2D motions disabled (definitions cleared)");
+    }
 
     $: if (autonomy) {
         autonomy.onEmotionChange = (emo) => {
@@ -161,31 +190,18 @@
         debugInfo.lastMotion = "Reset (Hard)";
         debugInfo = debugInfo;
 
-        // 5. Idle 모션 다시 재생 (약간의 딜레이)
-        setTimeout(() => {
-            const idleGroups = [
-                "Idle",
-                "idle",
-                "Stand",
-                "stand",
-                "Wait",
-                "wait",
-            ];
-            const defs = internal.motionManager?.definitions;
-            if (defs) {
-                for (const grp of idleGroups) {
-                    if (defs[grp]) {
-                        // 우선순위 3(Force)으로 강제 재생
-                        currentModel.motion(grp, 0, 3);
-                        console.log(`Debug: Triggering idle motion: ${grp}`);
-                        break;
-                    }
-                }
-            }
-        }, 50);
+        // 5. Do not auto-play default idle motion after reset.
+        // Keep model state neutral until an explicit motion is triggered.
     }
 
     export function triggerMotion(fileName: string) {
+        if (DISABLE_ALL_MOTIONS) {
+            console.log(
+                `Debug: Motion blocked by DISABLE_ALL_MOTIONS: ${fileName}`,
+            );
+            return;
+        }
+
         if (
             !currentModel ||
             !currentModel.internalModel ||
@@ -713,6 +729,7 @@
 
                 app.stage.addChild(model);
                 currentModel = model;
+                disableAllMotions(model);
 
                 // Initialize Autonomy
                 autonomy = new Live2DAutonomy(model, app);

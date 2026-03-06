@@ -226,9 +226,7 @@
                             console.warn(
                                 `Debug: Action [${actionName}] mapping is empty.`,
                             );
-                        }
-
-                        if (Viewer) {
+                        } else if (Viewer) {
                             console.log(
                                 "Debug: Triggering action:",
                                 actionName,
