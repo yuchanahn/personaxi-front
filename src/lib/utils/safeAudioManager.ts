@@ -125,7 +125,8 @@ export class SafeAudioManager {
 
         // 5. 재생 시작
         return new Promise((resolve) => {
-            if (!this._audio) return resolve(false);
+            const audio = this._audio;
+            if (!audio) return resolve(false);
 
             // 이벤트 핸들러 (한번 쓰고 제거하기 위해 함수로 정의)
             const handleEnded = () => {
@@ -144,15 +145,15 @@ export class SafeAudioManager {
             };
 
             const cleanup = () => {
-                this._audio?.removeEventListener("ended", handleEnded);
-                this._audio?.removeEventListener("error", handleError);
+                audio.removeEventListener("ended", handleEnded);
+                audio.removeEventListener("error", handleError);
             };
 
-            this._audio.addEventListener("ended", handleEnded);
-            this._audio.addEventListener("error", handleError);
+            audio.addEventListener("ended", handleEnded);
+            audio.addEventListener("error", handleError);
 
             // Play
-            this._audio.play()
+            audio.play()
                 .then(() => {
                     resolve(true);
                 })

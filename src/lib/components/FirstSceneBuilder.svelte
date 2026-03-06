@@ -445,7 +445,7 @@
     {/if}
 
     <!-- Hit Reaction Mapping Section -->
-    {#if availableMotions.length > 0}
+    <!-- {#if availableMotions.length > 0}
         <div class="form-section">
             <h3 class="section-title">👆 Hit Reaction Mapping</h3>
             <p class="section-desc">
@@ -469,10 +469,9 @@
                         </select>
                     </div>
                 {/each}
-                <!-- Allow adding custom areas? Maybe later. For now, fixed standard areas -->
             </div>
         </div>
-    {/if}
+    {/if} -->
 
     <div class="form-group">
         <div class="field-label">

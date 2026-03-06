@@ -1,0 +1,853 @@
+<script lang="ts">
+    import { onDestroy, onMount, tick } from "svelte";
+    import Icon from "@iconify/svelte";
+    import PxlAdvancedViewer from "$lib/components/live2d/PxlAdvancedViewer.svelte";
+    import type { Live2DMotionInfo } from "$lib/components/live2d/PxlAdvancedViewer.svelte";
+    import { toast } from "$lib/stores/toast";
+    import { page } from "$app/stores";
+    import { loadPersonaOriginal } from "$lib/api/edit_persona";
+    import type { Persona } from "$lib/types";
+
+    let persona: Persona | null = null;
+    let isLoading = false;
+
+    let modelUrl = "";
+    let tempModelUrl = "";
+    let renderViewer = false;
+    let viewerKey = 0;
+
+    let availableExpressions: string[] = [];
+    let availableMotions: Live2DMotionInfo[] = [];
+
+    // Sandbox Mapping State
+    interface Pxl2DMapping {
+        modelUrl: string;
+        motions: Record<string, { alias: string; category: string }>;
+        expressions: Record<string, string>;
+        expressionAliases: Record<string, string>;
+        settings: { scale: number; x: number; y: number; offsetY: number };
+    }
+
+    let pxlState: Pxl2DMapping = {
+        modelUrl: "",
+        motions: {},
+        expressions: {},
+        expressionAliases: {},
+        settings: { scale: 0.12, x: 0, y: 0, offsetY: 0 },
+    };
+
+    interface UploadedAudioItem {
+        id: string;
+        name: string;
+        url: string;
+    }
+    let uploadedAudios: UploadedAudioItem[] = [];
+
+    let viewerRef: any;
+
+    let activeTab: "motions" | "expressions" | "audio" | "settings" = "motions";
+
+    function normalizePxlState(raw: any): Pxl2DMapping {
+        return {
+            modelUrl: typeof raw?.modelUrl === "string" ? raw.modelUrl : "",
+            motions:
+                raw?.motions && typeof raw.motions === "object"
+                    ? raw.motions
+                    : {},
+            expressions:
+                raw?.expressions && typeof raw.expressions === "object"
+                    ? raw.expressions
+                    : {},
+            expressionAliases:
+                raw?.expressionAliases &&
+                typeof raw.expressionAliases === "object"
+                    ? raw.expressionAliases
+                    : {},
+            settings: {
+                scale:
+                    typeof raw?.settings?.scale === "number"
+                        ? raw.settings.scale
+                        : 0.12,
+                x: typeof raw?.settings?.x === "number" ? raw.settings.x : 0,
+                y: typeof raw?.settings?.y === "number" ? raw.settings.y : 0,
+                offsetY:
+                    typeof raw?.settings?.offsetY === "number"
+                        ? raw.settings.offsetY
+                        : 0,
+            },
+        };
+    }
+
+    function updateUrl() {
+        if (!tempModelUrl.trim()) return;
+        modelUrl = tempModelUrl.trim();
+        pxlState.modelUrl = modelUrl;
+
+        // Force re-render of the viewer
+        renderViewer = false;
+        viewerKey++;
+        setTimeout(() => (renderViewer = true), 50);
+    }
+
+    function playExpression(expr: string) {
+        if (viewerRef) viewerRef.triggerExpression(expr);
+    }
+
+    function playMotion(group: string, index: number) {
+        if (viewerRef) viewerRef.triggerMotion(group, index);
+    }
+
+    async function playAudioUrl(audioUrl: string) {
+        if (!viewerRef) {
+            toast.error("Model not loaded");
+            return;
+        }
+        try {
+            await viewerRef.speak(audioUrl);
+        } catch (err) {
+            toast.error("Audio playback error");
+            console.error(err);
+        }
+    }
+
+    function addAudioFiles(files: FileList | null) {
+        if (!files || files.length === 0) return;
+
+        const nextItems: UploadedAudioItem[] = [];
+        Array.from(files).forEach((file) => {
+            const blobUrl = URL.createObjectURL(file);
+            nextItems.push({
+                id: `${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
+                name: file.name,
+                url: blobUrl,
+            });
+        });
+
+        uploadedAudios = [...uploadedAudios, ...nextItems];
+        toast.success(`${nextItems.length} audio file(s) added`);
+    }
+
+    function removeUploadedAudio(id: string) {
+        const target = uploadedAudios.find((item) => item.id === id);
+        if (target) {
+            URL.revokeObjectURL(target.url);
+        }
+        uploadedAudios = uploadedAudios.filter((item) => item.id !== id);
+    }
+
+    async function load_persona(id: string) {
+        isLoading = true;
+        try {
+            const p = await loadPersonaOriginal(id);
+            persona = p;
+
+            if (p.live2d_model_url) {
+                tempModelUrl = p.live2d_model_url;
+                updateUrl();
+            } else {
+                toast.warning("This Persona does not have a Live2D URL.");
+            }
+        } catch (err) {
+            console.error(err);
+            toast.error("Failed to load Persona.");
+        } finally {
+            isLoading = false;
+        }
+    }
+
+    onMount(() => {
+        const id = $page.url.searchParams.get("c");
+        if (id) {
+            load_persona(id);
+        }
+    });
+
+    function assignExpression(expr: string, emotion: string) {
+        for (const [key, val] of Object.entries(pxlState.expressions)) {
+            if (val === expr) {
+                delete pxlState.expressions[key];
+            }
+        }
+        if (emotion) {
+            pxlState.expressions[emotion] = expr;
+        }
+        pxlState = pxlState; // trigger reactivity
+    }
+
+    function isMappedTo(expr: string, emotion: string): boolean {
+        return pxlState.expressions[emotion] === expr;
+    }
+
+    function getExpressionAlias(expr: string): string {
+        return pxlState.expressionAliases[expr] ?? expr;
+    }
+
+    function setExpressionAlias(expr: string, alias: string) {
+        pxlState.expressionAliases[expr] = alias.trim() || expr;
+        pxlState = pxlState;
+    }
+
+    function getMotionKey(m: Live2DMotionInfo) {
+        return `${m.group}_${m.index}`;
+    }
+
+    onDestroy(() => {
+        uploadedAudios.forEach((audio) => URL.revokeObjectURL(audio.url));
+    });
+</script>
+
+<div class="sandbox-container">
+    <!-- Left Panel: Purely for the Viewer -->
+    <div class="center-panel">
+        {#if renderViewer}
+            {#key viewerKey}
+                <div class="viewer-wrapper">
+                    <PxlAdvancedViewer
+                        bind:this={viewerRef}
+                        {modelUrl}
+                        scale={pxlState.settings.scale}
+                        onMetadataLoaded={(detail) => {
+                            availableExpressions = detail.expressions;
+                            availableMotions = detail.motions;
+
+                            // Initialize state slots for new motions
+                            availableMotions.forEach((m: any) => {
+                                const key = getMotionKey(m);
+                                if (!pxlState.motions[key]) {
+                                    pxlState.motions[key] = {
+                                        alias: m.file, // Start via setting alias as the filename
+                                        category: "",
+                                    };
+                                }
+                            });
+                            availableExpressions.forEach((expr: string) => {
+                                if (!pxlState.expressionAliases[expr]) {
+                                    pxlState.expressionAliases[expr] = expr;
+                                }
+                            });
+                            pxlState = pxlState; // reactivity
+                        }}
+                    />
+                </div>
+            {/key}
+        {/if}
+    </div>
+
+    <!-- Right Panel: All Controls Consolidated -->
+    <div class="control-panel">
+        <div class="panel-header">
+            <h2>Advanced Live2D Editor</h2>
+            {#if isLoading}
+                <div class="loading-state">Loading Persona Data...</div>
+            {:else if persona}
+                <div class="persona-info">
+                    <div class="p-name">{persona.name}</div>
+                    <span class="type-badge">{persona.personaType}</span>
+                </div>
+            {/if}
+        </div>
+
+        <div class="tabs">
+            <button
+                class="tab {activeTab === 'settings' ? 'active' : ''}"
+                on:click={() => (activeTab = "settings")}>Init</button
+            >
+            <button
+                class="tab {activeTab === 'motions' ? 'active' : ''}"
+                on:click={() => (activeTab = "motions")}>Motions</button
+            >
+            <button
+                class="tab {activeTab === 'expressions' ? 'active' : ''}"
+                on:click={() => (activeTab = "expressions")}>Expr</button
+            >
+            <button
+                class="tab {activeTab === 'audio' ? 'active' : ''}"
+                on:click={() => (activeTab = "audio")}>Audio</button
+            >
+        </div>
+
+        <div class="tab-content">
+            {#if activeTab === "settings"}
+                <div class="settings-panel">
+                    <div class="input-group">
+                        <label for="url">Model URL (.model3.json)</label>
+                        <input
+                            id="url"
+                            type="text"
+                            bind:value={tempModelUrl}
+                            placeholder="Enter URL"
+                        />
+                        <button on:click={updateUrl}>Load Model</button>
+                    </div>
+
+                    <hr class="divider" />
+
+                    <div class="pxl-state-export">
+                        <h3>Pxl2D Mapping Source</h3>
+                        <p class="desc">
+                            Export your current motion/expression mappings so
+                            they can be securely saved to the database.
+                        </p>
+                        <div class="btn-row">
+                            <button
+                                class="secondary"
+                                on:click={() => {
+                                    navigator.clipboard.writeText(
+                                        JSON.stringify(pxlState, null, 2),
+                                    );
+                                    toast.success("Copied JSON to clipboard");
+                                }}>Copy JSON</button
+                            >
+                            <button
+                                class="secondary"
+                                on:click={async () => {
+                                    try {
+                                        const text =
+                                            await navigator.clipboard.readText();
+                                        const parsed = JSON.parse(text);
+                                        if (
+                                            parsed &&
+                                            parsed.motions !== undefined
+                                        ) {
+                                            pxlState =
+                                                normalizePxlState(parsed);
+                                            tempModelUrl = pxlState.modelUrl;
+                                            updateUrl();
+                                            toast.success(
+                                                "Imported JSON mapping",
+                                            );
+                                        } else {
+                                            toast.error("Invalid JSON format");
+                                        }
+                                    } catch (e) {
+                                        toast.error("Failed to read clipboard");
+                                    }
+                                }}>Paste JSON</button
+                            >
+                        </div>
+                    </div>
+                </div>
+            {:else if activeTab === "motions"}
+                <div class="list">
+                    {#if availableMotions.length === 0}
+                        <p class="empty-msg">
+                            No motions found or model not loaded.
+                        </p>
+                    {/if}
+                    {#each availableMotions as motion}
+                        <div class="asset-item">
+                            <div class="asset-info">
+                                <span class="filename" title={motion.file}
+                                    >{motion.group} [{motion.index}]</span
+                                >
+                                <button
+                                    class="play-btn"
+                                    on:click={() =>
+                                        playMotion(motion.group, motion.index)}
+                                    >▶ Play</button
+                                >
+                            </div>
+                            <div class="mapping-inputs">
+                                <input
+                                    type="text"
+                                    placeholder="Alias (e.g. idle_happy)"
+                                    bind:value={
+                                        pxlState.motions[getMotionKey(motion)]
+                                            .alias
+                                    }
+                                />
+                                <select
+                                    bind:value={
+                                        pxlState.motions[getMotionKey(motion)]
+                                            .category
+                                    }
+                                >
+                                    <option value="">No Category</option>
+                                    <option value="idle">Idle</option>
+                                    <option value="reaction">Reaction</option>
+                                    <option value="special">Special</option>
+                                </select>
+                            </div>
+                        </div>
+                    {/each}
+                </div>
+            {:else if activeTab === "expressions"}
+                <div class="list">
+                    {#if availableExpressions.length === 0}
+                        <p class="empty-msg">
+                            No expressions found or model not loaded.
+                        </p>
+                    {/if}
+                    {#each availableExpressions as expr}
+                        <div class="asset-item">
+                            <div class="asset-info">
+                                <span class="filename" title={expr}>{expr}</span
+                                >
+                                <button
+                                    class="play-btn"
+                                    on:click={() => playExpression(expr)}
+                                    >▶ Play</button
+                                >
+                            </div>
+                            <div class="mapping-inputs align-center">
+                                <input
+                                    type="text"
+                                    placeholder="Alias (e.g. smile_soft)"
+                                    value={getExpressionAlias(expr)}
+                                    on:input={(e) =>
+                                        setExpressionAlias(
+                                            expr,
+                                            e.currentTarget.value,
+                                        )}
+                                />
+                                <span class="label">Emotion:</span>
+                                <select
+                                    on:change={(e) =>
+                                        assignExpression(
+                                            expr,
+                                            e.currentTarget.value,
+                                        )}
+                                >
+                                    <option
+                                        value=""
+                                        selected={!Object.values(
+                                            pxlState.expressions,
+                                        ).includes(expr)}>Unmapped</option
+                                    >
+                                    <option
+                                        value="joy"
+                                        selected={isMappedTo(expr, "joy")}
+                                        >Joy (joy, happy)</option
+                                    >
+                                    <option
+                                        value="amusement"
+                                        selected={isMappedTo(expr, "amusement")}
+                                        >Amusement (excitement, fun)</option
+                                    >
+                                    <option
+                                        value="anger"
+                                        selected={isMappedTo(expr, "anger")}
+                                        >Anger (annoyance, disgust)</option
+                                    >
+                                    <option
+                                        value="sadness"
+                                        selected={isMappedTo(expr, "sadness")}
+                                        >Sadness (grief, remorse)</option
+                                    >
+                                    <option
+                                        value="fear"
+                                        selected={isMappedTo(expr, "fear")}
+                                        >Fear (nervousness)</option
+                                    >
+                                    <option
+                                        value="surprise"
+                                        selected={isMappedTo(expr, "surprise")}
+                                        >Surprise (confusion)</option
+                                    >
+                                    <option
+                                        value="neutral"
+                                        selected={isMappedTo(expr, "neutral")}
+                                        >Neutral (approval, caring)</option
+                                    >
+                                </select>
+                            </div>
+                        </div>
+                    {/each}
+                </div>
+            {:else if activeTab === "audio"}
+                <div class="audio-panel">
+                    <h3>Test Lip-Sync</h3>
+                    <p class="desc">
+                        Select a local audio file (.wav, .mp3) to test lip sync.
+                        This does not upload the file anywhere.
+                    </p>
+
+                    <div class="file-drop-area">
+                        <input
+                            type="file"
+                            accept="audio/*"
+                            multiple
+                            on:change={(e) => {
+                                addAudioFiles(e.currentTarget.files);
+                                e.currentTarget.value = "";
+                            }}
+                        />
+                        <span>Click to Add Audio Files</span>
+                    </div>
+
+                    <div class="uploaded-audio-list">
+                        {#if uploadedAudios.length === 0}
+                            <p class="empty-msg">No audio files added yet.</p>
+                        {:else}
+                            {#each uploadedAudios as audio}
+                                <div class="audio-item">
+                                    <button
+                                        class="audio-play-btn"
+                                        on:click={() => playAudioUrl(audio.url)}
+                                        >▶ {audio.name}</button
+                                    >
+                                    <button
+                                        class="audio-remove-btn"
+                                        on:click={() =>
+                                            removeUploadedAudio(audio.id)}
+                                        >Remove</button
+                                    >
+                                </div>
+                            {/each}
+                        {/if}
+                    </div>
+                </div>
+            {/if}
+        </div>
+    </div>
+</div>
+
+<style>
+    .sandbox-container {
+        display: flex;
+        height: 100vh;
+        width: 100vw;
+        background: #111;
+        color: white;
+        font-family: "Inter", sans-serif;
+    }
+
+    .center-panel {
+        flex: 1;
+        position: relative;
+        overflow: hidden;
+        background: radial-gradient(circle at center, #2a2a35 0%, #111 100%);
+    }
+
+    .viewer-wrapper {
+        width: 100%;
+        height: 100%;
+        position: absolute;
+        top: 0;
+        left: 0;
+    }
+
+    .control-panel {
+        width: 420px;
+        background: #1a1a1a;
+        display: flex;
+        flex-direction: column;
+        border-left: 1px solid #333;
+        z-index: 10;
+        box-shadow: -4px 0 15px rgba(0, 0, 0, 0.3);
+    }
+    .panel-header {
+        padding: 1.5rem;
+        background: #111;
+        border-bottom: 1px solid #222;
+    }
+    .panel-header h2 {
+        margin: 0 0 1rem 0;
+        font-size: 1.25rem;
+        color: #eee;
+    }
+
+    .persona-info {
+        background: #252525;
+        padding: 0.8rem 1rem;
+        border-radius: 8px;
+        border: 1px solid #3a3a3a;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+    .persona-info .p-name {
+        margin: 0;
+        font-size: 0.95rem;
+        font-weight: 500;
+        color: #ddd;
+    }
+    .type-badge {
+        background: #6a00ff;
+        color: white;
+        padding: 0.2rem 0.5rem;
+        border-radius: 12px;
+        font-size: 0.75rem;
+        font-weight: 600;
+    }
+    .loading-state {
+        color: #888;
+        font-size: 0.9rem;
+        font-style: italic;
+    }
+
+    .settings-panel {
+        display: flex;
+        flex-direction: column;
+        gap: 1.5rem;
+        padding: 0.5rem 0;
+    }
+    .divider {
+        border: none;
+        border-top: 1px dashed #333;
+        margin: 0;
+    }
+
+    .input-group {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+    .input-group label {
+        font-size: 0.85rem;
+        color: #ccc;
+    }
+    input,
+    select {
+        background: #2a2a2a;
+        color: white;
+        border: 1px solid #444;
+        padding: 0.5rem 0.75rem;
+        border-radius: 6px;
+        font-size: 0.9rem;
+        outline: none;
+        transition: border-color 0.2s;
+    }
+    input:focus,
+    select:focus {
+        border-color: #6a00ff;
+    }
+
+    button {
+        background: #6a00ff;
+        color: white;
+        border: none;
+        padding: 0.6rem 1rem;
+        border-radius: 6px;
+        cursor: pointer;
+        font-weight: 600;
+        transition: all 0.2s ease;
+    }
+    button:hover {
+        background: #8b3dff;
+        transform: translateY(-1px);
+    }
+    button.secondary {
+        background: #333;
+        font-weight: 400;
+        padding: 0.4rem 0.8rem;
+        font-size: 0.85rem;
+    }
+    button.secondary:hover {
+        background: #444;
+    }
+
+    .pxl-state-export {
+        display: flex;
+        flex-direction: column;
+        gap: 0.8rem;
+        background: #252525;
+        padding: 1rem;
+        border-radius: 8px;
+    }
+    .pxl-state-export h3 {
+        margin: 0;
+        font-size: 1rem;
+        color: #ddd;
+    }
+    .pxl-state-export .desc {
+        margin: 0;
+        font-size: 0.8rem;
+        color: #888;
+        line-height: 1.4;
+    }
+    .btn-row {
+        display: flex;
+        gap: 0.5rem;
+    }
+
+    .tabs {
+        display: flex;
+        background: #111;
+        border-bottom: 1px solid #333;
+    }
+    .tab {
+        flex: 1;
+        background: transparent;
+        color: #888;
+        border-radius: 0;
+        padding: 0.8rem 0;
+        font-size: 0.9rem;
+        font-weight: 500;
+        border-bottom: 2px solid transparent;
+        transition: all 0.2s;
+    }
+    .tab:hover {
+        background: #1a1a1a;
+        color: #ddd;
+        transform: none;
+    }
+    .tab.active {
+        color: #fff;
+        border-bottom-color: #6a00ff;
+        background: #1a1a1a;
+    }
+
+    .tab-content {
+        flex: 1;
+        overflow-y: auto;
+        padding: 1.5rem;
+    }
+
+    .list {
+        display: flex;
+        flex-direction: column;
+        gap: 0.8rem;
+    }
+    .asset-item {
+        background: #252525;
+        border: 1px solid #383838;
+        border-radius: 8px;
+        padding: 0.8rem;
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+        transition: border-color 0.2s;
+    }
+    .asset-item:hover {
+        border-color: #555;
+    }
+    .asset-info {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    .filename {
+        font-size: 0.85rem;
+        color: #ddd;
+        word-break: break-all;
+        padding-right: 1rem;
+    }
+    .play-btn {
+        background: rgba(106, 0, 255, 0.15);
+        color: #a766ff;
+        padding: 0.3rem 0.6rem;
+        font-size: 0.8rem;
+        white-space: nowrap;
+    }
+    .play-btn:hover {
+        background: rgba(106, 0, 255, 0.3);
+    }
+    .align-center {
+        align-items: center;
+    }
+    .mapping-inputs .label {
+        font-size: 0.8rem;
+        color: #888;
+        white-space: nowrap;
+    }
+    .mapping-inputs {
+        display: flex;
+        gap: 0.5rem;
+    }
+    .mapping-inputs input {
+        flex: 2;
+        padding: 0.4rem;
+        font-size: 0.8rem;
+    }
+    .mapping-inputs select {
+        flex: 1;
+        padding: 0.4rem;
+        font-size: 0.8rem;
+    }
+    .empty-msg {
+        color: #666;
+        text-align: center;
+        margin-top: 2rem;
+        font-size: 0.9rem;
+    }
+
+    .audio-panel {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+    }
+    .audio-panel h3 {
+        margin: 0;
+        font-size: 1.1rem;
+        color: #eee;
+    }
+    .audio-panel .desc {
+        font-size: 0.85rem;
+        color: #888;
+        line-height: 1.4;
+        margin: 0;
+    }
+    .file-drop-area {
+        position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: 120px;
+        border: 2px dashed #444;
+        border-radius: 8px;
+        transition:
+            border-color 0.2s,
+            background 0.2s;
+        background: #222;
+    }
+    .file-drop-area:hover {
+        border-color: #6a00ff;
+        background: #2a2a2a;
+    }
+    .file-drop-area input[type="file"] {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        opacity: 0;
+        cursor: pointer;
+    }
+    .file-drop-area span {
+        color: #aaa;
+        font-weight: 500;
+        pointer-events: none;
+    }
+
+    .uploaded-audio-list {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .audio-item {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        background: #252525;
+        border: 1px solid #383838;
+        border-radius: 8px;
+        padding: 0.4rem;
+    }
+
+    .audio-play-btn {
+        flex: 1;
+        text-align: left;
+        background: rgba(106, 0, 255, 0.2);
+        color: #ddd;
+        font-weight: 500;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .audio-play-btn:hover {
+        background: rgba(106, 0, 255, 0.35);
+    }
+
+    .audio-remove-btn {
+        background: #333;
+        color: #ccc;
+        padding: 0.45rem 0.65rem;
+        font-size: 0.8rem;
+    }
+
+    .audio-remove-btn:hover {
+        background: #444;
+        color: #fff;
+    }
+</style>

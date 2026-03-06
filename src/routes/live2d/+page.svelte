@@ -220,7 +220,13 @@
                         expressionMap[actionName]
                     ) {
                         // Existing Motion/Expression Logic
-                        const mappedFile = motionMap[actionName];
+                        const mappedFile =
+                            motionMap[actionName] || expressionMap[actionName];
+                        if (!mappedFile) {
+                            console.warn(
+                                `Debug: Action [${actionName}] mapping is empty.`,
+                            );
+                        }
 
                         if (Viewer) {
                             console.log(
@@ -232,20 +238,20 @@
                                     Viewer.getAvailableExpressions().includes(
                                         mappedFile,
                                     )) ||
-                                mappedFile.endsWith(".exp3.json") ||
-                                mappedFile.endsWith(".exp.json"); // legacy check
+                                mappedFile?.endsWith(".exp3.json") ||
+                                mappedFile?.endsWith(".exp.json"); // legacy check
 
                             if (isExpression) {
                                 //if (Viewer.triggerExpression) {
                                 actionQueue.push({
-                                    name: actionName,
+                                    name: mappedFile,
                                     type: "expression",
                                 });
                                 //Viewer.triggerExpression(mappedFile);
                             } else {
                                 //if (Viewer.triggerMotion) {
                                 actionQueue.push({
-                                    name: actionName,
+                                    name: mappedFile,
                                     type: "motion",
                                 });
                                 //Viewer.triggerMotion(mappedFile);
