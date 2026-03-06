@@ -10,6 +10,8 @@
     import { onMount, onDestroy } from "svelte";
     import { loadLive2DScripts } from "$lib/utils/live2dLoader";
     import { SafeAudioManager } from "$lib/utils/safeAudioManager";
+    import { Live2DAutonomy } from "$lib/utils/live2d/Live2DAutonomy";
+    import { createLive2DMotionControl } from "$lib/components/live2d/useLive2DMotionControl";
 
     interface Props {
         modelUrl?: string;
@@ -31,6 +33,35 @@
     let canvasContainer: HTMLDivElement;
     let app: any = null;
     let currentModel: any = null;
+    let autonomy: Live2DAutonomy | null = null;
+    let headCalibration = {
+        angleYGain: 1.0,
+        angleYOffset: 0,
+        angleYMin: -90,
+        angleYMax: 90,
+        angleZGain: 1.0,
+        angleZOffset: 0,
+        angleZMin: -90,
+        angleZMax: 90,
+    };
+    let bodyCalibration = {
+        bodyXGain: 1.0,
+        bodyYGain: 1.0,
+        bodyZGain: 1.0,
+        bodyXOffset: 0,
+        bodyYOffset: 0,
+        bodyZOffset: 0,
+        bodyXMin: -90,
+        bodyXMax: 90,
+        bodyYMin: -90,
+        bodyYMax: 90,
+        bodyZMin: -90,
+        bodyZMax: 90,
+    };
+    const motionControl = createLive2DMotionControl({
+        getCurrentModel: () => currentModel,
+        disableAllMotionsByDefault: true,
+    });
 
     // We dynamically import crypto to prevent SSR issues
     let cryptoModule: any = null;
@@ -54,21 +85,11 @@
             await loadModel(modelUrl);
         }
 
-        // Pointer tracking bounded precisely to canvas
-        app.view.addEventListener("pointermove", (e: PointerEvent) => {
-            if (currentModel) {
-                // Convert browser event coordinates to canvas-local coordinates
-                let rect = (
-                    app!.view as HTMLCanvasElement
-                ).getBoundingClientRect();
-                let x = e.clientX - rect.left;
-                let y = e.clientY - rect.top;
-                currentModel.focus(x, y);
-            }
-        });
     });
 
     onDestroy(() => {
+        autonomy?.stop();
+        autonomy = null;
         if (currentModel) {
             currentModel.destroy();
         }
@@ -191,6 +212,8 @@
         if (!url) return;
 
         if (currentModel) {
+            autonomy?.stop();
+            autonomy = null;
             currentModel.destroy();
             currentModel = null;
         }
@@ -217,6 +240,11 @@
 
             app!.stage.addChild(model);
             currentModel = model;
+            motionControl.disableAllMotions(model);
+            autonomy = new Live2DAutonomy(model, app);
+            autonomy.setHeadCalibration(headCalibration);
+            autonomy.setBodyCalibration(bodyCalibration);
+            autonomy.start();
 
             // Extract real motions and expressions
             extractMetadata(model);
@@ -284,7 +312,9 @@
 
         // Motions (Groups and Indices)
         const motions: Live2DMotionInfo[] = [];
-        const motionDefs = model.internalModel?.motionManager?.definitions;
+        const motionDefs =
+            motionControl.getMotionDefinitionsForDebug() ||
+            model.internalModel?.motionManager?.definitions;
         const motionFiles = settings?.FileReferences?.Motions;
 
         if (motionFiles) {
@@ -324,9 +354,8 @@
 
     export async function triggerMotion(group: string, index: number) {
         if (!currentModel) return;
-        // The Priority argument is usually 3 (Force) to override anything else
         const audioSnapshot = SafeAudioManager.getPlaybackSnapshot();
-        const motionResult = currentModel.motion(group, index, 3);
+        const motionResult = motionControl.playMotion(group, index, 3);
 
         const tryResume = async () => {
             await SafeAudioManager.resumeFromSnapshotIfInterrupted(
@@ -369,6 +398,60 @@
         } finally {
             isSpeaking = false;
         }
+    }
+
+    export function setEmotion(emotion: string) {
+        autonomy?.setEmotion(emotion as any);
+    }
+
+    export function playGesture(gesture: string) {
+        autonomy?.playGesture(gesture as any);
+    }
+
+    export function setSensitivity(value: number) {
+        autonomy?.setSensitivity(value);
+    }
+
+    export function setHeadCalibration(
+        config: Partial<{
+            angleYGain: number;
+            angleYOffset: number;
+            angleYMin: number;
+            angleYMax: number;
+            angleZGain: number;
+            angleZOffset: number;
+            angleZMin: number;
+            angleZMax: number;
+        }>,
+    ) {
+        headCalibration = {
+            ...headCalibration,
+            ...config,
+        };
+        autonomy?.setHeadCalibration(headCalibration);
+    }
+
+    export function setBodyCalibration(
+        config: Partial<{
+            bodyXGain: number;
+            bodyYGain: number;
+            bodyZGain: number;
+            bodyXOffset: number;
+            bodyYOffset: number;
+            bodyZOffset: number;
+            bodyXMin: number;
+            bodyXMax: number;
+            bodyYMin: number;
+            bodyYMax: number;
+            bodyZMin: number;
+            bodyZMax: number;
+        }>,
+    ) {
+        bodyCalibration = {
+            ...bodyCalibration,
+            ...config,
+        };
+        autonomy?.setBodyCalibration(bodyCalibration);
     }
 </script>
 

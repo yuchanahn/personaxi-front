@@ -79,6 +79,30 @@ export class Live2DAutonomy {
 
     private currentHeadZ = 0;
     private voiceEnv = 0;
+    private headCalibration = {
+        angleYGain: 1.0,
+        angleYOffset: 0,
+        angleYMin: -90,
+        angleYMax: 90,
+        angleZGain: 1.0,
+        angleZOffset: 0,
+        angleZMin: -90,
+        angleZMax: 90,
+    };
+    private bodyCalibration = {
+        bodyXGain: 1.0,
+        bodyYGain: 1.0,
+        bodyZGain: 1.0,
+        bodyXOffset: 0,
+        bodyYOffset: 0,
+        bodyZOffset: 0,
+        bodyXMin: -90,
+        bodyXMax: 90,
+        bodyYMin: -90,
+        bodyYMax: 90,
+        bodyZMin: -90,
+        bodyZMax: 90,
+    };
 
     private SleepTimer: any | null = null;
 
@@ -134,6 +158,69 @@ export class Live2DAutonomy {
     public setSensitivity(value: number) {
         this.sensitivity = this.clamp(value, 0.1, 2.0);
         console.log(`⚙️ Sensitivity changed to ${this.sensitivity}x`);
+    }
+
+    public setHeadCalibration(config: Partial<{
+        angleYGain: number;
+        angleYOffset: number;
+        angleYMin: number;
+        angleYMax: number;
+        angleZGain: number;
+        angleZOffset: number;
+        angleZMin: number;
+        angleZMax: number;
+    }>) {
+        this.headCalibration = {
+            ...this.headCalibration,
+            ...config,
+        };
+
+        if (this.headCalibration.angleYMin > this.headCalibration.angleYMax) {
+            const tmp = this.headCalibration.angleYMin;
+            this.headCalibration.angleYMin = this.headCalibration.angleYMax;
+            this.headCalibration.angleYMax = tmp;
+        }
+        if (this.headCalibration.angleZMin > this.headCalibration.angleZMax) {
+            const tmp = this.headCalibration.angleZMin;
+            this.headCalibration.angleZMin = this.headCalibration.angleZMax;
+            this.headCalibration.angleZMax = tmp;
+        }
+    }
+
+    public setBodyCalibration(config: Partial<{
+        bodyXGain: number;
+        bodyYGain: number;
+        bodyZGain: number;
+        bodyXOffset: number;
+        bodyYOffset: number;
+        bodyZOffset: number;
+        bodyXMin: number;
+        bodyXMax: number;
+        bodyYMin: number;
+        bodyYMax: number;
+        bodyZMin: number;
+        bodyZMax: number;
+    }>) {
+        this.bodyCalibration = {
+            ...this.bodyCalibration,
+            ...config,
+        };
+
+        if (this.bodyCalibration.bodyXMin > this.bodyCalibration.bodyXMax) {
+            const tmp = this.bodyCalibration.bodyXMin;
+            this.bodyCalibration.bodyXMin = this.bodyCalibration.bodyXMax;
+            this.bodyCalibration.bodyXMax = tmp;
+        }
+        if (this.bodyCalibration.bodyYMin > this.bodyCalibration.bodyYMax) {
+            const tmp = this.bodyCalibration.bodyYMin;
+            this.bodyCalibration.bodyYMin = this.bodyCalibration.bodyYMax;
+            this.bodyCalibration.bodyYMax = tmp;
+        }
+        if (this.bodyCalibration.bodyZMin > this.bodyCalibration.bodyZMax) {
+            const tmp = this.bodyCalibration.bodyZMin;
+            this.bodyCalibration.bodyZMin = this.bodyCalibration.bodyZMax;
+            this.bodyCalibration.bodyZMax = tmp;
+        }
     }
 
     public playGesture(gesture: GestureType) {
@@ -703,16 +790,47 @@ export class Live2DAutonomy {
         const dragY = this.dragTargetY * 60 * this.sensitivity;
 
         const angleX = this.currentBodyX + dragX;
-        const angleY = this.currentBodyY + dragY + (voiceBobY * 0.35);
-        const angleZ = this.currentHeadZ + (dragX * -0.2);
+        const rawAngleY = this.currentBodyY + dragY + (voiceBobY * 0.35);
+        const rawAngleZ = this.currentHeadZ + (dragX * -0.2);
+        const angleY = this.clamp(
+            rawAngleY * this.headCalibration.angleYGain +
+                this.headCalibration.angleYOffset,
+            this.headCalibration.angleYMin,
+            this.headCalibration.angleYMax,
+        );
+        const angleZ = this.clamp(
+            rawAngleZ * this.headCalibration.angleZGain +
+                this.headCalibration.angleZOffset,
+            this.headCalibration.angleZMin,
+            this.headCalibration.angleZMax,
+        );
 
         this.setParam(values, 'ParamAngleX', angleX);
         this.setParam(values, 'ParamAngleY', angleY);
         this.setParam(values, 'ParamAngleZ', angleZ);
 
-        const bodyX = (this.currentBodyX + dragX) * 0.5;
-        const bodyY = (this.currentBodyY + dragY) * 0.5 + voiceBobY;
-        const bodyZ = (this.currentBodyX + dragX) * 0.2;
+        const rawBodyX = (this.currentBodyX + dragX) * 0.5;
+        const rawBodyY = (this.currentBodyY + dragY) * 0.5 + voiceBobY;
+        const rawBodyZ = (this.currentBodyX + dragX) * 0.2;
+
+        const bodyX = this.clamp(
+            rawBodyX * this.bodyCalibration.bodyXGain +
+                this.bodyCalibration.bodyXOffset,
+            this.bodyCalibration.bodyXMin,
+            this.bodyCalibration.bodyXMax,
+        );
+        const bodyY = this.clamp(
+            rawBodyY * this.bodyCalibration.bodyYGain +
+                this.bodyCalibration.bodyYOffset,
+            this.bodyCalibration.bodyYMin,
+            this.bodyCalibration.bodyYMax,
+        );
+        const bodyZ = this.clamp(
+            rawBodyZ * this.bodyCalibration.bodyZGain +
+                this.bodyCalibration.bodyZOffset,
+            this.bodyCalibration.bodyZMin,
+            this.bodyCalibration.bodyZMax,
+        );
 
         this.setParam(values, 'ParamBodyAngleX', bodyX);
         this.setParam(values, 'ParamBodyAngleY', bodyY);

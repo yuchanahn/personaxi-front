@@ -25,7 +25,33 @@
         motions: Record<string, { alias: string; category: string }>;
         expressions: Record<string, string>;
         expressionAliases: Record<string, string>;
-        settings: { scale: number; x: number; y: number; offsetY: number };
+        settings: {
+            scale: number;
+            x: number;
+            y: number;
+            offsetY: number;
+            sensitivity: number;
+            angleYGain: number;
+            angleYOffset: number;
+            angleYMin: number;
+            angleYMax: number;
+            angleZGain: number;
+            angleZOffset: number;
+            angleZMin: number;
+            angleZMax: number;
+            bodyXGain: number;
+            bodyYGain: number;
+            bodyZGain: number;
+            bodyXOffset: number;
+            bodyYOffset: number;
+            bodyZOffset: number;
+            bodyXMin: number;
+            bodyXMax: number;
+            bodyYMin: number;
+            bodyYMax: number;
+            bodyZMin: number;
+            bodyZMax: number;
+        };
     }
 
     let pxlState: Pxl2DMapping = {
@@ -33,7 +59,33 @@
         motions: {},
         expressions: {},
         expressionAliases: {},
-        settings: { scale: 0.12, x: 0, y: 0, offsetY: 0 },
+        settings: {
+            scale: 0.12,
+            x: 0,
+            y: 0,
+            offsetY: 0,
+            sensitivity: 1.0,
+            angleYGain: 1.0,
+            angleYOffset: 0,
+            angleYMin: -90,
+            angleYMax: 90,
+            angleZGain: 1.0,
+            angleZOffset: 0,
+            angleZMin: -90,
+            angleZMax: 90,
+            bodyXGain: 1.0,
+            bodyYGain: 1.0,
+            bodyZGain: 1.0,
+            bodyXOffset: 0,
+            bodyYOffset: 0,
+            bodyZOffset: 0,
+            bodyXMin: -90,
+            bodyXMax: 90,
+            bodyYMin: -90,
+            bodyYMax: 90,
+            bodyZMin: -90,
+            bodyZMax: 90,
+        },
     };
 
     interface UploadedAudioItem {
@@ -45,7 +97,39 @@
 
     let viewerRef: any;
 
-    let activeTab: "motions" | "expressions" | "audio" | "settings" = "motions";
+    let activeTab:
+        | "motions"
+        | "expressions"
+        | "audio"
+        | "settings"
+        | "runtime" = "motions";
+
+    const emotionOptions = [
+        "CALM",
+        "GENTLE",
+        "ELATED",
+        "STERN",
+        "DEPRESSED",
+        "TENSE",
+        "ASTONISHED",
+        "SLEEP",
+    ];
+
+    const gestureOptions = [
+        "NOD",
+        "SHAKE",
+        "TILT",
+        "FIDGET",
+        "SIGH",
+        "LOOK_DOWN",
+        "CLOSE_EYES",
+        "WINK",
+        "STICK_TONGUE",
+        "SQUINT",
+        "LOOK_UP_THINK",
+        "FLINCH",
+        "PANT",
+    ];
 
     function normalizePxlState(raw: any): Pxl2DMapping {
         return {
@@ -74,6 +158,90 @@
                     typeof raw?.settings?.offsetY === "number"
                         ? raw.settings.offsetY
                         : 0,
+                sensitivity:
+                    typeof raw?.settings?.sensitivity === "number"
+                        ? raw.settings.sensitivity
+                        : 1.0,
+                angleYGain:
+                    typeof raw?.settings?.angleYGain === "number"
+                        ? raw.settings.angleYGain
+                        : 1.0,
+                angleYOffset:
+                    typeof raw?.settings?.angleYOffset === "number"
+                        ? raw.settings.angleYOffset
+                        : 0,
+                angleYMin:
+                    typeof raw?.settings?.angleYMin === "number"
+                        ? raw.settings.angleYMin
+                        : -90,
+                angleYMax:
+                    typeof raw?.settings?.angleYMax === "number"
+                        ? raw.settings.angleYMax
+                        : 90,
+                angleZGain:
+                    typeof raw?.settings?.angleZGain === "number"
+                        ? raw.settings.angleZGain
+                        : 1.0,
+                angleZOffset:
+                    typeof raw?.settings?.angleZOffset === "number"
+                        ? raw.settings.angleZOffset
+                        : 0,
+                angleZMin:
+                    typeof raw?.settings?.angleZMin === "number"
+                        ? raw.settings.angleZMin
+                        : -90,
+                angleZMax:
+                    typeof raw?.settings?.angleZMax === "number"
+                        ? raw.settings.angleZMax
+                        : 90,
+                bodyXGain:
+                    typeof raw?.settings?.bodyXGain === "number"
+                        ? raw.settings.bodyXGain
+                        : 1.0,
+                bodyYGain:
+                    typeof raw?.settings?.bodyYGain === "number"
+                        ? raw.settings.bodyYGain
+                        : 1.0,
+                bodyZGain:
+                    typeof raw?.settings?.bodyZGain === "number"
+                        ? raw.settings.bodyZGain
+                        : 1.0,
+                bodyXOffset:
+                    typeof raw?.settings?.bodyXOffset === "number"
+                        ? raw.settings.bodyXOffset
+                        : 0,
+                bodyYOffset:
+                    typeof raw?.settings?.bodyYOffset === "number"
+                        ? raw.settings.bodyYOffset
+                        : 0,
+                bodyZOffset:
+                    typeof raw?.settings?.bodyZOffset === "number"
+                        ? raw.settings.bodyZOffset
+                        : 0,
+                bodyXMin:
+                    typeof raw?.settings?.bodyXMin === "number"
+                        ? raw.settings.bodyXMin
+                        : -90,
+                bodyXMax:
+                    typeof raw?.settings?.bodyXMax === "number"
+                        ? raw.settings.bodyXMax
+                        : 90,
+                bodyYMin:
+                    typeof raw?.settings?.bodyYMin === "number"
+                        ? raw.settings.bodyYMin
+                        : -90,
+                bodyYMax:
+                    typeof raw?.settings?.bodyYMax === "number"
+                        ? raw.settings.bodyYMax
+                        : 90,
+                bodyZMin:
+                    typeof raw?.settings?.bodyZMin === "number"
+                        ? raw.settings.bodyZMin
+                        : -90,
+                bodyZMax:
+                    typeof raw?.settings?.bodyZMax === "number"
+                        ? raw.settings.bodyZMax
+                        : 90,
             },
         };
     }
@@ -95,6 +263,120 @@
 
     function playMotion(group: string, index: number) {
         if (viewerRef) viewerRef.triggerMotion(group, index);
+    }
+
+    function setRuntimeEmotion(emotion: string) {
+        if (viewerRef) viewerRef.setEmotion(emotion);
+    }
+
+    function playRuntimeGesture(gesture: string) {
+        if (viewerRef) viewerRef.playGesture(gesture);
+    }
+
+    function applySensitivity(value: number) {
+        const clamped = Math.max(0.1, Math.min(2.0, value));
+        pxlState.settings.sensitivity = clamped;
+        pxlState = pxlState;
+        if (viewerRef) viewerRef.setSensitivity(clamped);
+    }
+
+    function applyHeadCalibration() {
+        if (!viewerRef) return;
+        viewerRef.setHeadCalibration({
+            angleYGain: pxlState.settings.angleYGain,
+            angleYOffset: pxlState.settings.angleYOffset,
+            angleYMin: pxlState.settings.angleYMin,
+            angleYMax: pxlState.settings.angleYMax,
+            angleZGain: pxlState.settings.angleZGain,
+            angleZOffset: pxlState.settings.angleZOffset,
+            angleZMin: pxlState.settings.angleZMin,
+            angleZMax: pxlState.settings.angleZMax,
+        });
+    }
+
+    function applyBodyCalibration() {
+        if (!viewerRef) return;
+        viewerRef.setBodyCalibration({
+            bodyXGain: pxlState.settings.bodyXGain,
+            bodyYGain: pxlState.settings.bodyYGain,
+            bodyZGain: pxlState.settings.bodyZGain,
+            bodyXOffset: pxlState.settings.bodyXOffset,
+            bodyYOffset: pxlState.settings.bodyYOffset,
+            bodyZOffset: pxlState.settings.bodyZOffset,
+            bodyXMin: pxlState.settings.bodyXMin,
+            bodyXMax: pxlState.settings.bodyXMax,
+            bodyYMin: pxlState.settings.bodyYMin,
+            bodyYMax: pxlState.settings.bodyYMax,
+            bodyZMin: pxlState.settings.bodyZMin,
+            bodyZMax: pxlState.settings.bodyZMax,
+        });
+    }
+
+    function applyCalibrationField(
+        key:
+            | "angleYGain"
+            | "angleYOffset"
+            | "angleYMin"
+            | "angleYMax"
+            | "angleZGain"
+            | "angleZOffset"
+            | "angleZMin"
+            | "angleZMax",
+        value: number,
+    ) {
+        pxlState.settings[key] = value;
+
+        if (pxlState.settings.angleYMin > pxlState.settings.angleYMax) {
+            const tmp = pxlState.settings.angleYMin;
+            pxlState.settings.angleYMin = pxlState.settings.angleYMax;
+            pxlState.settings.angleYMax = tmp;
+        }
+        if (pxlState.settings.angleZMin > pxlState.settings.angleZMax) {
+            const tmp = pxlState.settings.angleZMin;
+            pxlState.settings.angleZMin = pxlState.settings.angleZMax;
+            pxlState.settings.angleZMax = tmp;
+        }
+
+        pxlState = pxlState;
+        applyHeadCalibration();
+    }
+
+    function applyBodyCalibrationField(
+        key:
+            | "bodyXGain"
+            | "bodyYGain"
+            | "bodyZGain"
+            | "bodyXOffset"
+            | "bodyYOffset"
+            | "bodyZOffset"
+            | "bodyXMin"
+            | "bodyXMax"
+            | "bodyYMin"
+            | "bodyYMax"
+            | "bodyZMin"
+            | "bodyZMax",
+        value: number,
+    ) {
+        pxlState.settings[key] = value;
+
+        if (pxlState.settings.bodyXMin > pxlState.settings.bodyXMax) {
+            const tmp = pxlState.settings.bodyXMin;
+            pxlState.settings.bodyXMin = pxlState.settings.bodyXMax;
+            pxlState.settings.bodyXMax = tmp;
+        }
+        if (pxlState.settings.bodyYMin > pxlState.settings.bodyYMax) {
+            const tmp = pxlState.settings.bodyYMin;
+            pxlState.settings.bodyYMin = pxlState.settings.bodyYMax;
+            pxlState.settings.bodyYMax = tmp;
+        }
+        if (pxlState.settings.bodyZMin > pxlState.settings.bodyZMax) {
+            const tmp = pxlState.settings.bodyZMin;
+            pxlState.settings.bodyZMin = pxlState.settings.bodyZMax;
+            pxlState.settings.bodyZMax = tmp;
+        }
+
+        pxlState = pxlState;
+        applyBodyCalibration();
     }
 
     async function playAudioUrl(audioUrl: string) {
@@ -225,6 +507,11 @@
                                     pxlState.expressionAliases[expr] = expr;
                                 }
                             });
+                            viewerRef?.setSensitivity(
+                                pxlState.settings.sensitivity,
+                            );
+                            applyHeadCalibration();
+                            applyBodyCalibration();
                             pxlState = pxlState; // reactivity
                         }}
                     />
@@ -263,6 +550,10 @@
             <button
                 class="tab {activeTab === 'audio' ? 'active' : ''}"
                 on:click={() => (activeTab = "audio")}>Audio</button
+            >
+            <button
+                class="tab {activeTab === 'runtime' ? 'active' : ''}"
+                on:click={() => (activeTab = "runtime")}>Runtime</button
             >
         </div>
 
@@ -495,6 +786,394 @@
                                 </div>
                             {/each}
                         {/if}
+                    </div>
+                </div>
+            {:else if activeTab === "runtime"}
+                <div class="runtime-panel">
+                    <h3>Runtime Controls</h3>
+                    <p class="desc">
+                        Test emotion, gesture, and global sensitivity in real
+                        time.
+                    </p>
+
+                    <div class="runtime-section">
+                        <h4>Global Sensitivity</h4>
+                        <div class="sensitivity-row">
+                            <input
+                                type="range"
+                                min="0.1"
+                                max="2"
+                                step="0.1"
+                                value={pxlState.settings.sensitivity}
+                                on:input={(e) =>
+                                    applySensitivity(
+                                        Number(e.currentTarget.value),
+                                    )}
+                            />
+                            <span>{pxlState.settings.sensitivity.toFixed(1)}x</span>
+                        </div>
+                    </div>
+
+                    <div class="runtime-section">
+                        <h4>Head Calibration (Y/Z)</h4>
+                        <div class="calib-grid">
+                            <label class="calib-item">
+                                <span>Y Gain</span>
+                                <input
+                                    type="range"
+                                    min="0.1"
+                                    max="2"
+                                    step="0.05"
+                                    value={pxlState.settings.angleYGain}
+                                    on:input={(e) =>
+                                        applyCalibrationField(
+                                            "angleYGain",
+                                            Number(e.currentTarget.value),
+                                        )}
+                                />
+                                <small>{pxlState.settings.angleYGain.toFixed(2)}</small>
+                            </label>
+                            <label class="calib-item">
+                                <span>Y Offset</span>
+                                <input
+                                    type="range"
+                                    min="-30"
+                                    max="30"
+                                    step="1"
+                                    value={pxlState.settings.angleYOffset}
+                                    on:input={(e) =>
+                                        applyCalibrationField(
+                                            "angleYOffset",
+                                            Number(e.currentTarget.value),
+                                        )}
+                                />
+                                <small>{pxlState.settings.angleYOffset.toFixed(0)}</small>
+                            </label>
+                            <label class="calib-item">
+                                <span>Y Min</span>
+                                <input
+                                    type="range"
+                                    min="-90"
+                                    max="0"
+                                    step="1"
+                                    value={pxlState.settings.angleYMin}
+                                    on:input={(e) =>
+                                        applyCalibrationField(
+                                            "angleYMin",
+                                            Number(e.currentTarget.value),
+                                        )}
+                                />
+                                <small>{pxlState.settings.angleYMin.toFixed(0)}</small>
+                            </label>
+                            <label class="calib-item">
+                                <span>Y Max</span>
+                                <input
+                                    type="range"
+                                    min="0"
+                                    max="90"
+                                    step="1"
+                                    value={pxlState.settings.angleYMax}
+                                    on:input={(e) =>
+                                        applyCalibrationField(
+                                            "angleYMax",
+                                            Number(e.currentTarget.value),
+                                        )}
+                                />
+                                <small>{pxlState.settings.angleYMax.toFixed(0)}</small>
+                            </label>
+                            <label class="calib-item">
+                                <span>Z Gain</span>
+                                <input
+                                    type="range"
+                                    min="0.1"
+                                    max="2"
+                                    step="0.05"
+                                    value={pxlState.settings.angleZGain}
+                                    on:input={(e) =>
+                                        applyCalibrationField(
+                                            "angleZGain",
+                                            Number(e.currentTarget.value),
+                                        )}
+                                />
+                                <small>{pxlState.settings.angleZGain.toFixed(2)}</small>
+                            </label>
+                            <label class="calib-item">
+                                <span>Z Offset</span>
+                                <input
+                                    type="range"
+                                    min="-30"
+                                    max="30"
+                                    step="1"
+                                    value={pxlState.settings.angleZOffset}
+                                    on:input={(e) =>
+                                        applyCalibrationField(
+                                            "angleZOffset",
+                                            Number(e.currentTarget.value),
+                                        )}
+                                />
+                                <small>{pxlState.settings.angleZOffset.toFixed(0)}</small>
+                            </label>
+                            <label class="calib-item">
+                                <span>Z Min</span>
+                                <input
+                                    type="range"
+                                    min="-90"
+                                    max="0"
+                                    step="1"
+                                    value={pxlState.settings.angleZMin}
+                                    on:input={(e) =>
+                                        applyCalibrationField(
+                                            "angleZMin",
+                                            Number(e.currentTarget.value),
+                                        )}
+                                />
+                                <small>{pxlState.settings.angleZMin.toFixed(0)}</small>
+                            </label>
+                            <label class="calib-item">
+                                <span>Z Max</span>
+                                <input
+                                    type="range"
+                                    min="0"
+                                    max="90"
+                                    step="1"
+                                    value={pxlState.settings.angleZMax}
+                                    on:input={(e) =>
+                                        applyCalibrationField(
+                                            "angleZMax",
+                                            Number(e.currentTarget.value),
+                                        )}
+                                />
+                                <small>{pxlState.settings.angleZMax.toFixed(0)}</small>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="runtime-section">
+                        <h4>Body Calibration (X/Y/Z)</h4>
+                        <div class="calib-grid">
+                            <label class="calib-item">
+                                <span>Body X Gain</span>
+                                <input
+                                    type="range"
+                                    min="0.1"
+                                    max="2"
+                                    step="0.05"
+                                    value={pxlState.settings.bodyXGain}
+                                    on:input={(e) =>
+                                        applyBodyCalibrationField(
+                                            "bodyXGain",
+                                            Number(e.currentTarget.value),
+                                        )}
+                                />
+                                <small>{pxlState.settings.bodyXGain.toFixed(2)}</small>
+                            </label>
+                            <label class="calib-item">
+                                <span>Body X Offset</span>
+                                <input
+                                    type="range"
+                                    min="-30"
+                                    max="30"
+                                    step="1"
+                                    value={pxlState.settings.bodyXOffset}
+                                    on:input={(e) =>
+                                        applyBodyCalibrationField(
+                                            "bodyXOffset",
+                                            Number(e.currentTarget.value),
+                                        )}
+                                />
+                                <small>{pxlState.settings.bodyXOffset.toFixed(0)}</small>
+                            </label>
+                            <label class="calib-item">
+                                <span>Body X Min</span>
+                                <input
+                                    type="range"
+                                    min="-90"
+                                    max="0"
+                                    step="1"
+                                    value={pxlState.settings.bodyXMin}
+                                    on:input={(e) =>
+                                        applyBodyCalibrationField(
+                                            "bodyXMin",
+                                            Number(e.currentTarget.value),
+                                        )}
+                                />
+                                <small>{pxlState.settings.bodyXMin.toFixed(0)}</small>
+                            </label>
+                            <label class="calib-item">
+                                <span>Body X Max</span>
+                                <input
+                                    type="range"
+                                    min="0"
+                                    max="90"
+                                    step="1"
+                                    value={pxlState.settings.bodyXMax}
+                                    on:input={(e) =>
+                                        applyBodyCalibrationField(
+                                            "bodyXMax",
+                                            Number(e.currentTarget.value),
+                                        )}
+                                />
+                                <small>{pxlState.settings.bodyXMax.toFixed(0)}</small>
+                            </label>
+
+                            <label class="calib-item">
+                                <span>Body Y Gain</span>
+                                <input
+                                    type="range"
+                                    min="0.1"
+                                    max="2"
+                                    step="0.05"
+                                    value={pxlState.settings.bodyYGain}
+                                    on:input={(e) =>
+                                        applyBodyCalibrationField(
+                                            "bodyYGain",
+                                            Number(e.currentTarget.value),
+                                        )}
+                                />
+                                <small>{pxlState.settings.bodyYGain.toFixed(2)}</small>
+                            </label>
+                            <label class="calib-item">
+                                <span>Body Y Offset</span>
+                                <input
+                                    type="range"
+                                    min="-30"
+                                    max="30"
+                                    step="1"
+                                    value={pxlState.settings.bodyYOffset}
+                                    on:input={(e) =>
+                                        applyBodyCalibrationField(
+                                            "bodyYOffset",
+                                            Number(e.currentTarget.value),
+                                        )}
+                                />
+                                <small>{pxlState.settings.bodyYOffset.toFixed(0)}</small>
+                            </label>
+                            <label class="calib-item">
+                                <span>Body Y Min</span>
+                                <input
+                                    type="range"
+                                    min="-90"
+                                    max="0"
+                                    step="1"
+                                    value={pxlState.settings.bodyYMin}
+                                    on:input={(e) =>
+                                        applyBodyCalibrationField(
+                                            "bodyYMin",
+                                            Number(e.currentTarget.value),
+                                        )}
+                                />
+                                <small>{pxlState.settings.bodyYMin.toFixed(0)}</small>
+                            </label>
+                            <label class="calib-item">
+                                <span>Body Y Max</span>
+                                <input
+                                    type="range"
+                                    min="0"
+                                    max="90"
+                                    step="1"
+                                    value={pxlState.settings.bodyYMax}
+                                    on:input={(e) =>
+                                        applyBodyCalibrationField(
+                                            "bodyYMax",
+                                            Number(e.currentTarget.value),
+                                        )}
+                                />
+                                <small>{pxlState.settings.bodyYMax.toFixed(0)}</small>
+                            </label>
+
+                            <label class="calib-item">
+                                <span>Body Z Gain</span>
+                                <input
+                                    type="range"
+                                    min="0.1"
+                                    max="2"
+                                    step="0.05"
+                                    value={pxlState.settings.bodyZGain}
+                                    on:input={(e) =>
+                                        applyBodyCalibrationField(
+                                            "bodyZGain",
+                                            Number(e.currentTarget.value),
+                                        )}
+                                />
+                                <small>{pxlState.settings.bodyZGain.toFixed(2)}</small>
+                            </label>
+                            <label class="calib-item">
+                                <span>Body Z Offset</span>
+                                <input
+                                    type="range"
+                                    min="-30"
+                                    max="30"
+                                    step="1"
+                                    value={pxlState.settings.bodyZOffset}
+                                    on:input={(e) =>
+                                        applyBodyCalibrationField(
+                                            "bodyZOffset",
+                                            Number(e.currentTarget.value),
+                                        )}
+                                />
+                                <small>{pxlState.settings.bodyZOffset.toFixed(0)}</small>
+                            </label>
+                            <label class="calib-item">
+                                <span>Body Z Min</span>
+                                <input
+                                    type="range"
+                                    min="-90"
+                                    max="0"
+                                    step="1"
+                                    value={pxlState.settings.bodyZMin}
+                                    on:input={(e) =>
+                                        applyBodyCalibrationField(
+                                            "bodyZMin",
+                                            Number(e.currentTarget.value),
+                                        )}
+                                />
+                                <small>{pxlState.settings.bodyZMin.toFixed(0)}</small>
+                            </label>
+                            <label class="calib-item">
+                                <span>Body Z Max</span>
+                                <input
+                                    type="range"
+                                    min="0"
+                                    max="90"
+                                    step="1"
+                                    value={pxlState.settings.bodyZMax}
+                                    on:input={(e) =>
+                                        applyBodyCalibrationField(
+                                            "bodyZMax",
+                                            Number(e.currentTarget.value),
+                                        )}
+                                />
+                                <small>{pxlState.settings.bodyZMax.toFixed(0)}</small>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="runtime-section">
+                        <h4>Emotion States</h4>
+                        <div class="runtime-grid">
+                            {#each emotionOptions as emo}
+                                <button
+                                    class="runtime-btn"
+                                    on:click={() => setRuntimeEmotion(emo)}
+                                >
+                                    {emo}
+                                </button>
+                            {/each}
+                        </div>
+                    </div>
+
+                    <div class="runtime-section">
+                        <h4>Gestures</h4>
+                        <div class="runtime-grid">
+                            {#each gestureOptions as gesture}
+                                <button
+                                    class="runtime-btn"
+                                    on:click={() => playRuntimeGesture(gesture)}
+                                >
+                                    {gesture}
+                                </button>
+                            {/each}
+                        </div>
                     </div>
                 </div>
             {/if}
@@ -849,5 +1528,94 @@
     .audio-remove-btn:hover {
         background: #444;
         color: #fff;
+    }
+
+    .runtime-panel {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .runtime-panel h3 {
+        margin: 0;
+        font-size: 1.1rem;
+        color: #eee;
+    }
+
+    .runtime-panel .desc {
+        margin: 0;
+        font-size: 0.85rem;
+        color: #888;
+        line-height: 1.4;
+    }
+
+    .runtime-section {
+        background: #252525;
+        border: 1px solid #383838;
+        border-radius: 8px;
+        padding: 0.8rem;
+        display: flex;
+        flex-direction: column;
+        gap: 0.6rem;
+    }
+
+    .runtime-section h4 {
+        margin: 0;
+        font-size: 0.9rem;
+        color: #ddd;
+    }
+
+    .sensitivity-row {
+        display: flex;
+        align-items: center;
+        gap: 0.6rem;
+    }
+
+    .sensitivity-row input[type="range"] {
+        flex: 1;
+    }
+
+    .sensitivity-row span {
+        min-width: 42px;
+        text-align: right;
+        color: #bbb;
+        font-size: 0.85rem;
+    }
+
+    .runtime-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 0.5rem;
+    }
+
+    .runtime-btn {
+        background: #333;
+        color: #ddd;
+        border: 1px solid #444;
+        padding: 0.5rem 0.6rem;
+        font-size: 0.8rem;
+    }
+
+    .runtime-btn:hover {
+        background: #454545;
+    }
+
+    .calib-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 0.6rem;
+    }
+
+    .calib-item {
+        display: flex;
+        flex-direction: column;
+        gap: 0.3rem;
+        font-size: 0.78rem;
+        color: #bbb;
+    }
+
+    .calib-item small {
+        color: #999;
+        text-align: right;
     }
 </style>
