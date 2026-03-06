@@ -6,6 +6,12 @@
     import Live2DDebugPanel from "$lib/components/live2d/Live2DDebugPanel.svelte";
     import { createLive2DMotionControl } from "$lib/components/live2d/useLive2DMotionControl";
     import { createLive2DAudioController } from "$lib/components/live2d/useLive2DAudio";
+    import {
+        applyPermanentExpressions,
+        collectAvailableExpressions,
+        collectAvailableMotionGroups,
+        loadLive2DModel,
+    } from "$lib/components/live2d/useLive2DModel";
 
     const dispatch = createEventDispatcher();
 
@@ -33,7 +39,6 @@
     $: if (isLoaded && currentModel && !hasPlayedStartVoice) {
         hasPlayedStartVoice = true;
         if (startVoiceUrl) {
-            console.log("[Live2D] Autoplay Start Voice:", startVoiceUrl);
             setTimeout(() => {
                 speak(startVoiceUrl as string);
             }, 500);
@@ -128,7 +133,6 @@
         if (!autonomy) return;
         // @ts-ignore
         autonomy.setEmotion(emotion);
-        console.log("Set Emotion:", emotion);
     }
     export function resetToDefault() {
         if (!currentModel || !currentModel.internalModel) return;
@@ -136,23 +140,17 @@
         const internal = currentModel.internalModel;
         const mgr = internal.motionManager;
 
-        // 1. 모션 정지 (안전하게 수정됨)
         if (mgr) {
-            // A. stopAll이 함수로 존재하면 실행
             if (typeof mgr.stopAll === "function") {
                 mgr.stopAll();
             }
-            // B. 없다면 stop 함수 실행 (일반적인 경우)
             else if (typeof mgr.stop === "function") {
                 mgr.stop();
             }
-
-            // C. 혹시 몰라 대기열(Queue) 강제 초기화
             if (mgr.queue) {
                 mgr.queue = [];
             }
 
-            // 2. 표정(Expression) 강제 초기화
             if (mgr.expressionManager) {
                 if (
                     typeof mgr.expressionManager.stopAllExpressions ===
@@ -162,13 +160,11 @@
                 } else if (
                     typeof mgr.expressionManager.restore === "function"
                 ) {
-                    // 일부 버전에선 restore()가 초기화임
                     mgr.expressionManager.restore();
                 }
             }
         }
 
-        // 3. 파라미터 "진짜" 초기화 (모델 기본값으로 덮어쓰기)
         const core = internal.coreModel;
         if (core) {
             const paramCount = core.getParameterCount();
@@ -178,12 +174,10 @@
             }
         }
 
-        // 4. 디버그 정보 초기화
         debugInfo.currentEmotion = "None";
         debugInfo.currentExpression = "None";
         debugInfo.lastMotion = "Reset (Hard)";
         debugInfo = debugInfo;
-
     }
 
     export function triggerMotion(fileName: string) {
@@ -194,7 +188,7 @@
         debugInfo.lastMotion = `${matchedMotion.group} (${matchedMotion.index}): ${fileName}`;
     }
 
-    let expressionLockUntil = 0; // Timestamp
+    let expressionLockUntil = 0;
     let pendingEmotion: string | null = null;
     let lockTimeout: any = null;
 
@@ -337,12 +331,11 @@
         model.buttonMode = true;
         let startX = 0;
         let startY = 0;
-        const dragThreshold = 10; // 10px threshold
+        const dragThreshold = 10;
 
         model.on("pointerdown", (e: any) => {
             startX = e.data.global.x;
             startY = e.data.global.y;
-            // updateDragTarget will be called by pointermove
             showHandCursor = true;
             cursorPos = { x: e.data.global.x, y: e.data.global.y };
             if (autonomy) {
@@ -434,399 +427,47 @@
                     antialias: false,
                 });
 
-                // Import dynamically since this is client-side code
-                const cryptoModule = await import("$lib/utils/crypto");
-
-                // Helper to load and decrypt Live2D
-                async function loadEncryptedLive2D(url: string) {
-                    const isSupabase = url.includes(
-                        "uohepkqmwbstbmnkoqju.supabase.co",
-                    );
-                    if (!isSupabase) return url;
-
-                    const basePath = url.substring(0, url.lastIndexOf("/") + 1);
-
-                    // 1. Fetch model3.json and check if it's encrypted
-                    const res = await fetch(url);
-                    if (!res.ok) throw new Error("Failed to fetch model3.json");
-                    const buffer = await res.arrayBuffer();
-
-                    let modelJson;
-                    try {
-                        const plainText = new TextDecoder().decode(buffer);
-                        modelJson = JSON.parse(plainText);
-                        // If we are here, it's NOT encrypted! Just use the original URL!
-                        console.log(
-                            "[Live2D Viewer] Legacy unencrypted model detected. Loading directly from URL.",
-                        );
-                        return url;
-                    } catch (e) {
-                        // It IS encrypted.
-                        const decryptedJsonBuffer =
-                            await cryptoModule.xorEncryptDecrypt(buffer);
-                        const jsonStr = new TextDecoder().decode(
-                            decryptedJsonBuffer,
-                        );
-                        modelJson = JSON.parse(jsonStr);
-                    }
-
-                    const createDataUrl = async (
-                        blob: Blob,
-                    ): Promise<string> => {
-                        return new Promise((resolve, reject) => {
-                            const reader = new FileReader();
-                            reader.onloadend = () =>
-                                resolve(reader.result as string);
-                            reader.onerror = reject;
-                            reader.readAsDataURL(blob);
-                        });
-                    };
-
-                    // 2. Helper to fetch and decrypt a relative path, returning a data URL
-                    const createDecryptedDataUrl = async (
-                        relativeOrAbsolutePath: string,
-                    ) => {
-                        let fullUrl = relativeOrAbsolutePath;
-                        if (
-                            !fullUrl.startsWith("http") &&
-                            !fullUrl.startsWith("data:")
-                        ) {
-                            fullUrl = new URL(relativeOrAbsolutePath, basePath)
-                                .href;
-                        }
-
-                        const fallbackExt =
-                            fullUrl.split(".").pop()?.toLowerCase() || "";
-                        const mimeTypes: Record<string, string> = {
-                            png: "image/png",
-                            jpg: "image/jpeg",
-                            jpeg: "image/jpeg",
-                            json: "application/json",
-                            moc3: "application/octet-stream",
-                        };
-                        const mime =
-                            mimeTypes[fallbackExt] ||
-                            "application/octet-stream";
-
-                        const fileRes = await fetch(fullUrl);
-                        if (!fileRes.ok)
-                            throw new Error("Failed to fetch " + fullUrl);
-                        const fileBuffer = await fileRes.arrayBuffer();
-                        const decryptedFileBuffer =
-                            await cryptoModule.xorEncryptDecrypt(fileBuffer);
-                        const blob = new Blob([decryptedFileBuffer], {
-                            type: mime,
-                        });
-                        return await createDataUrl(blob);
-                    };
-
-                    // 3. Discover all file paths.
-                    // Recursively traverse modelJson and replace paths.
-                    const replacePaths = async (obj: any) => {
-                        if (Array.isArray(obj)) {
-                            for (let i = 0; i < obj.length; i++) {
-                                if (
-                                    typeof obj[i] === "string" &&
-                                    obj[i].match(
-                                        /\.(moc3|png|jpg|jpeg|tga|atlas|json)$/i,
-                                    )
-                                ) {
-                                    obj[i] = await createDecryptedDataUrl(
-                                        obj[i],
-                                    );
-                                } else if (
-                                    typeof obj[i] === "object" &&
-                                    obj[i] !== null
-                                ) {
-                                    await replacePaths(obj[i]);
-                                }
-                            }
-                        } else if (typeof obj === "object" && obj !== null) {
-                            for (const key of Object.keys(obj)) {
-                                if (
-                                    typeof obj[key] === "string" &&
-                                    obj[key].match(
-                                        /\.(moc3|png|jpg|jpeg|tga|atlas|json)$/i,
-                                    )
-                                ) {
-                                    obj[key] = await createDecryptedDataUrl(
-                                        obj[key],
-                                    );
-                                } else if (
-                                    typeof obj[key] === "object" &&
-                                    obj[key] !== null
-                                ) {
-                                    await replacePaths(obj[key]);
-                                }
-                            }
-                        }
-                    };
-
-                    await replacePaths(modelJson);
-
-                    // 4. Create data URL for model3.json itself
-                    const blobJson = new Blob([JSON.stringify(modelJson)], {
-                        type: "application/json",
-                    });
-
-                    const finalDataUrl = await createDataUrl(blobJson);
-                    return finalDataUrl + "#dummy.model3.json";
-                }
-
-                const finalUrl = await loadEncryptedLive2D(modelUrl);
-
-                const model = await PIXI.live2d.Live2DModel.from(finalUrl, {
-                    autoInteract: false,
+                const { model, hitAreaKeys } = await loadLive2DModel({
+                    PIXI,
+                    app,
+                    modelUrl,
+                    showDebug,
+                    x,
+                    y,
+                    scale,
                 });
-
-                model.interactive = true;
-                model.buttonMode = true;
-
                 draggable(model);
 
-                try {
-                    if (
-                        PIXI.live2d.HitAreaFrames &&
-                        typeof PIXI.live2d.HitAreaFrames === "function"
-                    ) {
-                        const hitAreaFrames = new PIXI.live2d.HitAreaFrames();
-                        hitAreaFrames.visible = showDebug;
-                        model.addChild(hitAreaFrames);
-                        (model as any).hitAreaFrames = hitAreaFrames; // Store ref
-                    } else {
-                        console.warn(
-                            "PIXI.live2d.HitAreaFrames not available. Debug visuals disabled.",
-                        );
-                    }
-                } catch (e) {
-                    console.error("Failed to add HitAreaFrames:", e);
-                }
-
-                const hitAreaKeys = model.hitAreas
-                    ? Object.keys(model.hitAreas)
-                    : [];
-
                 if (hitAreaKeys.length === 0) {
-                    console.warn(
-                        "This model seems to have no hit areas defined in settings.",
-                    );
                     debugInfo.error =
                         "No Hit Areas detected in this model! (Check .model3.json)";
                 } else {
                     debugInfo.fileMotions = hitAreaKeys;
                 }
 
-                model.scale.set(1);
-                const bounds = model.getBounds();
-                const paddingFactor = 1.3;
-                const scaleX =
-                    (app.screen.width * paddingFactor) / bounds.width;
-                const scaleY =
-                    (app.screen.height * paddingFactor) / bounds.height;
-                const autoScale = Math.min(scaleX, scaleY);
-                const finalScale = x === 0 && y === 0 ? autoScale : scale;
-                model.scale.set(finalScale);
-
-                //model.on("pointertap", (e: any) => {
-                //    const point = e.data.global;
-                //    model.tap(point.x, point.y);
-                //    dispatch("interaction", {
-                //        action: "tap",
-                //        duration: "point",
-                //        state: "neutral",
-                //        is_ongoing: false,
-                //    });
-                //});
-
-                model.x = x;
-                model.y = y;
-
-                if (x === 0 && y === 0) {
-                    model.anchor.set(0.5, 0.5);
-                    model.x = app.screen.width / 2;
-                    model.y = app.screen.height / 2 + 150;
-                }
-
                 app.stage.addChild(model);
                 currentModel = model;
                 disableAllMotions(model);
 
-                // Initialize Autonomy
                 autonomy = new Live2DAutonomy(model, app);
                 autonomy.start();
 
-                //startBouncing();
-                //startNeuroMotion();
-
                 isLoaded = true;
                 debugInfo.modelUrl = modelUrl;
-
-                const foundExpressions = new Set<string>();
-                if (model.expressions) {
-                    model.expressions.forEach((e: string) =>
-                        foundExpressions.add(e),
-                    );
-                }
-
-                try {
-                    const settings = model.internalModel?.settings;
-                    if (settings) {
-                        // Check specifically for FileReferences (Cubism 3+)
-                        if (settings.FileReferences?.Expressions) {
-                            const exprs = settings.FileReferences.Expressions;
-                            if (Array.isArray(exprs)) {
-                                exprs.forEach((e: any) => {
-                                    if (e.Name) foundExpressions.add(e.Name);
-                                    else if (e.File)
-                                        foundExpressions.add(
-                                            e.File.split("/")
-                                                .pop()
-                                                .replace(".exp3.json", ""),
-                                        );
-                                });
-                            }
-                        }
-                        // Fallback check for other structures
-                        else if (settings.expressions) {
-                            settings.expressions.forEach((e: any) => {
-                                if (e.name) foundExpressions.add(e.name);
-                                else if (e.Name) foundExpressions.add(e.Name);
-                            });
-                        }
-                    }
-                } catch (e) {
-                    console.error("Expression discovery error", e);
-                }
-                debugInfo.availableExpressions = Array.from(foundExpressions);
-                debugInfo.availableExpressions = Array.from(foundExpressions);
-
-                const foundMotionGroups = new Set<string>();
-                const motionDefsForDebug =
-                    getMotionDefinitionsForDebug() ||
-                    model.internalModel?.motionManager?.definitions;
-                if (motionDefsForDebug) {
-                    Object.keys(motionDefsForDebug).forEach((k) =>
-                        foundMotionGroups.add(k),
-                    );
-                }
-                debugInfo.availableMotionGroups = Array.from(foundMotionGroups);
+                debugInfo.availableExpressions =
+                    collectAvailableExpressions(model);
+                debugInfo.availableMotionGroups = collectAvailableMotionGroups(
+                    model,
+                    getMotionDefinitionsForDebug(),
+                );
                 debugInfo = debugInfo;
 
-                //idleInterval = setInterval(() => {
-                //    if (!currentModel?.internalModel?.motionManager) return;
-                //    if (Math.random() > 0.5) {
-                //        const motionManager =
-                //            currentModel.internalModel.motionManager;
-                //        if (motionManager.definitions["Idle"]) {
-                //            currentModel.motion("Idle");
-                //            debugInfo.lastMotion = "Idle (Random)";
-                //            debugInfo = debugInfo;
-                //        }
-                //    }
-                //}, 8000);
-
                 window.addEventListener("resize", onResize);
-
-                // --- NEW: Apply Permanent Expressions ---
-                if (persona && persona.first_scene) {
-                    try {
-                        const data = JSON.parse(persona.first_scene);
-                        if (Array.isArray(data.live2d_permanent_expressions)) {
-                            console.log(
-                                "Applying Permanent Expressions (Hard Lock):",
-                                data.live2d_permanent_expressions,
-                            );
-
-                            const applyHardExpression = async (
-                                exprName: string,
-                            ) => {
-                                try {
-                                    const settings =
-                                        model.internalModel?.settings;
-                                    let file = "";
-
-                                    // 1. Find the file path for the expression name
-                                    if (settings?.FileReferences?.Expressions) {
-                                        const exprEntry =
-                                            settings.FileReferences.Expressions.find(
-                                                (e: any) =>
-                                                    e.Name === exprName ||
-                                                    e.File?.includes(exprName),
-                                            );
-                                        if (exprEntry) file = exprEntry.File;
-                                    } else if (settings?.expressions) {
-                                        const exprEntry =
-                                            settings.expressions.find(
-                                                (e: any) =>
-                                                    e.name === exprName ||
-                                                    e.Name === exprName,
-                                            );
-                                        if (exprEntry)
-                                            file =
-                                                exprEntry.file ||
-                                                exprEntry.File;
-                                    }
-
-                                    if (!file) {
-                                        console.warn(
-                                            `Could not find file for expression: ${exprName}`,
-                                        );
-                                        return;
-                                    }
-
-                                    // 2. Resolve URL
-                                    // modelUrl is usually the model3.json URL
-                                    const baseUrl = modelUrl.substring(
-                                        0,
-                                        modelUrl.lastIndexOf("/") + 1,
-                                    );
-                                    const exprUrl = baseUrl + file;
-
-                                    console.log(
-                                        `Fetching Expression JSON: ${exprUrl}`,
-                                    );
-                                    const resp = await fetch(exprUrl);
-                                    const json = await resp.json();
-
-                                    if (
-                                        json.Parameters &&
-                                        Array.isArray(json.Parameters)
-                                    ) {
-                                        json.Parameters.forEach((p: any) => {
-                                            if (
-                                                model.internalModel.coreModel
-                                                    .setParameterValueById
-                                            ) {
-                                                model.internalModel.coreModel.setParameterValueById(
-                                                    p.Id,
-                                                    p.Value,
-                                                );
-                                            } else {
-                                                // Fallback for older SDKs if method name differs
-                                                console.warn(
-                                                    "setParameterValueById not found on coreModel",
-                                                );
-                                            }
-                                        });
-                                    }
-                                } catch (err) {
-                                    console.error(
-                                        `Failed to apply hard expression ${exprName}:`,
-                                        err,
-                                    );
-                                }
-                            };
-
-                            data.live2d_permanent_expressions.forEach(
-                                (expr: string) => {
-                                    applyHardExpression(expr);
-                                },
-                            );
-                        }
-                    } catch (e) {
-                        // console.warn("Failed to parse first_scene for Expressions", e);
-                    }
-                }
+                await applyPermanentExpressions(
+                    model,
+                    modelUrl,
+                    persona?.first_scene,
+                );
             } catch (e: any) {
                 console.error("Failed to initialize Live2D:", e);
                 debugInfo.error = e.message || e.toString();
@@ -837,17 +478,14 @@
 
     export let isCloseup = false;
 
-    // Trigger update when isCloseup changes externally or internally
     $: if (isCloseup !== undefined && app && currentModel) {
         onResize();
     }
 
     export function toggleCamera() {
         isCloseup = !isCloseup;
-        // Reactive statement will handle onResize
     }
 
-    // --- Drag Cursor Logic ---
     let cursorPos = { x: 0, y: 0 };
     let showHandCursor = false;
 
@@ -859,7 +497,6 @@
         if (app && currentModel && x === 0 && y === 0) {
             const bounds = currentModel.getBounds();
 
-            // Calculate original dimensions
             const modelWidth = bounds.width / currentModel.scale.x;
             const modelHeight = bounds.height / currentModel.scale.y;
 
@@ -872,11 +509,9 @@
             if (isCloseup) {
                 autoScale *= closeupScale;
 
-                // Calculate offset based on VISUAL height, not Screen height
                 const visualHeight = modelHeight * autoScale;
                 targetY += visualHeight * closeupOffset;
             } else {
-                // This ensures consistency across Portrait/Landscape
                 const visualHeight = modelHeight * autoScale;
                 targetY += visualHeight * 0.1;
             }
@@ -888,13 +523,9 @@
     }
 
     onDestroy(() => {
-        //if (idleInterval) clearInterval(idleInterval);
         window.removeEventListener("resize", onResize);
-
-        //audio
         destroyAudioInit();
         audioController.stop();
-        //stopNeuroMotion();
 
         if (currentModel)
             try {
