@@ -6,6 +6,7 @@
     import Live2DDebugPanel from "$lib/components/live2d/Live2DDebugPanel.svelte";
     import { createLive2DMotionControl } from "$lib/components/live2d/useLive2DMotionControl";
     import { createLive2DAudioController } from "$lib/components/live2d/useLive2DAudio";
+    import { createLive2DExpressionControl } from "$lib/components/live2d/useLive2DExpressionControl";
     import {
         applyPermanentExpressions,
         collectAvailableExpressions,
@@ -188,21 +189,20 @@
         debugInfo.lastMotion = `${matchedMotion.group} (${matchedMotion.index}): ${fileName}`;
     }
 
-    let expressionLockUntil = 0;
-    let pendingEmotion: string | null = null;
-    let lockTimeout: any = null;
+    const expressionControl = createLive2DExpressionControl({
+        getCurrentModel: () => currentModel,
+        getAutonomy: () => autonomy,
+        getExpressionMap: () => expressionMap,
+        onSetCurrentEmotion: (emotion) => {
+            debugInfo.currentEmotion = emotion;
+        },
+        onSetCurrentExpression: (expression) => {
+            debugInfo.currentExpression = expression;
+        },
+    });
 
     export function triggerExpression(fileName: string) {
-        if (!currentModel) return;
-
-        currentModel.expression(fileName);
-        debugInfo.currentExpression = fileName;
-
-        expressionLockUntil = Date.now() + 2000;
-        if (lockTimeout) clearTimeout(lockTimeout);
-        pendingEmotion = null;
-
-        return;
+        expressionControl.triggerExpression(fileName);
     }
 
     export function playGesture(gesture: string) {
@@ -218,113 +218,7 @@
     }
 
     export function setExpression(emotion: string) {
-        if (!currentModel) return;
-
-        if (Date.now() < expressionLockUntil) {
-            pendingEmotion = emotion;
-
-            if (!lockTimeout) {
-                const wait = expressionLockUntil - Date.now();
-                lockTimeout = setTimeout(() => {
-                    lockTimeout = null;
-                    if (pendingEmotion) {
-                        setExpression(pendingEmotion);
-                        pendingEmotion = null;
-                    }
-                }, wait);
-            }
-            return;
-        }
-
-        debugInfo.currentEmotion = emotion;
-
-        const emotionLower = emotion.toLowerCase();
-        let category = "neutral";
-        type EmotionType =
-            | "ELATED"
-            | "GENTLE"
-            | "STERN"
-            | "DEPRESSED"
-            | "TENSE"
-            | "ASTONISHED"
-            | "CALM";
-        let emotionType: EmotionType;
-
-        interface EmotionInfo {
-            cat: string;
-            type: EmotionType;
-        }
-        const emotionMap: Record<string, EmotionInfo> = {
-            // [joy] 따뜻한 긍정
-            joy: { cat: "joy", type: "GENTLE" },
-            happy: { cat: "joy", type: "GENTLE" },
-            love: { cat: "joy", type: "GENTLE" },
-            gratitude: { cat: "joy", type: "GENTLE" },
-            relief: { cat: "joy", type: "GENTLE" },
-            pride: { cat: "joy", type: "GENTLE" },
-
-            // [amuse] 에너지가 높은 즐거움
-            amusement: { cat: "amuse", type: "ELATED" },
-            excitement: { cat: "amuse", type: "ELATED" },
-            fun: { cat: "amuse", type: "ELATED" },
-            curiosity: { cat: "amuse", type: "ELATED" },
-
-            // [anger] 날선 부정
-            anger: { cat: "anger", type: "STERN" },
-            annoyance: { cat: "anger", type: "STERN" },
-            disapproval: { cat: "anger", type: "STERN" },
-            disgust: { cat: "anger", type: "STERN" },
-
-            // [sorrow] 가라앉은 부정
-            sadness: { cat: "sorrow", type: "DEPRESSED" },
-            grief: { cat: "sorrow", type: "DEPRESSED" },
-            disappointment: { cat: "sorrow", type: "DEPRESSED" },
-            remorse: { cat: "sorrow", type: "DEPRESSED" },
-
-            // [unease] 불안과 위축
-            fear: { cat: "unease", type: "TENSE" },
-            nervousness: { cat: "unease", type: "TENSE" },
-            embarrassment: { cat: "unease", type: "TENSE" },
-
-            // [surprise] 예기치 못한 인지
-            surprise: { cat: "surprise", type: "ASTONISHED" },
-            realization: { cat: "surprise", type: "ASTONISHED" },
-            confusion: { cat: "surprise", type: "ASTONISHED" },
-
-            // [neutral] 평온함
-            neutral: { cat: "neutral", type: "CALM" },
-            approval: { cat: "neutral", type: "CALM" },
-            caring: { cat: "neutral", type: "CALM" },
-        };
-
-        const mapped = emotionMap[emotionLower];
-
-        if (!mapped) {
-            return;
-        }
-
-        category = mapped.cat;
-        emotionType = mapped.type;
-
-        if (expressionMap) {
-            let targetExpression = "";
-
-            autonomy?.setEmotion(emotionType);
-
-            if (expressionMap[emotionType]) {
-                targetExpression = expressionMap[emotionType];
-            } else if (expressionMap[category]) {
-                targetExpression = expressionMap[category];
-            }
-
-            if (targetExpression) {
-                currentModel.expression(targetExpression);
-                debugInfo.currentExpression = targetExpression;
-                return;
-            }
-        }
-
-        return;
+        expressionControl.setExpression(emotion);
     }
 
     function draggable(model: any) {
@@ -526,6 +420,7 @@
         window.removeEventListener("resize", onResize);
         destroyAudioInit();
         audioController.stop();
+        expressionControl.destroy();
 
         if (currentModel)
             try {
