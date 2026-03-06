@@ -8,6 +8,7 @@
     import { createLive2DAudioController } from "$lib/components/live2d/useLive2DAudio";
     import { createLive2DExpressionControl } from "$lib/components/live2d/useLive2DExpressionControl";
     import { createLive2DInteractionControl } from "$lib/components/live2d/useLive2DInteractionControl";
+    import { createLive2DDebugControl } from "$lib/components/live2d/useLive2DDebugControl";
     import {
         applyPermanentExpressions,
         collectAvailableExpressions,
@@ -110,77 +111,25 @@
         }
     }
 
-    function handleDebugExpressionSelect(expr: string) {
-        if (!currentModel) return;
-        currentModel.expression(expr);
-        debugInfo.currentExpression = expr;
-    }
+    const debugControl = createLive2DDebugControl({
+        getCurrentModel: () => currentModel,
+        getAutonomy: () => autonomy,
+        getManualParamId: () => debugInfo.manualParamId,
+        getManualParamValue: () => Number(debugInfo.manualParamValue),
+        onSetCurrentEmotion: (emotion) => {
+            debugInfo.currentEmotion = emotion;
+        },
+        onSetCurrentExpression: (expression) => {
+            debugInfo.currentExpression = expression;
+        },
+        onSetLastMotion: (motion) => {
+            debugInfo.lastMotion = motion;
+            debugInfo = debugInfo;
+        },
+    });
 
-    function handleDebugSetManualParam() {
-        if (!currentModel || !currentModel.internalModel || !debugInfo.manualParamId) {
-            return;
-        }
-        try {
-            currentModel.internalModel.coreModel.setParameterValueById(
-                debugInfo.manualParamId,
-                Number(debugInfo.manualParamValue),
-            );
-            currentModel.internalModel.coreModel.update();
-        } catch (e) {
-            console.error("Failed to set parameter:", e);
-            alert("Error setting parameter. Check ID.");
-        }
-    }
-
-    function handleDebugSetEmotion(emotion: string) {
-        if (!autonomy) return;
-        // @ts-ignore
-        autonomy.setEmotion(emotion);
-    }
     export function resetToDefault() {
-        if (!currentModel || !currentModel.internalModel) return;
-
-        const internal = currentModel.internalModel;
-        const mgr = internal.motionManager;
-
-        if (mgr) {
-            if (typeof mgr.stopAll === "function") {
-                mgr.stopAll();
-            }
-            else if (typeof mgr.stop === "function") {
-                mgr.stop();
-            }
-            if (mgr.queue) {
-                mgr.queue = [];
-            }
-
-            if (mgr.expressionManager) {
-                if (
-                    typeof mgr.expressionManager.stopAllExpressions ===
-                    "function"
-                ) {
-                    mgr.expressionManager.stopAllExpressions();
-                } else if (
-                    typeof mgr.expressionManager.restore === "function"
-                ) {
-                    mgr.expressionManager.restore();
-                }
-            }
-        }
-
-        const core = internal.coreModel;
-        if (core) {
-            const paramCount = core.getParameterCount();
-            for (let i = 0; i < paramCount; i++) {
-                const defaultValue = core.getParameterDefaultValue(i);
-                core.setParameterValueByIndex(i, defaultValue);
-            }
-        }
-
-        debugInfo.currentEmotion = "None";
-        debugInfo.currentExpression = "None";
-        debugInfo.lastMotion = "Reset (Hard)";
-        debugInfo = debugInfo;
+        debugControl.resetToDefault();
     }
 
     export function triggerMotion(fileName: string) {
@@ -189,6 +138,7 @@
         resetToDefault();
         playMotionTemporarilyEnabled(matchedMotion.group, matchedMotion.index);
         debugInfo.lastMotion = `${matchedMotion.group} (${matchedMotion.index}): ${fileName}`;
+        debugInfo = debugInfo;
     }
 
     const expressionControl = createLive2DExpressionControl({
@@ -428,9 +378,9 @@
             {resetToDefault}
             {playGesture}
             {playMotionTemporarilyEnabled}
-            onExpressionSelect={handleDebugExpressionSelect}
-            onSetManualParam={handleDebugSetManualParam}
-            onSetEmotion={handleDebugSetEmotion}
+            onExpressionSelect={debugControl.handleDebugExpressionSelect}
+            onSetManualParam={debugControl.handleDebugSetManualParam}
+            onSetEmotion={debugControl.handleDebugSetEmotion}
         />
     {/if}
 
