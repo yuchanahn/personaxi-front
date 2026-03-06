@@ -245,6 +245,7 @@
                                     name: mappedFile,
                                     type: "expression",
                                 });
+
                                 //Viewer.triggerExpression(mappedFile);
                             } else {
                                 //if (Viewer.triggerMotion) {

@@ -44,6 +44,9 @@ export class Live2DAutonomy {
     private currentGesture: GestureType | null = null;
 
     private isSpeaking = false;
+    private originalMotionUpdate: ((...args: any[]) => any) | null = null;
+    private sleepMotionLocked = false;
+    private readonly noMotionUpdate = () => true;
 
     public setSpeaking(speaking: boolean) {
         this.isSpeaking = speaking;
@@ -125,6 +128,7 @@ export class Live2DAutonomy {
             this.app.ticker.remove(this.ticker);
             this.ticker = null;
         }
+        this.unlockMotionManagerFromSleep();
         this.StopSleepTimer();
     }
 
@@ -220,6 +224,12 @@ export class Live2DAutonomy {
         this.currentEmotion = emotion;
         this.activeConfig = this.emotionConfigs[emotion];
 
+        if (emotion === 'SLEEP') {
+            this.lockMotionManagerForSleep();
+        } else {
+            this.unlockMotionManagerFromSleep();
+        }
+
         // Trigger Callback
         if (this.onEmotionChange) {
             this.onEmotionChange(emotion);
@@ -252,6 +262,7 @@ export class Live2DAutonomy {
 
     private update(deltaMS: number) {
         if (!this.model || !this.model.internalModel) return;
+        this.syncSleepMotionLock();
 
         const internal = this.model.internalModel;
         const core = internal.coreModel;
@@ -262,6 +273,51 @@ export class Live2DAutonomy {
         this.updateSaccades(deltaMS); // ✨ NEW
         this.updateGestures(deltaMS); // ✨ NEW
         this.updatePhysics(deltaMS, values, internal);
+    }
+
+    private lockMotionManagerForSleep() {
+        const mgr = this.model?.internalModel?.motionManager;
+        if (!mgr) return;
+
+        if (!this.sleepMotionLocked) {
+            if (typeof mgr.update === 'function' && mgr.update !== this.noMotionUpdate) {
+                this.originalMotionUpdate = mgr.update.bind(mgr);
+            }
+            this.sleepMotionLocked = true;
+        }
+
+        if (typeof mgr.stopAllMotions === 'function') {
+            mgr.stopAllMotions();
+        } else if (typeof mgr.stopAll === 'function') {
+            mgr.stopAll();
+        } else if (typeof mgr.stop === 'function') {
+            mgr.stop();
+        }
+
+        if (Array.isArray(mgr.queue)) {
+            mgr.queue = [];
+        }
+
+        mgr.update = this.noMotionUpdate;
+    }
+
+    private unlockMotionManagerFromSleep() {
+        const mgr = this.model?.internalModel?.motionManager;
+        if (!mgr || !this.sleepMotionLocked) return;
+
+        if (this.originalMotionUpdate) {
+            mgr.update = this.originalMotionUpdate;
+        }
+        this.sleepMotionLocked = false;
+    }
+
+    private syncSleepMotionLock() {
+        if (this.currentEmotion !== 'SLEEP') return;
+        const mgr = this.model?.internalModel?.motionManager;
+        if (!mgr) return;
+        if (mgr.update !== this.noMotionUpdate) {
+            mgr.update = this.noMotionUpdate;
+        }
     }
 
     // ✨ NEW: 마이크로 새카드 업데이트
@@ -686,7 +742,12 @@ export class Live2DAutonomy {
             this.setParam(values, 'ParamEyeROpen', 0);
             this.setParam(values, 'ParamEyeBallX', 0);
             this.setParam(values, 'ParamEyeBallY', 0);
-            // 고개는 약간 숙인 상태 유지를 위해 물리를 완전히 끄진 않지만 제한할 수 있음
+            this.setParam(values, 'ParamAngleX', 0);
+            this.setParam(values, 'ParamAngleY', 0);
+            this.setParam(values, 'ParamAngleZ', 0);
+            this.setParam(values, 'ParamBodyAngleX', 0);
+            this.setParam(values, 'ParamBodyAngleY', 0);
+            this.setParam(values, 'ParamBodyAngleZ', 0);
         }
     }
 

@@ -61,6 +61,8 @@
     let currentAutonomyEmotion = "CALM"; // ✨ Sleep Effect State
     const DISABLE_ALL_MOTIONS = true;
     let originalMotionDefinitions: Record<string, any[]> | null = null;
+    let originalMotionUpdate: ((...args: any[]) => any) | null = null;
+    const noMotionUpdate = () => true;
 
     function disableAllMotions(model: any) {
         if (!DISABLE_ALL_MOTIONS) return;
@@ -71,6 +73,9 @@
             // Keep a snapshot for possible future manual-only restore.
             originalMotionDefinitions = { ...mgr.definitions };
         }
+        if (!originalMotionUpdate && typeof mgr.update === "function") {
+            originalMotionUpdate = mgr.update.bind(mgr);
+        }
 
         if (typeof mgr.stopAllMotions === "function") {
             mgr.stopAllMotions();
@@ -80,13 +85,66 @@
             mgr.stop();
         }
 
-        mgr.update = () => true;
+        //mgr.update = noMotionUpdate;
 
         mgr.definitions = {};
         if (Array.isArray(mgr.queue)) {
             mgr.queue = [];
         }
         console.log("🔒 All Live2D motions disabled (definitions cleared)");
+    }
+
+    function getMotionDefinitionsForDebug(): Record<string, any[]> | null {
+        if (DISABLE_ALL_MOTIONS && originalMotionDefinitions) {
+            return originalMotionDefinitions;
+        }
+        return currentModel?.internalModel?.motionManager?.definitions ?? null;
+    }
+
+    function relockMotionsWithoutStop(model: any) {
+        if (!DISABLE_ALL_MOTIONS) return;
+        const mgr = model?.internalModel?.motionManager;
+        if (!mgr) return;
+        // Keep current motion update alive so an already started motion can finish.
+        if (originalMotionUpdate) {
+            mgr.update = originalMotionUpdate;
+        }
+        mgr.definitions = {};
+        console.log("🔒 Live2D motions re-locked (definitions only)");
+    }
+
+    function playMotionTemporarilyEnabled(group: string, index?: number) {
+        if (!currentModel?.internalModel?.motionManager) return;
+        const mgr = currentModel.internalModel.motionManager;
+
+        if (!DISABLE_ALL_MOTIONS) {
+            return index === undefined
+                ? currentModel.motion(group)
+                : currentModel.motion(group, index);
+        }
+
+        if (originalMotionDefinitions) {
+            mgr.definitions = originalMotionDefinitions;
+        }
+        if (originalMotionUpdate) {
+            mgr.update = originalMotionUpdate;
+        }
+
+        const result =
+            index === undefined
+                ? currentModel.motion(group)
+                : currentModel.motion(group, index);
+
+        const relock = () => {
+            if (!currentModel) return;
+            relockMotionsWithoutStop(currentModel);
+        };
+
+        // Re-lock only definitions shortly after start.
+        // This blocks new auto motions but does not interrupt the running one.
+        setTimeout(relock, 250);
+
+        return result;
     }
 
     $: if (autonomy) {
@@ -195,13 +253,6 @@
     }
 
     export function triggerMotion(fileName: string) {
-        if (DISABLE_ALL_MOTIONS) {
-            console.log(
-                `Debug: Motion blocked by DISABLE_ALL_MOTIONS: ${fileName}`,
-            );
-            return;
-        }
-
         if (
             !currentModel ||
             !currentModel.internalModel ||
@@ -209,9 +260,9 @@
         )
             return;
 
-        console.log(`Debug: Triggering motion by filename: ${fileName}`);
+        console.log(`[1] Debug: Triggering motion by filename: ${fileName}`);
         const mgr = currentModel.internalModel.motionManager;
-        const definitions = mgr.definitions;
+        const definitions = getMotionDefinitionsForDebug() ?? mgr.definitions;
 
         for (const [group, motions] of Object.entries(definitions)) {
             if (Array.isArray(motions)) {
@@ -225,10 +276,10 @@
                             m.File.endsWith("\\" + fileName))
                     ) {
                         console.log(
-                            `Debug: Found motion in group ${group} at index ${i}`,
+                            `[2] Debug: Found motion in group ${group} at index ${i}`,
                         );
                         resetToDefault();
-                        currentModel.motion(group, i);
+                        playMotionTemporarilyEnabled(group, i);
                         debugInfo.lastMotion = `${group} (${i}): ${fileName}`;
                         return;
                     }
@@ -810,10 +861,13 @@
                 debugInfo.availableExpressions = Array.from(foundExpressions);
 
                 const foundMotionGroups = new Set<string>();
-                if (model.internalModel?.motionManager?.definitions) {
-                    Object.keys(
-                        model.internalModel.motionManager.definitions,
-                    ).forEach((k) => foundMotionGroups.add(k));
+                const motionDefsForDebug =
+                    (DISABLE_ALL_MOTIONS && originalMotionDefinitions) ||
+                    model.internalModel?.motionManager?.definitions;
+                if (motionDefsForDebug) {
+                    Object.keys(motionDefsForDebug).forEach((k) =>
+                        foundMotionGroups.add(k),
+                    );
                 }
                 debugInfo.availableMotionGroups = Array.from(foundMotionGroups);
                 debugInfo = debugInfo;
@@ -1345,7 +1399,7 @@
                                         "Debug: Triggering motion group",
                                         group,
                                     );
-                                    currentModel.motion(group);
+                                    playMotionTemporarilyEnabled(group);
                                     debugInfo.lastMotion = `${group} (Group Trigger)`;
                                 }}
                             >
@@ -1354,8 +1408,8 @@
                             </button>
 
                             <!-- Individual File List -->
-                            {#if currentModel && currentModel.internalModel && currentModel.internalModel.motionManager && currentModel.internalModel.motionManager.definitions[group]}
-                                {#each currentModel.internalModel.motionManager.definitions[group] as def, i}
+                            {#if getMotionDefinitionsForDebug() && getMotionDefinitionsForDebug()?.[group]}
+                                {#each getMotionDefinitionsForDebug()?.[group] ?? [] as def, i}
                                     <button
                                         class="list-item sub-item clickable"
                                         on:click={() => {
@@ -1363,7 +1417,10 @@
                                                 `Debug: Triggering ${group} index ${i}`,
                                                 def.File,
                                             );
-                                            currentModel.motion(group, i);
+                                            playMotionTemporarilyEnabled(
+                                                group,
+                                                i,
+                                            );
                                             debugInfo.lastMotion = `${group} (${i}): ${def.File}`;
                                         }}
                                     >
@@ -1394,8 +1451,10 @@
                                 class="list-item clickable"
                                 on:click={() => {
                                     console.log("Debug: Playing file", file);
-                                    // Play from the __debug__ group we created
-                                    currentModel.motion("__debug__", i);
+                                    playMotionTemporarilyEnabled(
+                                        "__debug__",
+                                        i,
+                                    );
                                     debugInfo.lastMotion = file;
                                 }}
                             >
