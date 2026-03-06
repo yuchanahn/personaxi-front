@@ -7,6 +7,7 @@
     import { createLive2DMotionControl } from "$lib/components/live2d/useLive2DMotionControl";
     import { createLive2DAudioController } from "$lib/components/live2d/useLive2DAudio";
     import { createLive2DExpressionControl } from "$lib/components/live2d/useLive2DExpressionControl";
+    import { createLive2DInteractionControl } from "$lib/components/live2d/useLive2DInteractionControl";
     import {
         applyPermanentExpressions,
         collectAvailableExpressions,
@@ -64,8 +65,9 @@
         manualParamValue: 0,
     };
 
-    let isDragging = false;
     let currentAutonomyEmotion = "CALM";
+    let cursorPos = { x: 0, y: 0 };
+    let showHandCursor = false;
 
     const motionControl = createLive2DMotionControl({
         getCurrentModel: () => currentModel,
@@ -201,6 +203,27 @@
         },
     });
 
+    const interactionControl = createLive2DInteractionControl({
+        getApp: () => app,
+        getAutonomy: () => autonomy,
+        onCursorChange: (pos, visible) => {
+            cursorPos = pos;
+            showHandCursor = visible;
+        },
+        onDragStateChange: () => {},
+        onInteractionStart: () => {
+            dispatch("interaction", {
+                action: "touch_start",
+                duration: "start",
+                state: "contact",
+                is_ongoing: true,
+            });
+        },
+        onInteractionEnd: () => {
+            dispatch("interactionEnd");
+        },
+    });
+
     export function triggerExpression(fileName: string) {
         expressionControl.triggerExpression(fileName);
     }
@@ -219,83 +242,6 @@
 
     export function setExpression(emotion: string) {
         expressionControl.setExpression(emotion);
-    }
-
-    function draggable(model: any) {
-        model.buttonMode = true;
-        let startX = 0;
-        let startY = 0;
-        const dragThreshold = 10;
-
-        model.on("pointerdown", (e: any) => {
-            startX = e.data.global.x;
-            startY = e.data.global.y;
-            showHandCursor = true;
-            cursorPos = { x: e.data.global.x, y: e.data.global.y };
-            if (autonomy) {
-                updateDragTarget(e);
-            }
-        });
-
-        model.on("pointermove", (e: any) => {
-            if (showHandCursor) {
-                cursorPos = { x: e.data.global.x, y: e.data.global.y };
-            }
-            if (!isDragging && startX !== 0 && startY !== 0) {
-                const dx = Math.abs(e.data.global.x - startX);
-                const dy = Math.abs(e.data.global.y - startY);
-                if (dx > dragThreshold || dy > dragThreshold) {
-                    isDragging = true;
-
-                    dispatch("interaction", {
-                        action: "touch_start",
-                        duration: "start",
-                        state: "contact",
-                        is_ongoing: true,
-                    });
-                    autonomy?.WakeUp();
-                }
-            }
-
-            if (isDragging) {
-                updateDragTarget(e);
-            }
-        });
-
-        const stopDrag = () => {
-            if (isDragging) {
-                dispatch("interactionEnd");
-            }
-            isDragging = false;
-            showHandCursor = false;
-            startX = 0;
-            startY = 0;
-            if (autonomy) {
-                autonomy.handleDrag(0, 0);
-            }
-        };
-        model.on("pointerupoutside", stopDrag);
-        model.on("pointerup", stopDrag);
-    }
-
-    function updateDragTarget(e: any) {
-        if (!app || !autonomy) return;
-        const x = e.data.global.x;
-        const y = e.data.global.y;
-
-        const centerX = app.screen.width / 2;
-        const centerY = app.screen.height / 2;
-
-        const clamp = (val: number, min: number, max: number) =>
-            Math.min(Math.max(val, min), max);
-
-        const newTargetX = clamp((x - centerX) / (app.screen.width / 3), -1, 1);
-        const newTargetY = clamp(
-            (y - centerY) / (app.screen.height / 3),
-            -1,
-            1,
-        );
-        autonomy.handleDrag(newTargetX, newTargetY);
     }
 
     let destroyAudioInit = () => {};
@@ -330,7 +276,7 @@
                     y,
                     scale,
                 });
-                draggable(model);
+                interactionControl.bind(model);
 
                 if (hitAreaKeys.length === 0) {
                     debugInfo.error =
@@ -380,9 +326,6 @@
         isCloseup = !isCloseup;
     }
 
-    let cursorPos = { x: 0, y: 0 };
-    let showHandCursor = false;
-
     $: if (closeupScale || closeupOffset) {
         if (isCloseup) onResize();
     }
@@ -421,6 +364,7 @@
         destroyAudioInit();
         audioController.stop();
         expressionControl.destroy();
+        interactionControl.destroy();
 
         if (currentModel)
             try {
