@@ -2,10 +2,10 @@
     import { onMount, onDestroy, createEventDispatcher } from "svelte";
     import { loadLive2DScripts } from "$lib/utils/live2dLoader";
     import Icon from "@iconify/svelte";
-    import { SafeAudioManager } from "$lib/utils/safeAudioManager";
     import { Live2DAutonomy } from "$lib/utils/live2d/Live2DAutonomy";
     import Live2DDebugPanel from "$lib/components/live2d/Live2DDebugPanel.svelte";
     import { createLive2DMotionControl } from "$lib/components/live2d/useLive2DMotionControl";
+    import { createLive2DAudioController } from "$lib/components/live2d/useLive2DAudio";
 
     const dispatch = createEventDispatcher();
 
@@ -71,6 +71,14 @@
     const playMotionTemporarilyEnabled = (group: string, index?: number) =>
         motionControl.playMotion(group, index, 3);
 
+    const audioController = createLive2DAudioController({
+        getCurrentModel: () => currentModel,
+        getAutonomy: () => autonomy,
+        setSpeechError: (value) => {
+            error_showSpeech = value;
+        },
+    });
+
     function isLocalTestHost(): boolean {
         if (typeof window === "undefined") return false;
         const host = window.location.hostname;
@@ -84,23 +92,7 @@
     }
 
     export async function speak(audioUrl: string, onFinish?: () => void) {
-        if (!currentModel) return;
-
-        error_showSpeech = false;
-
-        if (autonomy) autonomy.setSpeaking(true);
-
-        await SafeAudioManager.speak(currentModel, audioUrl, {
-            onFinish: () => {
-                if (autonomy) autonomy.setSpeaking(false);
-                if (onFinish) onFinish();
-            },
-            onError: (e) => {
-                console.error("### TTS Error", e);
-                if (autonomy) autonomy.setSpeaking(false);
-                error_showSpeech = true;
-            },
-        });
+        await audioController.speak(audioUrl, onFinish);
     }
 
     export function toggleDebug() {
@@ -419,23 +411,12 @@
         autonomy.handleDrag(newTargetX, newTargetY);
     }
 
-    let DestroyAudio = () => {};
+    let destroyAudioInit = () => {};
 
     onMount(async () => {
         showDebug = isLocalTestHost();
 
-        const wakeUpAudio = () => {
-            SafeAudioManager.init();
-            window.removeEventListener("click", wakeUpAudio);
-            window.removeEventListener("touchstart", wakeUpAudio);
-        };
-
-        window.addEventListener("click", wakeUpAudio);
-        window.addEventListener("touchstart", wakeUpAudio);
-        DestroyAudio = () => {
-            window.removeEventListener("click", wakeUpAudio);
-            window.removeEventListener("touchstart", wakeUpAudio);
-        };
+        destroyAudioInit = audioController.setupInteractionAudioInit();
 
         setTimeout(async () => {
             try {
@@ -911,8 +892,8 @@
         window.removeEventListener("resize", onResize);
 
         //audio
-        DestroyAudio();
-        SafeAudioManager.stop();
+        destroyAudioInit();
+        audioController.stop();
         //stopNeuroMotion();
 
         if (currentModel)
