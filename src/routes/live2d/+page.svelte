@@ -417,8 +417,8 @@
             showThought2 = false;
             showThought1 = false;
 
-            Viewer.speak(url, handleSpeechEnded);
             handleSpeechStarted();
+            Viewer.speak(url, handleSpeechEnded);
         } else {
             console.warn("Viewer not ready for TTS audio.");
         }

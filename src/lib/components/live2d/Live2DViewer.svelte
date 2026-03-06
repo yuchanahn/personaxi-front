@@ -139,9 +139,6 @@
             if (!currentModel) return;
             relockMotionsWithoutStop(currentModel);
         };
-
-        // Re-lock only definitions shortly after start.
-        // This blocks new auto motions but does not interrupt the running one.
         setTimeout(relock, 250);
 
         return result;
