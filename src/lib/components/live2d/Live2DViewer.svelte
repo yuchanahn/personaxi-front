@@ -1,10 +1,11 @@
 <script lang="ts">
-    import { onMount, onDestroy, createEventDispatcher, tick } from "svelte";
+    import { onMount, onDestroy, createEventDispatcher } from "svelte";
     import { loadLive2DScripts } from "$lib/utils/live2dLoader";
     import Icon from "@iconify/svelte";
     import { SafeAudioManager } from "$lib/utils/safeAudioManager";
     import { Live2DAutonomy } from "$lib/utils/live2d/Live2DAutonomy";
     import Live2DDebugPanel from "$lib/components/live2d/Live2DDebugPanel.svelte";
+    import { createLive2DMotionControl } from "$lib/components/live2d/useLive2DMotionControl";
 
     const dispatch = createEventDispatcher();
 
@@ -58,126 +59,22 @@
     };
 
     let isDragging = false;
-    let currentAutonomyEmotion = "CALM"; // ✨ Sleep Effect State
-    const DISABLE_ALL_MOTIONS = true;
-    let originalMotionDefinitions: Record<string, any[]> | null = null;
-    let originalMotionUpdate: ((...args: any[]) => any) | null = null;
-    const noMotionUpdate = () => true;
-    let motionRelockTimer: any = null;
+    let currentAutonomyEmotion = "CALM";
 
-    function disableAllMotions(model: any) {
-        if (!DISABLE_ALL_MOTIONS) return;
-        const mgr = model?.internalModel?.motionManager;
-        if (!mgr) return;
+    const motionControl = createLive2DMotionControl({
+        getCurrentModel: () => currentModel,
+        disableAllMotionsByDefault: true,
+    });
 
-        if (!originalMotionDefinitions && mgr.definitions) {
-            // Keep a snapshot for possible future manual-only restore.
-            originalMotionDefinitions = { ...mgr.definitions };
-        }
-        if (!originalMotionUpdate && typeof mgr.update === "function") {
-            originalMotionUpdate = mgr.update.bind(mgr);
-        }
-
-        if (typeof mgr.stopAllMotions === "function") {
-            mgr.stopAllMotions();
-        } else if (typeof mgr.stopAll === "function") {
-            mgr.stopAll();
-        } else if (typeof mgr.stop === "function") {
-            mgr.stop();
-        }
-
-        mgr.update = noMotionUpdate;
-
-        mgr.definitions = {};
-        if (Array.isArray(mgr.queue)) {
-            mgr.queue = [];
-        }
-        console.log("🔒 All Live2D motions disabled (definitions cleared)");
-    }
-
-    function getMotionDefinitionsForDebug(): Record<string, any[]> | null {
-        if (DISABLE_ALL_MOTIONS && originalMotionDefinitions) {
-            return originalMotionDefinitions;
-        }
-        return currentModel?.internalModel?.motionManager?.definitions ?? null;
-    }
+    const disableAllMotions = (model: any) => motionControl.disableAllMotions(model);
+    const getMotionDefinitionsForDebug = () => motionControl.getMotionDefinitionsForDebug();
+    const playMotionTemporarilyEnabled = (group: string, index?: number) =>
+        motionControl.playMotion(group, index, 3);
 
     function isLocalTestHost(): boolean {
         if (typeof window === "undefined") return false;
         const host = window.location.hostname;
         return host === "localhost" || host === "127.0.0.1" || host === "::1";
-    }
-
-    function relockMotionsWithoutStop(model: any) {
-        if (!DISABLE_ALL_MOTIONS) return;
-        const mgr = model?.internalModel?.motionManager;
-        if (!mgr) return;
-        mgr.update = noMotionUpdate;
-        mgr.definitions = {};
-        console.log("🔒 Live2D motions re-locked (definitions only)");
-    }
-
-    function playMotionTemporarilyEnabled(group: string, index?: number) {
-        if (!currentModel?.internalModel?.motionManager) return;
-        const mgr = currentModel.internalModel.motionManager;
-
-        if (!DISABLE_ALL_MOTIONS) {
-            return index === undefined
-                ? currentModel.motion(group)
-                : currentModel.motion(group, index, 3);
-        }
-
-        if (originalMotionDefinitions) {
-            mgr.definitions = originalMotionDefinitions;
-        }
-        if (originalMotionUpdate) {
-            mgr.update = originalMotionUpdate;
-        }
-
-        let relocked = false;
-        const relock = () => {
-            if (relocked || !currentModel) return;
-            relocked = true;
-            if (motionRelockTimer) {
-                clearTimeout(motionRelockTimer);
-                motionRelockTimer = null;
-            }
-            relockMotionsWithoutStop(currentModel);
-        };
-
-        const handleMotionFinish = () => {
-            console.log("🎬 motionFinish received");
-            relock();
-        };
-
-        if (typeof mgr.once === "function") {
-            mgr.once("motionFinish", handleMotionFinish);
-        } else if (typeof mgr.on === "function") {
-            mgr.on("motionFinish", handleMotionFinish);
-        }
-
-        const result =
-            index === undefined
-                ? currentModel.motion(group)
-                : currentModel.motion(group, index, 3);
-
-        motionRelockTimer = setTimeout(() => {
-            console.log("⏱️ motionFinish fallback timeout");
-            relock();
-        }, 12000);
-
-        if (result && typeof result.then === "function") {
-            result.then((ok: boolean) => {
-                if (ok === false) {
-                    console.log("❌ motion start failed");
-                    relock();
-                }
-            }).catch(() => {
-                relock();
-            });
-        }
-
-        return result;
     }
 
     $: if (autonomy) {
@@ -215,7 +112,6 @@
 
     function handleDebugExpressionSelect(expr: string) {
         if (!currentModel) return;
-        console.log("Debug: Triggering expression", expr);
         currentModel.expression(expr);
         debugInfo.currentExpression = expr;
     }
@@ -229,12 +125,9 @@
                 debugInfo.manualParamId,
                 Number(debugInfo.manualParamValue),
             );
-            console.log(
-                `✅ Set ${debugInfo.manualParamId} to ${debugInfo.manualParamValue}`,
-            );
             currentModel.internalModel.coreModel.update();
         } catch (e) {
-            console.error("❌ Failed to set parameter:", e);
+            console.error("Failed to set parameter:", e);
             alert("Error setting parameter. Check ID.");
         }
     }
@@ -245,11 +138,8 @@
         autonomy.setEmotion(emotion);
         console.log("Set Emotion:", emotion);
     }
-    // [TEST] Reset to Default
     export function resetToDefault() {
         if (!currentModel || !currentModel.internalModel) return;
-
-        console.log("Debug: 🧹 Performing Hard Reset to Default");
 
         const internal = currentModel.internalModel;
         const mgr = internal.motionManager;
@@ -272,8 +162,6 @@
 
             // 2. 표정(Expression) 강제 초기화
             if (mgr.expressionManager) {
-                console.log("Debug: Stopping all expressions");
-                // 여기도 혹시 모르니 체크
                 if (
                     typeof mgr.expressionManager.stopAllExpressions ===
                     "function"
@@ -304,45 +192,14 @@
         debugInfo.lastMotion = "Reset (Hard)";
         debugInfo = debugInfo;
 
-        // 5. Do not auto-play default idle motion after reset.
-        // Keep model state neutral until an explicit motion is triggered.
     }
 
     export function triggerMotion(fileName: string) {
-        if (
-            !currentModel ||
-            !currentModel.internalModel ||
-            !currentModel.internalModel.motionManager
-        )
-            return;
-
-        console.log(`[1] Debug: Triggering motion by filename: ${fileName}`);
-        const mgr = currentModel.internalModel.motionManager;
-        const definitions = getMotionDefinitionsForDebug() ?? mgr.definitions;
-
-        for (const [group, motions] of Object.entries(definitions)) {
-            if (Array.isArray(motions)) {
-                for (let i = 0; i < motions.length; i++) {
-                    const m = motions[i];
-                    // Check if file matches (handle paths)
-                    if (
-                        m.File &&
-                        (m.File === fileName ||
-                            m.File.endsWith("/" + fileName) ||
-                            m.File.endsWith("\\" + fileName))
-                    ) {
-                        console.log(
-                            `[2] Debug: Found motion in group ${group} at index ${i}`,
-                        );
-                        resetToDefault();
-                        playMotionTemporarilyEnabled(group, i);
-                        debugInfo.lastMotion = `${group} (${i}): ${fileName}`;
-                        return;
-                    }
-                }
-            }
-        }
-        console.warn(`Debug: Motion file not found: ${fileName}`);
+        const matchedMotion = motionControl.findMotionByFile(fileName);
+        if (!matchedMotion) return;
+        resetToDefault();
+        playMotionTemporarilyEnabled(matchedMotion.group, matchedMotion.index);
+        debugInfo.lastMotion = `${matchedMotion.group} (${matchedMotion.index}): ${fileName}`;
     }
 
     let expressionLockUntil = 0; // Timestamp
@@ -352,24 +209,16 @@
     export function triggerExpression(fileName: string) {
         if (!currentModel) return;
 
-        console.log(
-            `Debug: |triggerExpression| Found custom mapping for category '${fileName}'`,
-        );
         currentModel.expression(fileName);
         debugInfo.currentExpression = fileName;
 
-        // 🔥 Lock expression update for 1 second (1000ms)
         expressionLockUntil = Date.now() + 2000;
-        console.log(`Debug: Expression Locked until ${expressionLockUntil}`);
-
-        // Clear any existing pending stuff if we force a new expression
         if (lockTimeout) clearTimeout(lockTimeout);
         pendingEmotion = null;
 
         return;
     }
 
-    // ✨ NEW: Expose Autonomy Controls
     export function playGesture(gesture: string) {
         if (autonomy) {
             autonomy.playGesture(gesture as any);
@@ -385,11 +234,7 @@
     export function setExpression(emotion: string) {
         if (!currentModel) return;
 
-        // 🔥 Check Lock
         if (Date.now() < expressionLockUntil) {
-            console.log(
-                `Debug: setExpression Locked. queueing emotion: ${emotion}`,
-            );
             pendingEmotion = emotion;
 
             if (!lockTimeout) {
@@ -397,9 +242,6 @@
                 lockTimeout = setTimeout(() => {
                     lockTimeout = null;
                     if (pendingEmotion) {
-                        console.log(
-                            `Debug: Applying pending emotion: ${pendingEmotion}`,
-                        );
                         setExpression(pendingEmotion);
                         pendingEmotion = null;
                     }
@@ -408,7 +250,6 @@
             return;
         }
 
-        console.log(`Debug: |setExpression| called with: ${emotion}`);
         debugInfo.currentEmotion = emotion;
 
         const emotionLower = emotion.toLowerCase();
@@ -473,7 +314,6 @@
         const mapped = emotionMap[emotionLower];
 
         if (!mapped) {
-            console.log(`Debug: Unmapped emotion '${emotionLower}', ignoring.`);
             return;
         }
 
@@ -492,9 +332,6 @@
             }
 
             if (targetExpression) {
-                console.log(
-                    `Debug: Found custom mapping for '${emotionType}'/'${category}' -> '${targetExpression}'`,
-                );
                 currentModel.expression(targetExpression);
                 debugInfo.currentExpression = targetExpression;
                 return;
@@ -591,7 +428,6 @@
             SafeAudioManager.init();
             window.removeEventListener("click", wakeUpAudio);
             window.removeEventListener("touchstart", wakeUpAudio);
-            console.log("👆 User interacted, Audio System initialized.");
         };
 
         window.addEventListener("click", wakeUpAudio);
@@ -776,10 +612,6 @@
                         hitAreaFrames.visible = showDebug;
                         model.addChild(hitAreaFrames);
                         (model as any).hitAreaFrames = hitAreaFrames; // Store ref
-                        console.log(
-                            "Debug: HitAreaFrames added. Visible:",
-                            hitAreaFrames.visible,
-                        );
                     } else {
                         console.warn(
                             "PIXI.live2d.HitAreaFrames not available. Debug visuals disabled.",
@@ -789,15 +621,13 @@
                     console.error("Failed to add HitAreaFrames:", e);
                 }
 
-                console.log("Debug: Inspecting Model Hit Areas...");
                 const hitAreaKeys = model.hitAreas
                     ? Object.keys(model.hitAreas)
                     : [];
-                console.log("Debug: Detected Hit Area Keys:", hitAreaKeys);
 
                 if (hitAreaKeys.length === 0) {
                     console.warn(
-                        "⚠️ This model seems to have NO Hit Areas defined in its settings.",
+                        "This model seems to have no hit areas defined in settings.",
                     );
                     debugInfo.error =
                         "No Hit Areas detected in this model! (Check .model3.json)";
@@ -850,25 +680,8 @@
                 isLoaded = true;
                 debugInfo.modelUrl = modelUrl;
 
-                console.log("Debug: Model loaded", model);
-                console.log("Debug: Internal Model", model.internalModel);
-                console.log("Debug: Settings", model.internalModel?.settings);
-
-                // Check Parameters
-                if (model.internalModel?.coreModel?._parameterIds) {
-                    console.log(
-                        "Debug: Available Parameter IDs:",
-                        model.internalModel.coreModel._parameterIds,
-                    );
-                }
-
-                // Discovery
                 const foundExpressions = new Set<string>();
                 if (model.expressions) {
-                    console.log(
-                        "Debug: model.expressions found:",
-                        model.expressions,
-                    );
                     model.expressions.forEach((e: string) =>
                         foundExpressions.add(e),
                     );
@@ -879,10 +692,6 @@
                     if (settings) {
                         // Check specifically for FileReferences (Cubism 3+)
                         if (settings.FileReferences?.Expressions) {
-                            console.log(
-                                "Debug: Found FileReferences.Expressions",
-                                settings.FileReferences.Expressions,
-                            );
                             const exprs = settings.FileReferences.Expressions;
                             if (Array.isArray(exprs)) {
                                 exprs.forEach((e: any) => {
@@ -898,10 +707,6 @@
                         }
                         // Fallback check for other structures
                         else if (settings.expressions) {
-                            console.log(
-                                "Debug: Found settings.expressions",
-                                settings.expressions,
-                            );
                             settings.expressions.forEach((e: any) => {
                                 if (e.name) foundExpressions.add(e.name);
                                 else if (e.Name) foundExpressions.add(e.Name);
@@ -909,18 +714,14 @@
                         }
                     }
                 } catch (e) {
-                    console.error("Debug: Expression discovery error", e);
+                    console.error("Expression discovery error", e);
                 }
                 debugInfo.availableExpressions = Array.from(foundExpressions);
-                console.log(
-                    "Debug: Final available expressions:",
-                    debugInfo.availableExpressions,
-                );
                 debugInfo.availableExpressions = Array.from(foundExpressions);
 
                 const foundMotionGroups = new Set<string>();
                 const motionDefsForDebug =
-                    (DISABLE_ALL_MOTIONS && originalMotionDefinitions) ||
+                    getMotionDefinitionsForDebug() ||
                     model.internalModel?.motionManager?.definitions;
                 if (motionDefsForDebug) {
                     Object.keys(motionDefsForDebug).forEach((k) =>
@@ -1026,9 +827,6 @@
                                                 );
                                             }
                                         });
-                                        console.log(
-                                            `✅ Applied hard-lock for ${exprName}`,
-                                        );
                                     }
                                 } catch (err) {
                                     console.error(
@@ -1196,7 +994,7 @@
         🗣️ Test TTS
     </button> -->
 
-    <!-- ✨ SLEEP EFFECT (ZZZ...) -->
+    <!-- SLEEP EFFECT (ZZZ...) -->
     {#if currentAutonomyEmotion === "SLEEP"}
         <div class="sleep-effect-container">
             <div class="z-particle z1">Z</div>
@@ -1311,7 +1109,7 @@
         }
     }
 
-    /* ✨ SLEEP EFFECT STYLES */
+    /* SLEEP EFFECT STYLES */
     .sleep-effect-container {
         position: absolute;
         top: 20%;
