@@ -98,12 +98,19 @@
             </label>
 
             {#if persona.personaType === "3D" || persona.personaType === "2.5D"}
+                {#if persona.personaType === "2.5D"}
+                    <p class="field-hint">
+                        Live2D 표정/모션 매핑은 `Live2D 고급 편집` 페이지에서
+                        편집하세요.
+                    </p>
+                {/if}
                 <!-- FirstSceneBuilder for 3D & 2.5D -->
                 <FirstSceneBuilder
                     initialData={persona.first_scene}
                     {availableExpressions}
                     {availableMotions}
                     mode={persona.personaType === "3D" ? "3d" : "live2d"}
+                    showLive2DMappingSections={persona.personaType === "3D"}
                     onChange={(json) => {
                         firstSceneJson = json;
                         persona.first_scene = json;

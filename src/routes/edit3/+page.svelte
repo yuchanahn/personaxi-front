@@ -60,6 +60,7 @@
     // Auto-save timer
     let autoSaveInterval: ReturnType<typeof setInterval>;
     const AUTO_SAVE_KEY = "edit3_draft";
+    const LIVE2D_EDITOR_BRIDGE_PREFIX = "live2d_editor_config_bridge:";
 
     $: stepLabels = [
         $t("edit3.steps.type"),
@@ -98,6 +99,138 @@
     );
 
     // ── Functions ──
+    function getLive2DBridgeKey(personaId: string): string {
+        return `${LIVE2D_EDITOR_BRIDGE_PREFIX}${personaId}`;
+    }
+
+    function mergeLive2DEditorConfigIntoFirstScene(
+        firstScene: string,
+        config: any,
+        sceneFields?: Record<string, any>,
+    ): string | null {
+        let obj: Record<string, any> = {};
+        if (firstScene && firstScene.trim()) {
+            try {
+                const parsed = JSON.parse(firstScene);
+                if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) {
+                    return null;
+                }
+                obj = parsed;
+            } catch {
+                return null;
+            }
+        }
+        obj.live2d_editor_config = config;
+        if (sceneFields && typeof sceneFields === "object") {
+            Object.entries(sceneFields).forEach(([k, v]) => {
+                obj[k] = v;
+            });
+        }
+        return JSON.stringify(obj);
+    }
+
+    function compactLive2DEditorConfig(config: any): any {
+        if (!config || typeof config !== "object") return config;
+
+        const out: Record<string, any> = {};
+
+        if (typeof config.modelUrl === "string" && config.modelUrl.trim()) {
+            out.modelUrl = config.modelUrl.trim();
+        }
+
+        if (config.settings && typeof config.settings === "object") {
+            out.settings = config.settings;
+        }
+
+        if (config.expressions && typeof config.expressions === "object") {
+            const mapped = Object.fromEntries(
+                Object.entries(config.expressions).filter(
+                    ([, v]) => typeof v === "string" && v.trim().length > 0,
+                ),
+            );
+            if (Object.keys(mapped).length > 0) out.expressions = mapped;
+        }
+
+        if (
+            config.expressionAliases &&
+            typeof config.expressionAliases === "object"
+        ) {
+            const aliases: Record<string, string> = {};
+            Object.entries(config.expressionAliases).forEach(([k, v]) => {
+                if (typeof k !== "string" || typeof v !== "string") return;
+                if (v.trim() && v.trim() !== k.trim()) {
+                    aliases[k] = v.trim();
+                }
+            });
+            if (Object.keys(aliases).length > 0) out.expressionAliases = aliases;
+        }
+
+        if (config.motions && typeof config.motions === "object") {
+            const motions: Record<
+                string,
+                { file: string; alias?: string; category?: string }
+            > = {};
+            Object.entries(config.motions).forEach(([k, v]: [string, any]) => {
+                if (!v || typeof v !== "object") return;
+                const file = typeof v.file === "string" ? v.file.trim() : "";
+                if (!file) return;
+                const alias =
+                    typeof v.alias === "string" ? v.alias.trim() : "";
+                const category =
+                    typeof v.category === "string" ? v.category.trim() : "";
+                const base = file.split("/").pop() || file;
+                const isDefaultAlias =
+                    !alias ||
+                    alias.toLowerCase() === file.toLowerCase() ||
+                    alias.toLowerCase() === base.toLowerCase();
+
+                if (!isDefaultAlias || category) {
+                    motions[k] = {
+                        file,
+                        ...(isDefaultAlias ? {} : { alias }),
+                        ...(category ? { category } : {}),
+                    };
+                }
+            });
+            if (Object.keys(motions).length > 0) out.motions = motions;
+        }
+
+        return out;
+    }
+
+    function applyLive2DEditorBridgeIfExists(p: Persona) {
+        if (typeof window === "undefined" || !p?.id) return;
+
+        const key = getLive2DBridgeKey(p.id);
+        const raw = localStorage.getItem(key);
+        if (!raw) return;
+
+        try {
+            const parsed = JSON.parse(raw);
+            const config = compactLive2DEditorConfig(parsed?.config ?? parsed);
+            const sceneFields =
+                parsed?.sceneFields && typeof parsed.sceneFields === "object"
+                    ? parsed.sceneFields
+                    : {};
+            const merged = mergeLive2DEditorConfigIntoFirstScene(
+                p.first_scene || "",
+                config,
+                sceneFields,
+            );
+            if (!merged) {
+                toast.warning("Live2D 설정 병합 실패: first_scene JSON 형식 확인 필요");
+                return;
+            }
+
+            p.first_scene = merged;
+            if (typeof config?.modelUrl === "string" && config.modelUrl.trim()) {
+                p.live2d_model_url = config.modelUrl.trim();
+            }
+        } catch (e) {
+            console.warn("Failed to apply Live2D editor bridge", e);
+        }
+    }
+
     function createEmptyPersona(): Persona {
         return {
             id: "",
@@ -247,6 +380,8 @@
                 p.contentType = "character";
             }
 
+            applyLive2DEditorBridgeIfExists(p);
+
             persona = p;
             if (!persona.one_liner) persona.one_liner = "";
 
@@ -297,7 +432,7 @@
             else if (data.expressions) rawExprs = data.expressions;
 
             if (Array.isArray(rawExprs)) {
-                availableExpressions = rawExprs
+                const exprs = rawExprs
                     .map((e: any) => {
                         if (typeof e === "string") return e;
                         const name = e.Name || e.name || e.Id || e.id;
@@ -313,6 +448,7 @@
                         );
                     })
                     .filter((n: string) => n);
+                availableExpressions = Array.from(new Set(exprs));
             }
 
             let rawMotions: any = {};
@@ -329,7 +465,15 @@
                     });
                 }
             });
-            availableMotions = files;
+            const uniqueMotions: string[] = [];
+            const seenMotionKeys = new Set<string>();
+            files.forEach((f) => {
+                const key = f.replace(/\\/g, "/").toLowerCase();
+                if (seenMotionKeys.has(key)) return;
+                seenMotionKeys.add(key);
+                uniqueMotions.push(f);
+            });
+            availableMotions = uniqueMotions;
         } catch (e) {
             console.warn("Failed to load Live2D metadata:", e);
         }
@@ -401,9 +545,13 @@
             toast.error(error);
             return;
         }
+        const firstSceneLimit =
+            persona.personaType === "2.5D" || persona.personaType === "3D"
+                ? 12000
+                : 2500;
         if (
             persona.greeting.length > 200 ||
-            persona.first_scene.length > 2500
+            persona.first_scene.length > firstSceneLimit
         ) {
             error = $t("editPage.validation.charLimitExceeded");
             toast.error(error);
@@ -423,6 +571,11 @@
         try {
             const id: string | null = await savePersona(persona);
             if (id) {
+                if (persona.id) {
+                    localStorage.removeItem(getLive2DBridgeKey(persona.id));
+                }
+                localStorage.removeItem(getLive2DBridgeKey(id));
+
                 // Handle pending lore links if new persona
                 if (!persona.id && pendingLoreLinks.size > 0) {
                     try {

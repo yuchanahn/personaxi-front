@@ -285,7 +285,8 @@ export async function uploadLive2DZip(
         }
     }
 
-    // [Auto-Fix] Patch model3.json to include all motion files found in ZIP
+    // [Auto-Fix] Patch model3.json to include motion files only when model has no motions.
+    // This prevents duplicate motion entries for models that already define motions.
     try {
         const modelEntry = filesToUpload.find(f => f.name === model3JsonPath);
         if (modelEntry && modelEntry.decryptedText !== undefined) {
@@ -299,53 +300,68 @@ export async function uploadLive2DZip(
             if (!modelJson.FileReferences.Motions) modelJson.FileReferences.Motions = {};
 
             const motions = modelJson.FileReferences.Motions;
+            const existingGroups = Object.values(motions).filter((v: any) => Array.isArray(v));
+            const hasAnyMotionRefs = existingGroups.some((group: any) => group.length > 0);
 
             // Calculate model directory to strip from motion paths
             const modelDir = model3JsonPath.substring(0, model3JsonPath.lastIndexOf('/') + 1);
 
-            // Scan for all .motion3.json files in the upload list
-            filesToUpload.forEach(file => {
-                // Check ORIGINAL name for type detection to handle renamed files
-                if (file.originalName.endsWith('.motion3.json')) {
-                    // Determine Group Name from ORIGINAL filename (Semantic)
+            if (!hasAnyMotionRefs) {
+                const normalizePathKey = (v: string) =>
+                    (v || "").replace(/\\/g, "/").toLowerCase();
+                const pathSet = new Set<string>();
+
+                Object.values(motions).forEach((group: any) => {
+                    if (!Array.isArray(group)) return;
+                    group.forEach((m: any) => {
+                        const f = m?.File || m?.file;
+                        if (!f) return;
+                        const normalized = normalizePathKey(f);
+                        pathSet.add(normalized);
+                        const base = normalized.split("/").pop();
+                        if (base) pathSet.add(base);
+                    });
+                });
+
+                // Scan for all .motion3.json files in the upload list
+                filesToUpload.forEach(file => {
+                    if (!file.originalName.endsWith('.motion3.json')) return;
+
                     const originalFileName = file.originalName.split('/').pop() || "";
                     const baseName = originalFileName.replace('.motion3.json', '');
 
-                    // Simple heuristic: split by underscore or numbers to get group
                     let groupName = baseName.split('_')[0];
                     if (!groupName) groupName = baseName;
-
-                    // Capitalize first letter for consistency
                     groupName = groupName.charAt(0).toUpperCase() + groupName.slice(1);
 
-                    // Initialize group array if needed
                     if (!motions[groupName]) {
                         motions[groupName] = [];
                     }
 
-                    // Calculate relative path from model3.json to motion file (using NEW sanitized path)
                     let relativeMotionPath = file.name;
                     if (modelDir && relativeMotionPath.startsWith(modelDir)) {
                         relativeMotionPath = relativeMotionPath.substring(modelDir.length);
                     }
 
-                    // Check if file is already referenced (check both raw and relative)
-                    // Note: Existing references might be using old names if we didn't sanitize them in JSON yet?
-                    // Actually, we already sanitized JSON in previous step.
-                    // So JSON contains NEW paths.
-                    const alreadyExists = motions[groupName].some((m: any) =>
-                        m.File === relativeMotionPath || m.File === file.name
-                    );
+                    const normalizedRel = normalizePathKey(relativeMotionPath);
+                    const normalizedRelBase = normalizedRel.split("/").pop() || "";
+                    const normalizedName = normalizePathKey(file.name);
+                    const normalizedNameBase = normalizedName.split("/").pop() || "";
+
+                    const alreadyExists =
+                        pathSet.has(normalizedRel) ||
+                        pathSet.has(normalizedRelBase) ||
+                        pathSet.has(normalizedName) ||
+                        pathSet.has(normalizedNameBase);
 
                     if (!alreadyExists) {
-                        console.log(`[Auto-Fix] Injecting motion: ${relativeMotionPath} into group ${groupName}`);
-                        motions[groupName].push({
-                            File: relativeMotionPath
-                        });
+                        motions[groupName].push({ File: relativeMotionPath });
+                        pathSet.add(normalizedRel);
+                        if (normalizedRelBase) pathSet.add(normalizedRelBase);
                         modified = true;
                     }
-                }
-            });
+                });
+            }
 
             if (modified) {
                 console.log("[Auto-Fix] model3.json patched with new motions:", modelJson);

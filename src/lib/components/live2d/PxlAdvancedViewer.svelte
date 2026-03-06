@@ -352,39 +352,82 @@
         currentModel.expression(exprName);
     }
 
-    export async function triggerMotion(group: string, index: number) {
+    export async function triggerMotion(
+        group: string,
+        index: number,
+        file?: string,
+    ) {
         if (!currentModel) return;
-        const audioSnapshot = SafeAudioManager.getPlaybackSnapshot();
-        const motionResult = motionControl.playMotion(group, index, 3);
+        try {
+            const audioApi = SafeAudioManager as any;
+            const audioSnapshot =
+                typeof audioApi.getPlaybackSnapshot === "function"
+                    ? audioApi.getPlaybackSnapshot()
+                    : null;
 
-        const tryResume = async () => {
-            await SafeAudioManager.resumeFromSnapshotIfInterrupted(
-                audioSnapshot,
-            );
-        };
+            let resolvedGroup = group;
+            let resolvedIndex = index;
 
-        // Some runtimes return a Promise that resolves when the motion ends.
-        if (motionResult && typeof motionResult.then === "function") {
-            try {
-                await motionResult;
-            } catch (e) {
-                console.warn("Motion play failed:", e);
+            if (file) {
+                const byFile =
+                    motionControl.findMotionByFile(file) ||
+                    motionControl.findMotionByFile(file.split("/").pop() || file);
+                if (byFile) {
+                    resolvedGroup = byFile.group;
+                    resolvedIndex = byFile.index;
+                }
             }
-            await tryResume();
-            return;
-        }
 
-        // Fallback for runtimes without motion Promise support.
-        // Retry a few times to catch different motion lengths.
-        setTimeout(() => {
-            tryResume();
-        }, 900);
-        setTimeout(() => {
-            tryResume();
-        }, 1600);
-        setTimeout(() => {
-            tryResume();
-        }, 2400);
+            if (!resolvedGroup && resolvedGroup !== "") return;
+
+            let motionResult = motionControl.playMotion(
+                resolvedGroup,
+                resolvedIndex,
+                3,
+            );
+            if (
+                motionResult === undefined &&
+                typeof currentModel.motion === "function"
+            ) {
+                motionResult = currentModel.motion(
+                    resolvedGroup,
+                    resolvedIndex,
+                    3,
+                );
+            }
+
+            const tryResume = async () => {
+                if (
+                    audioSnapshot &&
+                    typeof audioApi.resumeFromSnapshotIfInterrupted ===
+                        "function"
+                ) {
+                    await audioApi.resumeFromSnapshotIfInterrupted(audioSnapshot);
+                }
+            };
+
+            if (motionResult && typeof motionResult.then === "function") {
+                try {
+                    await motionResult;
+                } catch (e) {
+                    console.warn("Motion play failed:", e);
+                }
+                await tryResume();
+                return;
+            }
+
+            setTimeout(() => {
+                tryResume();
+            }, 900);
+            setTimeout(() => {
+                tryResume();
+            }, 1600);
+            setTimeout(() => {
+                tryResume();
+            }, 2400);
+        } catch (e) {
+            console.error("triggerMotion failed before playback:", e);
+        }
     }
 
     export async function speak(audioUrl: string) {

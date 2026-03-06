@@ -1,4 +1,5 @@
 <script lang="ts">
+    import { goto } from "$app/navigation";
     import { onDestroy, onMount, tick } from "svelte";
     import Icon from "@iconify/svelte";
     import PxlAdvancedViewer from "$lib/components/live2d/PxlAdvancedViewer.svelte";
@@ -10,9 +11,11 @@
 
     let persona: Persona | null = null;
     let isLoading = false;
+    let returnPath = "/edit3";
+
+    const LIVE2D_EDITOR_BRIDGE_PREFIX = "live2d_editor_config_bridge:";
 
     let modelUrl = "";
-    let tempModelUrl = "";
     let renderViewer = false;
     let viewerKey = 0;
 
@@ -22,7 +25,7 @@
     // Sandbox Mapping State
     interface Pxl2DMapping {
         modelUrl: string;
-        motions: Record<string, { alias: string; category: string }>;
+        motions: Record<string, { file: string; alias: string; category: string }>;
         expressions: Record<string, string>;
         expressionAliases: Record<string, string>;
         settings: {
@@ -101,8 +104,31 @@
         | "motions"
         | "expressions"
         | "audio"
-        | "settings"
-        | "runtime" = "motions";
+        | "runtime"
+        | "mapping" = "motions";
+
+    const emotionMapKeys = [
+        "ELATED",
+        "GENTLE",
+        "STERN",
+        "DEPRESSED",
+        "TENSE",
+        "ASTONISHED",
+        "CALM",
+    ] as const;
+    type EmotionMapKey = (typeof emotionMapKeys)[number];
+    type SceneMotionItem = { name: string; file: string; desc: string };
+    let sceneExpressionMap: Record<EmotionMapKey, string> = {
+        ELATED: "",
+        GENTLE: "",
+        STERN: "",
+        DEPRESSED: "",
+        TENSE: "",
+        ASTONISHED: "",
+        CALM: "",
+    };
+    let scenePermanentExpressions: string[] = [];
+    let sceneMotionList: SceneMotionItem[] = [];
 
     const emotionOptions = [
         "CALM",
@@ -132,12 +158,34 @@
     ];
 
     function normalizePxlState(raw: any): Pxl2DMapping {
+        const normalizedMotions: Record<
+            string,
+            { file: string; alias: string; category: string }
+        > = {};
+        if (raw?.motions && typeof raw.motions === "object") {
+            Object.entries(raw.motions).forEach(([key, value]: [string, any]) => {
+                if (!value || typeof value !== "object") return;
+                const file =
+                    typeof value.file === "string"
+                        ? value.file
+                        : typeof value.alias === "string"
+                          ? value.alias
+                          : "";
+                normalizedMotions[key] = {
+                    file,
+                    alias:
+                        typeof value.alias === "string" && value.alias.trim()
+                            ? value.alias
+                            : file,
+                    category:
+                        typeof value.category === "string" ? value.category : "",
+                };
+            });
+        }
+
         return {
             modelUrl: typeof raw?.modelUrl === "string" ? raw.modelUrl : "",
-            motions:
-                raw?.motions && typeof raw.motions === "object"
-                    ? raw.motions
-                    : {},
+            motions: normalizedMotions,
             expressions:
                 raw?.expressions && typeof raw.expressions === "object"
                     ? raw.expressions
@@ -246,23 +294,45 @@
         };
     }
 
-    function updateUrl() {
-        if (!tempModelUrl.trim()) return;
-        modelUrl = tempModelUrl.trim();
-        pxlState.modelUrl = modelUrl;
+    function getBridgeKey(id: string) {
+        return `${LIVE2D_EDITOR_BRIDGE_PREFIX}${id}`;
+    }
 
-        // Force re-render of the viewer
-        renderViewer = false;
-        viewerKey++;
-        setTimeout(() => (renderViewer = true), 50);
+    function saveBridgeConfigAndReturn() {
+        const personaId = persona?.id || $page.url.searchParams.get("c") || "";
+        if (!personaId) {
+            toast.error("Persona ID not found");
+            return;
+        }
+
+        const payload = {
+            version: 1,
+            updatedAt: Date.now(),
+            config: pxlState,
+            sceneFields: {
+                live2d_expression_map: sceneExpressionMap,
+                live2d_motion_list: sceneMotionList,
+                live2d_permanent_expressions: scenePermanentExpressions,
+            },
+        };
+        localStorage.setItem(getBridgeKey(personaId), JSON.stringify(payload));
+        toast.success("Live2D settings saved");
+        goto(returnPath);
+    }
+
+    function goBackWithoutSaving() {
+        goto(returnPath);
     }
 
     function playExpression(expr: string) {
         if (viewerRef) viewerRef.triggerExpression(expr);
     }
 
-    function playMotion(group: string, index: number) {
-        if (viewerRef) viewerRef.triggerMotion(group, index);
+    function playMotion(group: string, index: number, file?: string) {
+        if (viewerRef) {
+            console.log("Debug: Triggering", group, index, file || "");
+            viewerRef.triggerMotion(group, index, file);
+        }
     }
 
     function setRuntimeEmotion(emotion: string) {
@@ -422,10 +492,45 @@
         try {
             const p = await loadPersonaOriginal(id);
             persona = p;
+            loadSceneFieldsFromPersona(p);
+            const bridgeRaw = localStorage.getItem(getBridgeKey(id));
+            if (bridgeRaw) {
+                try {
+                    const bridge = JSON.parse(bridgeRaw);
+                    if (bridge?.config) {
+                        pxlState = normalizePxlState(bridge.config);
+                    }
+                    if (bridge?.sceneFields && typeof bridge.sceneFields === "object") {
+                        const sf = bridge.sceneFields;
+                        if (sf.live2d_expression_map && typeof sf.live2d_expression_map === "object") {
+                            sceneExpressionMap = {
+                                ...sceneExpressionMap,
+                                ...sf.live2d_expression_map,
+                            };
+                        }
+                        if (Array.isArray(sf.live2d_motion_list)) {
+                            sceneMotionList = sf.live2d_motion_list.filter(
+                                (m: any) => m && typeof m === "object",
+                            );
+                        }
+                        if (Array.isArray(sf.live2d_permanent_expressions)) {
+                            scenePermanentExpressions =
+                                sf.live2d_permanent_expressions.filter(
+                                    (v: any) => typeof v === "string",
+                                );
+                        }
+                    }
+                } catch (e) {
+                    console.warn("Failed to parse local bridge data", e);
+                }
+            }
 
             if (p.live2d_model_url) {
-                tempModelUrl = p.live2d_model_url;
-                updateUrl();
+                modelUrl = p.live2d_model_url;
+                pxlState.modelUrl = modelUrl;
+                renderViewer = false;
+                viewerKey++;
+                setTimeout(() => (renderViewer = true), 50);
             } else {
                 toast.warning("This Persona does not have a Live2D URL.");
             }
@@ -438,6 +543,11 @@
     }
 
     onMount(() => {
+        const returnQuery = $page.url.searchParams.get("return");
+        if (returnQuery && returnQuery.trim()) {
+            returnPath = returnQuery;
+        }
+
         const id = $page.url.searchParams.get("c");
         if (id) {
             load_persona(id);
@@ -445,19 +555,20 @@
     });
 
     function assignExpression(expr: string, emotion: string) {
-        for (const [key, val] of Object.entries(pxlState.expressions)) {
+        for (const [key, val] of Object.entries(sceneExpressionMap)) {
             if (val === expr) {
-                delete pxlState.expressions[key];
+                sceneExpressionMap[key as EmotionMapKey] = "";
             }
         }
         if (emotion) {
-            pxlState.expressions[emotion] = expr;
+            sceneExpressionMap[emotion as EmotionMapKey] = expr;
         }
-        pxlState = pxlState; // trigger reactivity
+        pxlState.expressions = { ...sceneExpressionMap };
+        pxlState = pxlState;
     }
 
     function isMappedTo(expr: string, emotion: string): boolean {
-        return pxlState.expressions[emotion] === expr;
+        return sceneExpressionMap[emotion as EmotionMapKey] === expr;
     }
 
     function getExpressionAlias(expr: string): string {
@@ -471,6 +582,71 @@
 
     function getMotionKey(m: Live2DMotionInfo) {
         return `${m.group}_${m.index}`;
+    }
+
+    function normalizeMotionFileKey(file: string): string {
+        return (file.split("/").pop() || file).toLowerCase();
+    }
+
+    function getMotionAliasByFile(file: string): string {
+        const normalized = normalizeMotionFileKey(file);
+        for (const value of Object.values(pxlState.motions)) {
+            if (!value?.file) continue;
+            if (normalizeMotionFileKey(value.file) !== normalized) continue;
+            const alias = (value.alias || "").trim();
+            if (alias && alias !== value.file) return alias;
+            return value.file.split("/").pop() || value.file;
+        }
+        return file.split("/").pop() || file;
+    }
+
+    function getExpressionDisplayName(expr: string): string {
+        return getExpressionAlias(expr) || expr;
+    }
+
+    function addSceneMotion() {
+        const firstMotion = availableMotions[0]?.file || "";
+        const firstExpr = availableExpressions[0] || "";
+        const defaultFile = firstMotion || firstExpr;
+        sceneMotionList = [...sceneMotionList, { name: "", file: defaultFile, desc: "" }];
+    }
+
+    function removeSceneMotion(index: number) {
+        sceneMotionList = sceneMotionList.filter((_, i) => i !== index);
+    }
+
+    function toggleScenePermanentExpression(expr: string) {
+        if (scenePermanentExpressions.includes(expr)) {
+            scenePermanentExpressions = scenePermanentExpressions.filter((e) => e !== expr);
+        } else {
+            scenePermanentExpressions = [...scenePermanentExpressions, expr];
+        }
+    }
+
+    function loadSceneFieldsFromPersona(p: Persona) {
+        if (!p.first_scene?.trim()) return;
+        try {
+            const obj = JSON.parse(p.first_scene);
+            if (obj?.live2d_expression_map && typeof obj.live2d_expression_map === "object") {
+                sceneExpressionMap = {
+                    ...sceneExpressionMap,
+                    ...obj.live2d_expression_map,
+                };
+            }
+            if (Array.isArray(obj?.live2d_motion_list)) {
+                sceneMotionList = obj.live2d_motion_list.filter((m: any) => m && typeof m === "object");
+            }
+            if (Array.isArray(obj?.live2d_permanent_expressions)) {
+                scenePermanentExpressions = obj.live2d_permanent_expressions.filter(
+                    (v: any) => typeof v === "string",
+                );
+            }
+            if (obj?.live2d_editor_config && typeof obj.live2d_editor_config === "object") {
+                pxlState = normalizePxlState(obj.live2d_editor_config);
+            }
+        } catch {
+            // Keep editor defaults when first_scene is not JSON
+        }
     }
 
     onDestroy(() => {
@@ -497,9 +673,12 @@
                                 const key = getMotionKey(m);
                                 if (!pxlState.motions[key]) {
                                     pxlState.motions[key] = {
+                                        file: m.file,
                                         alias: m.file, // Start via setting alias as the filename
                                         category: "",
                                     };
+                                } else if (!pxlState.motions[key].file) {
+                                    pxlState.motions[key].file = m.file;
                                 }
                             });
                             availableExpressions.forEach((expr: string) => {
@@ -507,6 +686,7 @@
                                     pxlState.expressionAliases[expr] = expr;
                                 }
                             });
+                            pxlState.expressions = { ...sceneExpressionMap };
                             viewerRef?.setSensitivity(
                                 pxlState.settings.sensitivity,
                             );
@@ -523,7 +703,17 @@
     <!-- Right Panel: All Controls Consolidated -->
     <div class="control-panel">
         <div class="panel-header">
-            <h2>Advanced Live2D Editor</h2>
+            <div class="header-top">
+                <h2>Advanced Live2D Editor</h2>
+                <div class="header-actions">
+                    <button class="secondary" on:click={goBackWithoutSaving}
+                        >Back</button
+                    >
+                    <button on:click={saveBridgeConfigAndReturn}
+                        >Save & Return</button
+                    >
+                </div>
+            </div>
             {#if isLoading}
                 <div class="loading-state">Loading Persona Data...</div>
             {:else if persona}
@@ -536,16 +726,16 @@
 
         <div class="tabs">
             <button
-                class="tab {activeTab === 'settings' ? 'active' : ''}"
-                on:click={() => (activeTab = "settings")}>Init</button
-            >
-            <button
                 class="tab {activeTab === 'motions' ? 'active' : ''}"
                 on:click={() => (activeTab = "motions")}>Motions</button
             >
             <button
                 class="tab {activeTab === 'expressions' ? 'active' : ''}"
                 on:click={() => (activeTab = "expressions")}>Expr</button
+            >
+            <button
+                class="tab {activeTab === 'mapping' ? 'active' : ''}"
+                on:click={() => (activeTab = "mapping")}>AI Map</button
             >
             <button
                 class="tab {activeTab === 'audio' ? 'active' : ''}"
@@ -558,67 +748,7 @@
         </div>
 
         <div class="tab-content">
-            {#if activeTab === "settings"}
-                <div class="settings-panel">
-                    <div class="input-group">
-                        <label for="url">Model URL (.model3.json)</label>
-                        <input
-                            id="url"
-                            type="text"
-                            bind:value={tempModelUrl}
-                            placeholder="Enter URL"
-                        />
-                        <button on:click={updateUrl}>Load Model</button>
-                    </div>
-
-                    <hr class="divider" />
-
-                    <div class="pxl-state-export">
-                        <h3>Pxl2D Mapping Source</h3>
-                        <p class="desc">
-                            Export your current motion/expression mappings so
-                            they can be securely saved to the database.
-                        </p>
-                        <div class="btn-row">
-                            <button
-                                class="secondary"
-                                on:click={() => {
-                                    navigator.clipboard.writeText(
-                                        JSON.stringify(pxlState, null, 2),
-                                    );
-                                    toast.success("Copied JSON to clipboard");
-                                }}>Copy JSON</button
-                            >
-                            <button
-                                class="secondary"
-                                on:click={async () => {
-                                    try {
-                                        const text =
-                                            await navigator.clipboard.readText();
-                                        const parsed = JSON.parse(text);
-                                        if (
-                                            parsed &&
-                                            parsed.motions !== undefined
-                                        ) {
-                                            pxlState =
-                                                normalizePxlState(parsed);
-                                            tempModelUrl = pxlState.modelUrl;
-                                            updateUrl();
-                                            toast.success(
-                                                "Imported JSON mapping",
-                                            );
-                                        } else {
-                                            toast.error("Invalid JSON format");
-                                        }
-                                    } catch (e) {
-                                        toast.error("Failed to read clipboard");
-                                    }
-                                }}>Paste JSON</button
-                            >
-                        </div>
-                    </div>
-                </div>
-            {:else if activeTab === "motions"}
+            {#if activeTab === "motions"}
                 <div class="list">
                     {#if availableMotions.length === 0}
                         <p class="empty-msg">
@@ -634,7 +764,11 @@
                                 <button
                                     class="play-btn"
                                     on:click={() =>
-                                        playMotion(motion.group, motion.index)}
+                                        playMotion(
+                                            motion.group,
+                                            motion.index,
+                                            motion.file,
+                                        )}
                                     >▶ Play</button
                                 >
                             </div>
@@ -701,49 +835,158 @@
                                 >
                                     <option
                                         value=""
-                                        selected={!Object.values(
-                                            pxlState.expressions,
-                                        ).includes(expr)}>Unmapped</option
+                                        selected={!Object.values(sceneExpressionMap).includes(expr)}
+                                        >Unmapped</option
                                     >
                                     <option
-                                        value="joy"
-                                        selected={isMappedTo(expr, "joy")}
-                                        >Joy (joy, happy)</option
+                                        value="ELATED"
+                                        selected={isMappedTo(expr, "ELATED")}
+                                        >ELATED</option
                                     >
                                     <option
-                                        value="amusement"
-                                        selected={isMappedTo(expr, "amusement")}
-                                        >Amusement (excitement, fun)</option
+                                        value="GENTLE"
+                                        selected={isMappedTo(expr, "GENTLE")}
+                                        >GENTLE</option
                                     >
                                     <option
-                                        value="anger"
-                                        selected={isMappedTo(expr, "anger")}
-                                        >Anger (annoyance, disgust)</option
+                                        value="STERN"
+                                        selected={isMappedTo(expr, "STERN")}
+                                        >STERN</option
                                     >
                                     <option
-                                        value="sadness"
-                                        selected={isMappedTo(expr, "sadness")}
-                                        >Sadness (grief, remorse)</option
+                                        value="DEPRESSED"
+                                        selected={isMappedTo(expr, "DEPRESSED")}
+                                        >DEPRESSED</option
                                     >
                                     <option
-                                        value="fear"
-                                        selected={isMappedTo(expr, "fear")}
-                                        >Fear (nervousness)</option
+                                        value="TENSE"
+                                        selected={isMappedTo(expr, "TENSE")}
+                                        >TENSE</option
                                     >
                                     <option
-                                        value="surprise"
-                                        selected={isMappedTo(expr, "surprise")}
-                                        >Surprise (confusion)</option
+                                        value="ASTONISHED"
+                                        selected={isMappedTo(expr, "ASTONISHED")}
+                                        >ASTONISHED</option
                                     >
                                     <option
-                                        value="neutral"
-                                        selected={isMappedTo(expr, "neutral")}
-                                        >Neutral (approval, caring)</option
+                                        value="CALM"
+                                        selected={isMappedTo(expr, "CALM")}
+                                        >CALM</option
                                     >
                                 </select>
                             </div>
                         </div>
                     {/each}
+                </div>
+            {:else if activeTab === "mapping"}
+                <div class="settings-panel">
+                    <div class="runtime-section">
+                        <h4>Expression Mapping</h4>
+                        <div class="calib-grid">
+                            {#each emotionMapKeys as emotion}
+                                <label class="calib-item">
+                                    <span>{emotion}</span>
+                                    <select
+                                        value={sceneExpressionMap[emotion]}
+                                        on:change={(e) =>
+                                            assignExpression(
+                                                e.currentTarget.value,
+                                                emotion,
+                                            )}
+                                    >
+                                        <option value="">(None)</option>
+                                        {#each availableExpressions as expr}
+                                            <option value={expr}
+                                                >{getExpressionDisplayName(
+                                                    expr,
+                                                )}</option
+                                            >
+                                        {/each}
+                                    </select>
+                                </label>
+                            {/each}
+                        </div>
+                    </div>
+
+                    <div class="runtime-section">
+                        <h4>Permanent Expressions</h4>
+                        <div class="list">
+                            {#each availableExpressions as expr}
+                                <label class="asset-item">
+                                    <input
+                                        type="checkbox"
+                                        checked={scenePermanentExpressions.includes(expr)}
+                                        on:change={() =>
+                                            toggleScenePermanentExpression(
+                                                expr,
+                                            )}
+                                    />
+                                    <span class="filename"
+                                        >{getExpressionDisplayName(expr)}</span
+                                    >
+                                </label>
+                            {/each}
+                        </div>
+                    </div>
+
+                    <div class="runtime-section">
+                        <div class="asset-info">
+                            <h4>Animation List</h4>
+                            <button class="secondary" on:click={addSceneMotion}
+                                >+ Add</button
+                            >
+                        </div>
+                        <div class="list">
+                            {#each sceneMotionList as item, i}
+                                <div class="asset-item">
+                                    <div class="mapping-inputs">
+                                        <input
+                                            type="text"
+                                            placeholder="Name"
+                                            bind:value={item.name}
+                                        />
+                                        <select bind:value={item.file}>
+                                            <option value="">Select Action</option>
+                                            {#if availableMotions.length > 0}
+                                                <optgroup label="Motions">
+                                                    {#each availableMotions as motion}
+                                                        <option value={motion.file}
+                                                            >{getMotionAliasByFile(
+                                                                motion.file,
+                                                            )}</option
+                                                        >
+                                                    {/each}
+                                                </optgroup>
+                                            {/if}
+                                            {#if availableExpressions.length > 0}
+                                                <optgroup label="Expressions">
+                                                    {#each availableExpressions as expr}
+                                                        <option value={expr}
+                                                            >{getExpressionDisplayName(
+                                                                expr,
+                                                            )} (Expression)</option
+                                                        >
+                                                    {/each}
+                                                </optgroup>
+                                            {/if}
+                                        </select>
+                                    </div>
+                                    <div class="mapping-inputs">
+                                        <input
+                                            type="text"
+                                            placeholder="Description"
+                                            bind:value={item.desc}
+                                        />
+                                        <button
+                                            class="audio-remove-btn"
+                                            on:click={() => removeSceneMotion(i)}
+                                            >Remove</button
+                                        >
+                                    </div>
+                                </div>
+                            {/each}
+                        </div>
+                    </div>
                 </div>
             {:else if activeTab === "audio"}
                 <div class="audio-panel">
@@ -1225,6 +1468,16 @@
         font-size: 1.25rem;
         color: #eee;
     }
+    .header-top {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 0.8rem;
+    }
+    .header-actions {
+        display: flex;
+        gap: 0.4rem;
+    }
 
     .persona-info {
         background: #252525;
@@ -1260,21 +1513,6 @@
         flex-direction: column;
         gap: 1.5rem;
         padding: 0.5rem 0;
-    }
-    .divider {
-        border: none;
-        border-top: 1px dashed #333;
-        margin: 0;
-    }
-
-    .input-group {
-        display: flex;
-        flex-direction: column;
-        gap: 0.5rem;
-    }
-    .input-group label {
-        font-size: 0.85rem;
-        color: #ccc;
     }
     input,
     select {
@@ -1314,30 +1552,6 @@
     }
     button.secondary:hover {
         background: #444;
-    }
-
-    .pxl-state-export {
-        display: flex;
-        flex-direction: column;
-        gap: 0.8rem;
-        background: #252525;
-        padding: 1rem;
-        border-radius: 8px;
-    }
-    .pxl-state-export h3 {
-        margin: 0;
-        font-size: 1rem;
-        color: #ddd;
-    }
-    .pxl-state-export .desc {
-        margin: 0;
-        font-size: 0.8rem;
-        color: #888;
-        line-height: 1.4;
-    }
-    .btn-row {
-        display: flex;
-        gap: 0.5rem;
     }
 
     .tabs {

@@ -8,6 +8,7 @@
     export let availableExpressions: string[] = [];
     export let availableMotions: string[] = [];
     export let mode: "live2d" | "3d" = "live2d";
+    export let showLive2DMappingSections = true;
 
     let body_desc = "";
     let anim_list = ""; // Legacy string field, kept for compatibility if needed, or we might auto-generate it.
@@ -38,6 +39,55 @@
         Head: "",
     };
     let permanent_expressions: string[] = []; // NEW: Sticky expressions
+    let extra_fields: Record<string, any> = {};
+    let live2dExprAliases: Record<string, string> = {};
+    let live2dMotionAliasesByFile: Record<string, string> = {};
+
+    function basename(path: string): string {
+        if (!path) return "";
+        return path.split("/").pop() || path;
+    }
+
+    function stripExpressionExt(name: string): string {
+        return name.replace(/\.exp3\.json$/i, "");
+    }
+
+    function normalizeMotionFileKey(file: string): string {
+        return basename(file).toLowerCase();
+    }
+
+    function normalizeExpressionKey(expr: string): string {
+        return stripExpressionExt(expr).toLowerCase();
+    }
+
+    function isDefaultMotionAlias(alias: string, file: string): boolean {
+        const a = (alias || "").trim().toLowerCase();
+        const f = (file || "").trim().toLowerCase();
+        const b = basename(file).trim().toLowerCase();
+        return !a || a === f || a === b;
+    }
+
+    function getExpressionDisplayName(expr: string): string {
+        const direct = live2dExprAliases[expr];
+        if (direct) return direct;
+
+        const norm = normalizeExpressionKey(expr);
+        const fromNorm = live2dExprAliases[norm];
+        if (fromNorm) return fromNorm;
+
+        return expr;
+    }
+
+    function getMotionDisplayName(file: string): string {
+        const direct = live2dMotionAliasesByFile[file];
+        if (direct) return direct;
+
+        const norm = normalizeMotionFileKey(file);
+        const fromNorm = live2dMotionAliasesByFile[norm];
+        if (fromNorm) return fromNorm;
+
+        return basename(file) || file;
+    }
 
     let initialized = false;
 
@@ -72,6 +122,7 @@
         //[PUFF_CHEEKS] : Puffing cheeks (Pouting, Angry, Cute)
         //[ROLL_EYES] : Rolling eyes (Sarcasm, Annoyance)
         const obj = {
+            ...extra_fields,
             body_desc,
             anim_list: generatedAnimList, // Use generated list
             core_desire,
@@ -123,6 +174,9 @@
             Head: "",
         };
         permanent_expressions = [];
+        extra_fields = {};
+        live2dExprAliases = {};
+        live2dMotionAliasesByFile = {};
 
         generateJson();
     }
@@ -171,6 +225,88 @@
                 last_atmosphere = data.last_atmosphere ?? "";
                 current_emotion = data.current_emotion ?? "";
                 internal_monologue = data.internal_monologue ?? "";
+
+                const knownKeys = new Set([
+                    "body_desc",
+                    "anim_list",
+                    "core_desire",
+                    "contradiction",
+                    "personality",
+                    "values",
+                    "mem_list",
+                    "emotion_triggers",
+                    "short_term_memory",
+                    "last_atmosphere",
+                    "current_emotion",
+                    "internal_monologue",
+                    "live2d_expression_map",
+                    "live2d_motion_list",
+                    "live2d_hit_motion_map",
+                    "live2d_permanent_expressions",
+                ]);
+                extra_fields = {};
+                Object.entries(data).forEach(([key, value]) => {
+                    if (!knownKeys.has(key)) {
+                        extra_fields[key] = value;
+                    }
+                });
+
+                const editorConfig = data.live2d_editor_config;
+                if (editorConfig && typeof editorConfig === "object") {
+                    if (
+                        editorConfig.expressionAliases &&
+                        typeof editorConfig.expressionAliases === "object"
+                    ) {
+                        live2dExprAliases = {};
+                        Object.entries(editorConfig.expressionAliases).forEach(
+                            ([key, alias]) => {
+                                if (
+                                    typeof key === "string" &&
+                                    typeof alias === "string"
+                                ) {
+                                    live2dExprAliases[key] = alias;
+                                    live2dExprAliases[
+                                        normalizeExpressionKey(key)
+                                    ] = alias;
+                                }
+                            },
+                        );
+                    } else {
+                        live2dExprAliases = {};
+                    }
+
+                    live2dMotionAliasesByFile = {};
+                    if (editorConfig.motions && typeof editorConfig.motions === "object") {
+                        Object.values(editorConfig.motions).forEach((motion: any) => {
+                            const file =
+                                typeof motion?.file === "string" ? motion.file : "";
+                            const alias =
+                                typeof motion?.alias === "string" ? motion.alias : "";
+                            if (file) {
+                                const normalizedKey = normalizeMotionFileKey(file);
+                                const nextAlias = (alias || file).trim();
+                                const currentDirect = live2dMotionAliasesByFile[file];
+                                const currentNorm =
+                                    live2dMotionAliasesByFile[normalizedKey];
+                                const current = currentDirect || currentNorm || "";
+
+                                const shouldOverride =
+                                    !current ||
+                                    (isDefaultMotionAlias(current, file) &&
+                                        !isDefaultMotionAlias(nextAlias, file));
+
+                                if (shouldOverride) {
+                                    live2dMotionAliasesByFile[file] = nextAlias;
+                                    live2dMotionAliasesByFile[normalizedKey] =
+                                        nextAlias;
+                                }
+                            }
+                        });
+                    }
+                } else {
+                    live2dExprAliases = {};
+                    live2dMotionAliasesByFile = {};
+                }
 
                 if (data.live2d_expression_map) {
                     // [Migration] If old keys exist, map them to new keys
@@ -243,9 +379,13 @@
                 last_atmosphere = extract("last_atmosphere");
                 current_emotion = extract("current_emotion");
                 internal_monologue = extract("internal_monologue");
+                live2dExprAliases = {};
+                live2dMotionAliasesByFile = {};
                 initialized = true;
             }
         } else {
+            live2dExprAliases = {};
+            live2dMotionAliasesByFile = {};
             initialized = true;
         }
     });
@@ -316,7 +456,7 @@
     </div>
 
     <!-- Expression Mapping Section -->
-    {#if mode === "live2d" && availableExpressions.length > 0}
+    {#if mode === "live2d" && showLive2DMappingSections && availableExpressions.length > 0}
         <div class="form-section">
             <h3 class="section-title">🎭 Expression Mapping</h3>
             <p class="section-desc">
@@ -335,7 +475,9 @@
                         >
                             <option value="">(None)</option>
                             {#each availableExpressions as expr}
-                                <option value={expr}>{expr}</option>
+                                <option value={expr}
+                                    >{getExpressionDisplayName(expr)}</option
+                                >
                             {/each}
                         </select>
                     </div>
@@ -345,7 +487,7 @@
     {/if}
 
     <!-- Permanent Expression (Toggle) Section -->
-    {#if mode === "live2d" && availableExpressions.length > 0}
+    {#if mode === "live2d" && showLive2DMappingSections && availableExpressions.length > 0}
         <div class="form-section">
             <h3 class="section-title">🔒 Permanent Expressions</h3>
             <p class="section-desc">
@@ -371,7 +513,7 @@
                             for="perm-{expr}"
                             style="margin: 0; cursor: pointer; font-size: 0.85rem; word-break: break-all;"
                         >
-                            {expr}
+                            {getExpressionDisplayName(expr)}
                         </label>
                     </div>
                 {/each}
@@ -380,7 +522,7 @@
     {/if}
 
     <!-- Animation List Builder Section -->
-    {#if mode === "live2d" && (availableMotions.length > 0 || availableExpressions.length > 0)}
+    {#if mode === "live2d" && showLive2DMappingSections && (availableMotions.length > 0 || availableExpressions.length > 0)}
         <div class="form-section">
             <h3 class="section-title">🎬 Animation List</h3>
             <p class="section-desc">
@@ -408,9 +550,9 @@
                                     <optgroup label="Motions">
                                         {#each availableMotions as mFile}
                                             <option value={mFile}
-                                                >{mFile
-                                                    .split("/")
-                                                    .pop()}</option
+                                                >{getMotionDisplayName(
+                                                    mFile,
+                                                )}</option
                                             >
                                         {/each}
                                     </optgroup>
@@ -419,7 +561,9 @@
                                     <optgroup label="Expressions">
                                         {#each availableExpressions as expr}
                                             <option value={expr}
-                                                >{expr} (Expression)</option
+                                                >{getExpressionDisplayName(
+                                                    expr,
+                                                )} (Expression)</option
                                             >
                                         {/each}
                                     </optgroup>
