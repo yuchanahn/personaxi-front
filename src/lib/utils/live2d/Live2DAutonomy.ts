@@ -128,7 +128,6 @@ export class Live2DAutonomy {
             this.app.ticker.remove(this.ticker);
             this.ticker = null;
         }
-        this.unlockMotionManagerFromSleep();
         this.StopSleepTimer();
     }
 
@@ -224,12 +223,6 @@ export class Live2DAutonomy {
         this.currentEmotion = emotion;
         this.activeConfig = this.emotionConfigs[emotion];
 
-        if (emotion === 'SLEEP') {
-            this.lockMotionManagerForSleep();
-        } else {
-            this.unlockMotionManagerFromSleep();
-        }
-
         // Trigger Callback
         if (this.onEmotionChange) {
             this.onEmotionChange(emotion);
@@ -262,7 +255,6 @@ export class Live2DAutonomy {
 
     private update(deltaMS: number) {
         if (!this.model || !this.model.internalModel) return;
-        this.syncSleepMotionLock();
 
         const internal = this.model.internalModel;
         const core = internal.coreModel;

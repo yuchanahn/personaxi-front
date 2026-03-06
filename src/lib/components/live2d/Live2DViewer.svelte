@@ -63,6 +63,7 @@
     let originalMotionDefinitions: Record<string, any[]> | null = null;
     let originalMotionUpdate: ((...args: any[]) => any) | null = null;
     const noMotionUpdate = () => true;
+    let motionRelockTimer: any = null;
 
     function disableAllMotions(model: any) {
         if (!DISABLE_ALL_MOTIONS) return;
@@ -85,7 +86,7 @@
             mgr.stop();
         }
 
-        //mgr.update = noMotionUpdate;
+        mgr.update = noMotionUpdate;
 
         mgr.definitions = {};
         if (Array.isArray(mgr.queue)) {
@@ -105,10 +106,7 @@
         if (!DISABLE_ALL_MOTIONS) return;
         const mgr = model?.internalModel?.motionManager;
         if (!mgr) return;
-        // Keep current motion update alive so an already started motion can finish.
-        if (originalMotionUpdate) {
-            mgr.update = originalMotionUpdate;
-        }
+        mgr.update = noMotionUpdate;
         mgr.definitions = {};
         console.log("🔒 Live2D motions re-locked (definitions only)");
     }
@@ -120,7 +118,7 @@
         if (!DISABLE_ALL_MOTIONS) {
             return index === undefined
                 ? currentModel.motion(group)
-                : currentModel.motion(group, index);
+                : currentModel.motion(group, index, 3);
         }
 
         if (originalMotionDefinitions) {
@@ -130,16 +128,48 @@
             mgr.update = originalMotionUpdate;
         }
 
+        let relocked = false;
+        const relock = () => {
+            if (relocked || !currentModel) return;
+            relocked = true;
+            if (motionRelockTimer) {
+                clearTimeout(motionRelockTimer);
+                motionRelockTimer = null;
+            }
+            relockMotionsWithoutStop(currentModel);
+        };
+
+        const handleMotionFinish = () => {
+            console.log("🎬 motionFinish received");
+            relock();
+        };
+
+        if (typeof mgr.once === "function") {
+            mgr.once("motionFinish", handleMotionFinish);
+        } else if (typeof mgr.on === "function") {
+            mgr.on("motionFinish", handleMotionFinish);
+        }
+
         const result =
             index === undefined
                 ? currentModel.motion(group)
-                : currentModel.motion(group, index);
+                : currentModel.motion(group, index, 3);
 
-        const relock = () => {
-            if (!currentModel) return;
-            relockMotionsWithoutStop(currentModel);
-        };
-        setTimeout(relock, 250);
+        motionRelockTimer = setTimeout(() => {
+            console.log("⏱️ motionFinish fallback timeout");
+            relock();
+        }, 12000);
+
+        if (result && typeof result.then === "function") {
+            result.then((ok: boolean) => {
+                if (ok === false) {
+                    console.log("❌ motion start failed");
+                    relock();
+                }
+            }).catch(() => {
+                relock();
+            });
+        }
 
         return result;
     }
