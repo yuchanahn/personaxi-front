@@ -9,6 +9,7 @@
     import { createLive2DExpressionControl } from "$lib/components/live2d/useLive2DExpressionControl";
     import { createLive2DInteractionControl } from "$lib/components/live2d/useLive2DInteractionControl";
     import { createLive2DDebugControl } from "$lib/components/live2d/useLive2DDebugControl";
+    import { createLive2DCameraControl } from "$lib/components/live2d/useLive2DCameraControl";
     import {
         applyPermanentExpressions,
         collectAvailableExpressions,
@@ -174,6 +175,16 @@
         },
     });
 
+    const cameraControl = createLive2DCameraControl({
+        getApp: () => app,
+        getCurrentModel: () => currentModel,
+        getX: () => x,
+        getY: () => y,
+        getIsCloseup: () => isCloseup,
+        getCloseupScale: () => closeupScale,
+        getCloseupOffset: () => closeupOffset,
+    });
+
     export function triggerExpression(fileName: string) {
         expressionControl.triggerExpression(fileName);
     }
@@ -252,7 +263,7 @@
                 );
                 debugInfo = debugInfo;
 
-                window.addEventListener("resize", onResize);
+                cameraControl.attach();
                 await applyPermanentExpressions(
                     model,
                     modelUrl,
@@ -269,7 +280,7 @@
     export let isCloseup = false;
 
     $: if (isCloseup !== undefined && app && currentModel) {
-        onResize();
+        cameraControl.onResize();
     }
 
     export function toggleCamera() {
@@ -277,40 +288,11 @@
     }
 
     $: if (closeupScale || closeupOffset) {
-        if (isCloseup) onResize();
-    }
-
-    function onResize() {
-        if (app && currentModel && x === 0 && y === 0) {
-            const bounds = currentModel.getBounds();
-
-            const modelWidth = bounds.width / currentModel.scale.x;
-            const modelHeight = bounds.height / currentModel.scale.y;
-
-            const paddingFactor = 1.3;
-            const scaleX = (app.screen.width * paddingFactor) / modelWidth;
-            const scaleY = (app.screen.height * paddingFactor) / modelHeight;
-            let autoScale = Math.min(scaleX, scaleY);
-            let targetY = app.screen.height / 2 + 50;
-
-            if (isCloseup) {
-                autoScale *= closeupScale;
-
-                const visualHeight = modelHeight * autoScale;
-                targetY += visualHeight * closeupOffset;
-            } else {
-                const visualHeight = modelHeight * autoScale;
-                targetY += visualHeight * 0.1;
-            }
-
-            currentModel.scale.set(autoScale);
-            currentModel.x = app.screen.width / 2;
-            currentModel.y = targetY;
-        }
+        if (isCloseup) cameraControl.onResize();
     }
 
     onDestroy(() => {
-        window.removeEventListener("resize", onResize);
+        cameraControl.detach();
         destroyAudioInit();
         audioController.stop();
         expressionControl.destroy();
