@@ -42,6 +42,7 @@ export interface Persona {
     creator_name: string;
     one_liner?: string;
     first_scene: string;
+    live2d_config?: Record<string, any>;
     greeting: string;
     likes_count: number;
     dislikes_count: number;

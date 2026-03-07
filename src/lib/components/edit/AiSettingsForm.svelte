@@ -58,6 +58,7 @@
                 {availableExpressions}
                 {availableMotions}
                 mode={persona.personaType === "3D" ? "3d" : "live2d"}
+                hideRuntimeStateFields={persona.personaType === "2.5D"}
                 onChange={(json) => {
                     firstSceneJson = json;
                     persona.first_scene = json;

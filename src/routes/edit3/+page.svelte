@@ -103,30 +103,51 @@
         return `${LIVE2D_EDITOR_BRIDGE_PREFIX}${personaId}`;
     }
 
-    function mergeLive2DEditorConfigIntoFirstScene(
-        firstScene: string,
+    function mergeLive2DConfig(
+        existingConfig: any,
         config: any,
         sceneFields?: Record<string, any>,
-    ): string | null {
-        let obj: Record<string, any> = {};
-        if (firstScene && firstScene.trim()) {
-            try {
-                const parsed = JSON.parse(firstScene);
-                if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) {
-                    return null;
-                }
-                obj = parsed;
-            } catch {
-                return null;
+    ): Record<string, any> {
+        const obj: Record<string, any> =
+            existingConfig && typeof existingConfig === "object"
+                ? { ...existingConfig }
+                : {};
+
+        obj.editor_config = config;
+        obj.version = 1;
+        obj.updatedAt = Date.now();
+
+        if (sceneFields && typeof sceneFields === "object") {
+            const expressionMap =
+                sceneFields.expression_map &&
+                typeof sceneFields.expression_map === "object"
+                    ? sceneFields.expression_map
+                    : sceneFields.live2d_expression_map &&
+                        typeof sceneFields.live2d_expression_map === "object"
+                      ? sceneFields.live2d_expression_map
+                      : null;
+            if (expressionMap) obj.expression_map = expressionMap;
+
+            const motionList = Array.isArray(sceneFields.motion_list)
+                ? sceneFields.motion_list
+                : Array.isArray(sceneFields.live2d_motion_list)
+                  ? sceneFields.live2d_motion_list
+                  : null;
+            if (motionList) obj.motion_list = motionList;
+
+            const permanentExpressions = Array.isArray(
+                sceneFields.permanent_expressions,
+            )
+                ? sceneFields.permanent_expressions
+                : Array.isArray(sceneFields.live2d_permanent_expressions)
+                  ? sceneFields.live2d_permanent_expressions
+                  : null;
+            if (permanentExpressions) {
+                obj.permanent_expressions = permanentExpressions;
             }
         }
-        obj.live2d_editor_config = config;
-        if (sceneFields && typeof sceneFields === "object") {
-            Object.entries(sceneFields).forEach(([k, v]) => {
-                obj[k] = v;
-            });
-        }
-        return JSON.stringify(obj);
+
+        return obj;
     }
 
     function compactLive2DEditorConfig(config: any): any {
@@ -212,17 +233,13 @@
                 parsed?.sceneFields && typeof parsed.sceneFields === "object"
                     ? parsed.sceneFields
                     : {};
-            const merged = mergeLive2DEditorConfigIntoFirstScene(
-                p.first_scene || "",
+            const merged = mergeLive2DConfig(
+                p.live2d_config,
                 config,
                 sceneFields,
             );
-            if (!merged) {
-                toast.warning("Live2D 설정 병합 실패: first_scene JSON 형식 확인 필요");
-                return;
-            }
 
-            p.first_scene = merged;
+            p.live2d_config = merged;
             if (typeof config?.modelUrl === "string" && config.modelUrl.trim()) {
                 p.live2d_model_url = config.modelUrl.trim();
             }
@@ -253,6 +270,7 @@
             updated_at: "",
             creator_name: "",
             first_scene: "",
+            live2d_config: {},
             greeting: "",
             likes_count: 0,
             dislikes_count: 0,
@@ -659,7 +677,12 @@
             k_scenario = draft.k_scenario || "";
             firstSceneJson = draft.firstSceneJson || "";
             selectedVoiceId = draft.selectedVoiceId || "";
-            currentStep = draft.currentStep || 0;
+            const restoredStep = Number(draft.currentStep);
+            if (Number.isFinite(restoredStep)) {
+                currentStep = Math.max(0, Math.min(4, Math.floor(restoredStep)));
+            } else {
+                currentStep = 0;
+            }
             return true;
         } catch (e) {
             return false;

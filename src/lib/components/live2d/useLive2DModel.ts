@@ -205,17 +205,27 @@ export async function applyPermanentExpressions(
     model: any,
     modelUrl: string,
     firstScene?: string,
+    live2dConfig?: any,
 ): Promise<void> {
-    if (!firstScene) return;
-
-    let parsed: any;
-    try {
-        parsed = JSON.parse(firstScene);
-    } catch {
-        return;
+    let expressions: any = null;
+    if (live2dConfig && typeof live2dConfig === "object") {
+        expressions = Array.isArray(live2dConfig.permanent_expressions)
+            ? live2dConfig.permanent_expressions
+            : Array.isArray(live2dConfig.live2d_permanent_expressions)
+              ? live2dConfig.live2d_permanent_expressions
+              : null;
     }
 
-    const expressions = parsed?.live2d_permanent_expressions;
+    if (!expressions && firstScene) {
+        let parsed: any;
+        try {
+            parsed = JSON.parse(firstScene);
+        } catch {
+            parsed = null;
+        }
+        expressions = parsed?.live2d_permanent_expressions;
+    }
+
     if (!Array.isArray(expressions) || expressions.length === 0) return;
 
     const settings = model?.internalModel?.settings;

@@ -128,6 +128,142 @@
                     }
 
                     try {
+                        let cfg: any = null;
+                        if (
+                            p.live2d_config &&
+                            typeof p.live2d_config === "object"
+                        ) {
+                            cfg = p.live2d_config;
+                        } else if (typeof p.live2d_config === "string") {
+                            try {
+                                cfg = JSON.parse(p.live2d_config);
+                            } catch {
+                                cfg = null;
+                            }
+                        }
+
+                        const cfgEditor =
+                            cfg?.editor_config &&
+                            typeof cfg.editor_config === "object"
+                                ? cfg.editor_config
+                                : cfg?.live2d_editor_config &&
+                                    typeof cfg.live2d_editor_config ===
+                                        "object"
+                                  ? cfg.live2d_editor_config
+                                  : null;
+
+                        const cfgMotionList = Array.isArray(cfg?.motion_list)
+                            ? cfg.motion_list
+                            : Array.isArray(cfg?.live2d_motion_list)
+                              ? cfg.live2d_motion_list
+                              : null;
+
+                        const cfgExpressionMap =
+                            cfg?.expression_map &&
+                            typeof cfg.expression_map === "object"
+                                ? cfg.expression_map
+                                : cfg?.live2d_expression_map &&
+                                    typeof cfg.live2d_expression_map ===
+                                        "object"
+                                  ? cfg.live2d_expression_map
+                                  : null;
+
+                        const cfgHitMotionMap =
+                            cfg?.hit_motion_map &&
+                            typeof cfg.hit_motion_map === "object"
+                                ? cfg.hit_motion_map
+                                : cfg?.live2d_hit_motion_map &&
+                                    typeof cfg.live2d_hit_motion_map ===
+                                        "object"
+                                  ? cfg.live2d_hit_motion_map
+                                  : null;
+
+                        const motionByAliasOrFile: Record<string, string> = {};
+                        if (cfgEditor?.motions && typeof cfgEditor.motions === "object") {
+                            Object.values(cfgEditor.motions).forEach((m: any) => {
+                                if (!m || typeof m !== "object") return;
+                                const file =
+                                    typeof m.file === "string" ? m.file.trim() : "";
+                                const alias =
+                                    typeof m.alias === "string"
+                                        ? m.alias.trim()
+                                        : "";
+                                if (!file) return;
+                                if (alias) motionByAliasOrFile[alias] = file;
+                                motionByAliasOrFile[file] = file;
+                                motionByAliasOrFile[file.split("/").pop() || file] =
+                                    file;
+                            });
+                        }
+
+                        const registerMotion = (name: string, file: string) => {
+                            const key = typeof name === "string" ? name.trim() : "";
+                            const resolvedFile =
+                                typeof file === "string" ? file.trim() : "";
+                            if (!key || !resolvedFile) return;
+                            motionMap[key] = resolvedFile;
+                        };
+
+                        if (cfgMotionList) {
+                            cfgMotionList.forEach((m: any) => {
+                                if (!m?.name || !m?.file) return;
+                                let resolved = m.file;
+                                if (
+                                    typeof resolved === "string" &&
+                                    motionByAliasOrFile[resolved]
+                                ) {
+                                    resolved = motionByAliasOrFile[resolved];
+                                }
+                                registerMotion(m.name, resolved);
+                            });
+                        }
+
+                        // Fallback: if motion_list is empty/missing, use editor motion aliases directly.
+                        if (Object.keys(motionMap).length === 0 && cfgEditor?.motions) {
+                            Object.values(cfgEditor.motions).forEach((m: any) => {
+                                if (!m || typeof m !== "object") return;
+                                const file =
+                                    typeof m.file === "string" ? m.file.trim() : "";
+                                if (!file) return;
+                                const alias =
+                                    typeof m.alias === "string"
+                                        ? m.alias.trim()
+                                        : "";
+                                const base = file.split("/").pop() || file;
+                                const stem = base.replace(/\.motion3\.json$/i, "");
+
+                                if (alias) registerMotion(alias, file);
+                                registerMotion(base, file);
+                                registerMotion(stem, file);
+                            });
+                        }
+
+                        if (cfgExpressionMap) {
+                            expressionMap = cfgExpressionMap;
+                        } else if (cfgEditor?.expressions) {
+                            // Fallback: expression map from editor aliases when explicit mapping is absent.
+                            const aliases =
+                                cfgEditor?.expressionAliases &&
+                                typeof cfgEditor.expressionAliases === "object"
+                                    ? cfgEditor.expressionAliases
+                                    : {};
+                            const nextMap: Record<string, string> = {};
+                            Object.entries(cfgEditor.expressions).forEach(
+                                ([name, file]: [string, any]) => {
+                                    if (typeof file !== "string" || !file.trim()) return;
+                                    const alias =
+                                        typeof aliases[name] === "string"
+                                            ? aliases[name].trim()
+                                            : "";
+                                    nextMap[alias || name] = file.trim();
+                                },
+                            );
+                            expressionMap = nextMap;
+                        }
+                        if (cfgHitMotionMap) {
+                            hitMotionMap = cfgHitMotionMap;
+                        }
+
                         if (p.first_scene) {
                             const fs = JSON.parse(p.first_scene);
 
@@ -138,18 +274,25 @@
                             ) {
                                 fs.live2d_motion_list.forEach((m: any) => {
                                     if (m.name && m.file) {
-                                        motionMap[m.name] = m.file;
+                                        let resolved = m.file;
+                                        if (
+                                            typeof resolved === "string" &&
+                                            motionByAliasOrFile[resolved]
+                                        ) {
+                                            resolved = motionByAliasOrFile[resolved];
+                                        }
+                                        motionMap[m.name] = resolved;
                                     }
                                 });
                             }
 
                             // HIT Motions
-                            if (fs.live2d_hit_motion_map) {
+                            if (fs.live2d_hit_motion_map && !cfgHitMotionMap) {
                                 hitMotionMap = fs.live2d_hit_motion_map;
                             }
 
                             // Expressions
-                            if (fs.live2d_expression_map) {
+                            if (fs.live2d_expression_map && !cfgExpressionMap) {
                                 expressionMap = fs.live2d_expression_map;
                             }
                         }

@@ -134,7 +134,23 @@
     }
 
     export function triggerMotion(fileName: string) {
-        const matchedMotion = motionControl.findMotionByFile(fileName);
+        // Accept direct group/index token format too, e.g. "Special [0]" or "[0]".
+        const token = (fileName || "").trim();
+        const groupIndexMatch = token.match(/^(.*?)\s*\[(\d+)\]$/);
+        if (groupIndexMatch) {
+            const group = groupIndexMatch[1].trim();
+            const index = Number(groupIndexMatch[2]);
+            resetToDefault();
+            playMotionTemporarilyEnabled(group, index);
+            const displayGroup = group || "<empty>";
+            debugInfo.lastMotion = `${displayGroup} (${index}): ${fileName}`;
+            debugInfo = debugInfo;
+            return;
+        }
+
+        const matchedMotion =
+            motionControl.findMotionByFile(fileName) ||
+            motionControl.findMotionByFile(fileName.split("/").pop() || fileName);
         if (!matchedMotion) return;
         resetToDefault();
         playMotionTemporarilyEnabled(matchedMotion.group, matchedMotion.index);
@@ -268,6 +284,7 @@
                     model,
                     modelUrl,
                     persona?.first_scene,
+                    persona?.live2d_config,
                 );
             } catch (e: any) {
                 console.error("Failed to initialize Live2D:", e);

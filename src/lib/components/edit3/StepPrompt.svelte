@@ -20,9 +20,11 @@
     export let availableMotions: string[];
     export let kintsugiTemplateId: string;
     export let pendingLoreLinks = new Set<string>();
+    $: void pendingLoreLinks;
 
     let firstSceneTextarea: HTMLTextAreaElement;
     let toggleDialogueTag = false;
+    let isAvatarPersona = false;
 
     const jsonPlaceholder =
         '{"greeting": "안녕하세요!", "expression": "happy", "motion": "idle"}';
@@ -44,6 +46,8 @@
         });
     }
     let activeTab = "prompt"; // prompt, variable, lore
+    $: isAvatarPersona =
+        persona.personaType === "3D" || persona.personaType === "2.5D";
 
     const tabs = [
         {
@@ -77,7 +81,15 @@
                     on:click={() => (activeTab = tab.id)}
                 >
                     <Icon icon={tab.icon} width="18" />
-                    {$t(tab.label, { default: tab.label.split(".").pop() })}
+                    {#if tab.id === "lore" && isAvatarPersona}
+                        {$t("editPage.tabs.advanced", {
+                            default: "고급 설정",
+                        })}
+                    {:else}
+                        {$t(tab.label, {
+                            default: tab.label.split(".").pop(),
+                        })}
+                    {/if}
                 </button>
             {/if}
         {/each}
@@ -85,6 +97,7 @@
 
     <!-- Tab Content -->
     <div class="tab-content" class:active={activeTab === "prompt"}>
+        {#if activeTab === "prompt"}
         <!-- First Scene -->
         <div class="field-group">
             <label for="e3-first-scene" class="field-label">
@@ -97,7 +110,7 @@
                 <span class="required">*</span>
             </label>
 
-            {#if persona.personaType === "3D" || persona.personaType === "2.5D"}
+            {#if isAvatarPersona}
                 {#if persona.personaType === "2.5D"}
                     <p class="field-hint">
                         Live2D 표정/모션 매핑은 `Live2D 고급 편집` 페이지에서
@@ -111,6 +124,8 @@
                     {availableMotions}
                     mode={persona.personaType === "3D" ? "3d" : "live2d"}
                     showLive2DMappingSections={persona.personaType === "3D"}
+                    hideRuntimeStateFields={persona.personaType === "2.5D"}
+                    showAdvancedFieldEditors={false}
                     onChange={(json) => {
                         firstSceneJson = json;
                         persona.first_scene = json;
@@ -181,7 +196,7 @@
         </div>
 
         <!-- Prompt Template (2D only) -->
-        {#if persona.personaType !== "3D" && persona.personaType !== "2.5D"}
+        {#if !isAvatarPersona}
             <div class="field-group">
                 <label for="e3-template" class="field-label">
                     <Icon icon="ph:file-code-duotone" width="18" />
@@ -261,31 +276,65 @@
                 />
             {/if}
         </div>
+        {/if}
     </div>
     <!-- End Prompt Tab -->
 
     <div class="tab-content" class:active={activeTab === "variable"}>
+        {#if activeTab === "variable"}
         <!-- Variable System (Advanced Settings) -->
-        {#if persona.personaType !== "3D" && persona.personaType !== "2.5D"}
+        {#if !isAvatarPersona}
             <VariableEditor bind:persona />
+        {/if}
         {/if}
     </div>
 
     <div class="tab-content" class:active={activeTab === "lore"}>
-        <!-- Lorebook System (Advanced Context) -->
-        <div class="field-group">
-            <label class="field-label">
-                <Icon icon="ph:book-bookmark-duotone" width="18" />
-                {$t("editPage.lorebookLabel", { default: "로어북 (Lorebook)" })}
-            </label>
-            <p class="field-hint">
-                {$t("editPage.lorebookDescription", {
-                    default:
-                        "특정 키워드가 등장할 때 AI에게 추가 정보를 제공합니다.",
-                })}
-            </p>
-            <LoreLinker personaId={persona.id} />
-        </div>
+        {#if activeTab === "lore"}
+            {#if isAvatarPersona}
+                <div class="field-group">
+                    <label class="field-label">
+                        <Icon icon="ph:sliders-horizontal-duotone" width="18" />
+                        고급 캐릭터 설정
+                    </label>
+                    <p class="field-hint">
+                        Live2D/VRM 캐릭터는 로어북 대신 이 탭에서 고급 설정을
+                        관리합니다.
+                    </p>
+                    <FirstSceneBuilder
+                        initialData={persona.first_scene}
+                        {availableExpressions}
+                        {availableMotions}
+                        mode={persona.personaType === "3D" ? "3d" : "live2d"}
+                        showLive2DMappingSections={false}
+                        hideRuntimeStateFields={persona.personaType === "2.5D"}
+                        showCoreFieldEditors={false}
+                        showAdvancedFieldEditors={true}
+                        onChange={(json) => {
+                            firstSceneJson = json;
+                            persona.first_scene = json;
+                        }}
+                    />
+                </div>
+            {:else}
+                <!-- Lorebook System (Advanced Context) -->
+                <div class="field-group">
+                    <label class="field-label">
+                        <Icon icon="ph:book-bookmark-duotone" width="18" />
+                        {$t("editPage.lorebookLabel", {
+                            default: "로어북 (Lorebook)",
+                        })}
+                    </label>
+                    <p class="field-hint">
+                        {$t("editPage.lorebookDescription", {
+                            default:
+                                "특정 키워드가 등장할 때 AI에게 추가 정보를 제공합니다.",
+                        })}
+                    </p>
+                    <LoreLinker personaId={persona.id} />
+                </div>
+            {/if}
+        {/if}
     </div>
 </div>
 

@@ -12,6 +12,7 @@
     // Forward metadata event up
     import { createEventDispatcher } from "svelte";
     const dispatch = createEventDispatcher();
+    $: isLive2DPersona = persona?.personaType === "2.5D";
 
     function openAdvancedLive2DEditor() {
         if (!persona?.id) return;
@@ -24,10 +25,28 @@
 
 <div class="step-media">
     <div class="section-header">
-        <h3>{$t("edit3.media.title")}</h3>
-        <p class="section-desc">
-            {$t("edit3.media.desc")}
-        </p>
+        <div class="header-main">
+            <h3>{$t("edit3.media.title")}</h3>
+            <p class="section-desc">
+                {$t("edit3.media.desc")}
+            </p>
+        </div>
+        {#if isLive2DPersona}
+            <div class="header-actions">
+                <button
+                    class="advanced-btn"
+                    disabled={!persona.id}
+                    on:click={openAdvancedLive2DEditor}
+                >
+                    {$t("Live2D 고급 편집", { default: "Live2D 고급 편집" })}
+                </button>
+                {#if !persona.id}
+                    <p class="hint">
+                        먼저 저장 후 사용
+                    </p>
+                {/if}
+            </div>
+        {/if}
     </div>
 
     <MediaUploadForm
@@ -38,20 +57,6 @@
         on:metadataLoaded
     />
 
-    {#if persona.personaType === "2D" || persona.personaType === "2.5D"}
-        <div class="live2d-advanced">
-            <button
-                class="advanced-btn"
-                disabled={!persona.id}
-                on:click={openAdvancedLive2DEditor}
-            >
-                {$t("Live2D 고급 편집", { default: "Live2D 고급 편집" })}
-            </button>
-            {#if !persona.id}
-                <p class="hint">먼저 페르소나를 저장한 후 사용할 수 있습니다.</p>
-            {/if}
-        </div>
-    {/if}
 </div>
 
 <style>
@@ -68,29 +73,41 @@
         margin: 0 0 0.25rem;
     }
 
+    .section-header {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 0.75rem;
+    }
+
+    .header-main {
+        min-width: 0;
+    }
+
+    .header-actions {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-end;
+        gap: 0.3rem;
+        flex-shrink: 0;
+    }
+
     .section-desc {
         font-size: 0.85rem;
         color: var(--muted-foreground);
         margin: 0;
     }
 
-    .live2d-advanced {
-        margin-top: 0.5rem;
-        display: flex;
-        flex-direction: column;
-        gap: 0.4rem;
-    }
-
     .advanced-btn {
-        align-self: flex-start;
         border: 1px solid var(--border);
-        background: var(--muted);
+        background: var(--card);
         color: var(--foreground);
-        padding: 0.55rem 0.8rem;
+        padding: 0.5rem 0.7rem;
         border-radius: 8px;
-        font-size: 0.85rem;
+        font-size: 0.8rem;
         font-weight: 600;
         cursor: pointer;
+        white-space: nowrap;
     }
 
     .advanced-btn:hover:not(:disabled) {
@@ -104,7 +121,18 @@
 
     .hint {
         margin: 0;
-        font-size: 0.78rem;
+        font-size: 0.72rem;
         color: var(--muted-foreground);
+    }
+
+    @media (max-width: 768px) {
+        .section-header {
+            flex-direction: column;
+            align-items: stretch;
+        }
+
+        .header-actions {
+            align-items: flex-start;
+        }
     }
 </style>

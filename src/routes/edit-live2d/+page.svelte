@@ -310,6 +310,10 @@
             updatedAt: Date.now(),
             config: pxlState,
             sceneFields: {
+                expression_map: sceneExpressionMap,
+                motion_list: sceneMotionList,
+                permanent_expressions: scenePermanentExpressions,
+                // backward-compatible keys
                 live2d_expression_map: sceneExpressionMap,
                 live2d_motion_list: sceneMotionList,
                 live2d_permanent_expressions: scenePermanentExpressions,
@@ -624,6 +628,65 @@
     }
 
     function loadSceneFieldsFromPersona(p: Persona) {
+        let cfg: any = null;
+        if (p.live2d_config && typeof p.live2d_config === "object") {
+            cfg = p.live2d_config;
+        } else if (typeof p.live2d_config === "string") {
+            try {
+                cfg = JSON.parse(p.live2d_config);
+            } catch {
+                cfg = null;
+            }
+        }
+        if (cfg) {
+            const expressionMap =
+                cfg.expression_map && typeof cfg.expression_map === "object"
+                    ? cfg.expression_map
+                    : cfg.live2d_expression_map &&
+                        typeof cfg.live2d_expression_map === "object"
+                      ? cfg.live2d_expression_map
+                      : null;
+            if (expressionMap) {
+                sceneExpressionMap = {
+                    ...sceneExpressionMap,
+                    ...expressionMap,
+                };
+            }
+
+            const motionList = Array.isArray(cfg.motion_list)
+                ? cfg.motion_list
+                : Array.isArray(cfg.live2d_motion_list)
+                  ? cfg.live2d_motion_list
+                  : null;
+            if (motionList) {
+                sceneMotionList = motionList.filter(
+                    (m: any) => m && typeof m === "object",
+                );
+            }
+
+            const permanentExpressions = Array.isArray(cfg.permanent_expressions)
+                ? cfg.permanent_expressions
+                : Array.isArray(cfg.live2d_permanent_expressions)
+                  ? cfg.live2d_permanent_expressions
+                  : null;
+            if (permanentExpressions) {
+                scenePermanentExpressions = permanentExpressions.filter(
+                    (v: any) => typeof v === "string",
+                );
+            }
+
+            const editorConfig =
+                cfg.editor_config && typeof cfg.editor_config === "object"
+                    ? cfg.editor_config
+                    : cfg.live2d_editor_config &&
+                        typeof cfg.live2d_editor_config === "object"
+                      ? cfg.live2d_editor_config
+                      : null;
+            if (editorConfig) {
+                pxlState = normalizePxlState(editorConfig);
+            }
+        }
+
         if (!p.first_scene?.trim()) return;
         try {
             const obj = JSON.parse(p.first_scene);

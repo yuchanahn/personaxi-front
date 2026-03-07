@@ -9,6 +9,15 @@
     export let availableMotions: string[] = [];
     export let mode: "live2d" | "3d" = "live2d";
     export let showLive2DMappingSections = true;
+    export let hideRuntimeStateFields = false;
+    export let showCoreFieldEditors = true;
+    export let showAdvancedFieldEditors = true;
+
+    const DEFAULT_RUNTIME_STATE = {
+        shortTermMemory: "대화 시작 전, 특별한 단기 기억은 없음.",
+        lastAtmosphere: "차분한 시작 분위기.",
+        currentEmotion: "CALM",
+    };
 
     let body_desc = "";
     let anim_list = ""; // Legacy string field, kept for compatibility if needed, or we might auto-generate it.
@@ -42,6 +51,20 @@
     let extra_fields: Record<string, any> = {};
     let live2dExprAliases: Record<string, string> = {};
     let live2dMotionAliasesByFile: Record<string, string> = {};
+    let showAdvancedFields = false;
+    let expandMemList = false;
+    let collapsedFields: Record<string, boolean> = {
+        body_desc: true,
+        core_desire: true,
+        contradiction: true,
+        personality: true,
+        values: true,
+        mem_list: true,
+        emotion_triggers: true,
+        short_term_memory: true,
+        last_atmosphere: true,
+        current_emotion: true,
+    };
 
     function basename(path: string): string {
         if (!path) return "";
@@ -91,6 +114,26 @@
 
     let initialized = false;
 
+    function getEffectiveRuntimeState() {
+        if (!hideRuntimeStateFields) {
+            return {
+                short_term_memory: short_term_memory,
+                last_atmosphere: last_atmosphere,
+                current_emotion: current_emotion,
+            };
+        }
+
+        return {
+            short_term_memory:
+                short_term_memory.trim() ||
+                DEFAULT_RUNTIME_STATE.shortTermMemory,
+            last_atmosphere:
+                last_atmosphere.trim() || DEFAULT_RUNTIME_STATE.lastAtmosphere,
+            current_emotion:
+                current_emotion.trim() || DEFAULT_RUNTIME_STATE.currentEmotion,
+        };
+    }
+
     function generateJson() {
         // Auto-generate human-readable anim_list string from struct
         let generatedAnimList = "";
@@ -121,6 +164,7 @@
 `;
         //[PUFF_CHEEKS] : Puffing cheeks (Pouting, Angry, Cute)
         //[ROLL_EYES] : Rolling eyes (Sarcasm, Annoyance)
+        const runtimeState = getEffectiveRuntimeState();
         const obj = {
             ...extra_fields,
             body_desc,
@@ -131,9 +175,9 @@
             values,
             mem_list,
             emotion_triggers,
-            short_term_memory,
-            last_atmosphere,
-            current_emotion,
+            short_term_memory: runtimeState.short_term_memory,
+            last_atmosphere: runtimeState.last_atmosphere,
+            current_emotion: runtimeState.current_emotion,
             internal_monologue,
             // New Fields
             live2d_expression_map: expression_map,
@@ -154,9 +198,15 @@
         values = "";
         mem_list = "";
         emotion_triggers = "";
-        short_term_memory = "";
-        last_atmosphere = "";
-        current_emotion = "";
+        short_term_memory = hideRuntimeStateFields
+            ? DEFAULT_RUNTIME_STATE.shortTermMemory
+            : "";
+        last_atmosphere = hideRuntimeStateFields
+            ? DEFAULT_RUNTIME_STATE.lastAtmosphere
+            : "";
+        current_emotion = hideRuntimeStateFields
+            ? DEFAULT_RUNTIME_STATE.currentEmotion
+            : "";
         internal_monologue = "";
 
         expression_map = {
@@ -177,6 +227,8 @@
         extra_fields = {};
         live2dExprAliases = {};
         live2dMotionAliasesByFile = {};
+        showAdvancedFields = false;
+        expandMemList = false;
 
         generateJson();
     }
@@ -224,6 +276,17 @@
                 short_term_memory = data.short_term_memory ?? "";
                 last_atmosphere = data.last_atmosphere ?? "";
                 current_emotion = data.current_emotion ?? "";
+                if (hideRuntimeStateFields) {
+                    short_term_memory =
+                        short_term_memory.trim() ||
+                        DEFAULT_RUNTIME_STATE.shortTermMemory;
+                    last_atmosphere =
+                        last_atmosphere.trim() ||
+                        DEFAULT_RUNTIME_STATE.lastAtmosphere;
+                    current_emotion =
+                        current_emotion.trim() ||
+                        DEFAULT_RUNTIME_STATE.currentEmotion;
+                }
                 internal_monologue = data.internal_monologue ?? "";
 
                 const knownKeys = new Set([
@@ -378,6 +441,17 @@
                 short_term_memory = extract("short_term_memory");
                 last_atmosphere = extract("last_atmosphere");
                 current_emotion = extract("current_emotion");
+                if (hideRuntimeStateFields) {
+                    short_term_memory =
+                        short_term_memory.trim() ||
+                        DEFAULT_RUNTIME_STATE.shortTermMemory;
+                    last_atmosphere =
+                        last_atmosphere.trim() ||
+                        DEFAULT_RUNTIME_STATE.lastAtmosphere;
+                    current_emotion =
+                        current_emotion.trim() ||
+                        DEFAULT_RUNTIME_STATE.currentEmotion;
+                }
                 internal_monologue = extract("internal_monologue");
                 live2dExprAliases = {};
                 live2dMotionAliasesByFile = {};
@@ -386,6 +460,11 @@
         } else {
             live2dExprAliases = {};
             live2dMotionAliasesByFile = {};
+            if (hideRuntimeStateFields) {
+                short_term_memory = DEFAULT_RUNTIME_STATE.shortTermMemory;
+                last_atmosphere = DEFAULT_RUNTIME_STATE.lastAtmosphere;
+                current_emotion = DEFAULT_RUNTIME_STATE.currentEmotion;
+            }
             initialized = true;
         }
     });
@@ -417,6 +496,29 @@
             permanent_expressions = [...permanent_expressions, expr];
         }
     }
+
+    function toggleAdvancedFields() {
+        showAdvancedFields = !showAdvancedFields;
+    }
+
+    function toggleMemListExpand() {
+        expandMemList = !expandMemList;
+    }
+
+    function toggleField(field: string) {
+        collapsedFields = {
+            ...collapsedFields,
+            [field]: !collapsedFields[field],
+        };
+    }
+
+    function getFieldPreview(value: string): string {
+        const singleLine = (value || "").replace(/\s+/g, " ").trim();
+        if (!singleLine) return "(비어 있음)";
+        return singleLine.length > 42
+            ? `${singleLine.slice(0, 42)}...`
+            : singleLine;
+    }
 </script>
 
 <div class="first-scene-builder">
@@ -431,29 +533,42 @@
         </div>
     </div>
 
-    <div class="form-group">
-        <div class="field-label">
-            <span class="label-text"
-                >{$t("editPage.characterSettings.bodyDesc")}</span
+    {#if showCoreFieldEditors}
+        <div class="form-group">
+            <button
+                type="button"
+                class="field-collapsible"
+                on:click={() => toggleField("body_desc")}
             >
-            <span class="label-hint"
-                >{$t("editPage.characterSettings.bodyDescHint")}</span
-            >
+                <span class="collapsible-left">
+                    {$t("editPage.characterSettings.bodyDesc")}
+                </span>
+                <span class="collapsible-right">
+                    {getFieldPreview(body_desc)}
+                </span>
+            </button>
+            {#if !collapsedFields.body_desc}
+                <div class="field-label">
+                    <span class="label-hint"
+                        >{$t("editPage.characterSettings.bodyDescHint")}</span
+                    >
+                </div>
+                <textarea
+                    bind:value={body_desc}
+                    rows="3"
+                    maxlength="1000"
+                    placeholder={$t("editPage.characterSettings.bodyDescPlaceholder")}
+                ></textarea>
+                <div
+                    class="char-counter"
+                    class:warning={body_desc.length > 800}
+                    class:error={body_desc.length >= 1000}
+                >
+                    {body_desc.length} / 1000
+                </div>
+            {/if}
         </div>
-        <textarea
-            bind:value={body_desc}
-            rows="3"
-            maxlength="1000"
-            placeholder={$t("editPage.characterSettings.bodyDescPlaceholder")}
-        ></textarea>
-        <div
-            class="char-counter"
-            class:warning={body_desc.length > 800}
-            class:error={body_desc.length >= 1000}
-        >
-            {body_desc.length} / 1000
-        </div>
-    </div>
+    {/if}
 
     <!-- Expression Mapping Section -->
     {#if mode === "live2d" && showLive2DMappingSections && availableExpressions.length > 0}
@@ -617,233 +732,361 @@
         </div>
     {/if} -->
 
-    <div class="form-group">
-        <div class="field-label">
-            <span class="label-text"
-                >{$t("editPage.characterSettings.coreDesire")}</span
+    {#if showCoreFieldEditors}
+        <div class="form-group">
+            <button
+                type="button"
+                class="field-collapsible"
+                on:click={() => toggleField("core_desire")}
             >
-            <span class="label-hint"
-                >{$t("editPage.characterSettings.coreDesireHint")}</span
-            >
+                <span class="collapsible-left">
+                    {$t("editPage.characterSettings.coreDesire")}
+                </span>
+                <span class="collapsible-right">
+                    {getFieldPreview(core_desire)}
+                </span>
+            </button>
+            {#if !collapsedFields.core_desire}
+                <div class="field-label">
+                    <span class="label-hint"
+                        >{$t("editPage.characterSettings.coreDesireHint")}</span
+                    >
+                </div>
+                <textarea
+                    bind:value={core_desire}
+                    rows="2"
+                    maxlength="500"
+                    placeholder={$t("editPage.characterSettings.coreDesirePlaceholder")}
+                ></textarea>
+                <div
+                    class="char-counter"
+                    class:warning={core_desire.length > 400}
+                    class:error={core_desire.length >= 500}
+                >
+                    {core_desire.length} / 500
+                </div>
+            {/if}
         </div>
-        <textarea
-            bind:value={core_desire}
-            rows="2"
-            maxlength="500"
-            placeholder={$t("editPage.characterSettings.coreDesirePlaceholder")}
-        ></textarea>
-        <div
-            class="char-counter"
-            class:warning={core_desire.length > 400}
-            class:error={core_desire.length >= 500}
-        >
-            {core_desire.length} / 500
-        </div>
-    </div>
 
-    <div class="form-group">
-        <div class="field-label">
-            <span class="label-text"
-                >{$t("editPage.characterSettings.contradiction")}</span
+        <div class="form-group">
+            <button
+                type="button"
+                class="field-collapsible"
+                on:click={() => toggleField("contradiction")}
             >
-            <span class="label-hint"
-                >{$t("editPage.characterSettings.contradictionHint")}</span
-            >
+                <span class="collapsible-left">
+                    {$t("editPage.characterSettings.contradiction")}
+                </span>
+                <span class="collapsible-right">
+                    {getFieldPreview(contradiction)}
+                </span>
+            </button>
+            {#if !collapsedFields.contradiction}
+                <div class="field-label">
+                    <span class="label-hint"
+                        >{$t("editPage.characterSettings.contradictionHint")}</span
+                    >
+                </div>
+                <textarea
+                    bind:value={contradiction}
+                    rows="2"
+                    maxlength="500"
+                    placeholder={$t(
+                        "editPage.characterSettings.contradictionPlaceholder",
+                    )}
+                ></textarea>
+                <div
+                    class="char-counter"
+                    class:warning={contradiction.length > 400}
+                    class:error={contradiction.length >= 500}
+                >
+                    {contradiction.length} / 500
+                </div>
+            {/if}
         </div>
-        <textarea
-            bind:value={contradiction}
-            rows="2"
-            maxlength="500"
-            placeholder={$t(
-                "editPage.characterSettings.contradictionPlaceholder",
-            )}
-        ></textarea>
-        <div
-            class="char-counter"
-            class:warning={contradiction.length > 400}
-            class:error={contradiction.length >= 500}
-        >
-            {contradiction.length} / 500
-        </div>
-    </div>
 
-    <div class="form-group">
-        <div class="field-label">
-            <span class="label-text"
-                >{$t("editPage.characterSettings.personality")}</span
+        <div class="form-group">
+            <button
+                type="button"
+                class="field-collapsible"
+                on:click={() => toggleField("personality")}
             >
-            <span class="label-hint"
-                >{$t("editPage.characterSettings.personalityHint")}</span
-            >
+                <span class="collapsible-left">
+                    {$t("editPage.characterSettings.personality")}
+                </span>
+                <span class="collapsible-right">
+                    {getFieldPreview(personality)}
+                </span>
+            </button>
+            {#if !collapsedFields.personality}
+                <div class="field-label">
+                    <span class="label-hint"
+                        >{$t("editPage.characterSettings.personalityHint")}</span
+                    >
+                </div>
+                <textarea
+                    bind:value={personality}
+                    rows="3"
+                    maxlength="1000"
+                    placeholder={$t(
+                        "editPage.characterSettings.personalityPlaceholder",
+                    )}
+                ></textarea>
+                <div
+                    class="char-counter"
+                    class:warning={personality.length > 800}
+                    class:error={personality.length >= 1000}
+                >
+                    {personality.length} / 1000
+                </div>
+            {/if}
         </div>
-        <textarea
-            bind:value={personality}
-            rows="3"
-            maxlength="1000"
-            placeholder={$t(
-                "editPage.characterSettings.personalityPlaceholder",
-            )}
-        ></textarea>
-        <div
-            class="char-counter"
-            class:warning={personality.length > 800}
-            class:error={personality.length >= 1000}
-        >
-            {personality.length} / 1000
-        </div>
-    </div>
 
-    <div class="form-group">
-        <div class="field-label">
-            <span class="label-text"
-                >{$t("editPage.characterSettings.values")}</span
+        <div class="form-group">
+            <button
+                type="button"
+                class="field-collapsible"
+                on:click={() => toggleField("values")}
             >
-            <span class="label-hint"
-                >{$t("editPage.characterSettings.valuesHint")}</span
-            >
+                <span class="collapsible-left">
+                    {$t("editPage.characterSettings.values")}
+                </span>
+                <span class="collapsible-right">
+                    {getFieldPreview(values)}
+                </span>
+            </button>
+            {#if !collapsedFields.values}
+                <div class="field-label">
+                    <span class="label-hint"
+                        >{$t("editPage.characterSettings.valuesHint")}</span
+                    >
+                </div>
+                <textarea
+                    bind:value={values}
+                    rows="2"
+                    maxlength="500"
+                    placeholder={$t("editPage.characterSettings.valuesPlaceholder")}
+                ></textarea>
+                <div
+                    class="char-counter"
+                    class:warning={values.length > 400}
+                    class:error={values.length >= 500}
+                >
+                    {values.length} / 500
+                </div>
+            {/if}
         </div>
-        <textarea
-            bind:value={values}
-            rows="2"
-            maxlength="500"
-            placeholder={$t("editPage.characterSettings.valuesPlaceholder")}
-        ></textarea>
-        <div
-            class="char-counter"
-            class:warning={values.length > 400}
-            class:error={values.length >= 500}
-        >
-            {values.length} / 500
-        </div>
-    </div>
+    {/if}
 
-    <div class="form-group">
-        <div class="field-label">
-            <span class="label-text"
-                >{$t("editPage.characterSettings.memList")}</span
-            >
-            <span class="label-hint"
-                >{$t("editPage.characterSettings.memListHint")}</span
+    {#if showAdvancedFieldEditors}
+        <div class="advanced-toggle-row">
+            <button
+                type="button"
+                class="btn-util"
+                on:click={toggleAdvancedFields}
+                >{showAdvancedFields
+                    ? "고급 항목 접기"
+                    : "고급 항목 펼치기"}</button
             >
         </div>
-        <textarea
-            bind:value={mem_list}
-            rows="4"
-            maxlength="2000"
-            placeholder={$t("editPage.characterSettings.memListPlaceholder")}
-        ></textarea>
-        <div
-            class="char-counter"
-            class:warning={mem_list.length > 1800}
-            class:error={mem_list.length >= 2000}
-        >
-            {mem_list.length} / 2000
-        </div>
-    </div>
+    {/if}
 
-    <div class="form-group">
-        <div class="field-label">
-            <span class="label-text"
-                >{$t("editPage.characterSettings.emotionTriggers")}</span
+    {#if showAdvancedFieldEditors && showAdvancedFields}
+        <div class="form-group">
+            <button
+                type="button"
+                class="field-collapsible"
+                on:click={() => toggleField("mem_list")}
             >
-            <span class="label-hint"
-                >{$t("editPage.characterSettings.emotionTriggersHint")}</span
-            >
+                <span class="collapsible-left">
+                    {$t("editPage.characterSettings.memList")}
+                </span>
+                <span class="collapsible-right">
+                    {getFieldPreview(mem_list)}
+                </span>
+            </button>
+            {#if !collapsedFields.mem_list}
+                <div class="field-label">
+                    <span class="label-hint"
+                        >{$t("editPage.characterSettings.memListHint")}</span
+                    >
+                </div>
+                <textarea
+                    bind:value={mem_list}
+                    rows={expandMemList ? 8 : 3}
+                    maxlength="2000"
+                    placeholder={$t("editPage.characterSettings.memListPlaceholder")}
+                ></textarea>
+                <div class="advanced-toggle-row compact">
+                    <button
+                        type="button"
+                        class="btn-util"
+                        on:click={toggleMemListExpand}
+                        >{expandMemList
+                            ? "기억 목록 접기"
+                            : "기억 목록 더보기"}</button
+                    >
+                </div>
+                <div
+                    class="char-counter"
+                    class:warning={mem_list.length > 1800}
+                    class:error={mem_list.length >= 2000}
+                >
+                    {mem_list.length} / 2000
+                </div>
+            {/if}
         </div>
-        <textarea
-            bind:value={emotion_triggers}
-            rows="2"
-            maxlength="500"
-            placeholder={$t(
-                "editPage.characterSettings.emotionTriggersPlaceholder",
-            )}
-        ></textarea>
-        <div
-            class="char-counter"
-            class:warning={emotion_triggers.length > 400}
-            class:error={emotion_triggers.length >= 500}
-        >
-            {emotion_triggers.length} / 500
-        </div>
-    </div>
 
-    <div class="form-group">
-        <div class="field-label">
-            <span class="label-text"
-                >{$t("editPage.characterSettings.shortTermMemory")}</span
+        <div class="form-group">
+            <button
+                type="button"
+                class="field-collapsible"
+                on:click={() => toggleField("emotion_triggers")}
             >
-            <span class="label-hint"
-                >{$t("editPage.characterSettings.shortTermMemoryHint")}</span
-            >
+                <span class="collapsible-left">
+                    {$t("editPage.characterSettings.emotionTriggers")}
+                </span>
+                <span class="collapsible-right">
+                    {getFieldPreview(emotion_triggers)}
+                </span>
+            </button>
+            {#if !collapsedFields.emotion_triggers}
+                <div class="field-label">
+                    <span class="label-hint"
+                        >{$t("editPage.characterSettings.emotionTriggersHint")}</span
+                    >
+                </div>
+                <textarea
+                    bind:value={emotion_triggers}
+                    rows="2"
+                    maxlength="500"
+                    placeholder={$t(
+                        "editPage.characterSettings.emotionTriggersPlaceholder",
+                    )}
+                ></textarea>
+                <div
+                    class="char-counter"
+                    class:warning={emotion_triggers.length > 400}
+                    class:error={emotion_triggers.length >= 500}
+                >
+                    {emotion_triggers.length} / 500
+                </div>
+            {/if}
         </div>
-        <textarea
-            bind:value={short_term_memory}
-            rows="3"
-            maxlength="1000"
-            placeholder={$t(
-                "editPage.characterSettings.shortTermMemoryPlaceholder",
-            )}
-        ></textarea>
-        <div
-            class="char-counter"
-            class:warning={short_term_memory.length > 800}
-            class:error={short_term_memory.length >= 1000}
-        >
-            {short_term_memory.length} / 1000
-        </div>
-    </div>
 
-    <div class="form-group">
-        <div class="field-label">
-            <span class="label-text"
-                >{$t("editPage.characterSettings.lastAtmosphere")}</span
-            >
-            <span class="label-hint"
-                >{$t("editPage.characterSettings.lastAtmosphereHint")}</span
-            >
-        </div>
-        <textarea
-            bind:value={last_atmosphere}
-            rows="2"
-            maxlength="300"
-            placeholder={$t(
-                "editPage.characterSettings.lastAtmospherePlaceholder",
-            )}
-        ></textarea>
-        <div
-            class="char-counter"
-            class:warning={last_atmosphere.length > 250}
-            class:error={last_atmosphere.length >= 300}
-        >
-            {last_atmosphere.length} / 300
-        </div>
-    </div>
+        {#if !hideRuntimeStateFields}
+            <div class="form-group">
+                <button
+                    type="button"
+                    class="field-collapsible"
+                    on:click={() => toggleField("short_term_memory")}
+                >
+                    <span class="collapsible-left">
+                        {$t("editPage.characterSettings.shortTermMemory")}
+                    </span>
+                    <span class="collapsible-right">
+                        {getFieldPreview(short_term_memory)}
+                    </span>
+                </button>
+                {#if !collapsedFields.short_term_memory}
+                    <div class="field-label">
+                        <span class="label-hint"
+                            >{$t("editPage.characterSettings.shortTermMemoryHint")}</span
+                        >
+                    </div>
+                    <textarea
+                        bind:value={short_term_memory}
+                        rows="3"
+                        maxlength="1000"
+                        placeholder={$t(
+                            "editPage.characterSettings.shortTermMemoryPlaceholder",
+                        )}
+                    ></textarea>
+                    <div
+                        class="char-counter"
+                        class:warning={short_term_memory.length > 800}
+                        class:error={short_term_memory.length >= 1000}
+                    >
+                        {short_term_memory.length} / 1000
+                    </div>
+                {/if}
+            </div>
 
-    <div class="form-group">
-        <div class="field-label">
-            <span class="label-text"
-                >{$t("editPage.characterSettings.currentEmotion")}</span
-            >
-            <span class="label-hint"
-                >{$t("editPage.characterSettings.currentEmotionHint")}</span
-            >
-        </div>
-        <textarea
-            bind:value={current_emotion}
-            rows="2"
-            maxlength="200"
-            placeholder={$t(
-                "editPage.characterSettings.currentEmotionPlaceholder",
-            )}
-        ></textarea>
-        <div
-            class="char-counter"
-            class:warning={current_emotion.length > 180}
-            class:error={current_emotion.length >= 200}
-        >
-            {current_emotion.length} / 200
-        </div>
-    </div>
+            <div class="form-group">
+                <button
+                    type="button"
+                    class="field-collapsible"
+                    on:click={() => toggleField("last_atmosphere")}
+                >
+                    <span class="collapsible-left">
+                        {$t("editPage.characterSettings.lastAtmosphere")}
+                    </span>
+                    <span class="collapsible-right">
+                        {getFieldPreview(last_atmosphere)}
+                    </span>
+                </button>
+                {#if !collapsedFields.last_atmosphere}
+                    <div class="field-label">
+                        <span class="label-hint"
+                            >{$t("editPage.characterSettings.lastAtmosphereHint")}</span
+                        >
+                    </div>
+                    <textarea
+                        bind:value={last_atmosphere}
+                        rows="2"
+                        maxlength="300"
+                        placeholder={$t(
+                            "editPage.characterSettings.lastAtmospherePlaceholder",
+                        )}
+                    ></textarea>
+                    <div
+                        class="char-counter"
+                        class:warning={last_atmosphere.length > 250}
+                        class:error={last_atmosphere.length >= 300}
+                    >
+                        {last_atmosphere.length} / 300
+                    </div>
+                {/if}
+            </div>
+
+            <div class="form-group">
+                <button
+                    type="button"
+                    class="field-collapsible"
+                    on:click={() => toggleField("current_emotion")}
+                >
+                    <span class="collapsible-left">
+                        {$t("editPage.characterSettings.currentEmotion")}
+                    </span>
+                    <span class="collapsible-right">
+                        {getFieldPreview(current_emotion)}
+                    </span>
+                </button>
+                {#if !collapsedFields.current_emotion}
+                    <div class="field-label">
+                        <span class="label-hint"
+                            >{$t("editPage.characterSettings.currentEmotionHint")}</span
+                        >
+                    </div>
+                    <textarea
+                        bind:value={current_emotion}
+                        rows="2"
+                        maxlength="200"
+                        placeholder={$t(
+                            "editPage.characterSettings.currentEmotionPlaceholder",
+                        )}
+                    ></textarea>
+                    <div
+                        class="char-counter"
+                        class:warning={current_emotion.length > 180}
+                        class:error={current_emotion.length >= 200}
+                    >
+                        {current_emotion.length} / 200
+                    </div>
+                {/if}
+            </div>
+        {/if}
+    {/if}
 </div>
 
 <style>
@@ -887,12 +1130,6 @@
         justify-content: space-between;
         align-items: center;
         margin-bottom: 0.5rem;
-    }
-
-    .label-text {
-        font-weight: 600;
-        font-size: 0.9rem;
-        color: var(--foreground);
     }
 
     .label-hint {
@@ -955,6 +1192,49 @@
     .btn-util:hover {
         opacity: 0.85;
         transform: translateY(-1px);
+    }
+
+    .field-collapsible {
+        width: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 0.75rem;
+        text-align: left;
+        padding: 0.7rem 0.8rem;
+        border: 1px solid var(--border-input);
+        border-radius: var(--radius-input);
+        background: var(--input);
+        color: var(--foreground);
+        cursor: pointer;
+    }
+
+    .field-collapsible:hover {
+        border-color: var(--primary);
+    }
+
+    .collapsible-left {
+        font-size: 0.88rem;
+        font-weight: 700;
+    }
+
+    .collapsible-right {
+        font-size: 0.78rem;
+        color: var(--muted-foreground);
+        max-width: 65%;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .advanced-toggle-row {
+        display: flex;
+        justify-content: flex-end;
+        margin-top: -0.25rem;
+    }
+
+    .advanced-toggle-row.compact {
+        margin-top: 0.5rem;
     }
 
     /* New Styles */
@@ -1074,9 +1354,4 @@
         color: var(--destructive);
     }
 
-    textarea.readonly {
-        background-color: var(--muted);
-        opacity: 0.7;
-        pointer-events: none;
-    }
 </style>
