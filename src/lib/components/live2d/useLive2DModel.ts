@@ -68,33 +68,36 @@ async function resolveEncryptedModelUrl(url: string): Promise<string> {
 
     const replacePaths = async (obj: any) => {
         if (Array.isArray(obj)) {
-            for (let i = 0; i < obj.length; i++) {
-                if (
-                    typeof obj[i] === "string" &&
-                    obj[i].match(/\.(moc3|png|jpg|jpeg|tga|atlas|json)$/i)
-                ) {
-                    obj[i] = await createDecryptedDataUrl(obj[i]);
-                } else if (typeof obj[i] === "object" && obj[i] !== null) {
-                    await replacePaths(obj[i]);
-                }
-            }
+            await Promise.all(
+                obj.map(async (item, i) => {
+                    if (
+                        typeof item === "string" &&
+                        item.match(/\.(moc3|png|jpg|jpeg|tga|atlas|json)$/i)
+                    ) {
+                        obj[i] = await createDecryptedDataUrl(item);
+                    } else if (typeof item === "object" && item !== null) {
+                        await replacePaths(item);
+                    }
+                }),
+            );
             return;
         }
 
         if (typeof obj === "object" && obj !== null) {
-            for (const key of Object.keys(obj)) {
-                if (
-                    typeof obj[key] === "string" &&
-                    obj[key].match(/\.(moc3|png|jpg|jpeg|tga|atlas|json)$/i)
-                ) {
-                    obj[key] = await createDecryptedDataUrl(obj[key]);
-                } else if (
-                    typeof obj[key] === "object" &&
-                    obj[key] !== null
-                ) {
-                    await replacePaths(obj[key]);
-                }
-            }
+            const keys = Object.keys(obj);
+            await Promise.all(
+                keys.map(async (key) => {
+                    const value = obj[key];
+                    if (
+                        typeof value === "string" &&
+                        value.match(/\.(moc3|png|jpg|jpeg|tga|atlas|json)$/i)
+                    ) {
+                        obj[key] = await createDecryptedDataUrl(value);
+                    } else if (typeof value === "object" && value !== null) {
+                        await replacePaths(value);
+                    }
+                }),
+            );
         }
     };
 
