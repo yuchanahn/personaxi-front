@@ -490,6 +490,35 @@
             width: min(312px, 34vw);
             padding: 0 0 26px 0;
             z-index: 12;
+            color: var(--text-primary);
+        }
+
+        .creator-badge {
+            background: color-mix(in srgb, var(--card) 88%, transparent);
+            color: var(--text-primary);
+            border: 1px solid color-mix(in srgb, var(--border) 85%, transparent);
+            backdrop-filter: blur(8px);
+        }
+
+        .creator-badge:hover {
+            background: color-mix(in srgb, var(--card) 96%, transparent);
+        }
+
+        .name {
+            color: var(--text-primary);
+            text-shadow: none;
+        }
+
+        .one-liner {
+            color: var(--text-secondary);
+        }
+
+        .greeting-fallback {
+            color: var(--text-tertiary);
+        }
+
+        .stat {
+            color: var(--text-secondary);
         }
 
         .actions-area {
@@ -533,18 +562,30 @@
 
         .side-icon-btn {
             display: flex;
-            background: rgba(16, 18, 26, 0.78);
-            color: #fff;
+            background: color-mix(in srgb, var(--foreground) 14%, var(--card));
+            color: var(--text-primary);
+            border: 1px solid color-mix(in srgb, var(--border) 85%, transparent);
         }
 
         .like-btn {
             display: flex;
-            background: rgba(16, 18, 26, 0.9);
-            color: #fff;
+            background: color-mix(in srgb, var(--foreground) 14%, var(--card));
+            color: var(--text-primary);
+            border: 1px solid color-mix(in srgb, var(--border) 85%, transparent);
         }
 
         .like-btn.liked {
             color: #ff4b7d;
+        }
+
+        .chat-btn {
+            border: 1px solid color-mix(in srgb, var(--border) 85%, transparent);
+        }
+
+        .info-btn {
+            background: color-mix(in srgb, var(--foreground) 14%, var(--card));
+            color: var(--text-primary);
+            border: 1px solid color-mix(in srgb, var(--border) 85%, transparent);
         }
     }
 </style>

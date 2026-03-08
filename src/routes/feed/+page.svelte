@@ -206,8 +206,9 @@
         gap: 8px;
         padding: 6px;
         border-radius: 999px;
-        background: rgba(0, 0, 0, 0.45);
+        background: color-mix(in srgb, var(--foreground) 20%, transparent);
         backdrop-filter: blur(10px);
+        border: 1px solid color-mix(in srgb, var(--foreground) 18%, transparent);
     }
 
     .sort-controls button {
@@ -217,7 +218,7 @@
         font-size: 12px;
         line-height: 1;
         font-weight: 600;
-        color: rgba(255, 255, 255, 0.7);
+        color: color-mix(in srgb, var(--card) 82%, transparent);
         background: transparent;
         cursor: pointer;
         white-space: nowrap;
@@ -225,8 +226,8 @@
     }
 
     .sort-controls button.active {
-        color: #fff;
-        background: rgba(255, 255, 255, 0.18);
+        color: var(--card);
+        background: color-mix(in srgb, var(--card) 24%, transparent);
     }
 
     .loading-indicator {
