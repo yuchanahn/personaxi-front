@@ -4,11 +4,17 @@
     import Icon from "@iconify/svelte";
     import { goto } from "$app/navigation";
     import AssetPreview from "$lib/components/AssetPreview.svelte";
+    import { toast } from "$lib/stores/toast";
+    import { t } from "svelte-i18n";
+    import { get } from "svelte/store";
+    import { api } from "$lib/api";
 
     export let persona: Persona;
     export let isActive: boolean = false;
+    export let isLiked: boolean = false;
 
     const dispatch = createEventDispatcher();
+    let liking = false;
 
     // -- Image Cycling --
     let currentImageIndex = 0;
@@ -70,13 +76,14 @@
         if (typewriterInterval) clearInterval(typewriterInterval);
     }
 
-    $: if (isActive) {
+    $: if (isActive && persona?.id) {
         startImageCycle();
         startTypewriter();
     } else {
         stopImageCycle();
         stopTypewriter();
         currentImageIndex = 0; // Reset image
+        displayedText = persona?.one_liner || persona?.greeting || "";
         // Reset text? Maybe not, keeps it smooth if scrolling back
     }
 
@@ -104,10 +111,51 @@
             goto(`/live2d?c=${persona.id}`);
         }
     }
+
+    async function handleShare(e: MouseEvent) {
+        e.stopPropagation();
+        const shareUrl = `${window.location.origin}/profile?c=${persona.id}`;
+        try {
+            await navigator.clipboard.writeText(shareUrl);
+            toast.success(get(t)("profilePage.linkCopied"));
+        } catch {
+            toast.error(get(t)("profilePage.linkCopyFailed"));
+        }
+    }
+
+    async function handleLike(e: MouseEvent) {
+        e.stopPropagation();
+        if (liking) return;
+        liking = true;
+        const prevLikes = persona.likes_count ?? 0;
+        const prevLiked = isLiked;
+        const nextLiked = !prevLiked;
+
+        isLiked = nextLiked;
+        persona = {
+            ...persona,
+            likes_count: Math.max(0, prevLikes + (nextLiked ? 1 : -1)),
+        };
+
+        try {
+            const endpoint = nextLiked ? "like" : "dislike";
+            const res = await api.get(`/api/persona/${endpoint}?id=${persona.id}`);
+            if (!res.ok) {
+                const errorText = await res.text();
+                throw new Error(errorText || "Like toggle failed");
+            }
+            dispatch("toggleLike", { id: persona.id, liked: nextLiked });
+        } catch (err) {
+            isLiked = prevLiked;
+            persona = { ...persona, likes_count: prevLikes };
+            toast.error(err instanceof Error ? err.message : "Like failed");
+        } finally {
+            liking = false;
+        }
+    }
 </script>
 
 <div class="feed-item" on:click={() => dispatch("click")}>
-    <!-- Background Image -->
     <div class="image-layer">
         {#if images.length > 0}
             {#key currentImageIndex}
@@ -119,7 +167,6 @@
         <div class="gradient-overlay"></div>
     </div>
 
-    <!-- Info Overlay -->
     <div class="info-layer">
         <div class="header">
             <div class="creator-badge" on:click={handleCreatorClick}>
@@ -168,19 +215,30 @@
                 </div>
             </div>
         </div>
+    </div>
 
-        <div class="actions-area">
-            <button class="action-btn chat-btn" on:click={handleChat}>
-                <Icon icon="ph:chat-circle-text-fill" width="24" />
-                <span>Chat</span>
-            </button>
-            <button
-                class="action-btn info-btn"
-                on:click={() => goto(`/profile?c=${persona.id}`)}
-            >
-                <Icon icon="ph:info" width="24" />
-            </button>
-        </div>
+    <div class="actions-area">
+        <button
+            class="action-btn like-btn"
+            class:liked={isLiked}
+            type="button"
+            on:click={handleLike}
+        >
+            <Icon icon={isLiked ? "mdi:heart" : "mdi:heart-outline"} width="24" />
+        </button>
+        <button class="action-btn side-icon-btn" on:click={handleShare}>
+            <Icon icon="ph:share-network" width="22" />
+        </button>
+        <button class="action-btn chat-btn" on:click={handleChat}>
+            <Icon icon="ph:chat-circle-text-fill" width="24" />
+            <span>Chat</span>
+        </button>
+        <button
+            class="action-btn info-btn"
+            on:click={() => goto(`/profile?c=${persona.id}`)}
+        >
+            <Icon icon="ph:info" width="24" />
+        </button>
     </div>
 </div>
 
@@ -188,9 +246,10 @@
     .feed-item {
         position: relative;
         width: 100%;
-        height: 100%; /* Parent should be h-screen or 100% of container */
+        height: 100%;
         background-color: #000;
         overflow: hidden;
+        border-radius: 24px;
         scroll-snap-align: start;
         flex-shrink: 0;
     }
@@ -342,9 +401,14 @@
     }
 
     .actions-area {
+        position: absolute;
+        left: 20px;
+        right: 20px;
+        bottom: calc(86px + env(safe-area-inset-bottom));
         display: flex;
         gap: 12px;
-        margin-top: 16px;
+        margin-top: 0;
+        z-index: 12;
     }
 
     .action-btn {
@@ -375,5 +439,112 @@
         background: rgba(255, 255, 255, 0.2);
         color: white;
         backdrop-filter: blur(5px);
+    }
+
+    .side-stat-btn,
+    .side-icon-btn {
+        display: none;
+    }
+
+    .like-btn {
+        display: none;
+    }
+
+    @media (min-width: 1024px) {
+        .feed-item {
+            border-radius: 0;
+            overflow: visible;
+            background: transparent;
+            position: relative;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        .image-layer {
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: min(560px, calc(100dvh * 9 / 16));
+            height: 100dvh;
+            border-radius: 18px 18px 0 0;
+            overflow: hidden;
+        }
+
+        .fade-in {
+            border-radius: 18px 18px 0 0;
+            overflow: hidden;
+        }
+
+        .gradient-overlay {
+            height: 32%;
+        }
+
+        .info-layer {
+            position: absolute;
+            left: max(
+                16px,
+                calc(50% - (min(560px, calc(100dvh * 9 / 16)) / 2) - 332px)
+            );
+            bottom: 24px;
+            width: min(312px, 34vw);
+            padding: 0 0 26px 0;
+            z-index: 12;
+        }
+
+        .actions-area {
+            position: absolute;
+            left: auto;
+            right: max(
+                16px,
+                calc(50% - (min(560px, calc(100dvh * 9 / 16)) / 2) - 74px)
+            );
+            bottom: 24px;
+            width: auto;
+            margin-top: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            z-index: 14;
+        }
+
+        .action-btn {
+            min-width: 54px;
+            width: 54px;
+            height: 54px;
+            border-radius: 999px;
+            padding: 0;
+        }
+
+        .chat-btn {
+            flex: none;
+            background: rgba(255, 255, 255, 0.9);
+            color: #111;
+        }
+
+        .chat-btn span {
+            display: none;
+        }
+
+        .info-btn {
+            width: 52px;
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .side-icon-btn {
+            display: flex;
+            background: rgba(16, 18, 26, 0.78);
+            color: #fff;
+        }
+
+        .like-btn {
+            display: flex;
+            background: rgba(16, 18, 26, 0.9);
+            color: #fff;
+        }
+
+        .like-btn.liked {
+            color: #ff4b7d;
+        }
     }
 </style>

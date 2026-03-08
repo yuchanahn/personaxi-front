@@ -41,8 +41,8 @@ export async function loadContent(page: number, limit: number, sort: string = 'l
     return [];
 }
 
-export async function loadContentPaged(limit: number, offset: number) {
-    const res = await api.get2(`/api/contents?locale=${get(settings).language}&limit=${limit}&offset=${offset}`);
+export async function loadContentPaged(limit: number, offset: number, sort: string = "popular") {
+    const res = await api.get2(`/api/contents?locale=${get(settings).language}&limit=${limit}&offset=${offset}&sort=${sort}`);
     if (res.ok) {
         const data = await res.json();
         if (data === null) {
