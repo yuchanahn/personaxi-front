@@ -325,6 +325,15 @@
               ? "ph:monitor-play-duotone"
               : "ph:image-duotone";
 
+    $: normalizedPersonaType = (persona?.personaType || "")
+        .trim()
+        .toLowerCase();
+    $: isModelPersonaType =
+        normalizedPersonaType === "3d" ||
+        normalizedPersonaType === "2.5d" ||
+        normalizedPersonaType === "vrm3d" ||
+        normalizedPersonaType === "live2d";
+
     $: categoryTags =
         persona?.tags?.filter((t: string) => parseInt(t) < 1000) || [];
     $: regularTags =
@@ -454,6 +463,15 @@
                             <p class="one-liner">{persona.one_liner}</p>
                         {/if}
 
+                        {#if persona.personaType === "2.5D"}
+                            <div class="live2d-rights-notice">
+                                <Icon icon="ph:shield-check-duotone" />
+                                <p>
+                                    {$t("profilePage.live2dRightsNotice")}
+                                </p>
+                            </div>
+                        {/if}
+
                         {#if persona.creator_name}
                             <button
                                 class="creator-chip"
@@ -469,11 +487,16 @@
                             >
                                 <Icon icon="ph:user-circle-duotone" />
                                 <span
-                                    >{$t("profilePage.creatorInfo", {
+                                    >{$t(
+                                        isModelPersonaType
+                                            ? "profilePage.uploaderInfo"
+                                            : "profilePage.creatorInfo",
+                                        {
                                         values: {
                                             creatorName: persona.creator_name,
                                         },
-                                    })}</span
+                                    },
+                                    )}</span
                                 >
                                 <Icon icon="ph:arrow-right-bold" />
                             </button>
@@ -972,6 +995,22 @@
         flex-direction: column;
         justify-content: center;
         padding-top: 1rem;
+    }
+    .live2d-rights-notice {
+        margin: 0.3rem 0 0.8rem;
+        display: flex;
+        align-items: flex-start;
+        gap: 0.45rem;
+        padding: 0.65rem 0.75rem;
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        background: var(--secondary);
+        color: var(--foreground);
+        font-size: 0.82rem;
+        line-height: 1.35;
+    }
+    .live2d-rights-notice p {
+        margin: 0;
     }
 
     .type-badge {

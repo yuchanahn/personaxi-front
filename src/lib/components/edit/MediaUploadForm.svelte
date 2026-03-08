@@ -3,7 +3,6 @@
     import Icon from "@iconify/svelte";
     import AssetPreview from "$lib/components/AssetPreview.svelte";
     import { toast } from "$lib/stores/toast";
-    import { confirmStore } from "$lib/stores/confirm";
     import { validateVRMLicense } from "$lib/utils/editPageUtils";
     import { extractFirstFrame, checkVideoDuration } from "$lib/utils/media";
     import { FFmpegManager } from "$lib/utils/ffmpeg";
@@ -12,6 +11,7 @@
         uploadFileWithProgress,
         uploadLive2DZip,
     } from "$lib/api/edit_persona";
+    import VoiceClonePanel from "$lib/components/edit/VoiceClonePanel.svelte";
     import type { ImageMetadata, Persona } from "$lib/types";
 
     export let persona: Persona;
@@ -38,6 +38,16 @@
     let assets_progress: Map<number, number> = new Map();
     let error = "";
     let copiedState = new Map<number, boolean>();
+    let modelRightsConfirmed = false;
+    let modelLicenseConfirmed = false;
+
+    $: normalizedPersonaType = (persona.personaType || "").trim().toLowerCase();
+    $: isModelPersona =
+        (normalizedPersonaType === "3d" ||
+            normalizedPersonaType === "2.5d" ||
+            normalizedPersonaType === "vrm3d" ||
+            normalizedPersonaType === "live2d") &&
+        persona.contentType !== "story";
 
     // Initial portrait preview from persona
     $: if (persona.portrait_url && !portraitPreview) {
@@ -312,15 +322,22 @@
     const dispatch = createEventDispatcher();
 
     async function handleVRMUploadClick() {
-        if (await confirmStore.ask($t("editPage.vrmLicenseWarning"))) {
-            vrmInput.click();
-        }
+        if (!ensureModelRightsAgreement()) return;
+        vrmInput.click();
     }
 
     async function handleLive2DUploadClick() {
-        if (await confirmStore.ask($t("editPage.licenseUploadWarning"))) {
-            document.getElementById("live2d-file")?.click();
+        if (!ensureModelRightsAgreement()) return;
+        document.getElementById("live2d-file")?.click();
+    }
+
+    function ensureModelRightsAgreement() {
+        if (!isModelPersona) return true;
+        if (!modelRightsConfirmed || !modelLicenseConfirmed) {
+            toast.warning($t("editPage.modelRights.requiredToast"));
+            return false;
         }
+        return true;
     }
 
     async function handleMultipleAssetFiles(event: Event) {
@@ -482,6 +499,42 @@
                         type: portraitPreviewType,
                     }}
                 />
+            </div>
+        {/if}
+
+        {#if isModelPersona}
+            <div class="rights-consent-box">
+                <h3 class="asset-title">
+                    {$t("editPage.modelRights.title")}
+                </h3>
+                <p class="description">
+                    {$t("editPage.modelRights.description")}
+                </p>
+                <label class="rights-check-item">
+                    <input type="checkbox" bind:checked={modelRightsConfirmed} />
+                    <span>
+                        {$t("editPage.modelRights.confirmOwnership")}
+                    </span>
+                </label>
+                <label class="rights-check-item">
+                    <input
+                        type="checkbox"
+                        bind:checked={modelLicenseConfirmed}
+                    />
+                    <span>
+                        {$t("editPage.modelRights.confirmLicensePriority")}
+                    </span>
+                </label>
+                <p class="rights-help">
+                    {$t("editPage.modelRights.relatedDocs")}
+                    <a href="/terms" target="_blank" rel="noreferrer"
+                        >{$t("legal.termsOfService")}</a
+                    >
+                    ·
+                    <a href="/licenses" target="_blank" rel="noreferrer"
+                        >{$t("legal.licensesAndCredits")}</a
+                    >
+                </p>
             </div>
         {/if}
 
@@ -693,28 +746,13 @@
         </div>
     {/if}
 
-    {#if (persona.personaType == "3D" || persona.personaType == "2.5D") && persona.contentType !== "story"}
+    {#if isModelPersona}
         <div class="form-group">
-            <label for="voice-select">{$t("editPage.voiceLabel")}</label>
-            <p class="description">
-                {$t("editPage.voiceDescription")}
-            </p>
-            {#if allVoices.length > 0}
-                <div class="voice-selector">
-                    <select id="voice-select" bind:value={selectedVoiceId}>
-                        <option value="" disabled
-                            >{$t("editPage.voiceSelectDefault")}</option
-                        >
-                        {#each allVoices as voice (voice._id)}
-                            <option value={voice._id}
-                                >{voice.title} - {voice.description}</option
-                            >
-                        {/each}
-                    </select>
-                </div>
-            {:else}
-                <p>{$t("editPage.voiceLoading")}</p>
-            {/if}
+            <VoiceClonePanel
+                personaType={persona.personaType}
+                {allVoices}
+                bind:selectedVoiceId
+            />
         </div>
     {/if}
 </div>
@@ -798,6 +836,37 @@
         border-top: 1px solid var(--border);
         margin-top: 1.5rem;
         padding-top: 1.5rem;
+    }
+    .rights-consent-box {
+        margin-top: 1.25rem;
+        padding: 1rem;
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        background: var(--background);
+    }
+    .rights-check-item {
+        display: flex;
+        gap: 0.55rem;
+        align-items: flex-start;
+        margin-top: 0.6rem;
+        font-size: 0.86rem;
+        line-height: 1.45;
+        color: var(--foreground);
+    }
+    .rights-check-item input {
+        margin-top: 0.18rem;
+    }
+    .rights-help {
+        margin: 0.8rem 0 0;
+        font-size: 0.8rem;
+        color: var(--muted-foreground);
+    }
+    .rights-help a {
+        color: var(--primary);
+        text-decoration: none;
+    }
+    .rights-help a:hover {
+        text-decoration: underline;
     }
     .asset-title {
         font-size: 1.1rem;

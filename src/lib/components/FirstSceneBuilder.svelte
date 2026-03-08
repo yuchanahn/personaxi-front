@@ -18,6 +18,19 @@
         lastAtmosphere: "차분한 시작 분위기.",
         currentEmotion: "CALM",
     };
+    const DEFAULT_GESTURE_ANIM_LIST = `[NOD] : Nodding (Permission, Agreement)
+[SHAKE] : Shaking head (Denial, Refusal)
+[TILT] : Tilting head (Question, Doubt)
+[FIDGET] : Fidgeting (Anxiety, Restlessness)
+[SIGH] : Sighing (Relief, Disappointment, Tiredness)
+[LOOK_DOWN] : Looking down (Shame, Submission, Sadness)
+[CLOSE_EYES] : Closing eyes (Thinking, Refusal, Sleepy)
+[WINK] : Winking (Teasing, Secret, Agreement)
+[STICK_TONGUE] : Sticking tongue out (Teasing, Disgust)
+[SQUINT] : Squinting (Suspicion, Focus, Glare)
+[LOOK_UP_THINK] : Looking up (Thinking, Remembering)
+[FLINCH] : Flinching (Surprise, Fear, Pain)
+[PANT] : Panting (Exhaustion, Excitement, Heat)`;
 
     let body_desc = "";
     let anim_list = ""; // Legacy string field, kept for compatibility if needed, or we might auto-generate it.
@@ -135,40 +148,26 @@
     }
 
     function generateJson() {
-        // Auto-generate human-readable anim_list string from struct
+        // Auto-generate anim_list only for 3D mode.
         let generatedAnimList = "";
-        if (motion_list.length > 0) {
-            generatedAnimList = motion_list
-                .map((m) => {
-                    return `[${m.name}] : ${m.desc}`;
-                })
-                .join("\n");
-        } else {
-            generatedAnimList = anim_list; // Fallback to manual input if list is empty
-        }
+        if (mode === "3d") {
+            const customAnimList =
+                motion_list.length > 0
+                    ? motion_list
+                          .map((m) => `[${m.name}] : ${m.desc}`)
+                          .join("\n")
+                    : (anim_list || "").trim();
 
-        generatedAnimList += `
-[NOD] : Nodding (Permission, Agreement)
-[SHAKE] : Shaking head (Denial, Refusal)
-[TILT] : Tilting head (Question, Doubt)
-[FIDGET] : Fidgeting (Anxiety, Restlessness)
-[SIGH] : Sighing (Relief, Disappointment, Tiredness)
-[LOOK_DOWN] : Looking down (Shame, Submission, Sadness)
-[CLOSE_EYES] : Closing eyes (Thinking, Refusal, Sleepy)
-[WINK] : Winking (Teasing, Secret, Agreement)
-[STICK_TONGUE] : Sticking tongue out (Teasing, Disgust)
-[SQUINT] : Squinting (Suspicion, Focus, Glare)
-[LOOK_UP_THINK] : Looking up (Thinking, Remembering)
-[FLINCH] : Flinching (Surprise, Fear, Pain)
-[PANT] : Panting (Exhaustion, Excitement, Heat)
-`;
+            generatedAnimList = [customAnimList, DEFAULT_GESTURE_ANIM_LIST]
+                .filter((v) => !!v)
+                .join("\n");
+        }
         //[PUFF_CHEEKS] : Puffing cheeks (Pouting, Angry, Cute)
         //[ROLL_EYES] : Rolling eyes (Sarcasm, Annoyance)
         const runtimeState = getEffectiveRuntimeState();
-        const obj = {
+        const obj: Record<string, any> = {
             ...extra_fields,
             body_desc,
-            anim_list: generatedAnimList, // Use generated list
             core_desire,
             contradiction,
             personality,
@@ -179,12 +178,16 @@
             last_atmosphere: runtimeState.last_atmosphere,
             current_emotion: runtimeState.current_emotion,
             internal_monologue,
-            // New Fields
-            live2d_expression_map: expression_map,
-            live2d_motion_list: motion_list,
-            live2d_hit_motion_map: hit_motion_map,
-            live2d_permanent_expressions: permanent_expressions,
         };
+
+        if (mode === "3d") {
+            obj.anim_list = generatedAnimList;
+            obj.live2d_expression_map = expression_map;
+            obj.live2d_motion_list = motion_list;
+            obj.live2d_hit_motion_map = hit_motion_map;
+            obj.live2d_permanent_expressions = permanent_expressions;
+        }
+
         const jsonStr = JSON.stringify(obj, null, 2);
         onChange(jsonStr);
         dispatch("change", jsonStr);
@@ -266,7 +269,7 @@
                 }
 
                 body_desc = data.body_desc ?? "";
-                anim_list = data.anim_list ?? "";
+                anim_list = mode === "3d" ? (data.anim_list ?? "") : "";
                 core_desire = data.core_desire ?? "";
                 contradiction = data.contradiction ?? "";
                 personality = data.personality ?? "";
@@ -371,7 +374,7 @@
                     live2dMotionAliasesByFile = {};
                 }
 
-                if (data.live2d_expression_map) {
+                if (mode === "3d" && data.live2d_expression_map) {
                     // [Migration] If old keys exist, map them to new keys
                     const oldMap = data.live2d_expression_map;
                     const newMap = { ...expression_map };
@@ -401,16 +404,19 @@
 
                     expression_map = newMap;
                 }
-                if (Array.isArray(data.live2d_motion_list)) {
+                if (mode === "3d" && Array.isArray(data.live2d_motion_list)) {
                     motion_list = data.live2d_motion_list;
                 }
-                if (data.live2d_hit_motion_map) {
+                if (mode === "3d" && data.live2d_hit_motion_map) {
                     hit_motion_map = {
                         ...hit_motion_map,
                         ...data.live2d_hit_motion_map,
                     };
                 }
-                if (Array.isArray(data.live2d_permanent_expressions)) {
+                if (
+                    mode === "3d" &&
+                    Array.isArray(data.live2d_permanent_expressions)
+                ) {
                     permanent_expressions = data.live2d_permanent_expressions;
                 }
 
@@ -431,7 +437,7 @@
                         : "";
                 };
                 body_desc = extract("body_desc");
-                anim_list = extract("anim_list");
+                anim_list = mode === "3d" ? extract("anim_list") : "";
                 core_desire = extract("core_desire");
                 contradiction = extract("contradiction");
                 personality = extract("personality");

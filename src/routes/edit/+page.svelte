@@ -319,9 +319,23 @@
             error = $t("editPage.validation.allFieldsRequired");
             return;
         }
+        const normalizedType = (persona.personaType || "").trim().toLowerCase();
+        const isLive2DType =
+            normalizedType === "2.5d" || normalizedType === "live2d";
+        const is3DType = normalizedType === "3d" || normalizedType === "vrm3d";
+        if (isLive2DType && !persona.live2d_model_url?.trim()) {
+            error = $t("edit3.validation.live2dModelRequired");
+            return;
+        }
+        if (is3DType && !persona.vrm_url?.trim()) {
+            error = $t("edit3.validation.vrmModelRequired");
+            return;
+        }
+        const firstSceneLimit =
+            isLive2DType || is3DType ? 30000 : 2500;
         if (
             persona.greeting.length > 200 ||
-            persona.first_scene.length > 2500
+            persona.first_scene.length > firstSceneLimit
         ) {
             error = $t("editPage.validation.charLimitExceeded");
             return;

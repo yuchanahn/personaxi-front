@@ -1,29 +1,40 @@
 # Chat Modes
 
-PersonaXi offers two special chat modes tailored to your purpose.
-Choose the mode that fits your story.
+PersonaXi supports both normal roleplay chat and interactive simulation chat.
 
-## 👥 Character Chat
-**"Intimate conversation with a character"**
+## 1) Character Chat (1:1)
 
-The standard mode for **1:1** communication.
-*   **Focus**: Relationship building, intimacy, deep conversation.
-*   **Features**:
-    *   The character remembers your name and uses your preferred nickname.
-    *   **Hidden Images** or **Events** may unlock based on conversation progress (depending on character settings).
+- Standard relationship-focused conversation with one character
+- Can unlock events/hidden images depending on character setup
+- Supports TTS, image tags, and dialogue-tag rendering
 
----
+## 2) Story / Simulation Chat
 
-## 📖 Story Chat (Simulation)
-**"Interactive fiction where you are the protagonist"**
+- Supports game-like flow with status changes, choices, and text input
+- With creator rules, variable-driven progression and status UI are possible
 
-Beyond simple chat, simulate situations or unfold stories with multiple characters.
-*   **Focus**: Text adventure, RPG, Simulation.
-*   **Power Features**:
-    *   PersonaXi engine analyzes chat to display **Status**, **Inventory**, **HP/MP**, etc.
-    *   **HTML Style Output**: Receive responses with visual formatting suitable for games.
+## What is 2D Interactive Output?
 
-> [!NOTE]
-> **Which one to choose?**
-> If you want a friend or lover, choose **Character Chat**.
-> If you want to adventure in a fantasy world or play a game, choose **Story Chat**!
+In 2D chat, the model can output HTML/CSS with interactive controls.
+
+- Choice button: `.game-choice`
+- Action-point counter: `.game-choice-counter`
+- Text input: `.game-input`
+- Turn submit: `.game-input-end`
+
+After user interaction, the client aggregates actions/inputs and sends them back to the model as a system payload.
+
+## Variable System
+
+- 2D characters can update runtime state via `<vars>...</vars>` blocks.
+- Inside the block, use one `key=value` pair per line.
+- These values are used for status panel display and next-turn reasoning.
+
+## Dialogue / Image Formats
+
+- Dialogue: `<dialogue speaker="Name">...</dialogue>`
+- Asset image: `<img 0>`
+- Markdown/HTML-styled text is rendered after sanitization
+
+> [!TIP]
+> If you are creating interactive characters, design output rules first in `Expert Mode (create_expert)` and validate with a real chat test.

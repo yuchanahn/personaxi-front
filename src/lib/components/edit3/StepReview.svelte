@@ -31,6 +31,14 @@
 
     $: categoryTags = allCategories.filter((c) => c.id < 1000);
     $: selectedCount = persona.tags.filter((id) => parseInt(id) < 1000).length;
+    $: normalizedPersonaType = (persona.personaType || "").trim().toLowerCase();
+    $: isModelPersona =
+        normalizedPersonaType === "2.5d" ||
+        normalizedPersonaType === "3d" ||
+        normalizedPersonaType === "live2d" ||
+        normalizedPersonaType === "vrm3d" ||
+        !!persona.live2d_model_url?.trim() ||
+        !!persona.vrm_url?.trim();
 </script>
 
 <div class="step-review">
@@ -115,7 +123,7 @@
     </section>
 
     <!-- Monetization Check for 3D/Live2D -->
-    {#if persona.personaType === "live2d" || persona.personaType === "vrm3d" || persona.live2d_model_url || persona.vrm_url}
+    {#if isModelPersona}
         <section class="review-section">
             <h3 class="section-title">
                 <Icon icon="ph:coin-duotone" width="20" />

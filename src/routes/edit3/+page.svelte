@@ -286,6 +286,13 @@
         kDesc: string,
     ): string[] {
         const errors: string[] = [];
+        const normalizedType = (p.personaType || "").trim().toLowerCase();
+        const isLive2DType =
+            normalizedType === "2.5d" || normalizedType === "live2d";
+        const is3DType =
+            normalizedType === "3d" || normalizedType === "vrm3d";
+        const hasLive2DModel = !!p.live2d_model_url?.trim();
+        const hasVrmModel = !!p.vrm_url?.trim();
         if (!p.personaType)
             errors.push(get(t)("edit3.validation.typeRequired"));
         if (!p.name.trim())
@@ -301,6 +308,12 @@
             if (!instruction.trim())
                 errors.push(get(t)("edit3.validation.instructionRequired"));
         }
+        if (isLive2DType && !hasLive2DModel) {
+            errors.push(get(t)("edit3.validation.live2dModelRequired"));
+        }
+        if (is3DType && !hasVrmModel) {
+            errors.push(get(t)("edit3.validation.vrmModelRequired"));
+        }
         if (p.tags.filter((id) => parseInt(id) < 1000).length === 0)
             errors.push(get(t)("edit3.validation.tagsRequired"));
         return errors;
@@ -314,6 +327,14 @@
         kintsugiId: string,
         kDesc: string,
     ): boolean {
+        const normalizedType = (p.personaType || "").trim().toLowerCase();
+        const isLive2DType =
+            normalizedType === "2.5d" || normalizedType === "live2d";
+        const is3DType =
+            normalizedType === "3d" || normalizedType === "vrm3d";
+        const hasLive2DModel = !!p.live2d_model_url?.trim();
+        const hasVrmModel = !!p.vrm_url?.trim();
+
         switch (step) {
             case 0:
                 return !!p.personaType;
@@ -325,7 +346,11 @@
                 if (template === kintsugiId) return !!kDesc.trim();
                 return !!p.first_scene.trim() && !!instruction.trim();
             case 4:
-                return p.tags.filter((id) => parseInt(id) < 1000).length > 0;
+                return (
+                    p.tags.filter((id) => parseInt(id) < 1000).length > 0 &&
+                    !(isLive2DType && !hasLive2DModel) &&
+                    !(is3DType && !hasVrmModel)
+                );
             default:
                 return true;
         }
@@ -563,9 +588,30 @@
             toast.error(error);
             return;
         }
+        const normalizedType = (persona.personaType || "").trim().toLowerCase();
+        const isLive2DType =
+            normalizedType === "2.5d" || normalizedType === "live2d";
+        const is3DType = normalizedType === "3d" || normalizedType === "vrm3d";
+
+        if (isLive2DType && !persona.live2d_model_url?.trim()) {
+            error = $t("edit3.validation.live2dModelRequired");
+            toast.error(error);
+            return;
+        }
+        if (is3DType && !persona.vrm_url?.trim()) {
+            error = $t("edit3.validation.vrmModelRequired");
+            toast.error(error);
+            return;
+        }
+        const normalizedTypeForLimit = (persona.personaType || "")
+            .trim()
+            .toLowerCase();
         const firstSceneLimit =
-            persona.personaType === "2.5D" || persona.personaType === "3D"
-                ? 12000
+            normalizedTypeForLimit === "2.5d" ||
+            normalizedTypeForLimit === "3d" ||
+            normalizedTypeForLimit === "live2d" ||
+            normalizedTypeForLimit === "vrm3d"
+                ? 30000
                 : 2500;
         if (
             persona.greeting.length > 200 ||

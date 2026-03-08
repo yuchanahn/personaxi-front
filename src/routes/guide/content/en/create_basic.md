@@ -1,32 +1,36 @@
 # Basic Creation Guide
 
-Create a persona easily and quickly without complex settings.
-Just **4 steps** to birth your AI friend! 🥚 ➡️ 🐣
+Basic Mode is the fastest way to create a character without writing a full prompt setup.  
+After saving, you can continue tuning in `edit3` (prompt, variables, advanced settings).
 
-## 🛠️ Creation Steps
+## Creation Flow
 
 ### 1. Identity
-*   **Name**: Give your character a name.
-*   **Profile Image**: Upload an image that best represents them.
-    *   (Tip) Close-up face shots have higher click-through rates.
-*   **Category**: Select a genre like Fantasy, Romance, School, etc.
+- **Name**: Character display name
+- **Profile Image**: Thumbnail used in lists
+- **Category Tags**: Genre and vibe
 
-### 2. Persona Settings
-The most important step for personality.
-*   **Personality Tags**: Select keywords like `Tsundere` `Kind` `Cool` and AI will form the personality automatically.
-*   **Bio**: Short description displayed in the list. (e.g., "Your childhood friend with a secret.")
+### 2. Core Character Setup
+- **Bio**: Short card description
+- **Tone/Personality**: Base speaking style
+- **First Scene (`first_scene`)**: Text shown at chat start
 
-### 3. First Message
-The first line the character says when a user enters the chat.
-*   Describe the situation (actions) or speak directly.
-*   *Ex: "(Looking up from a book) Oh, you're here? I was waiting."*
+### 3. First Scene Tips
+- Mix narration and opening dialogue in one block.
+- To insert asset images, use tags like `<img 0>`, `<img 1>`.
+- Example:
+  - `Late at night, she leans by the window and slowly turns toward you.`
+  - `<dialogue speaker="{{char}}">You're here. Where do you want to start tonight?</dialogue>`
 
 ### 4. Visibility
-*   **Public**: Everyone can search and chat. (Eligible for incentives)
-*   **Private**: Only you can access. Recommended for testing.
+- **Public**: Searchable and shareable
+- **Private**: Best for testing
 
----
+## Recommended Next Steps
+
+- Refine prompt details in `edit3`
+- Connect Live2D/VRM in advanced editor if needed
+- For 2D characters, review variable/interactive chat rules
 
 > [!NOTE]
-> **Connecting Live2D / 3D Models**
-> After basic creation, you can upload Live2D or VRM model files in the 'Edit' screen.
+> Live2D/VRM linking can be done right after creation and updated any time later.

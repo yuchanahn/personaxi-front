@@ -33,7 +33,9 @@ async function fetchWithAuth(url: string, options: AuthRequestInit = {}): Promis
         throw new Error('No session');
     }
 
-    if (options.body && !headers.has('Content-Type')) {
+    const isFormData =
+        typeof FormData !== 'undefined' && options.body instanceof FormData;
+    if (options.body && !headers.has('Content-Type') && !isFormData) {
         headers.set('Content-Type', 'application/json');
     }
     options.headers = headers;
@@ -77,6 +79,8 @@ export const api = {
     // post2 is postPublic (No Auth enforced)
     post2: (url: string, data: any, options?: AuthRequestInit) =>
         fetchWithAuth(API_BASE_URL + url, { ...options, method: 'POST', body: JSON.stringify(data), requireAuth: false }),
+    postForm: (url: string, formData: FormData, options?: AuthRequestInit) =>
+        fetchWithAuth(API_BASE_URL + url, { ...options, method: 'POST', body: formData }),
     delete(url: string, options?: RequestInit) {
         return fetchWithAuth(API_BASE_URL + url, {
             ...options,
