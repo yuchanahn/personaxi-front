@@ -262,6 +262,7 @@
             feedback: { view: 0 },
             voice_id: "",
             vrm_url: "",
+            model_background_url: "",
             portrait_url: "",
             image_metadatas: [],
             image_count: 0,

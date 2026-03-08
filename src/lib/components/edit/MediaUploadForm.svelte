@@ -28,6 +28,9 @@
     let portraitImageFile: File | null = null;
     let portraitPreview: string | null = null;
     let portraitPreviewType: "image" | "video" | undefined = undefined;
+    let modelBackgroundFile: File | null = null;
+    let modelBackgroundPreview: string | null = null;
+    let modelBackgroundProgress = 0;
     let vrmInput: HTMLInputElement;
 
     let live2d_progress = 0;
@@ -53,6 +56,10 @@
     $: if (persona.portrait_url && !portraitPreview) {
         portraitPreview = persona.portrait_url;
         // Leave portraitPreviewType undefined to let AssetPreview fetch type for remote URL
+    }
+
+    $: if (persona.model_background_url && !modelBackgroundPreview) {
+        modelBackgroundPreview = persona.model_background_url;
     }
 
     async function handleFileChange(event: Event) {
@@ -432,6 +439,60 @@
         }
     }
 
+    async function handleModelBackgroundChange(event: Event) {
+        const input = event.target as HTMLInputElement;
+        if (!input.files || input.files.length === 0) return;
+
+        const file = input.files[0];
+        modelBackgroundFile = file;
+        modelBackgroundPreview = URL.createObjectURL(file);
+        await uploadModelBackgroundFile(file);
+    }
+
+    async function uploadModelBackgroundFile(file: File) {
+        const MAX_RETRIES = 3;
+
+        for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
+            try {
+                const oldUrl =
+                    persona.model_background_url &&
+                    persona.model_background_url !==
+                        originalPersona?.model_background_url &&
+                    !persona.model_background_url.startsWith("blob:")
+                        ? persona.model_background_url
+                        : undefined;
+
+                const response = await getUploadUrl("asset", oldUrl);
+                if (!response.ok) {
+                    throw new Error(
+                        `Server error on getting URL: ${response.status}`,
+                    );
+                }
+
+                const { signedURL, fileName } = await response.json();
+
+                modelBackgroundProgress = 0.01;
+                await uploadFileWithProgress(signedURL, file, (percent) => {
+                    modelBackgroundProgress = Math.round(percent);
+                });
+
+                persona.model_background_url = `${supabaseURL}${fileName}`;
+                modelBackgroundProgress = 0;
+                return;
+            } catch (e: any) {
+                console.warn(
+                    `Attempt ${attempt} for model background failed: ${e.message}`,
+                );
+                if (attempt === MAX_RETRIES) {
+                    error = `Model background upload failed: ${e.message}`;
+                    modelBackgroundProgress = 0;
+                } else {
+                    await new Promise((res) => setTimeout(res, 500));
+                }
+            }
+        }
+    }
+
     async function copyAssetTag(index: number) {
         const tag = `<img ${index}>`;
         try {
@@ -535,6 +596,62 @@
                         >{$t("legal.licensesAndCredits")}</a
                     >
                 </p>
+            </div>
+
+            <div class="form-group asset-section">
+                <h3 class="asset-title">Model Background Image</h3>
+                <p class="description">
+                    Live2D/VRM 채팅 배경으로 사용할 이미지를 설정할 수 있습니다.
+                </p>
+
+                <div class="file-input-container">
+                    <label for="model-background-file" class="file-input-label">
+                        <span>{$t("editPage.fileSelect")}</span>
+                    </label>
+                    <input
+                        id="model-background-file"
+                        type="file"
+                        accept="image/*"
+                        on:change={handleModelBackgroundChange}
+                        class="file-input-hidden"
+                    />
+                    {#if modelBackgroundFile}
+                        <span class="file-name">{modelBackgroundFile.name}</span>
+                    {/if}
+                    {#if modelBackgroundProgress > 0}
+                        <span class="file-name"
+                            >Uploading... {modelBackgroundProgress}%</span
+                        >
+                    {/if}
+                    {#if persona.model_background_url}
+                        <button
+                            type="button"
+                            class="btn btn-secondary"
+                            on:click={() => {
+                                persona.model_background_url = "";
+                                modelBackgroundPreview = null;
+                                modelBackgroundFile = null;
+                            }}
+                        >
+                            Remove
+                        </button>
+                    {/if}
+                </div>
+
+                {#if modelBackgroundPreview || persona.model_background_url}
+                    <div class="portrait-preview">
+                        <AssetPreview
+                            asset={{
+                                url:
+                                    modelBackgroundPreview ||
+                                    persona.model_background_url ||
+                                    "",
+                                description: "model background",
+                                type: "image",
+                            }}
+                        />
+                    </div>
+                {/if}
             </div>
         {/if}
 
