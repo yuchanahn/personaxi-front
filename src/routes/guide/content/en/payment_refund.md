@@ -30,4 +30,5 @@ Need a refund? Please contact support with the following info:
 > [!IMPORTANT]
 > **Contact Channels**
 > *   📧 Email: [support@personaxi.com](mailto:support@personaxi.com)
-> *   💬 Discord: [#support-ticket](https://discord.gg/personaxi) channel
+> *   💬 Discord: [#support-ticket](https://discord.gg/v88p26Fpmc) channel
+

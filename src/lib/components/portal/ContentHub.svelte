@@ -43,7 +43,7 @@
             title: $t("hubBanner.discord.title"),
             subtitle: $t("hubBanner.discord.subtitle"),
             imageUrl: "/images/hub_banner_discord_anime.png",
-            linkUrl: "https://discord.gg/uJG9hWSrJx",
+            linkUrl: "https://discord.gg/v88p26Fpmc",
             actionText: $t("hubBanner.discord.action"),
             bgColor:
                 "linear-gradient(to right, rgba(0,0,0,0.9) 0%, rgba(88,101,242,0) 80%)",
@@ -1413,3 +1413,4 @@
         }
     }
 </style>
+

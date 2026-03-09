@@ -35,7 +35,7 @@
     let recordingStream: MediaStream | null = null;
     let recordingChunks: Blob[] = [];
 
-    let testText = "안녕하세요. 페르소나 보이스 클론 테스트입니다.";
+    let testText = "Hello. This is a Persona voice clone test.";
     let isTesting = false;
     let testAudioUrl = "";
 
@@ -416,7 +416,7 @@
                                                     removeSample(sample.id)}
                                             >
                                                 {$t("common.delete", {
-                                                    default: "삭제",
+                                                    default: "Delete",
                                                 })}
                                             </button>
                                         </div>

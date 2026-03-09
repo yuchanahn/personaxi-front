@@ -97,9 +97,42 @@
 
     let isStartSpeech = false;
     let autonomySensitivity = 1.0;
+    let modelScale = 0.2;
+    let modelX = 0;
+    let modelY = 0;
+    let headCalibration = {
+        angleYGain: 1.0,
+        angleYOffset: 0,
+        angleYMin: -90,
+        angleYMax: 90,
+        angleZGain: 1.0,
+        angleZOffset: 0,
+        angleZMin: -90,
+        angleZMax: 90,
+    };
+    let bodyCalibration = {
+        bodyXGain: 1.0,
+        bodyYGain: 1.0,
+        bodyZGain: 1.0,
+        bodyXOffset: 0,
+        bodyYOffset: 0,
+        bodyZOffset: 0,
+        bodyXMin: -90,
+        bodyXMax: 90,
+        bodyYMin: -90,
+        bodyYMax: 90,
+        bodyZMin: -90,
+        bodyZMax: 90,
+    };
 
     $: if (Viewer && Viewer.setSensitivity) {
         Viewer.setSensitivity(autonomySensitivity);
+    }
+    $: if (Viewer && Viewer.setHeadCalibration) {
+        Viewer.setHeadCalibration(headCalibration);
+    }
+    $: if (Viewer && Viewer.setBodyCalibration) {
+        Viewer.setBodyCalibration(bodyCalibration);
     }
 
     $: {
@@ -177,6 +210,119 @@
                                         "object"
                                   ? cfg.live2d_hit_motion_map
                                   : null;
+
+                        const cfgSettings =
+                            cfgEditor?.settings &&
+                            typeof cfgEditor.settings === "object"
+                                ? cfgEditor.settings
+                                : null;
+
+                        if (cfgSettings) {
+                            if (typeof cfgSettings.sensitivity === "number") {
+                                autonomySensitivity = cfgSettings.sensitivity;
+                            }
+                            if (typeof cfgSettings.scale === "number") {
+                                modelScale = cfgSettings.scale;
+                            }
+                            if (typeof cfgSettings.x === "number") {
+                                modelX = cfgSettings.x;
+                            }
+                            const yBase =
+                                typeof cfgSettings.y === "number"
+                                    ? cfgSettings.y
+                                    : 0;
+                            const yOffset =
+                                typeof cfgSettings.offsetY === "number"
+                                    ? cfgSettings.offsetY
+                                    : 0;
+                            modelY = yBase + yOffset;
+
+                            headCalibration = {
+                                angleYGain:
+                                    typeof cfgSettings.angleYGain === "number"
+                                        ? cfgSettings.angleYGain
+                                        : 1.0,
+                                angleYOffset:
+                                    typeof cfgSettings.angleYOffset === "number"
+                                        ? cfgSettings.angleYOffset
+                                        : 0,
+                                angleYMin:
+                                    typeof cfgSettings.angleYMin === "number"
+                                        ? cfgSettings.angleYMin
+                                        : -90,
+                                angleYMax:
+                                    typeof cfgSettings.angleYMax === "number"
+                                        ? cfgSettings.angleYMax
+                                        : 90,
+                                angleZGain:
+                                    typeof cfgSettings.angleZGain === "number"
+                                        ? cfgSettings.angleZGain
+                                        : 1.0,
+                                angleZOffset:
+                                    typeof cfgSettings.angleZOffset === "number"
+                                        ? cfgSettings.angleZOffset
+                                        : 0,
+                                angleZMin:
+                                    typeof cfgSettings.angleZMin === "number"
+                                        ? cfgSettings.angleZMin
+                                        : -90,
+                                angleZMax:
+                                    typeof cfgSettings.angleZMax === "number"
+                                        ? cfgSettings.angleZMax
+                                        : 90,
+                            };
+
+                            bodyCalibration = {
+                                bodyXGain:
+                                    typeof cfgSettings.bodyXGain === "number"
+                                        ? cfgSettings.bodyXGain
+                                        : 1.0,
+                                bodyYGain:
+                                    typeof cfgSettings.bodyYGain === "number"
+                                        ? cfgSettings.bodyYGain
+                                        : 1.0,
+                                bodyZGain:
+                                    typeof cfgSettings.bodyZGain === "number"
+                                        ? cfgSettings.bodyZGain
+                                        : 1.0,
+                                bodyXOffset:
+                                    typeof cfgSettings.bodyXOffset === "number"
+                                        ? cfgSettings.bodyXOffset
+                                        : 0,
+                                bodyYOffset:
+                                    typeof cfgSettings.bodyYOffset === "number"
+                                        ? cfgSettings.bodyYOffset
+                                        : 0,
+                                bodyZOffset:
+                                    typeof cfgSettings.bodyZOffset === "number"
+                                        ? cfgSettings.bodyZOffset
+                                        : 0,
+                                bodyXMin:
+                                    typeof cfgSettings.bodyXMin === "number"
+                                        ? cfgSettings.bodyXMin
+                                        : -90,
+                                bodyXMax:
+                                    typeof cfgSettings.bodyXMax === "number"
+                                        ? cfgSettings.bodyXMax
+                                        : 90,
+                                bodyYMin:
+                                    typeof cfgSettings.bodyYMin === "number"
+                                        ? cfgSettings.bodyYMin
+                                        : -90,
+                                bodyYMax:
+                                    typeof cfgSettings.bodyYMax === "number"
+                                        ? cfgSettings.bodyYMax
+                                        : 90,
+                                bodyZMin:
+                                    typeof cfgSettings.bodyZMin === "number"
+                                        ? cfgSettings.bodyZMin
+                                        : -90,
+                                bodyZMax:
+                                    typeof cfgSettings.bodyZMax === "number"
+                                        ? cfgSettings.bodyZMax
+                                        : 90,
+                            };
+                        }
 
                         const motionByAliasOrFile: Record<string, string> = {};
                         if (cfgEditor?.motions && typeof cfgEditor.motions === "object") {
@@ -683,7 +829,9 @@
                     backgroundImage={
                         persona.model_background_url?.trim() || "/chat_bg.png"
                     }
-                    scale={0.2}
+                    scale={modelScale}
+                    x={modelX}
+                    y={modelY}
                     {expressionMap}
                     {hitMotionMap}
                     {persona}

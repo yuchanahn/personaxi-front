@@ -60,7 +60,35 @@
     // Auto-save timer
     let autoSaveInterval: ReturnType<typeof setInterval>;
     const AUTO_SAVE_KEY = "edit3_draft";
-    const LIVE2D_EDITOR_BRIDGE_PREFIX = "live2d_editor_config_bridge:";
+const LIVE2D_EDITOR_BRIDGE_PREFIX = "live2d_editor_config_bridge:";
+    const DEFAULT_LIVE2D_GESTURE_ANIM_LIST = `[NOD] : Nodding (Permission, Agreement)
+[SHAKE] : Shaking head (Denial, Refusal)
+[TILT] : Tilting head (Question, Doubt)
+[FIDGET] : Fidgeting (Anxiety, Restlessness)
+[SIGH] : Sighing (Relief, Disappointment, Tiredness)
+[LOOK_DOWN] : Looking down (Shame, Submission, Sadness)
+[CLOSE_EYES] : Closing eyes (Thinking, Refusal, Sleepy)
+[WINK] : Winking (Teasing, Secret, Agreement)
+[STICK_TONGUE] : Sticking tongue out (Teasing, Disgust)
+[SQUINT] : Squinting (Suspicion, Focus, Glare)
+[LOOK_UP_THINK] : Looking up (Thinking, Remembering)
+[FLINCH] : Flinching (Surprise, Fear, Pain)
+[PANT] : Panting (Exhaustion, Excitement, Heat)`;
+    const DEFAULT_LIVE2D_GESTURE_LINES = new Set(
+        DEFAULT_LIVE2D_GESTURE_ANIM_LIST.split("\n").map((line) => line.trim()),
+    );
+
+    function stripDefaultLive2DGestureLines(text: string): string {
+        if (!text) return "";
+        const lines = text
+            .split("\n")
+            .map((line) => line.trim())
+            .filter((line) => !!line);
+        const customOnly = lines.filter(
+            (line) => !DEFAULT_LIVE2D_GESTURE_LINES.has(line),
+        );
+        return customOnly.join("\n").trim();
+    }
 
     $: stepLabels = [
         $t("edit3.steps.type"),
@@ -245,6 +273,30 @@
             }
         } catch (e) {
             console.warn("Failed to apply Live2D editor bridge", e);
+        }
+    }
+
+    function ensureLive2DAnimListInFirstScene(p: Persona) {
+        const normalizedType = (p.personaType || "").trim().toLowerCase();
+        const isLive2DType =
+            normalizedType === "2.5d" || normalizedType === "live2d";
+        if (!isLive2DType || !p.first_scene?.trim()) return;
+
+        try {
+            const parsed = JSON.parse(p.first_scene);
+            if (!parsed || typeof parsed !== "object") return;
+
+            const currentAnimList =
+                typeof parsed.anim_list === "string"
+                    ? parsed.anim_list.trim()
+                    : "";
+            const customAnimList = stripDefaultLive2DGestureLines(currentAnimList);
+            parsed.anim_list = [customAnimList, DEFAULT_LIVE2D_GESTURE_ANIM_LIST]
+                .filter((v) => !!v)
+                .join("\n");
+            p.first_scene = JSON.stringify(parsed, null, 2);
+        } catch {
+            // Keep original if first_scene is not valid JSON.
         }
     }
 
@@ -578,6 +630,7 @@
         else finalInstructions.push("custom");
 
         persona.instructions = finalInstructions;
+        ensureLive2DAnimListInFirstScene(persona);
 
         // Validation
         if (

@@ -39,6 +39,9 @@
     let currentModel: any | null = null;
     let isLoaded = false;
     let hasPlayedStartVoice = false;
+    let pendingSensitivity: number | null = null;
+    let pendingHeadCalibration: Record<string, any> | null = null;
+    let pendingBodyCalibration: Record<string, any> | null = null;
 
     $: if (isLoaded && currentModel && !hasPlayedStartVoice) {
         hasPlayedStartVoice = true;
@@ -212,8 +215,21 @@
     }
 
     export function setSensitivity(val: number) {
-        if (autonomy) {
-            autonomy.setSensitivity(val);
+        pendingSensitivity = val;
+        if (autonomy) autonomy.setSensitivity(val);
+    }
+
+    export function setHeadCalibration(config: Record<string, any>) {
+        pendingHeadCalibration = config;
+        if (autonomy && config) {
+            autonomy.setHeadCalibration(config);
+        }
+    }
+
+    export function setBodyCalibration(config: Record<string, any>) {
+        pendingBodyCalibration = config;
+        if (autonomy && config) {
+            autonomy.setBodyCalibration(config);
         }
     }
 
@@ -268,6 +284,15 @@
 
                 autonomy = new Live2DAutonomy(model, app);
                 autonomy.start();
+                if (pendingSensitivity !== null) {
+                    autonomy.setSensitivity(pendingSensitivity);
+                }
+                if (pendingHeadCalibration) {
+                    autonomy.setHeadCalibration(pendingHeadCalibration);
+                }
+                if (pendingBodyCalibration) {
+                    autonomy.setBodyCalibration(pendingBodyCalibration);
+                }
 
                 isLoaded = true;
                 debugInfo.modelUrl = modelUrl;
@@ -363,7 +388,7 @@
                     width="64"
                     height="64"
                 />
-                <span class="loading-text">Live2D 모델 로딩 중...</span>
+                <span class="loading-text">Loading Live2D model...</span>
                 <small class="loading-hint">Loading...</small>
             </div>
         </div>
@@ -484,17 +509,17 @@
     }
 
     .hand-cursor {
-        position: fixed; /* absolute 대신 fixed가 스크롤/뷰포트 이슈에서 안전함 */
+        position: fixed; /* fixed is safer than absolute for viewport/scroll sync */
         top: 0;
         left: 0;
-        pointer-events: none; /* 클릭 방해 금지 */
-        z-index: 99999; /* 최상위 */
-        transform: translate(-50%, -50%); /* 정확히 중앙에 위치 */
+        pointer-events: none; /* do not block clicks */
+        z-index: 99999; /* top layer */
+        transform: translate(-50%, -50%); /* keep icon centered on pointer */
 
-        /* 약간의 글로우 효과 */
+        /* subtle glow */
         filter: drop-shadow(0 0 5px rgba(0, 0, 0, 0.5));
 
-        /* 나타날 때 팝업 애니메이션 */
+        /* popup animation on show */
         animation: popIn 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     }
 

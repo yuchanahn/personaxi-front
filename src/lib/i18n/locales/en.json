@@ -176,6 +176,9 @@
     "chat_start_live2d": "Start Live2D Chat"
   },
   "itemName": {
+    "pack_1": "100 Neurons",
+    "pack_2": "550 Neurons",
+    "pack_3": "1150 Neurons",
     "pack_100": "Basic Neuron Pack (100 Neurons)",
     "pack_300": "Value Neuron Pack (330 Neurons)",
     "pack_500": "Premium Neuron Pack (550 Neurons)",
@@ -352,7 +355,9 @@
     "noteTitle": "Notice",
     "note1": "This event is limited to the first 500 users and may end early.",
     "note2": "Unexpected changes may occur for service improvements. Thank you for your understanding.",
-    "confirm": "Join the Event"
+    "confirm": "Join the Event",
+    "button": "Join the Event",
+    "freeRewardTitle": "Free Neuron Reward"
   },
   "firstPersonaCreatedModal": {
     "title": "First Content Created!",
@@ -440,7 +445,8 @@
     "characterIntel": "Character Info",
     "totalImages": "Total {count}",
     "hiddenImages": "Hidden {count}",
-    "defaultDescription": "Chat with {name}"
+    "defaultDescription": "Chat with {name}",
+    "live2dRightsNotice": "The usage scope of this Live2D character's assets is governed first by the original author/distributor license terms. Unauthorized extraction or redistribution may be prohibited."
   },
   "auctionModal": {
     "createFailed": "Auction creation failed"
@@ -587,6 +593,14 @@
     "vrmLicenseWarning": "By uploading this VRM model, you confirm that you own the copyright or have permission to use it. You agree that you are solely responsible for any legal liability arising from copyright infringement. Continue?",
     "licenseUploadWarning": "By uploading this model, you confirm that you own the copyright or have permission to use it. You agree that you are solely responsible for any legal liability arising from copyright infringement. Continue?",
     "vrmLicenseError": "Invalid VRM model or license information not found.",
+    "modelRights": {
+      "title": "Model Upload Rights Check (Required)",
+      "description": "Please confirm all items below before uploading a Live2D/VRM model.",
+      "confirmOwnership": "I own the uploaded model/assets or have valid rights for online publishing, commercial use, and real-time display use.",
+      "confirmLicensePriority": "I understand original author/distributor license terms take precedence, and I agree that private/delete/point-recovery actions may be applied in case of disputes.",
+      "relatedDocs": "Related documents:",
+      "requiredToast": "Please agree to both required rights checkboxes before uploading a model."
+    },
     "voiceLabel": "Voice (TTS)",
     "voiceDescription": "Select a voice that matches the character.",
     "voiceSelectDefault": "Select a voice",
@@ -711,6 +725,11 @@
     },
     "lorebookLabel": "Lorebook",
     "lorebookDescription": "Provide additional context to the AI when specific keywords appear.",
+    "tabs": {
+      "prompt": "Prompt",
+      "variable": "Variable",
+      "lorebook": "Lorebook"
+    },
     "variableEditor": {
       "advancedToggle": "Advanced Settings (Variable System)",
       "sectionTitle": "Define Variables",
@@ -986,7 +1005,9 @@
       "create_incentive": "PersonaXi Incentive",
       "create_basic": "Basic Creation Guide",
       "create_expert": "Expert Mode Guide",
+      "create_virtual_character": "Virtual Model Upload Guide",
       "create_lorebook": "Lorebook System Guide",
+      "enjoy_virtual_character": "Virtual Character Chat Guide",
       "payment_guide": "Wing & Payment Guide",
       "payment_member": "PersonaXi Membership",
       "payment_refund": "Refund Policy",
@@ -1011,11 +1032,43 @@
   },
   "lorebook": {
     "title": "Example Lorebooks",
+    "description": "Provide additional context to AI when specific keywords appear.",
+    "create": "Create Lorebook",
     "createNew": "Create New",
+    "edit": "Edit Lorebook",
+    "delete": "Delete",
+    "save": "Save",
+    "cancel": "Cancel",
+    "name": "Lorebook Name",
+    "descLabel": "Description",
+    "saveMeta": "Save Info",
+    "entries": "Entries",
+    "addEntry": "Add Entry",
+    "newEntry": "New Entry",
+    "editEntry": "Edit Entry",
+    "keywords": "Keywords (comma-separated)",
+    "content": "Content",
+    "priority": "Priority",
+    "enabled": "Enabled",
+    "recursion": "Recursive Reference",
+    "deleteEntry": "Delete",
+    "saveEntry": "Save",
+    "createFirst": "Please create a lorebook first.",
+    "selectEntry": "Select an entry from the list or create a new one.",
+    "link": "Link",
+    "unlink": "Unlink",
     "noLorebooks": "No lorebooks found.",
     "noDescription": "No description",
+    "saveFirst": "Save the character first before linking a lorebook.",
     "testContext": "Context Simulator",
-    "testPlaceholder": "e.g. Walking into the ancient forest..."
+    "testPlaceholder": "e.g. Walking into the ancient forest...",
+    "test": {
+      "title": "Lorebook Test",
+      "placeholder": "Enter text and check which lorebooks are triggered...",
+      "run": "Run Test",
+      "result": "Detected Lorebooks:",
+      "noResult": "No lorebooks detected."
+    }
   },
   "edit3": {
     "steps": {
@@ -1033,7 +1086,9 @@
       "kintsugiDescRequired": "Please enter Kintsugi Description.",
       "instructionRequired": "Please enter instructions.",
       "tagsRequired": "Please select at least 1 category tag.",
-      "fillRequiredFirst": "Please fill out the required fields first."
+      "fillRequiredFirst": "Please fill out the required fields first.",
+      "live2dModelRequired": "Live2D characters require a model file upload.",
+      "vrmModelRequired": "3D (VRM) characters require a VRM model upload."
     },
     "toast": {
       "saveSuccess": "Saved successfully!",
@@ -1085,7 +1140,7 @@
     "discord": {
       "title": "PersonaXi Official Community",
       "subtitle": "Share tips with creators and meet new personas.",
-      "action": "Join Community →"
+      "action": "Join Community"
     },
     "event": {
       "title": "Neuron Reward for First Content!",

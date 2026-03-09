@@ -31,6 +31,9 @@
 [LOOK_UP_THINK] : Looking up (Thinking, Remembering)
 [FLINCH] : Flinching (Surprise, Fear, Pain)
 [PANT] : Panting (Exhaustion, Excitement, Heat)`;
+    const DEFAULT_GESTURE_ANIM_LINES = new Set(
+        DEFAULT_GESTURE_ANIM_LIST.split("\n").map((line) => line.trim()),
+    );
 
     let body_desc = "";
     let anim_list = ""; // Legacy string field, kept for compatibility if needed, or we might auto-generate it.
@@ -92,6 +95,18 @@
         return basename(file).toLowerCase();
     }
 
+    function stripDefaultGestureAnimList(text: string): string {
+        if (!text) return "";
+        const lines = text
+            .split("\n")
+            .map((line) => line.trim())
+            .filter((line) => !!line);
+        const customOnly = lines.filter(
+            (line) => !DEFAULT_GESTURE_ANIM_LINES.has(line),
+        );
+        return customOnly.join("\n").trim();
+    }
+
     function normalizeExpressionKey(expr: string): string {
         return stripExpressionExt(expr).toLowerCase();
     }
@@ -148,7 +163,9 @@
     }
 
     function generateJson() {
-        // Auto-generate anim_list only for 3D mode.
+        // Persist anim_list for avatar modes.
+        // - live2d: append built-in default gesture list
+        // - 3d(vrm): keep existing/custom anim_list only
         let generatedAnimList = "";
         if (mode === "3d") {
             const customAnimList =
@@ -158,6 +175,11 @@
                           .join("\n")
                     : (anim_list || "").trim();
 
+            generatedAnimList = customAnimList;
+        } else if (mode === "live2d") {
+            const customAnimList = stripDefaultGestureAnimList(
+                (anim_list || "").trim(),
+            );
             generatedAnimList = [customAnimList, DEFAULT_GESTURE_ANIM_LIST]
                 .filter((v) => !!v)
                 .join("\n");
@@ -186,6 +208,8 @@
             obj.live2d_motion_list = motion_list;
             obj.live2d_hit_motion_map = hit_motion_map;
             obj.live2d_permanent_expressions = permanent_expressions;
+        } else if (mode === "live2d") {
+            obj.anim_list = generatedAnimList;
         }
 
         const jsonStr = JSON.stringify(obj, null, 2);
@@ -269,7 +293,7 @@
                 }
 
                 body_desc = data.body_desc ?? "";
-                anim_list = mode === "3d" ? (data.anim_list ?? "") : "";
+                anim_list = stripDefaultGestureAnimList(data.anim_list ?? "");
                 core_desire = data.core_desire ?? "";
                 contradiction = data.contradiction ?? "";
                 personality = data.personality ?? "";
@@ -437,7 +461,7 @@
                         : "";
                 };
                 body_desc = extract("body_desc");
-                anim_list = mode === "3d" ? extract("anim_list") : "";
+                anim_list = stripDefaultGestureAnimList(extract("anim_list"));
                 core_desire = extract("core_desire");
                 contradiction = extract("contradiction");
                 personality = extract("personality");

@@ -160,7 +160,7 @@
 ## 🔗 바로가기
 
 - 🌐 [PersonaXi 웹사이트](https://personaxi.com)
-- 💬 [Discord 커뮤니티](#)
+- 💬 [Discord 커뮤니티](https://discord.gg/v88p26Fpmc)
 - 📺 [YouTube 튜토리얼](#)
 - 📸 [Instagram 쇼케이스](#)
 - 🐦 [X (Twitter)](#)
@@ -204,3 +204,4 @@
 - **FFmpeg** (LGPL/GPL)
 
 전체 라이브러리 및 라이선스 목록은 [라이선스 페이지](src/lib/i18n/locales/ko/licenses.md) 또는 앱 내 메뉴에서 확인하실 수 있습니다.
+

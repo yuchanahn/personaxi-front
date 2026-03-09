@@ -160,7 +160,7 @@ Please check the [Terms of Service](link) for details.
 ## 🔗 Links
 
 - 🌐 [PersonaXi Website](https://personaxi.com)
-- 💬 [Discord Community](#)
+- 💬 [Discord Community](https://discord.gg/v88p26Fpmc)
 - 📺 [YouTube Tutorial](#)
 - 📸 [Instagram Showcase](#)
 - 🐦 [X (Twitter)](#)
@@ -204,3 +204,4 @@ This project uses the following open-source software and proprietary technologie
 - **FFmpeg** (LGPL/GPL)
 
 For a full list of third-party licenses, please refer to the [Licenses Page](src/lib/i18n/locales/en/licenses.md) or the in-app menu.
+

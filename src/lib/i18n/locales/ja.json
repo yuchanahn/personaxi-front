@@ -27,7 +27,8 @@
   "chatPage": {
     "title": "チャット",
     "noChats": "まだ会話がありません",
-    "startNewChat": "新しいペルソナと会話を始めてみましょう。"
+    "startNewChat": "新しいペルソナと会話を始めてみましょう。",
+    "goExplore": "探索へ移動"
   },
   "settingPage": {
     "title": "マイページ",
@@ -58,6 +59,10 @@
     "following": "フォロー中",
     "noLiked": "まだいいねしたペルソナがありません。",
     "noFollowing": "まだフォローしたクリエイターがいません。",
+    "languageSelect": "言語選択",
+    "korean": "韓国語",
+    "profileAlt": "プロフィール",
+    "nicknamePlaceholder": "ニックネーム",
     "makePrivate": "キャラクターを非公開に切替",
     "makePublic": "キャラクターを公開に切替"
   },
@@ -127,11 +132,15 @@
     "privacy": "プライバシーポリシー",
     "serviceLogoAlt": "サービスロゴ",
     "loginWith": "{provider}でログイン",
+    "title": "おかえりなさい",
     "welcomeBack": "おかえりなさい！",
     "slogan": "あなただけのAIペルソナを作りましょう。"
   },
   "auctionModal": {
     "createFailed": "オークション作成失敗"
+  },
+  "auction": {
+    "fetchListFailed": "オークション一覧の取得に失敗しました"
   },
   "bidModal": {
     "bidTooLow": "入札額は現在の最高入札額（{currentHighestBid}ニューロン）より高くなければなりません。",
@@ -145,7 +154,14 @@
     "minBidPlaceholder": "以上",
     "biddingInProgress": "入札中...",
     "placeBid": "入札する",
-    "cancel": "キャンセル"
+    "cancel": "キャンセル",
+    "cancelled": "会話がキャンセルされました",
+    "secretImage": {
+      "loading": "シークレット画像を解放中...",
+      "error": "🔒 解放に失敗しました",
+      "locked": "🔒 シークレット画像",
+      "notLoggedIn": "ログインが必要です"
+    }
   },
   "paymentHistoryModal": {
     "title": "決済履歴",
@@ -201,7 +217,12 @@
   "itemName": {
     "pack_1": "100 ニューロン",
     "pack_2": "550 ニューロン",
-    "pack_3": "1150 ニューロン"
+    "pack_3": "1150 ニューロン",
+    "pack_100": "ベーシックニューロンパック（100ニューロン）",
+    "pack_300": "お得ニューロンパック（330ニューロン）",
+    "pack_500": "プレミアムニューロンパック（550ニューロン）",
+    "pack_1000": "無制限ニューロンパック（1100ニューロン）",
+    "pack_50": "お試しニューロンパック（50ニューロン）"
   },
   "paymentModal": {
     "pack100Name": "ベーシックニューロンパック",
@@ -227,10 +248,13 @@
     "llmTitle": "AIモデル選択",
     "llmDescription": "使用するAIモデルを選択してください。モデルによって消費されるニューロンが異なります。",
     "costDisplay": "メッセージあたりのコスト：",
+    "neuronsConsumed": "ニューロン",
     "sessionImages": "チャット画像",
     "hideImages": "閉じる",
     "viewAllImages": "すべて表示",
     "noImages": "このセッションで生成された画像がありません。",
+    "showImage": "画像を表示",
+    "hideImage": "画像を非表示",
     "autoInteraction": "自律インタラクション",
     "autoIdle": "自律発話（Idle）",
     "autoTouch": "自律タッチ反応",
@@ -245,12 +269,17 @@
     "closeupMode": "クローズアップモード",
     "closeupZoom": "拡大倍率",
     "closeupPosition": "位置調整",
+    "changeView": "表示切替",
     "autoScroll": "自動スクロール",
     "showBackground": "背景表示モード（チャット非表示）",
     "showGeneratedImages": "生成画像を表示",
     "hideGeneratedImages": "生成画像を非表示",
     "showVariableStatus": "変数ステータス表示",
     "hideVariableStatus": "変数ステータス非表示",
+    "outputLength": "出力長",
+    "outputLengthShort": "短め",
+    "outputLengthLong": "長め",
+    "report": "通報",
     "resetChat": "会話リセット",
     "deleteChat": "会話削除",
     "confirmDelete": "本当に削除しますか？",
@@ -376,12 +405,33 @@
       "search": "探索",
       "user": "ユーザー",
       "feed": "フィード",
-      "create": "作成"
+      "create": "作成",
+      "legal": "法務"
     }
+  },
+  "title": "セッション設定",
+  "like": "いいね",
+  "dislike": "よくない",
+  "resetChat": "チャット初期化",
+  "deleteChat": "チャット削除",
+  "includeAllUtterances": "すべての発話を含める",
+  "guidanceText": "* 各機能は現在のキャラクターセッションに影響します。慎重に選択してください。",
+  "connected": "配信WebSocket接続済み",
+  "disconnected": "配信WebSocket切断",
+  "jsonParseFailed": "受信メッセージのJSON解析に失敗しました",
+  "sendFailed": "サーバー送信失敗:",
+  "sendSuccess": "サーバー送信成功！",
+  "sendFailedWs": "WebSocket未接続のため送信に失敗しました",
+  "system": {
+    "search": "探索",
+    "user": "ユーザー",
+    "feed": "フィード",
+    "create": "作成"
   },
   "feed": {
     "interact": "会話",
     "alreadyFeedback": "You have already {action} this persona.",
+    "feedbackSuccess": "フィードバックが送信されました。",
     "feedbackFailed": "Failed to {action} persona: {message}",
     "unexpectedError": "An unexpected error occurred. Please try again."
   },
@@ -404,7 +454,8 @@
     "title": "PersonaXIへようこそ！",
     "message": "PersonaXIにご登録いただきありがとうございます。楽しい時間をお過ごしください！",
     "neuronReward": "ウェルカムギフトとして{amount}ニューロンが付与されました！",
-    "confirmButton": "冒険を始める"
+    "confirmButton": "冒険を始める",
+    "startButton": "探索を始める"
   },
   "needNeuronsModal": {
     "title": "ニューロンが不足しています！",
@@ -416,6 +467,16 @@
     "firstCreationReward": "ペルソナ初回作成で200ニューロン付与！",
     "getFreeNeurons": "無料ニューロンをもらう",
     "currentNeurons": "現在の数量：{count}ニューロン"
+  },
+  "notEnoughNeuronsModal": {
+    "title": "ニューロンが不足しています！",
+    "description": "会話を続けるにはニューロンの購入が必要です。",
+    "rechargeTitle": "ニューロン購入",
+    "rechargeDescription": "より多くの会話を楽しむにはニューロンを購入してください。",
+    "rechargeAlert": "会話を続けるにはニューロンが必要です。チャージしてください。",
+    "firstCreationReward": "初めてのコンテンツ作成で200ニューロンを受け取れます！",
+    "getFreeNeurons": "無料ニューロンを受け取る",
+    "currentNeurons": "現在：{count}ニューロン"
   },
   "consentModal": {
     "title": "サービス利用同意",
@@ -443,7 +504,9 @@
     "noteTitle": "ご案内事項",
     "note1": "イベントは先着500名限定で、早期終了する場合があります。",
     "note2": "サービス改善のため、予期しない変更がある場合がありますのでご了承ください。",
-    "confirm": "イベントに参加する"
+    "confirm": "イベントに参加する",
+    "button": "イベントに参加する",
+    "freeRewardTitle": "無料ニューロン報酬"
   },
   "firstPersonaCreatedModal": {
     "title": "初めてのコンテンツ作成！",
@@ -507,7 +570,8 @@
     "hiddenImages": "非表示 {count}枚",
     "linkCopied": "リンクがコピーされました！",
     "linkCopyFailed": "リンクのコピーに失敗しました。",
-    "defaultDescription": "{name}と会話しましょう"
+    "defaultDescription": "{name}と会話しましょう",
+    "live2dRightsNotice": "このLive2Dキャラクターのアセット利用範囲は、原著作者/配布元のライセンス条件が優先されます。無断抽出・再配布は禁止される場合があります。"
   },
   "editPage": {
     "title": "ペルソナ編集",
@@ -566,6 +630,14 @@
     "vrmLicenseWarning": "VRMモデルをアップロードすることにより、該当モデルの著作権を所有しているか使用権限があることを確認し、著作権侵害に関するすべての法的責任を負うことに同意したものとみなされます。続けますか？",
     "licenseUploadWarning": "モデルをアップロードすることにより、該当モデルの著作権を所有しているか使用権限があることを確認し、著作権侵害に関するすべての法的責任を負うことに同意したものとみなされます。続けますか？",
     "vrmLicenseError": "有効なVRMモデルではないか、ライセンス情報を確認できません。",
+    "modelRights": {
+      "title": "モデルアップロード権利確認（必須）",
+      "description": "Live2D/VRMモデルをアップロードする前に、以下の項目を必ず確認してください。",
+      "confirmOwnership": "アップロードするモデルおよび関連アセットの著作権を所有しているか、オンライン公開・商用利用・リアルタイム表示利用に必要な権限を保有しています。",
+      "confirmLicensePriority": "原著作者/配布元のライセンス条件が優先されることを理解しており、紛争時に非公開・削除・ポイント回収措置が適用され得ることに同意します。",
+      "relatedDocs": "関連ドキュメント：",
+      "requiredToast": "モデルアップロード前に必須権利確認の2項目すべてに同意してください。"
+    },
     "voiceLabel": "音声（TTS）",
     "voiceDescription": "キャラクターに合った声を選択してください。",
     "voiceSelectDefault": "声を選択してください",
@@ -746,6 +818,8 @@
     "noLorebooks": "作成されたロアブックがありません。",
     "noDescription": "説明なし",
     "saveFirst": "キャラクターを先に保存してからロアブックを連携できます。",
+    "testContext": "コンテキストシミュレーター",
+    "testPlaceholder": "例：古代の森へ歩いて入る...",
     "test": {
       "title": "ロアブックテスト",
       "placeholder": "テキストを入力してトリガーされるロアブックを確認してください...",
@@ -921,6 +995,9 @@
       "3": "ポップアップで<strong>インストール</strong>をタップして完了！"
     },
     "benefit": "アプリインストール特典：フルスクリーンの没入感、より速いロード",
+    "scanTitle": "モバイルでスキャン",
+    "scanDesc": "カメラでQRコードを読み取ってください。",
+    "notice_benefit": "アプリストアを開かずすぐにインストールできます。<br />自動アップデートにも対応しています。",
     "notice": "📢 まだ公式ストアには出ていません。<br>このウェブアプリ（PWA）をインストールすると、<strong>ストア手数料なし</strong>でより合理的な価格でサービスをご利用いただけます！",
     "promptTitle": "アプリでもっと快適に！",
     "promptDesc": "フルスクリーンで没入感のある体験をお楽しみください。"
@@ -1009,7 +1086,9 @@
       "kintsugiDescRequired": "Kintsugiの説明（Description）を入力してください。",
       "instructionRequired": "指示事項を入力してください。",
       "tagsRequired": "カテゴリータグを少なくとも1つ選択してください。",
-      "fillRequiredFirst": "必須項目を先に入力してください。"
+      "fillRequiredFirst": "必須項目を先に入力してください。",
+      "live2dModelRequired": "Live2Dキャラクターはモデルファイルのアップロードが必要です。",
+      "vrmModelRequired": "3D（VRM）キャラクターはVRMモデルのアップロードが必要です。"
     },
     "toast": {
       "saveSuccess": "保存完了！",
@@ -1061,7 +1140,7 @@
     "discord": {
       "title": "PersonaXi 公式コミュニティ",
       "subtitle": "クリエイターとヒントを共有し、新しいペルソナに会いましょう。",
-      "action": "コミュニティに参加 →"
+      "action": "コミュニティに参加"
     },
     "event": {
       "title": "最初のコンテンツ作成でニューロン付与！",

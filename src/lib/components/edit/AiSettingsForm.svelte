@@ -83,13 +83,13 @@
                             <p>
                                 <strong>{"{{char}}"}</strong>: {$t(
                                     "editPage.tooltip.char",
-                                    { default: "캐릭터 이름" },
+                                    { default: "Character name" },
                                 )}
                             </p>
                             <p>
                                 <strong>{"{{user}}"}</strong>: {$t(
                                     "editPage.tooltip.user",
-                                    { default: "사용자 이름" },
+                                    { default: "User name" },
                                 )}
                             </p>
                         </div>

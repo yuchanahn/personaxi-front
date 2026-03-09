@@ -505,7 +505,7 @@
                 copiedState = copiedState;
             }, 2000);
         } catch (err) {
-            console.error("클립보드 복사 실패:", err);
+            console.error("Failed to copy to clipboard:", err);
         }
     }
 
@@ -601,7 +601,7 @@
             <div class="form-group asset-section">
                 <h3 class="asset-title">Model Background Image</h3>
                 <p class="description">
-                    Live2D/VRM 채팅 배경으로 사용할 이미지를 설정할 수 있습니다.
+                    Set an image to use as the Live2D/VRM chat background.
                 </p>
 
                 <div class="file-input-container">
