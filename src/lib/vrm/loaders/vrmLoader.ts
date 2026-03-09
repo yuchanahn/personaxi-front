@@ -4,9 +4,14 @@ import { MToonNodeMaterial } from '@pixiv/three-vrm-materials-mtoon/nodes';
 import { VRMLoaderPlugin } from '@pixiv/three-vrm'
 import * as THREE from 'three/webgpu';
 
-export function createVRMLoader(): GLTFLoader {
-  const manager = new THREE.LoadingManager();
+let singletonLoader: GLTFLoader | null = null;
 
+export function createVRMLoader(): GLTFLoader {
+  if (singletonLoader) {
+    return singletonLoader;
+  }
+
+  const manager = new THREE.LoadingManager();
   const loader = new GLTFLoader(manager);
   loader.register((parser) => {
     const mtoonMaterialPlugin = new MToonMaterialLoaderPlugin(parser, {
@@ -14,5 +19,7 @@ export function createVRMLoader(): GLTFLoader {
     })
     return new VRMLoaderPlugin(parser, { mtoonMaterialPlugin })
   })
-  return loader;
+
+  singletonLoader = loader;
+  return singletonLoader;
 }

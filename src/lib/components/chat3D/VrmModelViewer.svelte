@@ -33,6 +33,8 @@
   let viewer: Viewer | null = null;
 
   let isModelLoading = true;
+  let loadingPhase: "network" | "decrypt" | "parse" = "network";
+  let loadingProgress = 0;
 
   // Autoplay Start Voice (VRM)
   $: if (
@@ -149,12 +151,12 @@
   });
 
   function loadVrm() {
-    const minLoadTime = 3000;
-    const startTime = Date.now();
-
     try {
       if (persona)
-        viewVrmInCanvas(canvas, persona)
+        viewVrmInCanvas(canvas, persona, (phase, progress) => {
+          loadingPhase = phase;
+          loadingProgress = Math.max(0, Math.min(100, Math.round(progress * 100)));
+        })
           .then((m) => {
             model = m;
             model?.setCanvas(canvas);
@@ -163,14 +165,9 @@
             updateCameraPosition();
             if (model) model.cfg = cfg;
 
-            // Enforce minimum load time for UX
-            const elapsed = Date.now() - startTime;
-            const remaining = Math.max(0, minLoadTime - elapsed);
-
-            setTimeout(() => {
-              isModelLoading = false;
-              console.log("## Model loaded! END TIMER END!");
-            }, remaining + 5000);
+            loadingProgress = 100;
+            isModelLoading = false;
+            console.log("## Model loaded! END TIMER END!");
           })
           .catch((error) => {
             console.error("Error loading VRM:", error);
@@ -234,6 +231,8 @@
   $: if (persona?.id) {
     (async () => {
       isModelLoading = true;
+      loadingPhase = "network";
+      loadingProgress = 0;
       // Wait for UI to update (show loader)
       await tick();
       // Give valid timeout to ensure paint
@@ -436,9 +435,15 @@
       <div class="loader-content">
         <Icon icon="line-md:loading-twotone-loop" width="64" height="64" />
         <span class="loading-text">VRM 모델 로딩 중...</span>
-        <small class="loading-hint"
-          >잠시 화면이 멈출 수 있습니다 (정상 동작)</small
-        >
+        <small class="loading-hint">
+          {#if loadingPhase === "network"}
+            다운로드 중... {loadingProgress}%
+          {:else if loadingPhase === "decrypt"}
+            복호화 중... {loadingProgress}%
+          {:else}
+            파싱 중... {loadingProgress}%
+          {/if}
+        </small>
       </div>
     </div>
   {/if}

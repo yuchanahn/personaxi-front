@@ -11,7 +11,11 @@ export function getViewer(): Viewer | null {
     return viewer;
 }
 
-export function test(canvas: HTMLCanvasElement, persona: Persona) {
+export function test(
+    canvas: HTMLCanvasElement,
+    persona: Persona,
+    onProgress?: (phase: 'network' | 'decrypt' | 'parse', progress: number) => void,
+) {
 
     console.log("#### Loading VRM ####");
 
@@ -27,7 +31,7 @@ export function test(canvas: HTMLCanvasElement, persona: Persona) {
     // Use vrm_url from DB if available, fallback to legacy URL construction
     const vrmUrl = persona.vrm_url || `${VRM_URL}${persona.owner_id[0]}/${persona.id}.vrm`;
 
-    let m = viewer.loadModel(vrmUrl);
+    let m = viewer.loadModel(vrmUrl, onProgress);
     m.then(m => {
         current_model = m;
         if (viewer) viewer.start();

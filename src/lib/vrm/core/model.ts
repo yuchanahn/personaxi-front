@@ -119,6 +119,7 @@ export class Model {
     }
 
     private canvas: HTMLCanvasElement | null = null;
+    private static vrmBinaryCache = new Map<string, ArrayBuffer>();
 
     public setCanvas(canvas: HTMLCanvasElement) {
         this.canvas = canvas;
@@ -128,42 +129,77 @@ export class Model {
     //----------------------------------------------------------------
     // 로드
     //----------------------------------------------------------------
-    async load(url: string, camera: THREE.PerspectiveCamera): Promise<VRM | null> {
+    async load(
+        url: string,
+        camera: THREE.PerspectiveCamera,
+        onProgress?: (phase: 'network' | 'decrypt' | 'parse', progress: number) => void,
+    ): Promise<VRM | null> {
         this.camera = camera;
         const loader = createVRMLoader();
 
-        let loadUrl = url;
-        let objectUrl: string | null = null;
-
         try {
-            // Intercept and decrypt if it's from our Supabase bucket
-            if (url.includes("uohepkqmwbstbmnkoqju.supabase.co")) {
-                const cryptoModule = await import("$lib/utils/crypto");
-                console.log("[VRM Loader] Fetching and decrypting VRM asset...");
+            let vrmBuffer: ArrayBuffer | null = null;
+
+            const cached = Model.vrmBinaryCache.get(url);
+            if (cached) {
+                onProgress?.('network', 1);
+                vrmBuffer = cached.slice(0);
+            } else {
+                onProgress?.('network', 0);
                 const res = await fetch(url);
                 if (!res.ok) throw new Error("Failed to fetch VRM file");
-                const encryptedBuffer = await res.arrayBuffer();
 
-                const header = String.fromCharCode(...new Uint8Array(encryptedBuffer.slice(0, 4)));
-                if (header === 'glTF') {
-                    console.log("[VRM Loader] Legacy unencrypted model detected.");
-                    loadUrl = url;
+                const totalLength = Number(res.headers.get("content-length") || "0");
+                if (!res.body || totalLength <= 0) {
+                    vrmBuffer = await res.arrayBuffer();
+                    onProgress?.('network', 1);
                 } else {
-                    const decryptedBuffer = await cryptoModule.xorEncryptDecrypt(encryptedBuffer);
-                    const blob = new Blob([decryptedBuffer], { type: "application/octet-stream" });
-                    objectUrl = URL.createObjectURL(blob);
-                    loadUrl = objectUrl;
+                    const reader = res.body.getReader();
+                    const chunks: Uint8Array[] = [];
+                    let received = 0;
+
+                    while (true) {
+                        const { done, value } = await reader.read();
+                        if (done) break;
+                        if (value) {
+                            chunks.push(value);
+                            received += value.length;
+                            onProgress?.('network', Math.min(1, received / totalLength));
+                        }
+                    }
+
+                    const merged = new Uint8Array(received);
+                    let offset = 0;
+                    for (const chunk of chunks) {
+                        merged.set(chunk, offset);
+                        offset += chunk.length;
+                    }
+                    vrmBuffer = merged.buffer;
                 }
+
+                if (!vrmBuffer) throw new Error("Failed to read VRM buffer");
+
+                const header = String.fromCharCode(...new Uint8Array(vrmBuffer.slice(0, 4)));
+                if (header !== "glTF") {
+                    onProgress?.('decrypt', 0.2);
+                    const cryptoModule = await import("$lib/utils/crypto");
+                    const decrypted = await cryptoModule.xorEncryptDecrypt(vrmBuffer);
+                    onProgress?.('decrypt', 1);
+                    vrmBuffer = decrypted;
+                } else {
+                    onProgress?.('decrypt', 1);
+                }
+
+                Model.vrmBinaryCache.set(url, vrmBuffer.slice(0));
             }
 
-            this.gltf = await loader.loadAsync(loadUrl);
+            onProgress?.('parse', 0.1);
+            this.gltf = await loader.parseAsync(vrmBuffer, '');
+            onProgress?.('parse', 1);
         } catch (e) {
             console.warn('VRM load failed (or was decrypted incorrectly). Fallback to sample model.', e);
             this.gltf = await loader.loadAsync('./AvatarSample_B.vrm');
-        } finally {
-            if (objectUrl) {
-                URL.revokeObjectURL(objectUrl);
-            }
+            onProgress?.('parse', 1);
         }
 
         this.vrm = this.gltf.userData.vrm;

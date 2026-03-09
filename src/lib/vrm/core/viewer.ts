@@ -114,12 +114,15 @@ export class Viewer {
     return null; // 화면 밖에 있을 경우 null 반환
   }
 
-  async loadModel(url: string) {
+  async loadModel(
+    url: string,
+    onProgress?: (phase: 'network' | 'decrypt' | 'parse', progress: number) => void,
+  ) {
     if (this.model.vrm) {
       this.scene.remove(this.model.vrm.scene);
     }
 
-    const vrm = await this.model.load(url, this.camera);
+    const vrm = await this.model.load(url, this.camera, onProgress);
     if (!vrm) {
       console.error("VRM 로딩 실패");
       return null;
