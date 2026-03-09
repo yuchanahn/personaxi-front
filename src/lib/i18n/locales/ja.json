@@ -35,11 +35,12 @@
     "logout": "ログアウト",
     "credits": "保有ニューロン",
     "plan": "プラン",
-    "creatorPoints": "クリエイターポイント",
+    "creatorPoints": "クリエイター貢献度",
     "creatorPointInfo": {
-      "title": "クリエイターポイントとは？",
-      "desc": "他のユーザーがあなたのペルソナと会話したり、支援したりすると貯まるポイントです。一定の割合でニューロンに変換して使用できます。"
+      "title": "クリエイター貢献度とは？",
+      "desc": "他のユーザーがあなたのペルソナと会話したり支援したりすると蓄積される創作貢献の指標です。"
     },
+    "creatorContributionUnit": "貢献度",
     "transfer": "変換",
     "charge": "購入",
     "installApp": "アプリインストール",
@@ -67,19 +68,19 @@
     "makePublic": "キャラクターを公開に切替"
   },
   "pointConvertModal": {
-    "title": "ニューロン変換",
-    "infoTitle": "ポイント変換案内",
-    "infoDesc": "クリエイターポイントをニューロンに変換して、AIペルソナとの会話や他の機能に使用できます。",
-    "cashoutNotice": "今後、無償付与クリエイターポイントを現金で引き出す機能がサポートされる予定です。",
-    "convertAmount": "変換するポイント",
+    "title": "変換機能は無効です",
+    "infoTitle": "案内",
+    "infoDesc": "クリエイター貢献度の変換機能は現在サポートされていません。",
+    "cashoutNotice": "現金化および変換機能は現在利用できません。",
+    "convertAmount": "入力値",
     "max": "最大",
-    "insufficientPoints": "保有ポイントが不足しています。",
-    "minAmountError": "最低{min}ポイントから変換できます。",
+    "insufficientPoints": "保有貢献度が不足しています。",
+    "minAmountError": "最小入力値は{min}です。",
     "exchangeRate": "交換レート",
     "fee": "変換手数料（無料イベント中！）",
     "receiveAmount": "受取ニューロン",
-    "convertAction": "変換する",
-    "success": "変換が完了しました。",
+    "convertAction": "確認",
+    "success": "処理が完了しました。",
     "fail": "変換失敗：{error}"
   },
   "settingPageModal": {
@@ -207,7 +208,7 @@
     "admin_bonus": "管理者付与",
     "refund": "返金",
     "purchase": "ニューロン購入",
-    "convert_point": "ポイント変換",
+    "convert_point": "貢献度調整",
     "initial_bonus": "登録ボーナス",
     "first_persona_bonus": "初コンテンツ作成ボーナス",
     "chat_start_2d": "2Dチャット開始",
@@ -1136,7 +1137,7 @@
       "requiredItems": "作成が必要な項目",
       "allReady": "すべての必須項目が入力されました。保存の準備ができました！",
       "monetizationTitle": "収益化および著作権の確認",
-      "monetizationWarning": "Live2Dまたは3D(VRM)モデルでクリエイターポイントを受け取るには、モデルを所有しているか、商用利用が許可されている必要があります。",
+      "monetizationWarning": "Live2Dまたは3D(VRM)モデルでクリエイター貢献度を認定するには、モデルを所有しているか、商用利用が許可されている必要があります。",
       "monetizationCheckbox": "はい、このモデルは商用利用可能であることを確認します。",
       "monetizationNote": "* 未確認の場合、収益化は制限されます。"
     }

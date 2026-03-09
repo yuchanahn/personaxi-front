@@ -6,11 +6,12 @@
     "logout": "Logout",
     "credits": "Neurons",
     "plan": "Plan",
-    "creatorPoints": "Creator Points",
+    "creatorPoints": "Creator Contribution",
     "creatorPointInfo": {
-      "title": "What are Creator Points?",
-      "desc": "Creator Points are earned when others chat with your Personas. You can convert them into Neurons to use in the shop."
+      "title": "What is Creator Contribution?",
+      "desc": "Creator Contribution is a creation-impact metric accumulated when others interact with your Personas."
     },
+    "creatorContributionUnit": "Contribution",
     "transfer": "Convert",
     "charge": "Shop",
     "myPersonas": "My Characters",
@@ -36,19 +37,19 @@
     "makePublic": "Make character public"
   },
   "pointConvertModal": {
-    "title": "Convert Transactions",
-    "infoTitle": "Conversion Info",
-    "infoDesc": "Convert Creator Points into Neurons to use for chatting or other features.",
-    "cashoutNotice": "The ability to withdraw creator points for cash will be supported in the future (Only for free points).",
-    "convertAmount": "Amount to Convert",
+    "title": "Conversion Disabled",
+    "infoTitle": "Info",
+    "infoDesc": "Creator contribution conversion is currently not supported.",
+    "cashoutNotice": "Cash-out and conversion features are currently unavailable.",
+    "convertAmount": "Amount",
     "max": "Max",
-    "insufficientPoints": "Insufficient points.",
-    "minAmountError": "Minimum conversion amount is {min} points.",
+    "insufficientPoints": "Insufficient contribution.",
+    "minAmountError": "Minimum input is {min}.",
     "exchangeRate": "Exchange Rate",
     "fee": "Conversion Fee (Free Event!)",
     "receiveAmount": "You Receive",
-    "convertAction": "Convert",
-    "success": "Conversion successful.",
+    "convertAction": "Confirm",
+    "success": "Completed.",
     "fail": "Conversion failed: {error}"
   },
   "tts": {
@@ -168,7 +169,7 @@
     "admin_bonus": "Admin Grant",
     "refund": "Refund",
     "purchase": "Purchase",
-    "convert_point": "Point Conversion",
+    "convert_point": "Contribution Adjustment",
     "initial_bonus": "Sign-up Bonus",
     "first_persona_bonus": "First Content Bonus",
     "chat_start_2d": "Start 2D Chat",
@@ -1136,7 +1137,7 @@
       "requiredItems": "Required Items",
       "allReady": "All required items are filled. Ready to save!",
       "monetizationTitle": "Monetization & Commercial Rights",
-      "monetizationWarning": "To receive Creator Points for Live2D or 3D (VRM) models, you must own the model or have permission for commercial use.",
+      "monetizationWarning": "To receive creator contribution credit for Live2D or 3D (VRM) models, you must own the model or have permission for commercial use.",
       "monetizationCheckbox": "Yes, I confirm that this model can be used commercially.",
       "monetizationNote": "* If not confirmed, monetization will be restricted."
     }

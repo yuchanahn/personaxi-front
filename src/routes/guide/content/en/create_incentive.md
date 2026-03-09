@@ -10,17 +10,17 @@ You earn revenue whenever other users chat with your character.
 *   **Basis**: A percentage of the total **Neurons** consumed in chats with your character.
 *   **Current Rate (Beta)**: Approx. **10%** of sales (As of Feb 2026, subject to change).
 
-## 💸 Settlement & Usage
+## 💸 Contribution Policy
 
- accumulated earnings can be used as follows:
+Accumulated creator contribution is used as an internal contribution metric.
 
-### 1. Convert to Neurons
-*   **(Event)** Currently converts at **1:1** value without fees!
-*   Use them to access advanced models or decorate characters.
+### 1. Internal Metric
+*   It reflects how much your characters contribute to platform engagement.
+*   It can be used for creator ranking, recommendation exposure, and future creator programs.
 
-### 2. Cash Out (Coming Soon)
-*   Withdraw to your bank account once earnings exceed a certain threshold (e.g., $100).
-*   (Tax and transfer fees apply).
+### 2. No Conversion / Cash-out
+*   Converting creator contribution into Neurons is currently not supported.
+*   Cash-out is also currently not supported.
 
 > [!TIP]
 > **How to Maximize Revenue**

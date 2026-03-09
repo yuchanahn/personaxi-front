@@ -8,14 +8,12 @@
     import { fetchLivePersonas, setLiveStatus } from "$lib/services/live";
     import { locale, t } from "svelte-i18n";
     import AuctionModal from "$lib/components/modal/AuctionModal.svelte";
-    import PointConvertModal from "$lib/components/modal/PointConvertModal.svelte";
 
     import NeuronIcon from "$lib/components/icons/NeuronIcon.svelte";
     import { get } from "svelte/store";
     import type { User } from "$lib/types";
     import Icon from "@iconify/svelte";
     import { api } from "$lib/api";
-    import { toast } from "$lib/stores/toast";
     import {
         getUploadUrl,
         uploadFileWithProgress,
@@ -49,28 +47,6 @@
     let liveIds: string[] = [];
 
     let showAuctionModal = false;
-    let showPointConvertModal = false;
-
-    async function handleConvertConfirm(e: CustomEvent) {
-        const amount = e.detail.amount;
-        try {
-            await api.convertPoints(amount);
-
-            const $t = get(t);
-            toast.success($t("pointConvertModal.success"));
-
-            const userRes = await getCurrentUser();
-            if (userRes) user = userRes as User;
-        } catch (err: any) {
-            const $t = get(t);
-            toast.error(
-                $t("pointConvertModal.fail", {
-                    values: { error: err.message },
-                }),
-            );
-        }
-    }
-
     let selectedPersona: Persona | null = null;
 
     let isEditingProfile = false;
@@ -820,20 +796,10 @@
                                                 user.creator_points || 0
                                             ).toFixed(2)}</span
                                         >
-                                        <span class="stat-unit">Points</span>
+                                        <span class="stat-unit">
+                                            {$t("settingPage.creatorContributionUnit")}
+                                        </span>
                                     </div>
-                                    <button
-                                        class="primary-btn compact"
-                                        on:click={() =>
-                                            (showPointConvertModal = true)}
-                                    >
-                                        <Icon
-                                            icon="ph:arrows-left-right-bold"
-                                            width="16"
-                                            height="16"
-                                        />
-                                        {$t("settingPage.transfer")}
-                                    </button>
                                 </div>
                             </div>
                         </div>
@@ -975,15 +941,6 @@
         <AuctionModal
             persona={selectedPersona}
             on:close={() => (showAuctionModal = false)}
-        />
-    {/if}
-
-    {#if user}
-        <PointConvertModal
-            isOpen={showPointConvertModal}
-            userPoints={user.creator_points || 0}
-            on:close={() => (showPointConvertModal = false)}
-            on:confirm={handleConvertConfirm}
         />
     {/if}
 

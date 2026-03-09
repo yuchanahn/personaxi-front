@@ -39,7 +39,7 @@ By accessing or using personaxi ("Service"), operated by PersonaXI ("Company"), 
 1. A Member may request account termination at any time through the account settings within the Service or by contacting support@personaxi.com.
 2. The Company shall process the termination request within **5 business days** and notify the Member upon completion.
 3. Upon termination, the Member's personal data and service usage data shall be handled in accordance with the Privacy Policy. Data required to be retained under applicable laws shall be kept for the relevant statutory period.
-4. Once an account is terminated, the Member will no longer be able to log in with that account. All Neurons and Creator Points held shall be forfeited immediately.
+4. Once an account is terminated, the Member will no longer be able to log in with that account. All Neurons and Creator Contribution held shall be forfeited immediately.
 
 ---
 
@@ -93,7 +93,7 @@ By accessing or using personaxi ("Service"), operated by PersonaXI ("Company"), 
    - Refund requests shall be submitted to support@personaxi.com. The Company shall process the refund within **5–10 business days** of receipt.
 4. **Expiration:**
    - Paid Neurons expire **1 year** from the date of purchase in accordance with applicable commercial laws.
-   - Free Neurons (Creator Points and promotional credits) expire in accordance with the notice period set by the Company (a minimum of **30 days** advance notice).
+   - Free Neurons (Creator Contribution and promotional credits) expire in accordance with the notice period set by the Company (a minimum of **30 days** advance notice).
 
 ### Article 12: Right of Withdrawal
 1. In accordance with applicable consumer protection laws, Members may withdraw from a transaction within **7 days** from the date of service delivery.
@@ -106,24 +106,24 @@ By accessing or using personaxi ("Service"), operated by PersonaXI ("Company"), 
 ### Article 14: Service Suspension or Closure — Refund of Paid Credits
 1. If the Company discontinues or suspends the Service for an extended period due to business reasons, it shall provide notice to Members at least **30 days** prior to the suspension date.
 2. Within the notice period, the remaining balance of **paid Neurons** held by each Member shall be refunded based on the original payment amount.
-3. Creator Points and promotional credits received free of charge are not subject to refund.
+3. Creator Contribution and promotional credits received free of charge are not subject to refund.
 
 ---
 
-## Chapter 6: Creator Points
+## Chapter 6: Creator Contribution
 
-### Article 15: Earning and Using Creator Points
-1. Members may earn Creator Points as rewards when other Members use their created Personas or through other activities within the Service.
-2. Earned Creator Points may be converted into paid currency (Neurons) at a rate determined by the Company.
-3. The earning method, conversion rate, and conditions of use for Creator Points may be changed in accordance with the Company's operational policies. The Company shall provide advance notice of such changes within the Service.
+### Article 15: Earning and Using Creator Contribution
+1. Members may earn Creator Contribution as rewards when other Members use their created Personas or through other activities within the Service.
+2. Earned Creator Contribution is managed as an internal creator-impact metric, and conversion into Neurons is currently not supported.
+3. The earning method and conditions of use for Creator Contribution may be changed in accordance with the Company's operational policies. The Company shall provide advance notice of such changes within the Service.
 
-### Article 16: Nature of Creator Points and Prohibition of Cashout
-1. Creator Points are free credits issued to encourage participation in the Service. Under no circumstances may they be cashed out or sold or transferred to a third party for value.
-2. The Company does not guarantee any cash value for Creator Points. If a Member is found to have attempted to convert Creator Points into cash, the relevant Points shall be forfeited and the Member's account may be restricted.
+### Article 16: Nature of Creator Contribution and Prohibition of Cashout
+1. Creator Contribution are free credits issued to encourage participation in the Service. Under no circumstances may they be cashed out or sold or transferred to a third party for value.
+2. The Company does not guarantee any cash value for Creator Contribution. If a Member is found to have attempted to cash out or trade Creator Contribution, the relevant points may be forfeited and the Member's account may be restricted.
 
-### Article 17: Expiration and Forfeiture of Creator Points
-1. If a Member voluntarily terminates their account or if the account is deleted due to a violation of these Terms, all Creator Points held shall be forfeited immediately and shall not be restored.
-2. If the Company suspends the Service including Creator Points for business reasons, it shall provide at least **30 days** advance notice. Creator Points not converted into Neurons within the notice period shall be automatically forfeited.
+### Article 17: Expiration and Forfeiture of Creator Contribution
+1. If a Member voluntarily terminates their account or if the account is deleted due to a violation of these Terms, all Creator Contribution held shall be forfeited immediately and shall not be restored.
+2. If the Company suspends the Service including Creator Contribution for business reasons, it shall provide at least **30 days** advance notice. Creator Contribution may be forfeited in accordance with the announced policy.
 
 ---
 
