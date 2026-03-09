@@ -240,8 +240,27 @@
 
     function replaceNicknameInText(text: string): string {
         if (!persona) return text;
+        const user = get(st_user);
+        const personas = user?.data?.userPersonas ?? [];
+        const selectedPersonaId = (
+            get(chatSessions).find((s) => s.id === persona?.id)?.userPersonaId ||
+            ""
+        ).trim();
+        const selectedPersona = selectedPersonaId
+            ? personas.find(
+                  (p) => p.id === selectedPersonaId && (p.name || "").trim(),
+              )
+            : null;
+        const defaultPersona = personas.find(
+            (p) => p.isDefault && (p.name || "").trim(),
+        );
+        const effectiveUserName =
+            selectedPersona?.name?.trim() ||
+            defaultPersona?.name?.trim() ||
+            user?.data?.nickname?.trim() ||
+            "User";
         return text
-            .replaceAll("{{user}}", get(st_user)?.data?.nickname || "User")
+            .replaceAll("{{user}}", effectiveUserName)
             .replaceAll("{{char}}", persona.name || "Character");
     }
 
@@ -286,8 +305,29 @@
         formatted = formatted.replace(/<style[^>]*>[\s\S]*?<\/style>/gi, "");
 
         if (persona) {
+            const user = get(st_user);
+            const personas = user?.data?.userPersonas ?? [];
+            const selectedPersonaId = (
+                get(chatSessions).find((s) => s.id === persona?.id)
+                    ?.userPersonaId || ""
+            ).trim();
+            const selectedPersona = selectedPersonaId
+                ? personas.find(
+                      (p) =>
+                          p.id === selectedPersonaId &&
+                          (p.name || "").trim(),
+                  )
+                : null;
+            const defaultPersona = personas.find(
+                (p) => p.isDefault && (p.name || "").trim(),
+            );
+            const effectiveUserName =
+                selectedPersona?.name?.trim() ||
+                defaultPersona?.name?.trim() ||
+                user?.data?.nickname?.trim() ||
+                "User";
             formatted = formatted
-                .replaceAll("{{user}}", get(st_user)?.data?.nickname || "User")
+                .replaceAll("{{user}}", effectiveUserName)
                 .replaceAll("{{char}}", persona.name || "Character");
         }
 

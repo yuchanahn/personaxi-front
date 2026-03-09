@@ -65,7 +65,17 @@
     "profileAlt": "プロフィール",
     "nicknamePlaceholder": "ニックネーム",
     "makePrivate": "キャラクターを非公開に切替",
-    "makePublic": "キャラクターを公開に切替"
+    "makePublic": "キャラクターを公開に切替",
+    "userPersona": {
+      "title": "ユーザーペルソナプロフィール",
+      "new": "新規作成",
+      "namePlaceholder": "ペルソナ名",
+      "descriptionPlaceholder": "説明（任意）",
+      "tonePlaceholder": "トーン（任意）",
+      "traitsPlaceholder": "特性（カンマ区切り）",
+      "setDefault": "デフォルトに設定",
+      "confirmDelete": "このユーザーペルソナを削除しますか？"
+    }
   },
   "pointConvertModal": {
     "title": "変換機能は無効です",
@@ -289,7 +299,10 @@
     "resetChat": "会話リセット",
     "deleteChat": "会話削除",
     "confirmDelete": "本当に削除しますか？",
-    "confirmReset": "会話内容をリセットしますか？（元に戻せません）"
+    "confirmReset": "会話内容をリセットしますか？（元に戻せません）",
+    "userPersonaTitle": "ユーザーペルソナ",
+    "userPersonaDescription": "このチャットセッションで使用するユーザーペルソナを選択してください。",
+    "userPersonaNoItems": "登録されたペルソナがありません"
   },
   "reportModal": {
     "title": "通報する",
@@ -901,7 +914,11 @@
     "cancel": "キャンセル",
     "confirm": "確認",
     "delete": "削除",
-    "close": "閉じる"
+    "close": "閉じる",
+    "save": "保存",
+    "saving": "保存中...",
+    "loading": "読み込み中...",
+    "default": "デフォルト"
   },
   "creatorPage": {
     "personas": "体のAIペルソナ",

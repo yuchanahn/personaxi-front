@@ -11,7 +11,7 @@
 
     import NeuronIcon from "$lib/components/icons/NeuronIcon.svelte";
     import { get } from "svelte/store";
-    import type { User } from "$lib/types";
+    import type { User, UserPersona } from "$lib/types";
     import Icon from "@iconify/svelte";
     import { api } from "$lib/api";
     import {
@@ -43,6 +43,13 @@
     } as User;
 
     let personas: Persona[] = [];
+    let userPersonas: UserPersona[] = [];
+    let editingUserPersonaId = "";
+    let userPersonaName = "";
+    let userPersonaDescription = "";
+    let userPersonaTone = "";
+    let userPersonaTraits = "";
+    let isSavingUserPersona = false;
     let error = "";
     let liveIds: string[] = [];
 
@@ -52,6 +59,98 @@
     let isEditingProfile = false;
     let originalUser: User | null = null;
     let isPWA = false;
+
+    function fillUserPersonaEditor(persona: UserPersona | null) {
+        editingUserPersonaId = persona?.id || "";
+        userPersonaName = persona?.name || "";
+        userPersonaDescription = persona?.description || "";
+        userPersonaTone = persona?.tone || "";
+        userPersonaTraits = (persona?.traits || []).join(", ");
+    }
+
+    async function loadUserPersonasFromServer() {
+        try {
+            const res = await api.get(`/api/user/personas`);
+            if (!res.ok) throw new Error(await res.text());
+            const data = await res.json();
+            userPersonas = Array.isArray(data?.personas) ? data.personas : [];
+            if (!editingUserPersonaId) {
+                const base =
+                    userPersonas.find((p) => p.isDefault) || userPersonas[0];
+                fillUserPersonaEditor(base || null);
+            }
+        } catch (e) {
+            console.error("Failed to load user personas:", e);
+        }
+    }
+
+    async function saveUserPersona() {
+        if (!userPersonaName.trim()) return;
+        isSavingUserPersona = true;
+        try {
+            const payload = {
+                id: editingUserPersonaId || undefined,
+                name: userPersonaName.trim(),
+                description: userPersonaDescription.trim(),
+                tone: userPersonaTone.trim(),
+                traits: userPersonaTraits
+                    .split(",")
+                    .map((x) => x.trim())
+                    .filter(Boolean),
+            };
+            const res = await api.post(`/api/user/personas`, payload);
+            if (!res.ok) throw new Error(await res.text());
+            const data = await res.json();
+            userPersonas = Array.isArray(data?.personas) ? data.personas : [];
+            editingUserPersonaId = data?.id || editingUserPersonaId;
+            const selected = userPersonas.find(
+                (p) => p.id === editingUserPersonaId,
+            );
+            fillUserPersonaEditor(selected || null);
+        } catch (e) {
+            console.error("Failed to save user persona:", e);
+        } finally {
+            isSavingUserPersona = false;
+        }
+    }
+
+    async function deleteUserPersona(id: string) {
+        if (!id) return;
+        if (!confirm($t("settingPage.userPersona.confirmDelete"))) return;
+        try {
+            const res = await api.delete(`/api/user/personas`, {
+                body: JSON.stringify({ id }),
+                headers: { "Content-Type": "application/json" },
+            });
+            if (!res.ok) throw new Error(await res.text());
+            const data = await res.json();
+            userPersonas = Array.isArray(data?.personas) ? data.personas : [];
+            const base = userPersonas.find((p) => p.isDefault) || userPersonas[0];
+            fillUserPersonaEditor(base || null);
+        } catch (e) {
+            console.error("Failed to delete user persona:", e);
+        }
+    }
+
+    async function setDefaultUserPersona(id: string) {
+        const target = userPersonas.find((p) => p.id === id);
+        if (!target) return;
+        try {
+            const res = await api.post(`/api/user/personas`, {
+                id: target.id,
+                name: target.name,
+                description: target.description || "",
+                tone: target.tone || "",
+                traits: target.traits || [],
+                isDefault: true,
+            });
+            if (!res.ok) throw new Error(await res.text());
+            const data = await res.json();
+            userPersonas = Array.isArray(data?.personas) ? data.personas : [];
+        } catch (e) {
+            console.error("Failed to set default user persona:", e);
+        }
+    }
 
     function logoutHandler() {
         if (confirm("정말 로그아웃 하시겠습니까?")) {
@@ -134,6 +233,7 @@
             } else {
                 error = "Failed to load personas";
             }
+            await loadUserPersonasFromServer();
 
             const liveRes = await fetchLivePersonas();
             liveIds = liveRes.map((x) => x);
@@ -316,6 +416,7 @@
             } else {
                 error = "Failed to load personas";
             }
+            await loadUserPersonasFromServer();
 
             const liveRes = await fetchLivePersonas();
             liveIds = liveRes.map((x) => x);
@@ -800,6 +901,100 @@
                                             {$t("settingPage.creatorContributionUnit")}
                                         </span>
                                     </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="user-persona-card">
+                            <div class="user-persona-header">
+                                <h3>{$t("settingPage.userPersona.title")}</h3>
+                                <button
+                                    class="small-outline-btn"
+                                    on:click={() => fillUserPersonaEditor(null)}
+                                >
+                                    {$t("settingPage.userPersona.new")}
+                                </button>
+                            </div>
+
+                            <div class="user-persona-list">
+                                {#each userPersonas as p (p.id)}
+                                    <button
+                                        class="user-persona-item"
+                                        class:active={editingUserPersonaId === p.id}
+                                        on:click={() => fillUserPersonaEditor(p)}
+                                    >
+                                        <span>{p.name}</span>
+                                        {#if p.isDefault}
+                                            <span class="default-pill">Default</span>
+                                        {/if}
+                                    </button>
+                                {/each}
+                            </div>
+
+                            <div class="user-persona-editor">
+                                <input
+                                    class="input-field"
+                                    bind:value={userPersonaName}
+                                    placeholder={$t(
+                                        "settingPage.userPersona.namePlaceholder",
+                                    )}
+                                />
+                                <textarea
+                                    class="input-field"
+                                    rows="2"
+                                    bind:value={userPersonaDescription}
+                                    placeholder={$t(
+                                        "settingPage.userPersona.descriptionPlaceholder",
+                                    )}
+                                ></textarea>
+                                <input
+                                    class="input-field"
+                                    bind:value={userPersonaTone}
+                                    placeholder={$t(
+                                        "settingPage.userPersona.tonePlaceholder",
+                                    )}
+                                />
+                                <input
+                                    class="input-field"
+                                    bind:value={userPersonaTraits}
+                                    placeholder={$t(
+                                        "settingPage.userPersona.traitsPlaceholder",
+                                    )}
+                                />
+
+                                <div class="user-persona-actions">
+                                    {#if editingUserPersonaId}
+                                        <button
+                                            class="small-outline-btn"
+                                            on:click={() =>
+                                                setDefaultUserPersona(
+                                                    editingUserPersonaId,
+                                                )}
+                                        >
+                                            {$t(
+                                                "settingPage.userPersona.setDefault",
+                                            )}
+                                        </button>
+                                        <button
+                                            class="small-danger-btn"
+                                            on:click={() =>
+                                                deleteUserPersona(
+                                                    editingUserPersonaId,
+                                                )}
+                                        >
+                                            {$t("settingPage.delete")}
+                                        </button>
+                                    {/if}
+                                    <button
+                                        class="small-primary-btn"
+                                        on:click={saveUserPersona}
+                                        disabled={isSavingUserPersona ||
+                                            !userPersonaName.trim()}
+                                    >
+                                        {isSavingUserPersona
+                                            ? $t("common.saving")
+                                            : $t("common.save")}
+                                    </button>
                                 </div>
                             </div>
                         </div>
@@ -1796,5 +1991,92 @@
     .verification-btn-small:disabled {
         opacity: 0.5;
         cursor: not-allowed;
+    }
+
+    .user-persona-card {
+        margin: 0 1.5rem 1.5rem;
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        background: var(--card);
+        padding: 1rem;
+    }
+
+    .user-persona-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 0.75rem;
+    }
+
+    .user-persona-header h3 {
+        margin: 0;
+        font-size: 1rem;
+        color: var(--foreground);
+    }
+
+    .user-persona-list {
+        display: flex;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+        margin-bottom: 0.75rem;
+    }
+
+    .user-persona-item {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        background: var(--secondary);
+        border: 1px solid var(--border);
+        border-radius: 999px;
+        color: var(--foreground);
+        padding: 0.35rem 0.7rem;
+        cursor: pointer;
+    }
+
+    .user-persona-item.active {
+        border-color: var(--primary);
+    }
+
+    .default-pill {
+        font-size: 0.7rem;
+        color: var(--primary);
+    }
+
+    .user-persona-editor {
+        display: grid;
+        gap: 0.5rem;
+    }
+
+    .user-persona-actions {
+        display: flex;
+        gap: 0.5rem;
+        justify-content: flex-end;
+    }
+
+    .small-outline-btn,
+    .small-danger-btn,
+    .small-primary-btn {
+        border-radius: 8px;
+        padding: 0.35rem 0.7rem;
+        font-size: 0.8rem;
+        cursor: pointer;
+        border: 1px solid var(--border);
+    }
+
+    .small-outline-btn {
+        background: var(--secondary);
+        color: var(--foreground);
+    }
+
+    .small-danger-btn {
+        background: transparent;
+        color: #ef4444;
+        border-color: #ef4444;
+    }
+
+    .small-primary-btn {
+        background: var(--primary);
+        color: var(--primary-foreground);
+        border-color: var(--primary);
     }
 </style>

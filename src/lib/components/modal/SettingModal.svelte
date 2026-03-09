@@ -8,7 +8,7 @@
     import { settings } from "$lib/stores/settings";
 
     import { api } from "$lib/api";
-    import type { Persona, User } from "$lib/types";
+    import type { Persona, User, UserPersona } from "$lib/types";
     import { deleteChatHistory, resetChatHistory } from "$lib/api/chat";
     import { loadlikesdata } from "$lib/api/content";
     import { page } from "$app/stores";
@@ -49,6 +49,9 @@
     let showReportModal = false;
 
     let user: User | null = null;
+    let userPersonas: UserPersona[] = [];
+    let selectedUserPersonaId = "";
+    let isLoadingUserPersonas = false;
     let isLiked = false;
     let statusTimer: ReturnType<typeof setTimeout> | null = null;
 
@@ -170,6 +173,28 @@
         //}
     }
 
+    async function loadUserPersonas() {
+        if (mode !== "2d") return;
+        isLoadingUserPersonas = true;
+        try {
+            const res = await api.get(`/api/user/personas`);
+            if (!res.ok) throw new Error(await res.text());
+            const data = await res.json();
+            userPersonas = Array.isArray(data?.personas) ? data.personas : [];
+
+            if (!selectedUserPersonaId && userPersonas.length > 0) {
+                selectedUserPersonaId =
+                    userPersonas.find((p) => p.isDefault)?.id ||
+                    userPersonas[0].id;
+            }
+        } catch (error) {
+            console.error("Failed to load user personas:", error);
+            userPersonas = [];
+        } finally {
+            isLoadingUserPersonas = false;
+        }
+    }
+
     async function handleLLMChange() {
         if (!persona?.id) return;
         isLoading = true;
@@ -179,6 +204,7 @@
                 cssid: persona.id,
                 llmType: selectedLLM.id,
                 outputTokenMultiplier: selectedOutputTokenMultiplier,
+                userPersonaId: selectedUserPersonaId || "",
             });
             if (!res.ok) throw new Error(await res.text());
             await res.json();
@@ -190,6 +216,8 @@
                     sessions[existingIndex].llmType = selectedLLM.id;
                     sessions[existingIndex].outputTokenMultiplier =
                         selectedOutputTokenMultiplier;
+                    sessions[existingIndex].userPersonaId =
+                        selectedUserPersonaId || "";
                     return [...sessions];
                 } else {
                     return [
@@ -203,6 +231,7 @@
                             llmType: selectedLLM.id,
                             outputTokenMultiplier:
                                 selectedOutputTokenMultiplier,
+                            userPersonaId: selectedUserPersonaId || "",
                             userNote: userNote,
                         } as any,
                     ];
@@ -285,6 +314,7 @@
                             llmType: selectedLLM.id,
                             outputTokenMultiplier:
                                 selectedOutputTokenMultiplier,
+                            userPersonaId: selectedUserPersonaId || "",
                             userNote: userNote,
                         } as any,
                     ];
@@ -330,6 +360,7 @@
 
         const session = $chatSessions.find((s) => s.id === persona.id);
         userNote = session?.userNote || "";
+        selectedUserPersonaId = session?.userPersonaId || "";
         selectedOutputTokenMultiplier = Math.min(
             3,
             Math.max(
@@ -337,6 +368,7 @@
                 session?.outputTokenMultiplier || outputTokenMultiplier || 1,
             ),
         );
+        loadUserPersonas();
     }
 </script>
 
@@ -431,6 +463,48 @@
                         </p>
                         <p class="section-description">
                             {$t("settingModal.outputTokenMultiplierRule")}
+                        </p>
+                    </div>
+                {/if}
+
+                {#if mode === "2d"}
+                    <div class="settings-card">
+                        <div class="card-header">
+                            <Icon icon="ph:user-circle-duotone" />
+                            <span>{$t("settingModal.userPersonaTitle")}</span>
+                        </div>
+                        <div class="select-wrapper">
+                            <select
+                                bind:value={selectedUserPersonaId}
+                                on:change={handleLLMChange}
+                                disabled={isLoading || isLoadingUserPersonas}
+                                aria-label={$t("settingModal.userPersonaTitle")}
+                            >
+                                {#if userPersonas.length === 0}
+                                    <option value="">
+                                        {isLoadingUserPersonas
+                                            ? $t("common.loading")
+                                            : $t(
+                                                  "settingModal.userPersonaNoItems",
+                                              )}
+                                    </option>
+                                {:else}
+                                    {#each userPersonas as p (p.id)}
+                                        <option value={p.id}>
+                                            {p.name}
+                                            {p.isDefault
+                                                ? ` (${$t("common.default")})`
+                                                : ""}
+                                        </option>
+                                    {/each}
+                                {/if}
+                            </select>
+                            <div class="select-arrow" aria-hidden="true">
+                                <Icon icon="ph:caret-down-bold" />
+                            </div>
+                        </div>
+                        <p class="section-description">
+                            {$t("settingModal.userPersonaDescription")}
                         </p>
                     </div>
                 {/if}

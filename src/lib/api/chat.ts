@@ -222,6 +222,9 @@ export async function impl_sendPromptStream(
         outputTokenMultiplier:
             get(chatSessions).find((s) => s.id === currentSessionId)
                 ?.outputTokenMultiplier || 1,
+        userPersonaId:
+            get(chatSessions).find((s) => s.id === currentSessionId)
+                ?.userPersonaId || "",
     };
     //HandleLLMChat
     const response = await api.post(`/api/chat/${type ?? "2d"}`, body);

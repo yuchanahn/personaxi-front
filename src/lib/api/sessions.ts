@@ -34,6 +34,10 @@ export async function loadCharacterSessions() {
                         chatSession.outputTokenMultiplier ||
                         chatSession.output_token_multiplier ||
                         1,
+                    userPersonaId:
+                        chatSession.userPersonaId ||
+                        chatSession.user_persona_id ||
+                        "",
                     avatar: chatSession.avatar,
                     lastMessage: chatSession.lastMessage || chatSession.last_message,
                     lastMessageAt: chatSession.lastMessageAt || chatSession.last_message_at

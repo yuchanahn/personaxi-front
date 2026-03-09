@@ -8,6 +8,7 @@
   import ChatImage from "./ChatImage.svelte";
   import { get } from "svelte/store";
   import { st_user } from "$lib/stores/user";
+  import { chatSessions } from "$lib/stores/chatSessions";
   import ChatRenderer from "./ChatRenderer.svelte";
   import AstroChartInline from "./AstroChartInline.svelte";
   import VariableStatusPanel from "./VariableStatusPanel.svelte";
@@ -133,9 +134,34 @@
     const blocks: ChatLogItem[] = [];
     let partIndex = 0;
 
+    const getEffectiveUserName = () => {
+      const user = get(st_user);
+      const personas = user?.data?.userPersonas ?? [];
+      const session = get(chatSessions).find((s) => s.id === persona?.id);
+      const selectedPersonaId = (session?.userPersonaId || "").trim();
+
+      if (selectedPersonaId) {
+        const selected = personas.find(
+          (p) => p.id === selectedPersonaId && (p.name || "").trim(),
+        );
+        if (selected?.name?.trim()) {
+          return selected.name.trim();
+        }
+      }
+
+      const defaultPersona = personas.find(
+        (p) => p.isDefault && (p.name || "").trim(),
+      );
+      if (defaultPersona?.name?.trim()) {
+        return defaultPersona.name.trim();
+      }
+
+      return user?.data?.nickname?.trim() || "User";
+    };
+
     const replacePlaceholders = (text: string) => {
       return text
-        .replaceAll("{{user}}", get(st_user)?.data?.nickname || "User")
+        .replaceAll("{{user}}", getEffectiveUserName())
         .replaceAll("{{char}}", currentPersona?.name || "Character");
     };
 
@@ -449,6 +475,15 @@
         } else {
           startThrottleLoop();
         }
+      } else if (gLast.role === "assistant" && gLast.content === vLast.content) {
+        // Stream done can arrive after content is already fully typed.
+        // Reflect done-transition explicitly so post-typing UI (e.g. vars status)
+        // appears without requiring the next user message.
+        if (gLast.done === true && vLast.done !== true) {
+          visibleMessages[idx] = { ...vLast, done: true };
+          visibleMessages = [...visibleMessages];
+          typingDone = true;
+        }
       }
     }
   }
@@ -523,7 +558,7 @@
     if (waitingForImage) return; // Don't start if waiting
 
     let lastTime: number | null = null;
-    const CHARS_PER_SECOND = 90;
+    const CHARS_PER_SECOND = 75;
 
     function loop(timestamp: number) {
       if (!lastTime) lastTime = timestamp;
@@ -548,7 +583,7 @@
         // Adaptive speed: If we are far behind, speed up
         const remaining = targetContent.length - currentContent.length;
         const baseSpeed = CHARS_PER_SECOND;
-        const speedMultiplier = 1 + remaining / 10; // Increase speed by 10% for every char behind
+        const speedMultiplier = 1 + remaining / 20; // Softer acceleration when behind
         const effectiveSpeed = baseSpeed * speedMultiplier;
 
         const charsToAdd = (effectiveSpeed * deltaTime) / 1000;

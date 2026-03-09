@@ -20,6 +20,7 @@ export type ChatSession = {
     userNote?: string;
     llmType?: string;
     outputTokenMultiplier?: number;
+    userPersonaId?: string;
 };
 
 export const chatSessions = writable<ChatSession[]>([]);

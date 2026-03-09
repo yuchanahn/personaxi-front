@@ -34,7 +34,17 @@
     "profileAlt": "Profile",
     "nicknamePlaceholder": "Nickname",
     "makePrivate": "Make character private",
-    "makePublic": "Make character public"
+    "makePublic": "Make character public",
+    "userPersona": {
+      "title": "User Persona Profiles",
+      "new": "New",
+      "namePlaceholder": "Persona name",
+      "descriptionPlaceholder": "Description (optional)",
+      "tonePlaceholder": "Tone (optional)",
+      "traitsPlaceholder": "Traits (comma separated)",
+      "setDefault": "Set Default",
+      "confirmDelete": "Delete this user persona?"
+    }
   },
   "pointConvertModal": {
     "title": "Conversion Disabled",
@@ -525,7 +535,10 @@
     "closeupMode": "Closeup Mode",
     "showBackground": "Background Mode (Hide Chat)",
     "showVariableStatus": "Show Variable Status",
-    "hideVariableStatus": "Hide Variable Status"
+    "hideVariableStatus": "Hide Variable Status",
+    "userPersonaTitle": "User Persona",
+    "userPersonaDescription": "Select a saved user persona profile for this chat session.",
+    "userPersonaNoItems": "No personas"
   },
   "reportModal": {
     "title": "Report Content",
@@ -861,7 +874,11 @@
     "cancel": "Cancel",
     "confirm": "Confirm",
     "delete": "Delete",
-    "close": "Close"
+    "close": "Close",
+    "save": "Save",
+    "saving": "Saving...",
+    "loading": "Loading...",
+    "default": "Default"
   },
   "creatorPage": {
     "personas": "AI Personas",

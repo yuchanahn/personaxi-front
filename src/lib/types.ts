@@ -116,7 +116,19 @@ export interface User {
         gender?: string;
         ci?: string;
         di?: string;
+        userPersonas?: UserPersona[];
     };
+}
+
+export interface UserPersona {
+    id: string;
+    name: string;
+    description?: string;
+    tone?: string;
+    traits?: string[];
+    isDefault?: boolean;
+    createdAt?: string;
+    updatedAt?: string;
 }
 
 export interface CreatorInfoDTO {
