@@ -26,6 +26,7 @@
     export let isOpen: boolean = false;
     export let persona: Persona;
     export let llmType: string = "Error";
+    export let outputTokenMultiplier: number = 1;
     export let mode: "2d" | "3d" | "live2d" = "3d";
     export let showImage: boolean = true;
     export let autoScroll: boolean = true;
@@ -55,6 +56,7 @@
     let userNote = "";
     let showUserNote = false;
     let outputLength = 100; // Default UI value
+    let selectedOutputTokenMultiplier = outputTokenMultiplier;
     let showSessionImages = false;
     let sessionImages: string[] = [];
     let selectedImage: string | null = null; // Full Screen Viewer State
@@ -116,6 +118,12 @@
     $: selectedLLM =
         availableLLMs.find((llm) => llm.id === selectedLLM_id) ||
         availableLLMs[1];
+    $: selectedOutputTokenMultiplier = Math.min(
+        3,
+        Math.max(1, Number(selectedOutputTokenMultiplier) || 1),
+    );
+    $: maxCostWithOutputMultiplier =
+        selectedLLM.cost * selectedOutputTokenMultiplier;
 
     function changeLLMType(newType: string) {
         selectedLLM_id = newType;
@@ -170,6 +178,7 @@
             const res = await api.post(`/api/chat/char/sessions/edit`, {
                 cssid: persona.id,
                 llmType: selectedLLM.id,
+                outputTokenMultiplier: selectedOutputTokenMultiplier,
             });
             if (!res.ok) throw new Error(await res.text());
             await res.json();
@@ -179,6 +188,8 @@
                 );
                 if (existingIndex !== -1) {
                     sessions[existingIndex].llmType = selectedLLM.id;
+                    sessions[existingIndex].outputTokenMultiplier =
+                        selectedOutputTokenMultiplier;
                     return [...sessions];
                 } else {
                     return [
@@ -190,6 +201,8 @@
                             type: persona.personaType || "2D",
                             avatar: persona.portrait_url,
                             llmType: selectedLLM.id,
+                            outputTokenMultiplier:
+                                selectedOutputTokenMultiplier,
                             userNote: userNote,
                         } as any,
                     ];
@@ -270,6 +283,8 @@
                             type: persona.personaType || "2D",
                             avatar: persona.portrait_url,
                             llmType: selectedLLM.id,
+                            outputTokenMultiplier:
+                                selectedOutputTokenMultiplier,
                             userNote: userNote,
                         } as any,
                     ];
@@ -315,6 +330,13 @@
 
         const session = $chatSessions.find((s) => s.id === persona.id);
         userNote = session?.userNote || "";
+        selectedOutputTokenMultiplier = Math.min(
+            3,
+            Math.max(
+                1,
+                session?.outputTokenMultiplier || outputTokenMultiplier || 1,
+            ),
+        );
     }
 </script>
 
@@ -375,6 +397,40 @@
                         <p class="section-description">
                             {$t("settingModal.costDisplay")}
                             <NeuronIcon size={14} />{selectedLLM.cost}
+                        </p>
+                        <div class="select-wrapper">
+                            <select
+                                bind:value={selectedOutputTokenMultiplier}
+                                on:change={handleLLMChange}
+                                disabled={isLoading}
+                                aria-label="Select output token multiplier"
+                            >
+                                <option value={1}>
+                                    {$t(
+                                        "settingModal.outputTokenMultiplier1x",
+                                    )}
+                                </option>
+                                <option value={2}>
+                                    {$t(
+                                        "settingModal.outputTokenMultiplier2x",
+                                    )}
+                                </option>
+                                <option value={3}>
+                                    {$t(
+                                        "settingModal.outputTokenMultiplier3x",
+                                    )}
+                                </option>
+                            </select>
+                            <div class="select-arrow" aria-hidden="true">
+                                <Icon icon="ph:caret-down-bold" />
+                            </div>
+                        </div>
+                        <p class="section-description">
+                            {$t("settingModal.maxCostDisplay")}
+                            <NeuronIcon size={14} />{maxCostWithOutputMultiplier}
+                        </p>
+                        <p class="section-description">
+                            {$t("settingModal.outputTokenMultiplierRule")}
                         </p>
                     </div>
                 {/if}

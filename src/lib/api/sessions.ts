@@ -17,7 +17,10 @@ export async function loadCharacterSessions() {
                     chatSession.id,
                     chatSession.name,
                     chatSession.type,
-                    chatSession.llmType || chatSession.llm_type
+                    chatSession.llmType || chatSession.llm_type,
+                    chatSession.outputTokenMultiplier ||
+                        chatSession.output_token_multiplier ||
+                        1,
                 );
             }
             if (get(chatSessions).find(s => s.id == chatSession.id)) {
@@ -27,6 +30,10 @@ export async function loadCharacterSessions() {
                     createdAt: chatSession.createdAt || chatSession.created_at,
                     type: chatSession.type,
                     llmType: chatSession.llmType || chatSession.llm_type,
+                    outputTokenMultiplier:
+                        chatSession.outputTokenMultiplier ||
+                        chatSession.output_token_multiplier ||
+                        1,
                     avatar: chatSession.avatar,
                     lastMessage: chatSession.lastMessage || chatSession.last_message,
                     lastMessageAt: chatSession.lastMessageAt || chatSession.last_message_at

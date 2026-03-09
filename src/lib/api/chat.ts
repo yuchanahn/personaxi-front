@@ -6,6 +6,7 @@ import { api } from '$lib/api';
 import { showNeedMoreNeuronsModal } from '$lib/stores/modal';
 import { get } from 'svelte/store';
 import type { ESFPrompt, Persona } from '$lib/types';
+import { chatSessions } from '$lib/stores/chatSessions';
 
 
 /**
@@ -218,6 +219,9 @@ export async function impl_sendPromptStream(
         prompt,
         CSSID: currentSessionId,
         type: type ?? "chat",
+        outputTokenMultiplier:
+            get(chatSessions).find((s) => s.id === currentSessionId)
+                ?.outputTokenMultiplier || 1,
     };
     //HandleLLMChat
     const response = await api.post(`/api/chat/${type ?? "2d"}`, body);

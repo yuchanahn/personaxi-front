@@ -19,6 +19,7 @@ export type ChatSession = {
     lastMessageAt?: string;
     userNote?: string;
     llmType?: string;
+    outputTokenMultiplier?: number;
 };
 
 export const chatSessions = writable<ChatSession[]>([]);
@@ -31,13 +32,20 @@ export const sortedChatSessions = derived(chatSessions, ($sessions) => {
     });
 });
 
-export const createNewSession = (id: string, name: string, type: ChatSessionType, llmType: string) => {
+export const createNewSession = (
+    id: string,
+    name: string,
+    type: ChatSessionType,
+    llmType: string,
+    outputTokenMultiplier: number = 1,
+) => {
     const newSession: ChatSession = {
         id: id,
         name: name,
         createdAt: new Date().toISOString(),
         type: type,
         llmType: llmType || 'Error',
+        outputTokenMultiplier,
     } as ChatSession;
 
     chatSessions.update((sessions) => {

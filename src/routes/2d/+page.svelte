@@ -30,7 +30,10 @@
 
     const baseCost = $pricingStore.costs.chat_2d || 10;
     const multiplier = $pricingStore.model_multipliers[effectiveType] || 1.0;
-    currentCost = Math.round(baseCost * multiplier);
+    const outputTokenMultiplier =
+      Math.min(3, Math.max(1, session?.outputTokenMultiplier || 1));
+    // Shows max possible cost for current output token setting.
+    currentCost = Math.round(baseCost * multiplier * outputTokenMultiplier);
   }
 
   let showModelSelector = false;
@@ -151,6 +154,9 @@
         await api.post(`/api/chat/char/sessions/edit`, {
           cssid: persona.id,
           llmType: selected,
+          outputTokenMultiplier:
+            $chatSessions.find((s) => s.id === persona?.id)
+              ?.outputTokenMultiplier || 1,
         });
         console.log("Saved LLM preference:", selected);
       } catch (e) {
@@ -169,6 +175,10 @@
     {persona}
     isOpen={isSettingsModalOpen}
     {llmType}
+    outputTokenMultiplier={
+      $chatSessions.find((s) => s.id === persona?.id)?.outputTokenMultiplier ||
+      1
+    }
     mode="2d"
     bind:showImage
     bind:autoScroll
