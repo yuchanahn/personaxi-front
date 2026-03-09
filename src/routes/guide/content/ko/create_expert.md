@@ -39,6 +39,26 @@
   - `.game-input-end`
 - 버튼 클릭/입력 결과는 시스템이 모아 `<system-input>...</system-input>` 메시지로 AI에 전달
 
+### 점성술 입력 스니펫 (복붙용)
+- 아래 `data-id`를 사용하면 점성술 입력이 자동으로 시스템 프롬프트에 합성됩니다.
+- 필수 입력: `astro_date`, `astro_time`
+- 지역 기반 입력: `astro_place` (예: `Seoul`, `Tokyo`, `Busan`)
+- 좌표 직접 입력: `astro_lat`, `astro_lng` 또는 `astro_location`(예: `37.5665,126.9780`)
+
+```html
+<div class="fortune-ui">
+  <div class="game-choice-counter">1</div>
+  <button class="game-choice" data-id="reading_mode" data-action="select-option" data-value="light">가볍게 보기</button>
+  <button class="game-choice" data-id="reading_mode" data-action="select-option" data-value="deep">깊게 보기</button>
+  <input class="game-input" data-id="topic" placeholder="궁금한 주제 (예: 연애, 일, 관계)" />
+  <input class="game-input" data-id="astro_date" placeholder="생년월일 (YYYY-MM-DD)" />
+  <input class="game-input" data-id="astro_time" placeholder="출생시간 (HH:mm)" />
+  <input class="game-input" data-id="astro_place" placeholder="지역명 (예: Seoul, Tokyo, Busan)" />
+  <input class="game-input" data-id="astro_location" placeholder="위도,경도 (예: 37.5665,126.9780)" />
+  <button class="game-input-end">점성술 분석 시작</button>
+</div>
+```
+
 ### 변수 시스템 (2D)
 - 캐릭터가 상태값을 갱신하려면 응답에 `<vars>...</vars>` 블록을 포함합니다.
 - 블록 내부는 `key=value` 형식으로 한 줄씩 작성합니다.

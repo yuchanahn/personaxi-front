@@ -9,11 +9,16 @@
   import { get } from "svelte/store";
   import { st_user } from "$lib/stores/user";
   import ChatRenderer from "./ChatRenderer.svelte";
+  import AstroChartInline from "./AstroChartInline.svelte";
   import VariableStatusPanel from "./VariableStatusPanel.svelte";
   import { interactiveChat } from "$lib/actions/interactiveChat";
   import { type Message } from "$lib/stores/messages";
   import { toast } from "$lib/stores/toast";
   import { toastError } from "$lib/utils/errorMapper";
+  import {
+    extractAstrologyInputFromSystemInput,
+    type AstroChartInput,
+  } from "$lib/components/astrology/astrologyPrompt";
   import { fade, slide } from "svelte/transition";
   import { api } from "$lib/api";
   import { json } from "@sveltejs/kit";
@@ -92,6 +97,12 @@
     variables: Record<string, string>;
   }
 
+  interface AstroChartBlock {
+    type: "astro_chart";
+    id: string;
+    input: AstroChartInput;
+  }
+
   type ChatLogItem =
     | NarrationBlock
     | UserInteractionBlock
@@ -102,7 +113,8 @@
     | InputPromptBlock
     | SituationTriggerBlock
     | MarkdownImageBlock
-    | VarsStatusBlock;
+    | VarsStatusBlock
+    | AstroChartBlock;
 
   // Regex for stripping <vars> tags from AI output (they carry data, not display content)
   const VARS_TAG_REGEX = /(?:\s*)<vars\b[^>]*>[\s\S]*?<\/vars>(?:\s*)/gi;
@@ -658,6 +670,16 @@
                 id: messageId,
               },
             ];
+            const astroInput = extractAstrologyInputFromSystemInput(
+              msg.content,
+            );
+            if (astroInput) {
+              blocks.push({
+                type: "astro_chart",
+                id: `${messageId}-astro`,
+                input: astroInput,
+              });
+            }
           } else {
             blocks = [
               {
@@ -874,6 +896,10 @@
           css={persona?.status_template_css || ""}
           variables={item.variables}
         />
+      </div>
+    {:else if item.type === "astro_chart"}
+      <div class="astro-chart-wrapper">
+        <AstroChartInline input={item.input} blockId={item.id} />
       </div>
     {:else if item.type === "situation_trigger"}
       <div class="situation-trigger-wrapper">
@@ -1273,6 +1299,68 @@
     transform: translateY(-1px);
   }
 
+  :global(.fortune-ui) {
+    width: 100%;
+    max-width: 560px;
+    margin: 0.5rem 0;
+    padding: 0.75rem;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    background: color-mix(in oklab, var(--secondary) 84%, transparent);
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  :global(.game-choice-counter) {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 24px;
+    height: 24px;
+    border-radius: 999px;
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: var(--secondary-foreground);
+    background-color: color-mix(in oklab, var(--primary) 22%, transparent);
+  }
+
+  :global(.game-input) {
+    width: 100%;
+    display: block;
+    min-height: 40px;
+    padding: 0.55rem 0.7rem;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    background-color: var(--background);
+    color: var(--foreground);
+    box-sizing: border-box;
+  }
+
+  :global(.game-input::placeholder) {
+    color: var(--muted-foreground);
+  }
+
+  :global(.game-input-end) {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    min-height: 40px;
+    padding: 0.55rem 0.7rem;
+    border-radius: 10px;
+    border: 1px solid var(--primary);
+    background-color: var(--primary);
+    color: var(--primary-foreground);
+    cursor: pointer;
+    font-weight: 600;
+    transition: filter 0.15s ease;
+  }
+
+  :global(.game-input-end:hover) {
+    filter: brightness(1.04);
+  }
+
   :global(.stat-window) {
     border: 1px solid var(--border);
     background-color: var(--secondary);
@@ -1294,6 +1382,14 @@
     margin-top: 0.5rem;
     width: 100%;
     gap: 0.5rem;
+  }
+
+  .astro-chart-wrapper {
+    position: relative;
+    z-index: 1;
+    width: 100%;
+    display: flex;
+    justify-content: flex-start;
   }
 
   .ratio-group {

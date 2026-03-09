@@ -38,6 +38,26 @@
   - `.game-input-end`
 - ユーザー操作結果は `<system-input>...</system-input>` として集約送信されます
 
+### 占星術入力スニペット（コピペ用）
+- 下記 `data-id` を使うと、占星術入力が自動でシステム入力に合成されます。
+- 必須: `astro_date`, `astro_time`
+- 地域名入力: `astro_place`（例: `Seoul`, `Tokyo`, `Busan`）
+- 座標直接入力: `astro_lat`, `astro_lng` または `astro_location`（例: `37.5665,126.9780`）
+
+```html
+<div class="fortune-ui">
+  <div class="game-choice-counter">1</div>
+  <button class="game-choice" data-id="reading_mode" data-action="select-option" data-value="light">ライト鑑定</button>
+  <button class="game-choice" data-id="reading_mode" data-action="select-option" data-value="deep">ディープ鑑定</button>
+  <input class="game-input" data-id="topic" placeholder="相談テーマ（恋愛・仕事・人間関係）" />
+  <input class="game-input" data-id="astro_date" placeholder="生年月日 (YYYY-MM-DD)" />
+  <input class="game-input" data-id="astro_time" placeholder="出生時刻 (HH:mm)" />
+  <input class="game-input" data-id="astro_place" placeholder="地域名 (例: Seoul, Tokyo, Busan)" />
+  <input class="game-input" data-id="astro_location" placeholder="緯度,経度 (例: 37.5665,126.9780)" />
+  <button class="game-input-end">占星術分析を開始</button>
+</div>
+```
+
 ### 変数システム（2D）
 - ランタイム状態を更新する場合、返信に `<vars>...</vars>` を含めます
 - ブロック内部は1行ごとに `key=value` 形式

@@ -1,5 +1,9 @@
 import { generateSajuAnalysisPrompt } from "$lib/components/saju/SajuTest";
 import { parseBirthDate, parseBirthTime, parseGender } from "$lib/components/utils/sajuParse";
+import {
+    extractAstrologyInput,
+    generateAstrologyAnalysisPrompt,
+} from "$lib/components/astrology/astrologyPrompt";
 
 export function interactiveChat(node: HTMLElement, callback: (payload: string) => void) {
 
@@ -21,17 +25,14 @@ export function interactiveChat(node: HTMLElement, callback: (payload: string) =
         return allActiveElements;
     }
 
-    const handleClick = (event: MouseEvent) => {
-        const target = event.target as HTMLElement;
-
-        const choiceButton = target.closest(".game-choice:not(.used)") as HTMLElement;
-        const inputEnd = getLastActiveElement(".game-input-end") as HTMLElement;
-
+    const appendSpecialAnalysisPrompts = async (
+        allInputFields: NodeListOf<HTMLInputElement>,
+    ) => {
         let birthDate: Date | null = null;
         let birthHour: number | null = null;
         let birthMinute: number | null = null;
         let gender: "남" | "여" = "남";
-        let push = false;
+        let sajuPushed = false;
 
         const setSaju = (fieldId: string, field: HTMLInputElement) => {
             if (fieldId === "saju_date") {
@@ -39,7 +40,7 @@ export function interactiveChat(node: HTMLElement, callback: (payload: string) =
             }
 
             if (fieldId === "saju_time") {
-                const t = parseBirthTime(field.value); // 실패해도 12:00 반환
+                const t = parseBirthTime(field.value);
                 birthHour = t.h;
                 birthMinute = t.m;
             }
@@ -48,15 +49,7 @@ export function interactiveChat(node: HTMLElement, callback: (payload: string) =
                 gender = parseGender(field.value);
             }
 
-            // 시간이 아예 입력되지 않았어도 시작 가능하게 강제 기본값
-            //if (birthHour === null || birthMinute === null) {
-            //    birthHour = 12;
-            //    birthMinute = 0;
-            //
-            //    console.log(`2. [saju] ${birthHour}:${birthMinute} ${gender}`);
-            //}
-
-            if (!push && birthDate && birthHour !== null && birthMinute !== null) {
+            if (!sajuPushed && birthDate && birthHour !== null && birthMinute !== null) {
                 let prompt = "";
                 try {
                     prompt = generateSajuAnalysisPrompt(birthDate, birthHour, birthMinute, gender);
@@ -64,10 +57,33 @@ export function interactiveChat(node: HTMLElement, callback: (payload: string) =
                     prompt = "함수실패";
                 }
                 queue.push("\n- 만세력\n" + prompt);
-                push = true;
+                sajuPushed = true;
             }
         };
 
+        allInputFields.forEach((field) => {
+            if (field.value.trim() !== "") {
+                const fieldId = field.dataset.id || "UNNAMED";
+                setSaju(fieldId, field);
+            }
+        });
+
+        const astroInput = extractAstrologyInput(allInputFields);
+        if (astroInput) {
+            try {
+                const astroPrompt = await generateAstrologyAnalysisPrompt(astroInput);
+                queue.push("\n- 서양점성술\n" + astroPrompt);
+            } catch {
+                queue.push("\n- 서양점성술\n함수실패");
+            }
+        }
+    };
+
+    const handleClick = async (event: MouseEvent) => {
+        const target = event.target as HTMLElement;
+
+        const choiceButton = target.closest(".game-choice:not(.used)") as HTMLElement;
+        const inputEnd = getLastActiveElement(".game-input-end") as HTMLElement;
 
         if (inputEnd && target === inputEnd) {
             const allInputFields = node.querySelectorAll(".game-input:not(.used)") as NodeListOf<HTMLInputElement>;
@@ -76,10 +92,9 @@ export function interactiveChat(node: HTMLElement, callback: (payload: string) =
                 if (field.value.trim() !== "") {
                     const fieldId = field.dataset.id || "UNNAMED";
                     queue.push(`inputField [ID: ${fieldId}]: ${field.value.trim()}`);
-
-                    setSaju(fieldId, field);
                 }
             });
+            await appendSpecialAnalysisPrompts(allInputFields);
             callback("<system-input>" + queue.join("\n") + "</system-input>");
 
             queue = [];
@@ -197,10 +212,10 @@ export function interactiveChat(node: HTMLElement, callback: (payload: string) =
                 if (field.value.trim() !== "") {
                     const fieldId = field.dataset.id || "UNNAMED";
                     queue.push(`inputField [ID: ${fieldId}]: ${field.value.trim()}`);
-                    setSaju(fieldId, field);
                 }
                 field.classList.add("used");
             });
+            await appendSpecialAnalysisPrompts(allInputFields);
 
             callback("<system-input>" + queue.join("\n") + "</system-input>");
             queue = [];

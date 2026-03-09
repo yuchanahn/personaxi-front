@@ -38,6 +38,26 @@ Expert Mode is for prompt-level control, including output format and interaction
   - `.game-input-end`
 - User actions are aggregated and sent back as `<system-input>...</system-input>`
 
+### Astrology Input Snippet (Copy/Paste)
+- Use the following `data-id` fields to auto-attach astrology analysis to system input.
+- Required: `astro_date`, `astro_time`
+- Place-based input: `astro_place` (example: `Seoul`, `Tokyo`, `Busan`)
+- Direct coordinate input: `astro_lat`, `astro_lng` or `astro_location` (example: `37.5665,126.9780`)
+
+```html
+<div class="fortune-ui">
+  <div class="game-choice-counter">1</div>
+  <button class="game-choice" data-id="reading_mode" data-action="select-option" data-value="light">Quick reading</button>
+  <button class="game-choice" data-id="reading_mode" data-action="select-option" data-value="deep">Deep reading</button>
+  <input class="game-input" data-id="topic" placeholder="Topic (love, work, relationships)" />
+  <input class="game-input" data-id="astro_date" placeholder="Birth date (YYYY-MM-DD)" />
+  <input class="game-input" data-id="astro_time" placeholder="Birth time (HH:mm)" />
+  <input class="game-input" data-id="astro_place" placeholder="Place name (e.g. Seoul, Tokyo, Busan)" />
+  <input class="game-input" data-id="astro_location" placeholder="lat,lng (e.g. 37.5665,126.9780)" />
+  <button class="game-input-end">Run astrology analysis</button>
+</div>
+```
+
 ### Variable System (2D)
 - To update runtime state, include a `<vars>...</vars>` block in the response.
 - Inside the block, write one `key=value` pair per line.
