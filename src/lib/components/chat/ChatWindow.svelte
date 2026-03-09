@@ -558,7 +558,16 @@
     if (waitingForImage) return; // Don't start if waiting
 
     let lastTime: number | null = null;
-    const CHARS_PER_SECOND = 75;
+    const KO_CHARS_PER_SECOND = 58;
+    const EN_CHARS_PER_SECOND = 75;
+
+    const getTypingSpeed = (content: string): number => {
+      const hangulMatches = content.match(/[가-힣]/g);
+      const alphaMatches = content.match(/[A-Za-z]/g);
+      const hangulCount = hangulMatches ? hangulMatches.length : 0;
+      const alphaCount = alphaMatches ? alphaMatches.length : 0;
+      return hangulCount >= alphaCount ? KO_CHARS_PER_SECOND : EN_CHARS_PER_SECOND;
+    };
 
     function loop(timestamp: number) {
       if (!lastTime) lastTime = timestamp;
@@ -580,11 +589,7 @@
       let currentContent = visibleMessages[currentThrottleIndex].content;
 
       if (currentContent.length < targetContent.length) {
-        // Adaptive speed: If we are far behind, speed up
-        const remaining = targetContent.length - currentContent.length;
-        const baseSpeed = CHARS_PER_SECOND;
-        const speedMultiplier = 1 + remaining / 20; // Softer acceleration when behind
-        const effectiveSpeed = baseSpeed * speedMultiplier;
+        const effectiveSpeed = getTypingSpeed(targetContent);
 
         const charsToAdd = (effectiveSpeed * deltaTime) / 1000;
         currentThrottleCharIndex += charsToAdd;
