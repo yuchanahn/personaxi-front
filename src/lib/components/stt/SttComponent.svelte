@@ -5,7 +5,7 @@
     import { fade } from "svelte/transition";
 
     const stt: SpeechToText = new SpeechToText(handleSpeechComplete);
-    let isSupported = true;
+    const isSupported = SpeechToText.isSupported();
 
     let {
         isListening = $bindable(false),
@@ -19,8 +19,6 @@
         onSpeechComplete?: (msg: string) => void;
     } = $props();
 
-    let error = $state<string | null>(null);
-
     function handleSpeechComplete() {
         showMessage(stt.speechFull.trim());
         onSpeechComplete(stt.speechFull.trim());
@@ -31,12 +29,10 @@
     });
 
     function toggleListen() {
+        if (!isSupported) return;
         if (!stt) return;
         stt.enable(!stt.enabled);
         isListening = stt.enabled;
-        if (stt.enabled) {
-            error = null;
-        }
     }
 
     let timer: number | null = null;
@@ -59,21 +55,23 @@
 </script>
 
 <div class="stt-container">
-    {#if isSupported}
-        <button
-            class="mic-button"
-            class:listening={isListening}
-            onclick={toggleListen}
-            aria-label={isListening ? "음성 인식 중지" : "음성 인식 시작"}
-        >
-            <Icon icon="mdi:microphone" width="32" height="32" />
-        </button>
-        {#if text !== "" && isListening}
-            <div class="transcript-box" transition:fade={{ duration: 1000 }}>
-                {@html text.replace(/\n/g, "<br/>")}
-            </div>
-        {/if}
-        <!-- {#if stt.speechCurrent || error}
+    <button
+        class="mic-button"
+        class:listening={isListening}
+        class:disabled={!isSupported}
+        onclick={toggleListen}
+        disabled={!isSupported}
+        aria-disabled={!isSupported}
+        aria-label={isListening ? "음성 인식 중지" : "음성 인식 시작"}
+    >
+        <Icon icon="mdi:microphone" width="32" height="32" />
+    </button>
+    {#if text !== "" && isListening}
+        <div class="transcript-box" transition:fade={{ duration: 1000 }}>
+            {@html text.replace(/\n/g, "<br/>")}
+        </div>
+    {/if}
+    <!-- {#if stt.speechCurrent || error}
             <div class="transcript-box" transition:fade={{ duration: 1000 }}>
                 {#if error}
                     <p class="error">오류: {error}</p>
@@ -88,9 +86,6 @@
                 {/if}
             </div>
         {/if} -->
-    {:else}
-        <p class="error">현재 브라우저에서는 음성 인식을 지원하지 않습니다.</p>
-    {/if}
 </div>
 
 <style>
@@ -126,6 +121,11 @@
         animation: pulse 1.5s infinite;
     }
 
+    .mic-button.disabled {
+        opacity: 0.45;
+        cursor: not-allowed;
+    }
+
     .transcript-box {
         position: fixed;
         bottom: 2rem;
@@ -145,11 +145,6 @@
         line-height: 1.5;
         overflow-wrap: break-word;
         box-sizing: border-box;
-    }
-
-    .error {
-        color: #ff4d4d;
-        font-weight: bold;
     }
 
     @keyframes pulse {

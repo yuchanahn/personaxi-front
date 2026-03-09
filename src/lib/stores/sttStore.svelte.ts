@@ -1,4 +1,7 @@
-export const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition
+export const SpeechRecognition =
+    typeof window !== 'undefined'
+        ? (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition
+        : null
 
 export class SpeechToText {
     private sr: SpeechRecognition | null = null
@@ -10,6 +13,10 @@ export class SpeechToText {
     public enabled: boolean = false
     public speechFull: string = ''
     public speechCurrent: string = $state('')
+
+    public static isSupported(): boolean {
+        return Boolean(SpeechRecognition)
+    }
 
     constructor(speechTimeoutCallback: () => void) {
         this.speechTimeoutCallback = speechTimeoutCallback
@@ -30,10 +37,15 @@ export class SpeechToText {
     }
 
     public enable(value: boolean) {
-        this.enabled = value
-        if (this.enabled) {
+        if (value) {
+            if (!this.sr) {
+                this.enabled = false
+                return
+            }
+            this.enabled = true
             this.start()
         } else {
+            this.enabled = false
             this.stop()
         }
     }
@@ -61,7 +73,9 @@ export class SpeechToText {
                 // Fallback if getUserMedia fails or whatever
                 try {
                     this.sr.start();
-                } catch (e2) { }
+                } catch (e2) {
+                    this.enabled = false
+                }
             }
         }
     }
