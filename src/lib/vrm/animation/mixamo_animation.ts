@@ -63,7 +63,7 @@ function loadMixamoAnimation(url: string, vrm: VRM) {
           for (let i = 0; i < track.values.length; i += 4) {
             const flatQuaternion = track.values.slice(i, i + 4)
 
-            _quatA.fromArray(flatQuaternion)
+            _quatA.fromArray(flatQuaternion as any)
 
             // 親のレスト時ワールド回転 * トラックの回転 * レスト時ワールド回転の逆
             _quatA.premultiply(parentRestWorldRotation).multiply(restRotationInverse)

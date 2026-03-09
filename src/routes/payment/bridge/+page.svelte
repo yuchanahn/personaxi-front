@@ -46,7 +46,8 @@
 
     async function startPayment() {
         return;
-        if (!window.PortOne) return;
+        const requestPayment = window.PortOne?.requestPayment;
+        if (!requestPayment) return;
 
         try {
             const query = $page.url.searchParams;
@@ -61,7 +62,7 @@
             const channelKey =
                 "channel-key-c50f76a9-fa6e-47be-80e4-f77b8b8d6248";
 
-            const response = await window.PortOne.requestPayment({
+            const response = await requestPayment!({
                 storeId,
                 channelKey,
                 paymentId: paymentId!,

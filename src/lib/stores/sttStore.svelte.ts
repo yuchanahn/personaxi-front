@@ -28,12 +28,13 @@ export class SpeechToText {
 
         console.log('SpeechRecognition is supported!')
         this.sr = new SpeechRecognition()
-        this.sr.lang = 'ko-KR'
-        this.sr.continuous = false
-        this.sr.interimResults = true
-        this.sr.maxAlternatives = 1
-        this.sr.addEventListener('result', (event) => this.onResult(event))
-        this.sr.addEventListener('end', (event) => this.onEnd(event))
+        const sr = this.sr as SpeechRecognition
+        sr.lang = 'ko-KR'
+        sr.continuous = false
+        sr.interimResults = true
+        sr.maxAlternatives = 1
+        sr.addEventListener('result', (event) => this.onResult(event))
+        sr.addEventListener('end', (event) => this.onEnd(event))
     }
 
     public enable(value: boolean) {

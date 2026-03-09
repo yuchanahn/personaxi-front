@@ -61,7 +61,9 @@
         try {
             if (persona)
                 viewVrmInCanvas(canvas, persona)
-                    .then((m) => setBroadcastModel(m))
+                    .then((m) => {
+                        if (m) setBroadcastModel(m);
+                    })
                     .finally();
         } catch (error) {
             console.error("Error loading VRM:", error);

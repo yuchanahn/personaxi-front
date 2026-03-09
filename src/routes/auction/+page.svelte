@@ -86,7 +86,7 @@
     }
 
     let remainingTimeFormatted: string = $t("auctionPage.calculatingTime");
-    let countdownInterval: number; // setInterval의 반환 값 타입을 지정
+    let countdownInterval: ReturnType<typeof setInterval> | null = null;
 
     // 시간을 "1일 1시 1분 1초" 형식으로 포맷하는 함수
     function formatTimeDifference(ms: number): string {
@@ -125,6 +125,7 @@
             remainingTimeFormatted = $t("auctionPage.noTimeInfo");
             if (countdownInterval) {
                 clearInterval(countdownInterval);
+                countdownInterval = null;
             }
             return;
         }
@@ -137,7 +138,10 @@
 
         // 시간이 0 이하면 인터벌 중지
         if (timeLeft <= 0) {
-            clearInterval(countdownInterval);
+            if (countdownInterval) {
+                clearInterval(countdownInterval);
+                countdownInterval = null;
+            }
         }
     }
 
@@ -146,6 +150,7 @@
     $: if (auctionStatus) {
         if (countdownInterval) {
             clearInterval(countdownInterval); // 이전 인터벌이 있다면 중지
+            countdownInterval = null;
         }
         updateCountdown(); // 즉시 한 번 업데이트
         countdownInterval = setInterval(updateCountdown, 1000); // 1초마다 업데이트 설정
@@ -155,6 +160,7 @@
     onDestroy(() => {
         if (countdownInterval) {
             clearInterval(countdownInterval);
+            countdownInterval = null;
         }
     });
 </script>

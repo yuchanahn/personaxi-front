@@ -11,6 +11,12 @@ declare global {
 		// interface Platform {}
 	}
 	var PIXI: any;
+	interface Window {
+		PortOne?: {
+			requestIdentityVerification?: (params: any) => Promise<any>;
+			requestPayment?: (params: any) => Promise<any>;
+		};
+	}
 }
 
 export { };

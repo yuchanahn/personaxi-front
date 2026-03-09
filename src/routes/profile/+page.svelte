@@ -27,6 +27,7 @@
 
     let galleryImages: ImageMetadata[] = [];
     let currentImageIndex = 0;
+    let firstSceneFrame: HTMLIFrameElement | null = null;
 
     async function loadComments(personaId: string): Promise<Comment[]> {
         const response = await api.get2(`/api/comments?personaId=${personaId}`);
@@ -302,6 +303,65 @@
         return formatted.trim();
     }
 
+    function buildFirstScenePreviewSrcDoc(rawScene: string): string {
+        const content = replaceNicknameInText(rawScene).replace(
+            /<script[\s\S]*?<\/script>/gi,
+            "",
+        );
+
+        return `<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    :root { color-scheme: light dark; }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      padding: 12px;
+      line-height: 1.65;
+      font-family: "Pretendard", "Inter", system-ui, -apple-system, sans-serif;
+      word-break: break-word;
+      overflow-wrap: anywhere;
+      background: transparent;
+    }
+    dialogue {
+      display: block;
+      margin: 0.75rem 0;
+      padding: 0.7rem 0.8rem;
+      border-radius: 10px;
+      border: 1px solid rgba(127, 127, 127, 0.35);
+      background: rgba(127, 127, 127, 0.08);
+      white-space: pre-wrap;
+    }
+    img, video, canvas {
+      max-width: 100%;
+      height: auto;
+      border-radius: 10px;
+    }
+    p, ul, ol { margin: 0 0 0.75rem 0; }
+    h1, h2, h3, h4, h5, h6 { margin: 0.35rem 0 0.75rem 0; line-height: 1.35; }
+  </style>
+</head>
+<body>${content}</body>
+</html>`;
+    }
+
+    function updateFirstSceneFrameHeight(frame: HTMLIFrameElement | null) {
+        if (!frame) return;
+        try {
+            const doc = frame.contentDocument;
+            if (!doc) return;
+            const bodyHeight = doc.body?.scrollHeight ?? 0;
+            const htmlHeight = doc.documentElement?.scrollHeight ?? 0;
+            const nextHeight = Math.max(bodyHeight, htmlHeight, 320);
+            frame.style.height = `${Math.min(nextHeight + 8, 1400)}px`;
+        } catch (e) {
+            // Ignore cross-origin/sandbox access failures
+        }
+    }
+
     function getTagName(tagId: string | number): string {
         const id = typeof tagId === "string" ? parseInt(tagId, 10) : tagId;
         const category = allCategories.find((c) => c.id === id);
@@ -328,11 +388,23 @@
     $: normalizedPersonaType = (persona?.personaType || "")
         .trim()
         .toLowerCase();
+    $: isTwoDPersona = normalizedPersonaType === "2d";
     $: isModelPersonaType =
         normalizedPersonaType === "3d" ||
         normalizedPersonaType === "2.5d" ||
         normalizedPersonaType === "vrm3d" ||
         normalizedPersonaType === "live2d";
+    $: firstSceneHasMarkup = Boolean(
+        persona?.first_scene &&
+            /<\s*([a-z][\w:-]*)\b[^>]*>/i.test(persona.first_scene),
+    );
+    $: firstScenePreviewSrcDoc =
+        isTwoDPersona && persona?.first_scene
+            ? buildFirstScenePreviewSrcDoc(persona.first_scene)
+            : "";
+    $: if (showFirstScene && firstScenePreviewSrcDoc && firstSceneFrame) {
+        queueMicrotask(() => updateFirstSceneFrameHeight(firstSceneFrame));
+    }
 
     $: categoryTags =
         persona?.tags?.filter((t: string) => parseInt(t) < 1000) || [];
@@ -697,6 +769,20 @@
                                         <p class="scene-text">
                                             {$t("profilePage.translating")}
                                         </p>
+                                    {:else if isTwoDPersona && firstSceneHasMarkup}
+                                        <div class="scene-html-preview">
+                                            <iframe
+                                                class="scene-html-frame"
+                                                title="First scene preview"
+                                                bind:this={firstSceneFrame}
+                                                on:load={() =>
+                                                    updateFirstSceneFrameHeight(
+                                                        firstSceneFrame,
+                                                    )}
+                                                sandbox="allow-same-origin"
+                                                srcdoc={firstScenePreviewSrcDoc}
+                                            ></iframe>
+                                        </div>
                                     {:else}
                                         <p class="scene-text">
                                             {replaceNicknameInText(
@@ -1238,6 +1324,23 @@
         line-height: 1.7;
         color: var(--muted-foreground);
         white-space: pre-wrap;
+    }
+
+    .scene-html-preview {
+        width: 100%;
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        background: var(--background);
+        overflow: hidden;
+    }
+
+    .scene-html-frame {
+        width: 100%;
+        height: min(58vh, 540px);
+        min-height: 320px;
+        border: none;
+        display: block;
+        background: transparent;
     }
 
     /* 3D Scene Data */
