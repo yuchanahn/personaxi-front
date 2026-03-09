@@ -525,6 +525,68 @@
             ? `${singleLine.slice(0, 42)}...`
             : singleLine;
     }
+
+    // Sum of fixed field max lengths:
+    // body_desc(1000) + core_desire(500) + contradiction(500) + personality(1000) + values(500)
+    // + mem_list(2000) + emotion_triggers(500) + short_term_memory(1000)
+    // + last_atmosphere(300) + current_emotion(200) = 7500
+    const TOTAL_FIELD_CHAR_LIMIT = 7500;
+    let totalFieldChars = 0;
+
+    function safeLen(v: unknown): number {
+        return typeof v === "string" ? v.length : 0;
+    }
+
+    function calculateTotalFieldChars(): number {
+        let total =
+            safeLen(body_desc) +
+            safeLen(core_desire) +
+            safeLen(contradiction) +
+            safeLen(personality) +
+            safeLen(values) +
+            safeLen(mem_list) +
+            safeLen(emotion_triggers) +
+            safeLen(short_term_memory) +
+            safeLen(last_atmosphere) +
+            safeLen(current_emotion) +
+            safeLen(internal_monologue);
+
+        if (mode === "3d") {
+            total += motion_list.reduce((acc, m) => {
+                return (
+                    acc +
+                    safeLen(m?.name) +
+                    safeLen(m?.file) +
+                    safeLen(m?.desc)
+                );
+            }, 0);
+
+            total += Object.values(expression_map).reduce(
+                (acc, v) => acc + safeLen(v),
+                0,
+            );
+            total += Object.values(hit_motion_map).reduce(
+                (acc, v) => acc + safeLen(v),
+                0,
+            );
+            total += permanent_expressions.reduce(
+                (acc, v) => acc + safeLen(v),
+                0,
+            );
+        }
+
+        return total;
+    }
+
+    $: totalFieldChars = calculateTotalFieldChars();
+    function getDynamicMax(currentValue: string, baseMax: number): number {
+        const current = safeLen(currentValue);
+        const allowance = Math.max(
+            0,
+            TOTAL_FIELD_CHAR_LIMIT - (totalFieldChars - current),
+        );
+        return Math.max(current, Math.min(baseMax, allowance));
+    }
 </script>
 
 <div class="first-scene-builder">
@@ -537,6 +599,16 @@
                 >{$t("editPage.characterSettings.reset")}</button
             >
         </div>
+    </div>
+    <div
+        class="total-counter"
+        class:warning={totalFieldChars > 2300}
+        class:error={totalFieldChars >= TOTAL_FIELD_CHAR_LIMIT}
+    >
+        총합: {totalFieldChars} / {TOTAL_FIELD_CHAR_LIMIT}
+        {#if totalFieldChars >= TOTAL_FIELD_CHAR_LIMIT}
+            <span class="limit-msg"> (최대치 도달)</span>
+        {/if}
     </div>
 
     {#if showCoreFieldEditors}
@@ -562,7 +634,7 @@
                 <textarea
                     bind:value={body_desc}
                     rows="3"
-                    maxlength="1000"
+                    maxlength={getDynamicMax(body_desc, 1000)}
                     placeholder={$t("editPage.characterSettings.bodyDescPlaceholder")}
                 ></textarea>
                 <div
@@ -658,6 +730,7 @@
                                 class="input-name"
                                 placeholder="Name (e.g. Laugh)"
                                 bind:value={motion.name}
+                                maxlength={getDynamicMax(motion.name, 120)}
                             />
                             <select
                                 class="input-file"
@@ -695,6 +768,7 @@
                             class="input-desc"
                             placeholder="Description (e.g. Laughs out loud)"
                             bind:value={motion.desc}
+                            maxlength={getDynamicMax(motion.desc, 300)}
                         />
                         <button
                             class="btn-remove"
@@ -761,7 +835,7 @@
                 <textarea
                     bind:value={core_desire}
                     rows="2"
-                    maxlength="500"
+                    maxlength={getDynamicMax(core_desire, 500)}
                     placeholder={$t("editPage.characterSettings.coreDesirePlaceholder")}
                 ></textarea>
                 <div
@@ -796,7 +870,7 @@
                 <textarea
                     bind:value={contradiction}
                     rows="2"
-                    maxlength="500"
+                    maxlength={getDynamicMax(contradiction, 500)}
                     placeholder={$t(
                         "editPage.characterSettings.contradictionPlaceholder",
                     )}
@@ -833,7 +907,7 @@
                 <textarea
                     bind:value={personality}
                     rows="3"
-                    maxlength="1000"
+                    maxlength={getDynamicMax(personality, 1000)}
                     placeholder={$t(
                         "editPage.characterSettings.personalityPlaceholder",
                     )}
@@ -870,7 +944,7 @@
                 <textarea
                     bind:value={values}
                     rows="2"
-                    maxlength="500"
+                    maxlength={getDynamicMax(values, 500)}
                     placeholder={$t("editPage.characterSettings.valuesPlaceholder")}
                 ></textarea>
                 <div
@@ -920,7 +994,7 @@
                 <textarea
                     bind:value={mem_list}
                     rows={expandMemList ? 8 : 3}
-                    maxlength="2000"
+                    maxlength={getDynamicMax(mem_list, 2000)}
                     placeholder={$t("editPage.characterSettings.memListPlaceholder")}
                 ></textarea>
                 <div class="advanced-toggle-row compact">
@@ -965,7 +1039,7 @@
                 <textarea
                     bind:value={emotion_triggers}
                     rows="2"
-                    maxlength="500"
+                    maxlength={getDynamicMax(emotion_triggers, 500)}
                     placeholder={$t(
                         "editPage.characterSettings.emotionTriggersPlaceholder",
                     )}
@@ -1003,7 +1077,7 @@
                     <textarea
                         bind:value={short_term_memory}
                         rows="3"
-                        maxlength="1000"
+                        maxlength={getDynamicMax(short_term_memory, 1000)}
                         placeholder={$t(
                             "editPage.characterSettings.shortTermMemoryPlaceholder",
                         )}
@@ -1040,7 +1114,7 @@
                     <textarea
                         bind:value={last_atmosphere}
                         rows="2"
-                        maxlength="300"
+                        maxlength={getDynamicMax(last_atmosphere, 300)}
                         placeholder={$t(
                             "editPage.characterSettings.lastAtmospherePlaceholder",
                         )}
@@ -1077,7 +1151,7 @@
                     <textarea
                         bind:value={current_emotion}
                         rows="2"
-                        maxlength="200"
+                        maxlength={getDynamicMax(current_emotion, 200)}
                         placeholder={$t(
                             "editPage.characterSettings.currentEmotionPlaceholder",
                         )}
@@ -1114,6 +1188,20 @@
         padding-bottom: 0.75rem;
         border-bottom: 1px solid var(--border);
         margin-bottom: 0.5rem;
+    }
+
+    .total-counter {
+        text-align: right;
+        font-size: 0.8rem;
+        color: var(--muted-foreground);
+        margin-top: -0.25rem;
+    }
+    .total-counter.warning {
+        color: orange;
+    }
+    .total-counter.error {
+        color: var(--destructive);
+        font-weight: 600;
     }
 
     .builder-title {

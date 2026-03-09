@@ -300,6 +300,8 @@
             errors.push(get(t)("edit3.validation.nameRequired"));
         if (!p.greeting.trim())
             errors.push(get(t)("edit3.validation.greetingRequired"));
+        if (!p.portrait_url?.trim())
+            errors.push(get(t)("editPage.validation.allFieldsRequired"));
         if (!p.first_scene.trim())
             errors.push(get(t)("edit3.validation.firstSceneRequired"));
         if (template === kintsugiId) {
@@ -581,6 +583,7 @@
         if (
             !persona.name.trim() ||
             !persona.personaType.trim() ||
+            !persona.portrait_url?.trim() ||
             !persona.greeting.trim() ||
             !persona.first_scene.trim() ||
             persona.tags.length === 0
@@ -604,16 +607,7 @@
             toast.error(error);
             return;
         }
-        const normalizedTypeForLimit = (persona.personaType || "")
-            .trim()
-            .toLowerCase();
-        const firstSceneLimit =
-            normalizedTypeForLimit === "2.5d" ||
-            normalizedTypeForLimit === "3d" ||
-            normalizedTypeForLimit === "live2d" ||
-            normalizedTypeForLimit === "vrm3d"
-                ? 30000
-                : 2500;
+        const firstSceneLimit = isLive2DType || is3DType ? 7500 : 2500;
         if (
             persona.greeting.length > 200 ||
             persona.first_scene.length > firstSceneLimit

@@ -312,6 +312,7 @@
         if (
             !persona.name.trim() ||
             !persona.personaType.trim() ||
+            !persona.portrait_url?.trim() ||
             !persona.greeting.trim() ||
             !persona.first_scene.trim() ||
             persona.tags.length === 0
@@ -331,8 +332,7 @@
             error = $t("edit3.validation.vrmModelRequired");
             return;
         }
-        const firstSceneLimit =
-            isLive2DType || is3DType ? 30000 : 2500;
+        const firstSceneLimit = isLive2DType || is3DType ? 7500 : 2500;
         if (
             persona.greeting.length > 200 ||
             persona.first_scene.length > firstSceneLimit
