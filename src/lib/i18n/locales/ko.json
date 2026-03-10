@@ -190,7 +190,9 @@
       "usageHistory": "사용 내역"
     },
     "noUsageHistory": "아직 사용 내역이 없습니다.",
-    "rewardItem": "보너스 뉴런"
+    "rewardItem": "보너스 뉴런",
+    "freeLabel": "무료",
+    "externalPaid": "외화 결제"
   },
   "creditReason": {
     "chat_3d": "3D 채팅",
@@ -207,12 +209,18 @@
     "first_persona_bonus": "첫 번째 콘텐츠 생성 보너스",
     "chat_start_2d": "2D 채팅 시작",
     "chat_start_3d": "3D 채팅 시작",
-    "chat_start_live2d": "Live2D 채팅 시작"
+    "chat_start_live2d": "Live2D 채팅 시작",
+    "expired": "기간 만료 차감"
   },
   "itemName": {
     "pack_1": "100 뉴런",
     "pack_2": "550 뉴런",
-    "pack_3": "1150 뉴런"
+    "pack_3": "1150 뉴런",
+    "pack_100": "100 뉴런",
+    "pack_300": "330 뉴런",
+    "pack_500": "550 뉴런",
+    "pack_1000": "1100 뉴런",
+    "pack_50": "50 뉴런"
   },
   "paymentModal": {
     "pack100Name": "기본 뉴런 팩",

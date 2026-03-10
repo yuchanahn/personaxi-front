@@ -167,7 +167,9 @@
       "usageHistory": "Usage History"
     },
     "noUsageHistory": "No usage history yet.",
-    "rewardItem": "Bonus Neurons"
+    "rewardItem": "Bonus Neurons",
+    "freeLabel": "Free",
+    "externalPaid": "Foreign payment"
   },
   "creditReason": {
     "chat_3d": "3D Chat",
@@ -184,7 +186,8 @@
     "first_persona_bonus": "First Content Bonus",
     "chat_start_2d": "Start 2D Chat",
     "chat_start_3d": "Start 3D Chat",
-    "chat_start_live2d": "Start Live2D Chat"
+    "chat_start_live2d": "Start Live2D Chat",
+    "expired": "Expired deduction"
   },
   "itemName": {
     "pack_1": "100 Neurons",

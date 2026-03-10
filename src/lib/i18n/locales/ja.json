@@ -206,7 +206,9 @@
       "usageHistory": "使用履歴"
     },
     "noUsageHistory": "まだ使用履歴がありません。",
-    "rewardItem": "ボーナスニューロン"
+    "rewardItem": "ボーナスニューロン",
+    "freeLabel": "無料",
+    "externalPaid": "外貨決済"
   },
   "creditReason": {
     "chat_3d": "3Dチャット",
@@ -223,7 +225,8 @@
     "first_persona_bonus": "初コンテンツ作成ボーナス",
     "chat_start_2d": "2Dチャット開始",
     "chat_start_3d": "3Dチャット開始",
-    "chat_start_live2d": "Live2Dチャット開始"
+    "chat_start_live2d": "Live2Dチャット開始",
+    "expired": "期限切れ差し引き"
   },
   "itemName": {
     "pack_1": "100 ニューロン",

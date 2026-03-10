@@ -2,7 +2,6 @@
     import { createEventDispatcher, onMount, onDestroy } from "svelte";
     import { fade } from "svelte/transition";
     import Icon from "@iconify/svelte";
-    import { t } from "svelte-i18n";
     import { api } from "$lib/api";
     import { toast } from "$lib/stores/toast";
     import {
@@ -10,7 +9,6 @@
         getCreditHistory,
         type CreditTransaction,
     } from "$lib/api/user";
-    import { getCurrentUser } from "$lib/api/auth";
     import type { PaymentRecord } from "$lib/types";
     import { st_user } from "$lib/stores/user";
     import NeuronIcon from "$lib/components/icons/NeuronIcon.svelte";
@@ -21,52 +19,110 @@
 
     type Tab = "history" | "usage";
     let activeTab: Tab = "history";
+    const PAGE_SIZE = 10;
 
     let history: PaymentRecord[] = [];
     let creditHistory: CreditTransaction[] = [];
+    let historyOffset = 0;
+    let creditOffset = 0;
+    let hasMoreHistory = true;
+    let hasMoreCreditHistory = true;
+    let historyLoaded = false;
+    let creditHistoryLoaded = false;
+    let listContainerEl: HTMLDivElement | null = null;
 
     let isLoading = false;
+    let isLoadingMore = false;
     let isRefundingMap: Record<string, boolean> = {};
 
     $: if (isOpen) {
-        if (activeTab === "history") loadHistory();
-        else loadCreditHistory();
+        if (activeTab === "history" && !historyLoaded) loadHistory(true);
+        else if (activeTab === "usage" && !creditHistoryLoaded)
+            loadCreditHistory(true);
     }
 
-    $: if (activeTab) {
-        if (isOpen) {
-            if (activeTab === "history") loadHistory();
-            else loadCreditHistory();
+    $: if (!isOpen) {
+        history = [];
+        creditHistory = [];
+        historyOffset = 0;
+        creditOffset = 0;
+        hasMoreHistory = true;
+        hasMoreCreditHistory = true;
+        historyLoaded = false;
+        creditHistoryLoaded = false;
+        isLoadingMore = false;
+    }
+
+    async function loadHistory(reset = false) {
+        if (isLoading || isLoadingMore || (!reset && !hasMoreHistory)) return;
+        if (reset) {
+            history = [];
+            historyOffset = 0;
+            hasMoreHistory = true;
+            historyLoaded = true;
+            isLoading = true;
+        } else {
+            isLoadingMore = true;
         }
-    }
-
-    async function loadHistory() {
-        if (isLoading) return;
-        isLoading = true;
         try {
-            history = await getPaymentHistory();
-            history.sort(
-                (a, b) =>
-                    new Date(b.created_at).getTime() -
-                    new Date(a.created_at).getTime(),
-            );
+            const nextPage = await getPaymentHistory(PAGE_SIZE, historyOffset);
+            history = reset ? nextPage : [...history, ...nextPage];
+            hasMoreHistory = nextPage.length === PAGE_SIZE;
+            historyOffset = history.length;
         } catch (error) {
             console.error("Failed to load payment history:", error);
         } finally {
             isLoading = false;
+            isLoadingMore = false;
         }
     }
 
-    async function loadCreditHistory() {
-        if (isLoading) return;
-        isLoading = true;
+    async function loadCreditHistory(reset = false) {
+        if (isLoading || isLoadingMore || (!reset && !hasMoreCreditHistory))
+            return;
+        if (reset) {
+            creditHistory = [];
+            creditOffset = 0;
+            hasMoreCreditHistory = true;
+            creditHistoryLoaded = true;
+            isLoading = true;
+        } else {
+            isLoadingMore = true;
+        }
         try {
-            creditHistory = await getCreditHistory();
-            // Data is already sorted by backend, but safe to ensure
+            const nextPage = await getCreditHistory(PAGE_SIZE, creditOffset);
+            creditHistory = reset ? nextPage : [...creditHistory, ...nextPage];
+            hasMoreCreditHistory = nextPage.length === PAGE_SIZE;
+            creditOffset = creditHistory.length;
         } catch (error) {
             console.error("Failed to load credit history:", error);
         } finally {
             isLoading = false;
+            isLoadingMore = false;
+        }
+    }
+
+    async function switchTab(tab: Tab) {
+        activeTab = tab;
+        if (!isOpen) return;
+        if (tab === "history" && !historyLoaded) await loadHistory(true);
+        if (tab === "usage" && !creditHistoryLoaded)
+            await loadCreditHistory(true);
+    }
+
+    function handleListScroll() {
+        if (!listContainerEl || isLoading || isLoadingMore) return;
+        const nearBottom =
+            listContainerEl.scrollHeight -
+                listContainerEl.scrollTop -
+                listContainerEl.clientHeight <
+            120;
+        if (!nearBottom) return;
+
+        if (activeTab === "history" && hasMoreHistory) {
+            loadHistory(false);
+        } else if (activeTab === "usage" && hasMoreCreditHistory) {
+            loadCreditHistory(false);
         }
     }
 
@@ -155,44 +211,82 @@
             const credits = parts[0] || "200";
             return `${credits} ${$t("paymentHistoryModal.rewardItem")}`;
         }
+        if (variantId) {
+            const translated = $t(`itemName.${variantId}`);
+            if (translated && translated !== `itemName.${variantId}`) {
+                return translated;
+            }
+        }
         if (amount === 1200) return $t("itemName.pack_1");
         if (amount === 5000) return $t("itemName.pack_2");
         if (amount === 10000) return $t("itemName.pack_3");
         return name;
     }
 
-    function formatCreditReason(reason: string): string {
-        // 1. Strip UUIDs or extra data (e.g., "creditReason.PortOne 8de4...")
-        //    "creditReason.PortOne" -> "purchase" (or specific key if exists)
-        //    "creditReason.2D Chat Start" -> "chat_start_2d"
+    function formatPaymentAmount(record: PaymentRecord): string {
+        if (record.variant_id === "reward") {
+            return $t("paymentHistoryModal.freeLabel");
+        }
+        if (record.amount > 0) {
+            const currency = record.currency || "USD";
+            const zeroDecimalCurrencies = new Set(["JPY", "KRW"]);
+            const displayAmount = zeroDecimalCurrencies.has(currency)
+                ? record.amount.toLocaleString()
+                : (record.amount / 100).toLocaleString(undefined, {
+                      minimumFractionDigits: 2,
+                      maximumFractionDigits: 2,
+                  });
+            return `${displayAmount} ${currency}`;
+        }
+        return $t("paymentHistoryModal.externalPaid");
+    }
 
-        if (reason.includes("PortOne")) {
+    function formatCreditReason(reason: string): string {
+        const normalized = reason.trim().toLowerCase();
+
+        if (
+            normalized.includes("portone") ||
+            normalized.includes("paypal") ||
+            normalized.includes("lemonsqueezy")
+        ) {
             return $t("creditReason.purchase");
         }
-        if (reason.includes("2D Chat Start")) {
+        if (normalized.includes("2d chat start")) {
             return $t("creditReason.chat_start_2d");
         }
-        if (reason.includes("3D Chat Start")) {
+        if (normalized.includes("3d chat start")) {
             return $t("creditReason.chat_start_3d");
         }
-        if (reason.includes("Live2D Chat Start")) {
+        if (normalized.includes("live2d chat start")) {
             return $t("creditReason.chat_start_live2d");
         }
+        if (normalized.includes("situation image generation")) {
+            return $t("creditReason.image_generation");
+        }
+        if (normalized.includes("welcome bonus")) {
+            return $t("creditReason.initial_bonus");
+        }
+        if (normalized.includes("first creation")) {
+            return $t("creditReason.first_persona_bonus");
+        }
+        if (normalized.includes("point_conversion")) {
+            return $t("creditReason.convert_point");
+        }
+        if (normalized.includes("refund")) {
+            return $t("creditReason.refund");
+        }
+        if (normalized.includes("expired:")) {
+            return $t("creditReason.expired");
+        }
+        if (normalized.includes("admin gift")) {
+            return $t("creditReason.admin_bonus");
+        }
 
-        // 2. Try direct translation if it's a simple key
-        //    The existing code might have been using `$t('creditReason.' + item.reason)`
-        //    If `reason` is "chat_2d", it works. If it's "chat_2d 1234...", we need to strip.
-
-        // Remove UUIDs (simple regex for basic UUID-like strings or just split by space)
         const cleanReason = reason.split(" ")[0];
-
-        // Check if we have a translation for the clean key
         const translated = $t(`creditReason.${cleanReason}`);
-
-        // If translation exists and is not just the key itself (svelte-i18n behavior varies, usually returns key if missing)
-        // Check if matched. To be safe, look up established keys.
-        // For now, let's just return the translated version if it looks valid, or original.
-        return translated || reason;
+        return translated && translated !== `creditReason.${cleanReason}`
+            ? translated
+            : reason;
     }
 
     onMount(() => {
@@ -245,20 +339,24 @@
                 <button
                     class="tab-btn"
                     class:active={activeTab === "history"}
-                    on:click={() => (activeTab = "history")}
+                    on:click={() => switchTab("history")}
                 >
                     {$t("paymentHistoryModal.tabs.chargeHistory")}
                 </button>
                 <button
                     class="tab-btn"
                     class:active={activeTab === "usage"}
-                    on:click={() => (activeTab = "usage")}
+                    on:click={() => switchTab("usage")}
                 >
                     {$t("paymentHistoryModal.tabs.usageHistory")}
                 </button>
             </div>
 
-            <div class="history-list-container">
+            <div
+                class="history-list-container"
+                bind:this={listContainerEl}
+                on:scroll={handleListScroll}
+            >
                 {#if isLoading}
                     <div class="loading-state">
                         <Icon icon="svg-spinners:ring-resize" width="32" />
@@ -288,16 +386,9 @@
                                                     )}</span
                                                 >
                                                 <span class="item-amount">
-                                                    {#if record.amount > 0}
-                                                        {record.amount.toLocaleString()}
-                                                        {record.currency ||
-                                                            "KRW"}
-                                                    {:else}
-                                                        <span
-                                                            style="color: var(--primary);"
-                                                            >무료</span
-                                                        >
-                                                    {/if}
+                                                    {formatPaymentAmount(
+                                                        record,
+                                                    )}
                                                 </span>
                                             </div>
                                             <div class="item-sub">
@@ -461,6 +552,11 @@
                         </div>
                     {/if}
                 {/if}
+                {#if isLoadingMore}
+                    <div class="loading-more">
+                        <Icon icon="svg-spinners:ring-resize" width="20" />
+                    </div>
+                {/if}
             </div>
         </div>
     </div>
@@ -612,6 +708,13 @@
         display: flex;
         flex-direction: column;
         gap: 0.75rem;
+    }
+
+    .loading-more {
+        display: flex;
+        justify-content: center;
+        padding: 0.75rem 0;
+        color: var(--muted-foreground);
     }
 
     .history-item-wrapper {

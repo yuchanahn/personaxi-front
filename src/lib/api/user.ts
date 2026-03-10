@@ -42,8 +42,11 @@ export async function deleteUser(): Promise<boolean> {
 
 import type { PaymentRecord } from "$lib/types";
 
-export async function getPaymentHistory(): Promise<PaymentRecord[]> {
-    const res = await api.get("/api/user/payments");
+export async function getPaymentHistory(
+    limit = 10,
+    offset = 0,
+): Promise<PaymentRecord[]> {
+    const res = await api.get(`/api/user/payments?limit=${limit}&offset=${offset}`);
     if (res.ok) {
         return await res.json();
     }
@@ -58,8 +61,13 @@ export type CreditTransaction = {
     created_at: string;
 };
 
-export async function getCreditHistory(): Promise<CreditTransaction[]> {
-    const res = await api.get("/api/user/credits/history");
+export async function getCreditHistory(
+    limit = 10,
+    offset = 0,
+): Promise<CreditTransaction[]> {
+    const res = await api.get(
+        `/api/user/credits/history?limit=${limit}&offset=${offset}`,
+    );
     if (res.ok) {
         return await res.json();
     }
