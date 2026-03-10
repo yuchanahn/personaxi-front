@@ -78,6 +78,23 @@
                 return "text-gray-500";
         }
     }
+
+    function formatNotificationParams(contentParams?: string) {
+        if (!contentParams) return undefined;
+
+        try {
+            const parsed = JSON.parse(contentParams);
+            if (parsed?.expiresAt) {
+                const date = new Date(parsed.expiresAt);
+                if (!Number.isNaN(date.getTime())) {
+                    parsed.expiresAt = date.toLocaleString();
+                }
+            }
+            return parsed;
+        } catch {
+            return undefined;
+        }
+    }
 </script>
 
 <!-- svelte-ignore a11y-click-events-have-key-events -->
@@ -117,7 +134,9 @@
             {#if notification.contentKey}
                 {#if notification.contentParams}
                     {$t(notification.contentKey, {
-                        values: JSON.parse(notification.contentParams),
+                        values: formatNotificationParams(
+                            notification.contentParams,
+                        ),
                     })}
                 {:else}
                     {$t(notification.contentKey)}

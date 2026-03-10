@@ -14,6 +14,23 @@ function createNotificationStore() {
 
     let realtimeChannel: any = null;
 
+    function formatNotificationParams(contentParams?: string) {
+        if (!contentParams) return {};
+        try {
+            const parsed = JSON.parse(contentParams);
+            if (parsed?.expiresAt) {
+                const date = new Date(parsed.expiresAt);
+                if (!Number.isNaN(date.getTime())) {
+                    parsed.expiresAt = date.toLocaleString();
+                }
+            }
+            return parsed;
+        } catch (e) {
+            console.error("Failed to parse notification params", e);
+            return {};
+        }
+    }
+
     async function fetchNotifications(limit = 20, offset = 0) {
         const token = get(accessToken);
         if (!token) return;
@@ -32,12 +49,8 @@ function createNotificationStore() {
                     const t = get(_);
                     data = data.map((n: Notification) => {
                         if (n.contentKey) {
-                            try {
-                                const params = n.contentParams ? JSON.parse(n.contentParams) : {};
-                                n.content = t(`notification.${n.contentKey.split('.').pop()}`, { values: params }) || n.content;
-                            } catch (e) {
-                                console.error("Failed to parse notification params", e);
-                            }
+                            const params = formatNotificationParams(n.contentParams);
+                            n.content = t(`notification.${n.contentKey.split('.').pop()}`, { values: params }) || n.content;
                         }
                         return n;
                     });
@@ -165,12 +178,8 @@ function createNotificationStore() {
                     // i18n translation for incoming real-time notifications
                     const t = get(_);
                     if (newNotif.contentKey) {
-                        try {
-                            const params = newNotif.contentParams ? JSON.parse(newNotif.contentParams) : {};
-                            newNotif.content = t(`notification.${newNotif.contentKey.split('.').pop()}`, params) || newNotif.content;
-                        } catch (e) {
-                            console.error("Failed to parse notification params", e);
-                        }
+                        const params = formatNotificationParams(newNotif.contentParams);
+                        newNotif.content = t(`notification.${newNotif.contentKey.split('.').pop()}`, { values: params }) || newNotif.content;
                     }
 
                     // Add to list
