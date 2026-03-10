@@ -1188,7 +1188,8 @@
     "new_persona": "さんが新しいペルソナを作成しました: {name}",
     "updated_persona": "さんがペルソナを更新しました: {name}",
     "expiry_12h": "{amount} ニューロンが12時間以内に失効します。（失効時刻: {expiresAt}）",
-    "expiry_1h": "{amount} ニューロンが1時間以内に失効します。（失効時刻: {expiresAt}）"
+    "expiry_1h": "{amount} ニューロンが1時間以内に失効します。（失効時刻: {expiresAt}）",
+    "expired_applied": "ニューロン失効を適用しました: -{expired}（現在残高: {remaining}）"
   },
   "errors": {
     "ERR_INSUFFICIENT_CREDITS": "クレジットが不足しているため、リクエストを処理できません。",

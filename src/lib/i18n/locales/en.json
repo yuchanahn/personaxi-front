@@ -1188,7 +1188,8 @@
     "new_persona": "created a new persona: {name}",
     "updated_persona": "updated persona: {name}",
     "expiry_12h": "{amount} neurons will expire within 12 hours. (Expiry: {expiresAt})",
-    "expiry_1h": "{amount} neurons will expire within 1 hour. (Expiry: {expiresAt})"
+    "expiry_1h": "{amount} neurons will expire within 1 hour. (Expiry: {expiresAt})",
+    "expired_applied": "Neuron expiry applied: -{expired} (Current balance: {remaining})"
   },
   "errors": {
     "ERR_INSUFFICIENT_CREDITS": "Not enough credits to process the request.",
