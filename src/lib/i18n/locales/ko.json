@@ -1121,7 +1121,7 @@
     "admin_gift": "{neurons} 무료 뉴런을 받으셨습니다! ({days}일 유효)",
     "new_persona": "님이 새 페르소나를 만들었습니다: {name}",
     "updated_persona": "님이 페르소나를 업데이트했습니다: {name}",
-    "expiry_24h": "{amount} 뉴런이 24시간 이내 만료됩니다. (만료 시각: {expiresAt})",
+    "expiry_12h": "{amount} 뉴런이 12시간 이내 만료됩니다. (만료 시각: {expiresAt})",
     "expiry_1h": "{amount} 뉴런이 1시간 이내 만료됩니다. (만료 시각: {expiresAt})"
   },
   "errors": {
