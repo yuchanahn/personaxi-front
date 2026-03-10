@@ -2,6 +2,8 @@
     import { createEventDispatcher, onMount, onDestroy } from "svelte";
     import { fade } from "svelte/transition";
     import Icon from "@iconify/svelte";
+    import { t } from "svelte-i18n";
+    import { get } from "svelte/store";
     import { api } from "$lib/api";
     import { toast } from "$lib/stores/toast";
     import {
@@ -147,6 +149,7 @@
     let refundingItemId: string | null = null;
     let selectedReason = "";
     let customReason = "";
+    const translate = (key: string) => get(t)(key);
 
     function startRefund(record: PaymentRecord) {
         if (refundingItemId === record.id) {
@@ -160,14 +163,14 @@
 
     async function submitRefund(record: PaymentRecord) {
         if (!selectedReason) {
-            toast.error($t("paymentHistoryModal.reasons.label"));
+            toast.error(translate("paymentHistoryModal.reasons.label"));
             return;
         }
 
         const finalReason =
             selectedReason === "other"
                 ? `Other: ${customReason}`
-                : $t(`paymentHistoryModal.reasons.${selectedReason}`);
+                : translate(`paymentHistoryModal.reasons.${selectedReason}`);
 
         if (isRefundingMap[record.id]) return;
 
@@ -185,9 +188,7 @@
                 );
             }
 
-            toast.success($t("paymentHistoryModal.refundRequested"));
-
-            toast.success($t("paymentHistoryModal.refundRequested"));
+            toast.success(translate("paymentHistoryModal.refundRequested"));
 
             history = history.map((r) =>
                 r.id === record.id ? { ...r, status: "refund_requested" } : r,
@@ -209,23 +210,23 @@
         if (variantId === "reward") {
             const parts = name.split(" ");
             const credits = parts[0] || "200";
-            return `${credits} ${$t("paymentHistoryModal.rewardItem")}`;
+            return `${credits} ${translate("paymentHistoryModal.rewardItem")}`;
         }
         if (variantId) {
-            const translated = $t(`itemName.${variantId}`);
+            const translated = translate(`itemName.${variantId}`);
             if (translated && translated !== `itemName.${variantId}`) {
                 return translated;
             }
         }
-        if (amount === 1200) return $t("itemName.pack_1");
-        if (amount === 5000) return $t("itemName.pack_2");
-        if (amount === 10000) return $t("itemName.pack_3");
+        if (amount === 1200) return translate("itemName.pack_1");
+        if (amount === 5000) return translate("itemName.pack_2");
+        if (amount === 10000) return translate("itemName.pack_3");
         return name;
     }
 
     function formatPaymentAmount(record: PaymentRecord): string {
         if (record.variant_id === "reward") {
-            return $t("paymentHistoryModal.freeLabel");
+            return translate("paymentHistoryModal.freeLabel");
         }
         if (record.amount > 0) {
             const currency = record.currency || "USD";
@@ -238,7 +239,7 @@
                   });
             return `${displayAmount} ${currency}`;
         }
-        return $t("paymentHistoryModal.externalPaid");
+        return translate("paymentHistoryModal.externalPaid");
     }
 
     function formatCreditReason(reason: string): string {
@@ -249,41 +250,41 @@
             normalized.includes("paypal") ||
             normalized.includes("lemonsqueezy")
         ) {
-            return $t("creditReason.purchase");
+            return translate("creditReason.purchase");
         }
         if (normalized.includes("2d chat start")) {
-            return $t("creditReason.chat_start_2d");
+            return translate("creditReason.chat_start_2d");
         }
         if (normalized.includes("3d chat start")) {
-            return $t("creditReason.chat_start_3d");
+            return translate("creditReason.chat_start_3d");
         }
         if (normalized.includes("live2d chat start")) {
-            return $t("creditReason.chat_start_live2d");
+            return translate("creditReason.chat_start_live2d");
         }
         if (normalized.includes("situation image generation")) {
-            return $t("creditReason.image_generation");
+            return translate("creditReason.image_generation");
         }
         if (normalized.includes("welcome bonus")) {
-            return $t("creditReason.initial_bonus");
+            return translate("creditReason.initial_bonus");
         }
         if (normalized.includes("first creation")) {
-            return $t("creditReason.first_persona_bonus");
+            return translate("creditReason.first_persona_bonus");
         }
         if (normalized.includes("point_conversion")) {
-            return $t("creditReason.convert_point");
+            return translate("creditReason.convert_point");
         }
         if (normalized.includes("refund")) {
-            return $t("creditReason.refund");
+            return translate("creditReason.refund");
         }
         if (normalized.includes("expired:")) {
-            return $t("creditReason.expired");
+            return translate("creditReason.expired");
         }
         if (normalized.includes("admin gift")) {
-            return $t("creditReason.admin_bonus");
+            return translate("creditReason.admin_bonus");
         }
 
         const cleanReason = reason.split(" ")[0];
-        const translated = $t(`creditReason.${cleanReason}`);
+        const translated = translate(`creditReason.${cleanReason}`);
         return translated && translated !== `creditReason.${cleanReason}`
             ? translated
             : reason;
