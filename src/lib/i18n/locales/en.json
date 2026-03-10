@@ -1186,7 +1186,9 @@
     "persona_liked": "liked your persona.",
     "admin_gift": "You received {neurons} free neurons! (Expires in {days} days)",
     "new_persona": "created a new persona: {name}",
-    "updated_persona": "updated persona: {name}"
+    "updated_persona": "updated persona: {name}",
+    "expiry_24h": "{amount} neurons will expire within 24 hours. (Expiry: {expiresAt})",
+    "expiry_1h": "{amount} neurons will expire within 1 hour. (Expiry: {expiresAt})"
   },
   "errors": {
     "ERR_INSUFFICIENT_CREDITS": "Not enough credits to process the request.",
