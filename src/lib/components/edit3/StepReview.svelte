@@ -140,9 +140,6 @@
                     />
                     <span>{$t("edit3.review.monetizationCheckbox")}</span>
                 </label>
-                <p class="monetization-note">
-                    {$t("edit3.review.monetizationNote")}
-                </p>
             </div>
         </section>
     {/if}
@@ -393,10 +390,4 @@
         cursor: pointer;
     }
 
-    .monetization-note {
-        font-size: 0.8rem;
-        color: var(--destructive);
-        margin: 0;
-        font-weight: 500;
-    }
 </style>
