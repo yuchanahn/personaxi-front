@@ -128,8 +128,8 @@
     const FIRST_SCENE_TAG_REGEX = /<first_scene>/g;
     const CODE_BLOCK_REGEX = /```(?<lang>\w*)\s*\n?(?<code>[\s\S]+?)\s*```/;
 
-    const ALL_TAGS_REGEX =
-      /<(dialogue) speaker="([^"]+)">([\s\S]*?)<\/dialogue>|<(img) (\d+)>|<(Action) type="([^"]+)" question="([^"]+)" variable="([^"]+)"(?: max="(\d+)")? \/>|!\[(.*?)\]\((.*?)\)/g;
+  const ALL_TAGS_REGEX =
+      /<((?:say|dialogue)) speaker="([^"]+)">([\s\S]*?)<\/(?:say|dialogue)>|<(img) (\d+)>|<(Action) type="([^"]+)" question="([^"]+)" variable="([^"]+)"(?: max="(\d+)")? \/>|!\[(.*?)\]\((.*?)\)/g;
 
     const blocks: ChatLogItem[] = [];
     let partIndex = 0;
@@ -213,9 +213,9 @@
 
           const [fullMatch] = match;
 
-          if (fullMatch.startsWith("<dialogue")) {
+          if (fullMatch.startsWith("<dialogue") || fullMatch.startsWith("<say")) {
             const m = fullMatch.match(
-              /speaker="([^"]+)">([\s\S]*?)<\/dialogue>/,
+              /speaker="([^"]+)">([\s\S]*?)<\/(?:say|dialogue)>/,
             );
             if (m) {
               let parsedSpeaker = replacePlaceholders(m[1]);
@@ -494,9 +494,9 @@
   }
 
   export function patchUnclosedDialogueForParse(raw: string): string {
-    const DIALOGUE_OPEN_COMPLETE_RE = /<dialogue\b[^>]*>/g;
-    const DIALOGUE_CLOSE_RE = /<\/dialogue>/g;
-    const DIALOGUE_OPEN_PARTIAL_AT_END_RE = /<dialogue\b[^>]*$/;
+    const DIALOGUE_OPEN_COMPLETE_RE = /<(?:dialogue|say)\b[^>]*>/g;
+    const DIALOGUE_CLOSE_RE = /<\/(?:dialogue|say)>/g;
+    const DIALOGUE_OPEN_PARTIAL_AT_END_RE = /<(?:dialogue|say)\b[^>]*$/;
     const SPEAKER_ATTR_PARTIAL_RE = /speaker="[^"]*$/;
 
     let s = raw;
@@ -511,7 +511,10 @@
 
     const missing = openCount - closeCount;
     if (missing > 0) {
-      s += `</dialogue>`.repeat(missing);
+      const openMatches = Array.from(s.matchAll(/<(dialogue|say)\b[^>]*>/g));
+      const lastOpenTag = openMatches.at(-1)?.[1] ?? "dialogue";
+      const closingTag = lastOpenTag === "say" ? "</say>" : "</dialogue>";
+      s += closingTag.repeat(missing);
     }
 
     return s;

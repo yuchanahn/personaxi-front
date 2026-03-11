@@ -20,7 +20,7 @@ After saving, you can continue tuning in `edit3` (prompt, variables, advanced se
 - To insert asset images, use tags like `<img 0>`, `<img 1>`.
 - Example:
   - `Late at night, she leans by the window and slowly turns toward you.`
-  - `<dialogue speaker="{{char}}">You're here. Where do you want to start tonight?</dialogue>`
+  - `<say speaker="{{char}}">You're here. Where do you want to start tonight?</say>`
 
 ### 4. Visibility
 - **Public**: Searchable and shareable

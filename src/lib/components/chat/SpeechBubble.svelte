@@ -32,9 +32,9 @@
     let lastTriggeredText = "";
     let wasVisible = false;
 
-    // 입력 포맷: speaker="..." + <dialogue>...</dialogue>
+    // 입력 포맷: speaker="..." + <say>...</say> (legacy <dialogue> fallback)
     const speakerRegex = /speaker=["']([^"']*)["']/;
-    const contentRegex = /<dialogue[^>]*>([\s\S]*?)<\/dialogue>/;
+    const contentRegex = /<(?:say|dialogue)[^>]*>([\s\S]*?)<\/(?:say|dialogue)>/;
 
     $: {
         // visible로 켜질 때만 "새 텍스트"를 트리거

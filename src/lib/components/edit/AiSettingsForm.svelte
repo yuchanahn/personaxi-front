@@ -25,7 +25,7 @@
         if (!firstSceneTextarea) return;
 
         const target = toggleDialogueTag ? "{{user}}" : "{{char}}";
-        const snippet = `<dialogue speaker="${target}"></dialogue>`;
+        const snippet = `<say speaker="${target}"></say>`;
 
         const pos = firstSceneTextarea.selectionStart;
         const currentVal = persona.first_scene;
@@ -33,7 +33,7 @@
         persona.first_scene =
             currentVal.substring(0, pos) + snippet + currentVal.substring(pos);
 
-        const newPos = pos + `<dialogue speaker="${target}">`.length;
+        const newPos = pos + `<say speaker="${target}">`.length;
 
         tick().then(() => {
             firstSceneTextarea.focus();

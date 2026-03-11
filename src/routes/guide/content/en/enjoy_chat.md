@@ -6,7 +6,7 @@ PersonaXi supports both normal roleplay chat and interactive simulation chat.
 
 - Standard relationship-focused conversation with one character
 - Can unlock events/hidden images depending on character setup
-- Supports TTS, image tags, and dialogue-tag rendering
+- Supports TTS, image tags, and `say`-tag rendering
 
 ## 2) Story / Simulation Chat
 
@@ -32,7 +32,7 @@ After user interaction, the client aggregates actions/inputs and sends them back
 
 ## Dialogue / Image Formats
 
-- Dialogue: `<dialogue speaker="Name">...</dialogue>`
+- Dialogue: `<say speaker="Name">...</say>`
 - Asset image: `<img 0>`
 - Markdown/HTML-styled text is rendered after sanitization
 

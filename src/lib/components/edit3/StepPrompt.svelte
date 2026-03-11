@@ -33,7 +33,7 @@
     function insertDialogueTag() {
         if (!firstSceneTextarea) return;
         const target = toggleDialogueTag ? "{{user}}" : "{{char}}";
-        const snippet = `<dialogue speaker="${target}"></dialogue>`;
+        const snippet = `<say speaker="${target}"></say>`;
         const start = firstSceneTextarea.selectionStart;
         const end = firstSceneTextarea.selectionEnd;
         const before = persona.first_scene.substring(0, start);

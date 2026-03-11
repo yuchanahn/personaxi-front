@@ -14,6 +14,8 @@
     const styleId = `chat-dynamic-style-${Math.random().toString(36).slice(2, 9)}`;
 
     const styleRegex = /<style>([\s\S]*?)<\/style>/g;
+    const rawHtmlRegex =
+        /<(div|table|thead|tbody|tr|td|th|p|span|section|article|header|footer|main|aside|blockquote|ul|ol|li|h[1-6]|br)\b/i;
 
     $: if (content !== prevContent) {
         prevContent = content;
@@ -27,12 +29,22 @@
             return "";
         });
 
-        const parsed = marked.parse(cleanContent, {
-            breaks: true,
-            gfm: true,
-        }) as string;
+        const shouldBypassMarkdown = rawHtmlRegex.test(cleanContent);
 
-        htmlContent = DOMPurify.sanitize(parsed);
+        if (shouldBypassMarkdown) {
+            htmlContent = DOMPurify.sanitize(cleanContent, {
+                USE_PROFILES: { html: true },
+            });
+        } else {
+            const parsed = marked.parse(cleanContent, {
+                breaks: true,
+                gfm: true,
+            }) as string;
+
+            htmlContent = DOMPurify.sanitize(parsed, {
+                USE_PROFILES: { html: true },
+            });
+        }
 
         styleContent = styles;
     }

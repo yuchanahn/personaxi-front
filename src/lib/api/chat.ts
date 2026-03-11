@@ -31,7 +31,7 @@ function parseESFResponse(content: string): string {
                 : '';
 
             const speech = json.speech_text
-                ? `<dialogue speaker="${json.speaker || 'Character'}">${json.speech_text}</dialogue>\n`
+                ? `<say speaker="${json.speaker || 'Character'}">${json.speech_text}</say>\n`
                 : '';
 
             const reflection = json.internal_monologue_reflection
@@ -42,7 +42,7 @@ function parseESFResponse(content: string): string {
         }
 
         const thoughts = json.internal_monologue ? `(${json.internal_monologue})\n` : '';
-        const speech = json.speech_text ? `<dialogue speaker="${json.speaker || 'Character'}">${json.speech_text}</dialogue>` : '';
+        const speech = json.speech_text ? `<say speaker="${json.speaker || 'Character'}">${json.speech_text}</say>` : '';
         return thoughts + speech;
 
     } catch (e) {

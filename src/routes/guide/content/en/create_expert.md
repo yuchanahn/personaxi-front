@@ -22,8 +22,8 @@ Expert Mode is for prompt-level control, including output format and interaction
 ## Mandatory Format Notes for Custom Prompts
 
 ### Dialogue
-- Prefer `<dialogue speaker="{{char}}">...</dialogue>` for spoken lines
-- Keep narration outside dialogue tags
+- Prefer `<say speaker="{{char}}">...</say>` for spoken lines
+- Keep narration outside `say` tags
 
 ### Asset Image Output
 - Use `<img 0>`, `<img 1>` tags for asset-linked scene images

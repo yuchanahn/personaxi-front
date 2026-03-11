@@ -332,7 +332,7 @@
         }
 
         formatted = formatted.replace(
-            /<dialogue[^>]*>(.*?)<\/dialogue>/gs,
+            /<(?:dialogue|say)[^>]*>(.*?)<\/(?:dialogue|say)>/gs,
             '"$1"',
         );
 
@@ -366,7 +366,8 @@
       overflow-wrap: anywhere;
       background: transparent;
     }
-    dialogue {
+    dialogue,
+    say {
       display: block;
       margin: 0.75rem 0;
       padding: 0.7rem 0.8rem;

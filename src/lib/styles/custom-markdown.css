@@ -53,7 +53,8 @@
     margin-bottom: 1rem;
 }
 
-.markdown-body dialogue {
+.markdown-body dialogue,
+.markdown-body say {
     color: #fbff19;
     font-size: 1.1em;
 }
