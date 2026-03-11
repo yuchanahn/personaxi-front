@@ -48,10 +48,9 @@
     /* ────────────── PWA: Service Worker ────────────── */
     if ("serviceWorker" in navigator) {
         window.addEventListener("load", () => {
-            navigator.serviceWorker.register("/service-worker.js").then(
-                (r) => console.log("Service Worker registered:", r),
-                (e) => console.error("Service Worker registration failed:", e),
-            );
+            navigator.serviceWorker.register("/service-worker.js").catch((e) => {
+                console.error("Service Worker registration failed:", e);
+            });
         });
     }
 
@@ -67,6 +66,8 @@
     let showCheatConsole = false;
     let consentModal = false;
     let welcomeModal = false;
+    let settingsSaveTimer: ReturnType<typeof setTimeout> | null = null;
+    let lastSyncedSettingsPayload = "";
 
     /* ────────────── 인증 확인 ────────────── */
     onMount(() => {
@@ -212,36 +213,35 @@
         }
     });
 
-    settings.subscribe(async (settings) => {
-        if (get(accessToken) === null) return;
-        const userRes = await getCurrentUser();
-        if (userRes) {
-            let user = userRes as User;
+    settings.subscribe((currentSettings) => {
+        if (!browser || get(accessToken) === null) return;
 
-            if (!user.data) {
-                user.data = {
-                    nickname: user.name,
-                    language: settings.language,
-                    lastLoginAt: "",
-                    createdAt: "",
-                    hasReceivedFirstCreationReward: false,
-                    lastLoginIP: "",
-                    //llmType: settings.llmType,
-                };
-            }
+        const user = get(st_user) as User | null;
+        if (!user) return;
 
-            const settingRq: any = {
-                name: user.name,
-                nickname: user.data.nickname || "",
-                language: get(locale) || "en",
-                llmType: settings.llmType,
-            };
+        const settingRq: any = {
+            name: user.name,
+            nickname: user.data?.nickname || "",
+            language: currentSettings.language || (get(locale) as Language) || "en",
+            llmType: currentSettings.llmType,
+            safetyFilterOn: currentSettings.safetyFilterOn,
+        };
 
+        const payloadKey = JSON.stringify(settingRq);
+        if (payloadKey === lastSyncedSettingsPayload) {
+            return;
+        }
+
+        if (settingsSaveTimer) {
+            clearTimeout(settingsSaveTimer);
+        }
+
+        settingsSaveTimer = setTimeout(async () => {
             const res = await api.post(`/api/user/edit`, settingRq);
             if (res.ok) {
-                console.log("최종 저장완료!");
+                lastSyncedSettingsPayload = payloadKey;
             }
-        }
+        }, 300);
     });
 
     function handleBack() {

@@ -101,7 +101,12 @@
     "title": "설정",
     "theme": "테마",
     "light": "라이트",
-    "dark": "다크"
+    "dark": "다크",
+    "verificationRequiredBadge": "본인인증 필요",
+    "safetyDescription": "세이프티 필터가 켜져 있으면 성인 태그 콘텐츠를 숨기고 접근을 차단합니다. 해제하려면 본인인증이 필요합니다.",
+    "safetyVerificationRequired": "세이프티 필터를 끄려면 본인인증이 필요합니다.",
+    "safetyUpdated": "세이프티 필터 설정이 저장되었습니다.",
+    "safetyUpdateFailed": "세이프티 필터 설정 저장에 실패했습니다."
   },
   "chatWindow": {
     "noConversation": "{name}님과 대화를 시작해보세요!",

@@ -27,11 +27,7 @@
             const res = await fetch("https://ipapi.co/json/");
             const data = await res.json();
             isKorean = data.country_code === "KR";
-            console.log(
-                `[GeoIP] Country: ${data.country_code}, isKorean: ${isKorean}`,
-            );
         } catch (e) {
-            console.warn("[GeoIP] Detection failed, defaulting to Korean:", e);
             isKorean = true; // Fallback to Korean (PortOne)
         }
 

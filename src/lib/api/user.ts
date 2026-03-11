@@ -40,6 +40,17 @@ export async function deleteUser(): Promise<boolean> {
     return res.ok;
 }
 
+export async function updateSafetyFilter(
+    safetyFilterOn: boolean,
+): Promise<{ success: boolean; safetyFilterOn: boolean; isVerified: boolean }> {
+    const res = await api.post("/api/user/safety-filter", { safetyFilterOn });
+    if (!res.ok) {
+        const errorText = await res.text();
+        throw new Error(errorText || "Failed to update safety filter");
+    }
+    return await res.json();
+}
+
 import type { PaymentRecord } from "$lib/types";
 
 export async function getPaymentHistory(

@@ -882,7 +882,12 @@
     "title": "Settings",
     "theme": "Theme",
     "light": "Light",
-    "dark": "Dark"
+    "dark": "Dark",
+    "verificationRequiredBadge": "Verification required",
+    "safetyDescription": "When the safety filter is on, adult-tagged content is hidden and blocked. Identity verification is required to turn it off.",
+    "safetyVerificationRequired": "Identity verification is required to disable the safety filter.",
+    "safetyUpdated": "Safety filter setting saved.",
+    "safetyUpdateFailed": "Failed to save safety filter setting."
   },
   "common": {
     "back": "Back",

@@ -106,7 +106,12 @@
     "title": "設定",
     "theme": "テーマ",
     "light": "ライト",
-    "dark": "ダーク"
+    "dark": "ダーク",
+    "verificationRequiredBadge": "本人確認が必要",
+    "safetyDescription": "セーフティフィルターが有効な場合、成人タグのコンテンツは非表示になりアクセスも遮断されます。解除には本人確認が必要です。",
+    "safetyVerificationRequired": "セーフティフィルターを無効にするには本人確認が必要です。",
+    "safetyUpdated": "セーフティフィルター設定を保存しました。",
+    "safetyUpdateFailed": "セーフティフィルター設定の保存に失敗しました。"
   },
   "chatWindow": {
     "noConversation": "{name}さんとの会話を始めましょう！",

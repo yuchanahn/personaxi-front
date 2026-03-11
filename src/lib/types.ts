@@ -106,6 +106,7 @@ export interface User {
     data: {
         nickname: string;
         language: string;
+        safetyFilterOn?: boolean;
         lastLoginAt: string;
         createdAt: string;
         hasReceivedFirstCreationReward: boolean;

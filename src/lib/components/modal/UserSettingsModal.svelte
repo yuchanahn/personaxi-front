@@ -3,18 +3,19 @@
     import { t } from "svelte-i18n";
     import Icon from "@iconify/svelte";
     import { settings } from "$lib/stores/settings";
-    import { deleteUser } from "$lib/api/user";
+    import { deleteUser, updateSafetyFilter } from "$lib/api/user";
     import { goto } from "$app/navigation";
     import { supabase } from "$lib/supabase";
     import { accessToken } from "$lib/stores/auth";
     import { toast } from "$lib/stores/toast";
     import { confirmStore } from "$lib/stores/confirm";
+    import { st_user } from "$lib/stores/user";
 
     export let isOpen: boolean = false;
     const dispatch = createEventDispatcher();
-
+    let isSavingSafety = false;
     let isOverseas = false;
-    let isCheckingIp = true;
+    let isCheckingRegion = true;
 
     function closeModal() {
         isOpen = false;
@@ -50,21 +51,62 @@
         window.addEventListener("keydown", handleKeydown);
         try {
             const res = await fetch("https://ipapi.co/json/");
-            if (res.ok) {
-                const data = await res.json();
-                if (data.country_code !== "KR") {
-                    isOverseas = true;
-                }
-            }
-        } catch (e) {
-            console.error("Failed to check IP", e);
+            const data = await res.json();
+            isOverseas = data?.country_code !== "KR";
+        } catch (error) {
+            console.error("Failed to detect user region for safety toggle", error);
+            isOverseas = false;
         } finally {
-            isCheckingIp = false;
+            isCheckingRegion = false;
         }
     });
     onDestroy(() => {
         window.removeEventListener("keydown", handleKeydown);
     });
+
+    async function handleSafetyFilterChange(nextValue: boolean) {
+        if (isSavingSafety || $settings.safetyFilterOn === nextValue) {
+            return;
+        }
+
+        if (!nextValue && !isOverseas && !$st_user?.data?.isVerified) {
+            toast.error($t("settingPageModal.safetyVerificationRequired"));
+            return;
+        }
+
+        isSavingSafety = true;
+        try {
+            const result = await updateSafetyFilter(nextValue);
+            settings.update((current) => ({
+                ...current,
+                safetyFilterOn: result.safetyFilterOn,
+            }));
+            st_user.update((current) =>
+                current
+                    ? {
+                          ...current,
+                          data: {
+                              ...current.data,
+                              safetyFilterOn: result.safetyFilterOn,
+                              isVerified:
+                                  result.isVerified ??
+                                  current.data?.isVerified,
+                          },
+                      }
+                    : current,
+            );
+            toast.success($t("settingPageModal.safetyUpdated"));
+        } catch (error) {
+            console.error("Failed to update safety filter", error);
+            toast.error(
+                error instanceof Error
+                    ? error.message
+                    : $t("settingPageModal.safetyUpdateFailed"),
+            );
+        } finally {
+            isSavingSafety = false;
+        }
+    }
 </script>
 
 <!-- svelte-ignore a11y_no_static_element_interactions -->
@@ -131,33 +173,20 @@
                 <label>
                     <Icon icon="ph:warning-circle-bold" />
                     {$t("tags.safetyFilter")}
-                    {#if isCheckingIp}
-                        <span class="status-badge checking">IP Checking...</span
-                        >
-                    {:else if !isOverseas}
-                        <span class="status-badge disabled">KR Restricted</span>
+                    {#if !isCheckingRegion && !isOverseas && !$st_user?.data?.isVerified}
+                        <span class="status-badge disabled">
+                            {$t("settingPageModal.verificationRequiredBadge")}
+                        </span>
                     {/if}
                 </label>
                 <div class="filter-description">
-                    {#if isCheckingIp}
-                        접속 지역을 확인하는 중입니다... / Checking region...
-                    {:else if !isOverseas}
-                        청소년 보호를 위한 19세 확인 인증 절차 연동 준비 중으로,
-                        임시 비활성화 취치되었습니다. (Disabled in KR region
-                        temporarily)
-                    {:else}
-                        청소년 보호를 위해 혹시 모를 AI의 민감한 발화나 이미지
-                        수위를 제한하는 기능입니다. (Youth protection filter for
-                        sensitive contents)
-                    {/if}
+                    {$t("settingPageModal.safetyDescription")}
                 </div>
                 <div class="button-group">
                     <button
                         class:active={$settings.safetyFilterOn}
-                        on:click={() => {
-                            if (isOverseas) $settings.safetyFilterOn = true;
-                        }}
-                        disabled={!isOverseas || isCheckingIp}
+                        on:click={() => handleSafetyFilterChange(true)}
+                        disabled={isSavingSafety}
                     >
                         <Icon icon="ph:shield-check-bold" />
                         Safe
@@ -165,10 +194,8 @@
                     <button
                         class:active={!$settings.safetyFilterOn}
                         class:danger-active={!$settings.safetyFilterOn}
-                        on:click={() => {
-                            if (isOverseas) $settings.safetyFilterOn = false;
-                        }}
-                        disabled={!isOverseas || isCheckingIp}
+                        on:click={() => handleSafetyFilterChange(false)}
+                        disabled={isSavingSafety || (isCheckingRegion || (!isOverseas && !$st_user?.data?.isVerified))}
                     >
                         <Icon icon="ph:warning-bold" />
                         Allow
