@@ -25,6 +25,7 @@
     let firstSceneTextarea: HTMLTextAreaElement;
     let toggleDialogueTag = false;
     let isAvatarPersona = false;
+    let isStoryPersona = false;
 
     const jsonPlaceholder =
         '{"greeting": "안녕하세요!", "expression": "happy", "motion": "idle"}';
@@ -48,6 +49,7 @@
     let activeTab = "prompt"; // prompt, variable, lore
     $: isAvatarPersona =
         persona.personaType === "3D" || persona.personaType === "2.5D";
+    $: isStoryPersona = persona.contentType === "story" && !isAvatarPersona;
 
     const tabs = [
         {
@@ -233,49 +235,111 @@
             </div>
         {/if}
 
-        <!-- Instructions -->
-        <div class="field-group">
-            <label for="e3-instructions" class="field-label">
-                <Icon icon="ph:notepad-duotone" width="18" />
-                {$t("editPage.instructionsLabel", {
-                    default: "지시사항 (Instructions)",
-                })}
-                <span class="required">*</span>
-            </label>
-            <p class="field-hint">
-                {$t("editPage.instructionsDescription", {
-                    default:
-                        "캐릭터의 성격, 말투, 행동 규칙 등을 자유롭게 작성하세요.",
-                })}
-            </p>
-
-            {#if selectedTemplate !== kintsugiTemplateId}
-                <textarea
-                    id="e3-instructions"
-                    class="field-textarea"
-                    bind:value={singleInstruction}
-                    rows="8"
-                    maxlength="3000"
-                    placeholder={$t("editPage.instructionsPlaceholder", {
-                        default: "캐릭터의 성격과 말투를 설명하세요...",
+        {#if isStoryPersona}
+            <div class="field-group">
+                <label class="field-label">
+                    <Icon icon="ph:cursor-click-duotone" width="18" />
+                    {$t("edit3.prompt.interactiveUi.label", {
+                        default: "인터랙티브 UI",
                     })}
-                ></textarea>
-                <div
-                    class="char-counter"
-                    class:warning={singleInstruction.length > 2800}
-                    class:error={singleInstruction.length >= 3000}
-                >
-                    {singleInstruction.length} / 3000
+                </label>
+                <p class="field-hint">
+                    {$t("edit3.prompt.interactiveUi.description", {
+                        default:
+                            "버튼, 입력창 같은 인터랙티브 UI 출력을 허용합니다. 스토리형 콘텐츠에서만 사용하는 옵션입니다.",
+                    })}
+                </p>
+                <div class="visibility-toggle">
+                    <button
+                        type="button"
+                        class="vis-btn"
+                        class:active={!persona.interactiveUIEnabled}
+                        on:click={() => (persona.interactiveUIEnabled = false)}
+                    >
+                        <Icon icon="ph:textbox-duotone" width="20" />
+                        <div class="vis-text">
+                            <span class="vis-label">
+                                {$t("edit3.prompt.interactiveUi.offTitle", {
+                                    default: "기본 대화",
+                                })}
+                            </span>
+                            <span class="vis-desc">
+                                {$t("edit3.prompt.interactiveUi.offDesc", {
+                                    default: "일반 텍스트 응답만 사용합니다.",
+                                })}
+                            </span>
+                        </div>
+                    </button>
+                    <button
+                        type="button"
+                        class="vis-btn"
+                        class:active={!!persona.interactiveUIEnabled}
+                        on:click={() => (persona.interactiveUIEnabled = true)}
+                    >
+                        <Icon icon="ph:app-window-duotone" width="20" />
+                        <div class="vis-text">
+                            <span class="vis-label">
+                                {$t("edit3.prompt.interactiveUi.onTitle", {
+                                    default: "기능 활성화",
+                                })}
+                            </span>
+                            <span class="vis-desc">
+                                {$t("edit3.prompt.interactiveUi.onDesc", {
+                                    default:
+                                        "버튼, 입력창 등 상호작용 UI를 출력할 수 있습니다.",
+                                })}
+                            </span>
+                        </div>
+                    </button>
                 </div>
-            {:else}
-                <KintsugiForm
-                    bind:k_description
-                    bind:k_personality
-                    bind:k_userPersona
-                    bind:k_scenario
-                />
-            {/if}
-        </div>
+            </div>
+        {/if}
+
+        {#if !isAvatarPersona}
+            <!-- Instructions -->
+            <div class="field-group">
+                <label for="e3-instructions" class="field-label">
+                    <Icon icon="ph:notepad-duotone" width="18" />
+                    {$t("editPage.instructionsLabel", {
+                        default: "지시사항 (Instructions)",
+                    })}
+                    <span class="required">*</span>
+                </label>
+                <p class="field-hint">
+                    {$t("editPage.instructionsDescription", {
+                        default:
+                            "캐릭터의 성격, 말투, 행동 규칙 등을 자유롭게 작성하세요.",
+                    })}
+                </p>
+
+                {#if selectedTemplate !== kintsugiTemplateId}
+                    <textarea
+                        id="e3-instructions"
+                        class="field-textarea"
+                        bind:value={singleInstruction}
+                        rows="8"
+                        maxlength="3000"
+                        placeholder={$t("editPage.instructionsPlaceholder", {
+                            default: "캐릭터의 성격과 말투를 설명하세요...",
+                        })}
+                    ></textarea>
+                    <div
+                        class="char-counter"
+                        class:warning={singleInstruction.length > 2800}
+                        class:error={singleInstruction.length >= 3000}
+                    >
+                        {singleInstruction.length} / 3000
+                    </div>
+                {:else}
+                    <KintsugiForm
+                        bind:k_description
+                        bind:k_personality
+                        bind:k_userPersona
+                        bind:k_scenario
+                    />
+                {/if}
+            </div>
+        {/if}
         {/if}
     </div>
     <!-- End Prompt Tab -->
@@ -409,6 +473,59 @@
         gap: 0.4rem;
     }
 
+    .visibility-toggle {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 0.75rem;
+    }
+
+    .vis-btn {
+        display: flex;
+        align-items: flex-start;
+        gap: 0.85rem;
+        padding: 1rem;
+        border-radius: 16px;
+        border: 1.5px solid var(--border);
+        background: color-mix(in srgb, var(--card) 92%, transparent);
+        color: var(--foreground);
+        text-align: left;
+        transition:
+            border-color 0.2s ease,
+            background 0.2s ease,
+            transform 0.2s ease,
+            box-shadow 0.2s ease;
+    }
+
+    .vis-btn:hover {
+        border-color: color-mix(in srgb, var(--primary) 50%, var(--border));
+        transform: translateY(-1px);
+    }
+
+    .vis-btn.active {
+        border-color: var(--primary);
+        background: color-mix(in srgb, var(--primary) 12%, var(--card));
+        box-shadow: 0 0 0 1px color-mix(in srgb, var(--primary) 28%, transparent);
+    }
+
+    .vis-text {
+        display: flex;
+        flex-direction: column;
+        gap: 0.2rem;
+        min-width: 0;
+    }
+
+    .vis-label {
+        font-size: 0.95rem;
+        font-weight: 700;
+        color: var(--foreground);
+    }
+
+    .vis-desc {
+        font-size: 0.82rem;
+        line-height: 1.35;
+        color: var(--muted-foreground);
+    }
+
     .field-label {
         display: flex;
         align-items: center;
@@ -476,6 +593,12 @@
     }
     .char-counter.error {
         color: var(--destructive);
+    }
+
+    @media (max-width: 640px) {
+        .visibility-toggle {
+            grid-template-columns: 1fr;
+        }
     }
 
     /* ── Tag Tools ── */

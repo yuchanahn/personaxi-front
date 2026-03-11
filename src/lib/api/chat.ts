@@ -8,6 +8,11 @@ import { get } from 'svelte/store';
 import type { ESFPrompt, Persona } from '$lib/types';
 import { chatSessions } from '$lib/stores/chatSessions';
 
+function shouldUsePromptkitPreviewRoute(): boolean {
+    if (typeof window === 'undefined') return false;
+    const host = window.location.hostname.toLowerCase();
+    return host === 'localhost' || host === '127.0.0.1';
+}
 
 /**
  * Parse ESFPrompt JSON response to extract character's thoughts and speech
@@ -219,6 +224,7 @@ export async function impl_sendPromptStream(
         prompt,
         CSSID: currentSessionId,
         type: type ?? "chat",
+        usePromptkit: shouldUsePromptkitPreviewRoute(),
         outputTokenMultiplier:
             get(chatSessions).find((s) => s.id === currentSessionId)
                 ?.outputTokenMultiplier || 1,
@@ -227,7 +233,8 @@ export async function impl_sendPromptStream(
                 ?.userPersonaId || "",
     };
     //HandleLLMChat
-    const response = await api.post(`/api/chat/${type ?? "2d"}`, body);
+    const routeBase = shouldUsePromptkitPreviewRoute() ? "/api/chat-v2" : "/api/chat";
+    const response = await api.post(`${routeBase}/${type ?? "2d"}`, body);
 
     if (response.status === 402) {
         showNeedMoreNeuronsModal()

@@ -1158,7 +1158,15 @@
       "firstSceneHint": "Write the first scene when the conversation starts. E.g. <img 0>.",
       "firstScenePlaceholder": "e.g. A windy afternoon on the school rooftop. {char} is leaning.",
       "instructionHint": "Freely write about the character's personality, tone, etc.",
-      "lorebookHint": "Provides extra context to the AI when certain keywords appear."
+      "lorebookHint": "Provides extra context to the AI when certain keywords appear.",
+      "interactiveUi": {
+        "label": "Interactive UI",
+        "description": "Allow interactive UI output such as buttons and input fields. This option is intended for story content only.",
+        "offTitle": "Basic dialogue",
+        "offDesc": "Use plain text responses only.",
+        "onTitle": "Enable feature",
+        "onDesc": "Allow the model to output buttons, input fields, and other interactive UI."
+      }
     },
     "review": {
       "selectTags": "Select Category Tags",

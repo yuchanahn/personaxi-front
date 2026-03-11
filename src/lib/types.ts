@@ -55,6 +55,7 @@ export interface Persona {
     variables?: PersonaVariable[];
     status_template?: string;
     status_template_css?: string;
+    interactiveUIEnabled?: boolean;
 
     // Commercial Rights (For Live2D & VRM Monetization)
     commercialRightsConfirmed?: boolean;

@@ -6,25 +6,37 @@
 
     export let onEnded: () => void = () => {};
 
-    import { onMount, onDestroy } from "svelte";
+    import { onDestroy } from "svelte";
 
     let displayedText: string = "";
     let isTyping: boolean = false;
     let typeTimeout: any;
+    let sanitizedText: string = "";
 
     // 상태 추적용 변수
     let lastTriggeredText: string = "";
     let wasVisible: boolean = false;
 
+    function sanitizeThoughtText(raw: string): string {
+        return raw
+            .replace(/\[[^\]]+\]/g, "")
+            .replace(/[ \t]+\n/g, "\n")
+            .replace(/\n{3,}/g, "\n\n")
+            .replace(/[ \t]{2,}/g, " ")
+            .trim();
+    }
+
+    $: sanitizedText = sanitizeThoughtText(text);
+
     // 반응형 로직 개선: 조건문을 훨씬 강력하게 변경
     $: {
         // 1. 보여달라고 요청이 왔고(visible), 텍스트가 있을 때
-        if (visible && text) {
+        if (visible && sanitizedText) {
             // A. 텍스트가 아예 바뀌었거나
             // B. 방금 막 visible이 true가 되었을 때 (이전 프레임엔 안 보였음)
             // -> 이 경우 무조건 타이핑 새로 시작
-            if (text !== lastTriggeredText || !wasVisible) {
-                startTypewriter(text);
+            if (sanitizedText !== lastTriggeredText || !wasVisible) {
+                startTypewriter(sanitizedText);
             }
             wasVisible = true;
         }
@@ -113,7 +125,7 @@
     });
 </script>
 
-{#if (visible || isTyping) && text}
+{#if (visible || isTyping) && sanitizedText}
     <div class="thought-bubble-wrapper" style={customStyle}>
         <div class="thought-bubble">
             <div class="glow-effect"></div>

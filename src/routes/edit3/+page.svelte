@@ -328,6 +328,7 @@ const LIVE2D_EDITOR_BRIDGE_PREFIX = "live2d_editor_config_bridge:";
             likes_count: 0,
             dislikes_count: 0,
             chat_count: 0,
+            interactiveUIEnabled: false,
         };
     }
 
@@ -344,6 +345,7 @@ const LIVE2D_EDITOR_BRIDGE_PREFIX = "live2d_editor_config_bridge:";
             normalizedType === "2.5d" || normalizedType === "live2d";
         const is3DType =
             normalizedType === "3d" || normalizedType === "vrm3d";
+        const isAvatarType = isLive2DType || is3DType;
         const hasLive2DModel = !!p.live2d_model_url?.trim();
         const hasVrmModel = !!p.vrm_url?.trim();
         if (!p.personaType)
@@ -359,7 +361,7 @@ const LIVE2D_EDITOR_BRIDGE_PREFIX = "live2d_editor_config_bridge:";
         if (template === kintsugiId) {
             if (!kDesc.trim())
                 errors.push(get(t)("edit3.validation.kintsugiDescRequired"));
-        } else {
+        } else if (!isAvatarType) {
             if (!instruction.trim())
                 errors.push(get(t)("edit3.validation.instructionRequired"));
         }
@@ -387,6 +389,7 @@ const LIVE2D_EDITOR_BRIDGE_PREFIX = "live2d_editor_config_bridge:";
             normalizedType === "2.5d" || normalizedType === "live2d";
         const is3DType =
             normalizedType === "3d" || normalizedType === "vrm3d";
+        const isAvatarType = isLive2DType || is3DType;
         const hasLive2DModel = !!p.live2d_model_url?.trim();
         const hasVrmModel = !!p.vrm_url?.trim();
 
@@ -399,7 +402,7 @@ const LIVE2D_EDITOR_BRIDGE_PREFIX = "live2d_editor_config_bridge:";
                 return true; // Media is optional
             case 3:
                 if (template === kintsugiId) return !!kDesc.trim();
-                return !!p.first_scene.trim() && !!instruction.trim();
+                return !!p.first_scene.trim() && (isAvatarType || !!instruction.trim());
             case 4:
                 return (
                     p.tags.filter((id) => parseInt(id) < 1000).length > 0 &&
@@ -614,7 +617,13 @@ const LIVE2D_EDITOR_BRIDGE_PREFIX = "live2d_editor_config_bridge:";
                 toast.error(error);
                 return;
             }
-            if (!singleInstruction.trim()) {
+            const normalizedType = (persona.personaType || "").trim().toLowerCase();
+            const isAvatarType =
+                normalizedType === "2.5d" ||
+                normalizedType === "live2d" ||
+                normalizedType === "3d" ||
+                normalizedType === "vrm3d";
+            if (!isAvatarType && !singleInstruction.trim()) {
                 error = $t("editPage.validation.allFieldsRequired");
                 toast.error(error);
                 return;
