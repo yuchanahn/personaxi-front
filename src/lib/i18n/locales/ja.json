@@ -354,6 +354,15 @@
   "content": {
     "newArrivals": "新しい出会い",
     "todaysPopular": "話題の中心",
+    "popularPicks": "今よく見られているキャラクター",
+    "newVoices": "新しく追加されたキャラクター",
+    "romanceSpotlight": "ときめくロマンス",
+    "scifiSignal": "未来的な世界観",
+    "fantasyGate": "ファンタジーの世界へ",
+    "sliceOfLifeBreak": "穏やかな日常",
+    "horrorAfterDark": "背筋が寒くなる物語",
+    "live2dSpotlight": "表情が生きているキャラクター",
+    "vrmSpotlight": "3Dで出会うキャラクター",
     "live2dTitle": "生き生きとしたイラスト",
     "vrmTitle": "立体的な存在感",
     "allPersonas": "全コレクション",
@@ -451,6 +460,11 @@
     "create": "作成"
   },
   "feed": {
+    "recommendedTab": "おすすめ",
+    "followingTab": "フォロー",
+    "emptyRecommended": "表示できるおすすめコンテンツがありません。",
+    "emptyFollowing": "フォロー中のクリエイターのコンテンツがありません。",
+    "loadFailed": "フィードを読み込めませんでした。",
     "interact": "会話",
     "alreadyFeedback": "You have already {action} this persona.",
     "feedbackSuccess": "フィードバックが送信されました。",

@@ -71,6 +71,11 @@
     "connectingMessage": "Connecting voice (TTS)..."
   },
   "feed": {
+    "recommendedTab": "Recommended",
+    "followingTab": "Following",
+    "emptyRecommended": "No recommended content available.",
+    "emptyFollowing": "No content from creators you follow yet.",
+    "loadFailed": "Failed to load the feed.",
     "interact": "Interact",
     "alreadyFeedback": "You have already {action} this persona.",
     "feedbackSuccess": "Feedback submitted.",
@@ -267,6 +272,15 @@
   "content": {
     "newArrivals": "Just Arrived",
     "todaysPopular": "Trending Now",
+    "popularPicks": "Most Visited Right Now",
+    "newVoices": "Newly Added Characters",
+    "romanceSpotlight": "Romance Spotlight",
+    "scifiSignal": "Futuristic Worlds",
+    "fantasyGate": "Into Fantasy Worlds",
+    "sliceOfLifeBreak": "Slice of Life Break",
+    "horrorAfterDark": "Chilling Stories",
+    "live2dSpotlight": "Characters Full of Expression",
+    "vrmSpotlight": "Characters in 3D",
     "live2dTitle": "Live2D Collection",
     "vrmTitle": "VRM Showcase",
     "allPersonas": "All Personas",

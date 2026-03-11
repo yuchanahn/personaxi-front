@@ -268,10 +268,41 @@
     // --- State for Home Dashboard ---
     let fantasyContents = writable<PersonaDTO[]>([]);
     let isFantasyLoading = writable(true);
+    let romanceContents = writable<PersonaDTO[]>([]);
+    let isRomanceLoading = writable(true);
+    let scifiContents = writable<PersonaDTO[]>([]);
+    let isScifiLoading = writable(true);
+    let sliceOfLifeContents = writable<PersonaDTO[]>([]);
+    let isSliceOfLifeLoading = writable(true);
+    let horrorContents = writable<PersonaDTO[]>([]);
+    let isHorrorLoading = writable(true);
 
     // ... other states (new, popular etc) ...
 
+    async function loadGenreSection(
+        target: typeof fantasyContents,
+        loading: typeof isFantasyLoading,
+        tag: string,
+    ) {
+        loading.set(true);
+        try {
+            const data = await loadContent(1, 10, "popular", "all", [tag], excludedTags);
+            target.set(data);
+        } finally {
+            loading.set(false);
+        }
+    }
+
     async function loadFeaturedSections() {
+        newPage = 1;
+        popularPage = 1;
+        live2dPage = 1;
+        vrmPage = 1;
+        hasMoreNew = true;
+        hasMorePopular = true;
+        hasMoreLive2d = true;
+        hasMoreVrm = true;
+
         // 1. New Arrivals (Strict Daily)
         isNewLoading.set(true);
         // Load ALL types for Home New Arrivals
@@ -283,10 +314,9 @@
             },
         );
 
-        // 2. Popular Today (Realtime)
+        // 2. Popular
         isPopularLoading.set(true);
-        // Load ALL types for Home Popular
-        loadContent(popularPage, 10, "realtime", "all", [], excludedTags).then(
+        loadContent(popularPage, 10, "popular", "all", [], excludedTags).then(
             (data) => {
                 popularContents.set(data);
                 if (data.length < 10) hasMorePopular = false;
@@ -294,20 +324,12 @@
             },
         );
 
-        // 3. Fantasy (Journey to Another World)
-        isFantasyLoading.set(true);
-        // Load ALL types with fantasy tag
-        loadContent(
-            1,
-            10,
-            "popular",
-            "all",
-            ["tags.fantasy"],
-            excludedTags,
-        ).then((data) => {
-            fantasyContents.set(data);
-            isFantasyLoading.set(false);
-        });
+        // 3. Genre sections
+        loadGenreSection(romanceContents, isRomanceLoading, "tags.romance");
+        loadGenreSection(scifiContents, isScifiLoading, "tags.scifi");
+        loadGenreSection(fantasyContents, isFantasyLoading, "tags.fantasy");
+        loadGenreSection(sliceOfLifeContents, isSliceOfLifeLoading, "tags.sliceOfLife");
+        loadGenreSection(horrorContents, isHorrorLoading, "tags.horror");
 
         // 4. Tech Demos (Live2D & VRM)
         isLive2dLoading.set(true);
@@ -366,7 +388,7 @@
             const data = await loadContent(
                 popularPage,
                 10,
-                "realtime",
+                "popular",
                 "all",
                 [],
                 excludedTags,
@@ -807,57 +829,106 @@
             <!-- HOME DASHBOARD VIEW -->
             <!-- If we are in home tab AND NOT searching/filtering, show dashboard -->
             {#if activeTab === "home" && !selectedCategory}
-                <!-- Section 1: New Arrivals -->
-                <ContentCarousel
-                    title={$t("content.newArrivals")}
-                    contents={$newContents}
-                    isLoading={$isNewLoading}
-                    hasMore={hasMoreNew}
-                    on:select={(e) => handleCardClick(e.detail)}
-                    on:loadMore={() => handleLoadMore("new")}
-                />
+                {#if $isPopularLoading || $popularContents.length > 0}
+                    <ContentCarousel
+                        title={$t("content.popularPicks")}
+                        contents={$popularContents}
+                        isLoading={$isPopularLoading}
+                        hasMore={hasMorePopular}
+                        on:select={(e) => handleCardClick(e.detail)}
+                        on:loadMore={() => handleLoadMore("popular")}
+                    />
+                {/if}
 
-                <!-- Section 2: Popular -->
-                <ContentCarousel
-                    title={$t("content.todaysPopular")}
-                    contents={$popularContents}
-                    isLoading={$isPopularLoading}
-                    hasMore={hasMorePopular}
-                    on:select={(e) => handleCardClick(e.detail)}
-                    on:loadMore={() => handleLoadMore("popular")}
-                />
+                {#if $isNewLoading || $newContents.length > 0}
+                    <ContentCarousel
+                        title={$t("content.newVoices")}
+                        contents={$newContents}
+                        isLoading={$isNewLoading}
+                        hasMore={hasMoreNew}
+                        on:select={(e) => handleCardClick(e.detail)}
+                        on:loadMore={() => handleLoadMore("new")}
+                    />
+                {/if}
 
-                <!-- Section 3: Fantasy -->
-                <ContentCarousel
-                    title={$t("content.fantasy")}
-                    contents={$fantasyContents}
-                    isLoading={$isFantasyLoading}
-                    hasMore={false}
-                    on:select={(e) => handleCardClick(e.detail)}
-                    on:loadMore={() => {}}
-                />
+                {#if $isRomanceLoading || $romanceContents.length > 0}
+                    <ContentCarousel
+                        title={$t("content.romanceSpotlight")}
+                        contents={$romanceContents}
+                        isLoading={$isRomanceLoading}
+                        hasMore={false}
+                        on:select={(e) => handleCardClick(e.detail)}
+                        on:loadMore={() => {}}
+                    />
+                {/if}
 
-                <!-- Section 4: Live2D -->
-                <ContentCarousel
-                    title={$t("content.live2dTitle")}
-                    contents={$live2dContents}
-                    isLoading={$isLive2dLoading}
-                    hasMore={hasMoreLive2d}
-                    emptyMessage="No Live2D models found."
-                    on:select={(e) => handleCardClick(e.detail)}
-                    on:loadMore={() => handleLoadMore("live2d")}
-                />
+                {#if $isScifiLoading || $scifiContents.length > 0}
+                    <ContentCarousel
+                        title={$t("content.scifiSignal")}
+                        contents={$scifiContents}
+                        isLoading={$isScifiLoading}
+                        hasMore={false}
+                        on:select={(e) => handleCardClick(e.detail)}
+                        on:loadMore={() => {}}
+                    />
+                {/if}
 
-                <!-- Section 5: VRM -->
-                <ContentCarousel
-                    title={$t("content.vrmTitle")}
-                    contents={$vrmContents}
-                    isLoading={$isVrmLoading}
-                    hasMore={hasMoreVrm}
-                    emptyMessage="No VRM models found."
-                    on:select={(e) => handleCardClick(e.detail)}
-                    on:loadMore={() => handleLoadMore("vrm")}
-                />
+                {#if $isFantasyLoading || $fantasyContents.length > 0}
+                    <ContentCarousel
+                        title={$t("content.fantasyGate")}
+                        contents={$fantasyContents}
+                        isLoading={$isFantasyLoading}
+                        hasMore={false}
+                        on:select={(e) => handleCardClick(e.detail)}
+                        on:loadMore={() => {}}
+                    />
+                {/if}
+
+                {#if $isSliceOfLifeLoading || $sliceOfLifeContents.length > 0}
+                    <ContentCarousel
+                        title={$t("content.sliceOfLifeBreak")}
+                        contents={$sliceOfLifeContents}
+                        isLoading={$isSliceOfLifeLoading}
+                        hasMore={false}
+                        on:select={(e) => handleCardClick(e.detail)}
+                        on:loadMore={() => {}}
+                    />
+                {/if}
+
+                {#if $isHorrorLoading || $horrorContents.length > 0}
+                    <ContentCarousel
+                        title={$t("content.horrorAfterDark")}
+                        contents={$horrorContents}
+                        isLoading={$isHorrorLoading}
+                        hasMore={false}
+                        on:select={(e) => handleCardClick(e.detail)}
+                        on:loadMore={() => {}}
+                    />
+                {/if}
+
+                {#if $isLive2dLoading || $live2dContents.length > 0}
+                    <ContentCarousel
+                        title={$t("content.live2dSpotlight")}
+                        contents={$live2dContents}
+                        isLoading={$isLive2dLoading}
+                        hasMore={hasMoreLive2d}
+                        emptyMessage="No Live2D models found."
+                        on:select={(e) => handleCardClick(e.detail)}
+                        on:loadMore={() => handleLoadMore("live2d")}
+                    />
+                {/if}
+
+                {#if $isVrmLoading || $vrmContents.length > 0}
+                    <ContentCarousel
+                        title={$t("content.vrmSpotlight")}
+                        contents={$vrmContents}
+                        isLoading={$isVrmLoading}
+                        hasMore={hasMoreVrm}
+                        emptyMessage="No VRM models found."
+                        on:select={(e) => handleCardClick(e.detail)}
+                        on:loadMore={() => handleLoadMore("vrm")}
+                    />
+                {/if}
             {:else}
                 <!-- LIST VIEW (Character / Story / Filtered) -->
                 <section class="hub-section full-height">

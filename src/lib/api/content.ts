@@ -53,6 +53,21 @@ export async function loadContentPaged(limit: number, offset: number, sort: stri
     return [];
 }
 
+export async function loadFeedRecommended(limit: number, offset: number, excludeIds: string[] = []) {
+    const excludeQuery = excludeIds.length > 0
+        ? `&exclude_ids=${encodeURIComponent(excludeIds.join(","))}`
+        : "";
+    const res = await api.get2(`/api/contents?locale=${get(settings).language}&limit=${limit}&offset=${offset}&sort=popular${excludeQuery}`);
+    if (res.ok) {
+        const data = await res.json();
+        if (data === null) {
+            return [];
+        }
+        return data;
+    }
+    return [];
+}
+
 export async function loadlikesdata() {
     if (!(await api.isLoggedIn())) {
         return [];
@@ -132,6 +147,18 @@ export async function loadContentWithName(name: string) {
 
 export async function loadFollowedContent() {
     const res = await api.get(`/api/contents/followed?locale=${get(settings).language}`);
+    if (res.ok) {
+        const data = await res.json();
+        if (data === null) {
+            return [];
+        }
+        return data;
+    }
+    return [];
+}
+
+export async function loadFollowedContentPaged(limit: number, offset: number) {
+    const res = await api.get(`/api/contents/followed?locale=${get(settings).language}&limit=${limit}&offset=${offset}`);
     if (res.ok) {
         const data = await res.json();
         if (data === null) {

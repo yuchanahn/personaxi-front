@@ -1,7 +1,11 @@
 <script lang="ts">
     import { onMount, tick } from "svelte";
     import type { Persona } from "$lib/types";
-    import { loadContentPaged, loadlikesdata } from "$lib/api/content"; // Updated API
+    import {
+        loadFeedRecommended,
+        loadFollowedContentPaged,
+        loadlikesdata,
+    } from "$lib/api/content";
     import FeedItem from "$lib/components/feed/FeedItem.svelte";
     import { t } from "svelte-i18n";
     import LoadingAnimation from "$lib/components/utils/LoadingAnimation.svelte";
@@ -14,21 +18,52 @@
 
     let feedContainer: HTMLElement;
     let activeIndex = 0;
-    let currentSort: "popular" | "realtime" | "latest" = "realtime";
+    let currentTab: "recommended" | "following" = "recommended";
     let likedPersonaIds = new Set<string>();
+    let loadError = false;
+    let seenTrackTimer: ReturnType<typeof setTimeout> | null = null;
+
+    const SEEN_STORAGE_KEY = "feed:recommended:seen";
+    const SEEN_LIMIT = 50;
+    const SEEN_TRACK_DELAY_MS = 1500;
+
+    function getSeenIds(): string[] {
+        if (typeof localStorage === "undefined") return [];
+        try {
+            const raw = localStorage.getItem(SEEN_STORAGE_KEY);
+            if (!raw) return [];
+            const parsed = JSON.parse(raw);
+            return Array.isArray(parsed)
+                ? parsed.filter((id): id is string => typeof id === "string")
+                : [];
+        } catch {
+            return [];
+        }
+    }
+
+    function saveSeenIds(ids: string[]) {
+        if (typeof localStorage === "undefined") return;
+        localStorage.setItem(SEEN_STORAGE_KEY, JSON.stringify(ids.slice(0, SEEN_LIMIT)));
+    }
+
+    function markPersonaSeen(id: string) {
+        const current = getSeenIds().filter((item) => item !== id);
+        current.unshift(id);
+        saveSeenIds(current);
+    }
 
     // Intersection Observer to detect active item
-    let observer: IntersectionObserver;
+    let observer: IntersectionObserver | null = null;
+    let observedIds = new Set<string>();
 
     async function loadMore() {
         if (loading || !hasMore) return;
         loading = true;
+        loadError = false;
         try {
-            const newPersonas: Persona[] = await loadContentPaged(
-                limit,
-                offset,
-                currentSort,
-            );
+            const newPersonas: Persona[] = currentTab === "recommended"
+                ? await loadFeedRecommended(limit, offset, getSeenIds())
+                : await loadFollowedContentPaged(limit, offset);
 
             if (newPersonas.length < limit) {
                 hasMore = false;
@@ -47,6 +82,7 @@
             offset += limit;
         } catch (e) {
             console.error("Failed to load feed", e);
+            loadError = true;
         } finally {
             loading = false;
         }
@@ -61,16 +97,49 @@
             likedPersonaIds = new Set();
         }
         setupObserver();
+        return () => {
+            if (seenTrackTimer) clearTimeout(seenTrackTimer);
+            observer?.disconnect();
+            observer = null;
+            observedIds.clear();
+        };
     });
 
-    async function changeSort(nextSort: "popular" | "realtime" | "latest") {
-        if (nextSort === currentSort || loading) return;
-        currentSort = nextSort;
+    async function changeTab(nextTab: "recommended" | "following") {
+        if (nextTab === currentTab || loading) return;
+        currentTab = nextTab;
         personas = [];
         offset = 0;
         hasMore = true;
         activeIndex = 0;
+        loadError = false;
+        if (seenTrackTimer) {
+            clearTimeout(seenTrackTimer);
+            seenTrackTimer = null;
+        }
+        observer?.disconnect();
+        observer = null;
+        observedIds.clear();
         await loadMore();
+        setupObserver();
+    }
+
+    $: {
+        if (seenTrackTimer) {
+            clearTimeout(seenTrackTimer);
+            seenTrackTimer = null;
+        }
+
+        if (currentTab === "recommended") {
+            const activePersona = personas[activeIndex];
+            if (!activePersona?.id) {
+                // no-op
+            } else {
+                seenTrackTimer = setTimeout(() => {
+                    markPersonaSeen(activePersona.id);
+                }, SEEN_TRACK_DELAY_MS);
+            }
+        }
     }
 
     function handleToggleLike(event: CustomEvent<{ id: string; liked: boolean }>) {
@@ -85,6 +154,10 @@
     }
 
     function setupObserver() {
+        if (!feedContainer) return;
+        observer?.disconnect();
+        observedIds.clear();
+
         const options = {
             root: feedContainer, // The scroll container
             threshold: 0.6, // Trigger when 60% visible
@@ -107,10 +180,15 @@
         }, options);
     }
 
-    $: if (personas.length > 0 && feedContainer) {
+    $: if (personas.length > 0 && feedContainer && observer) {
         tick().then(() => {
             const items = feedContainer.querySelectorAll(".feed-item-wrapper");
-            items.forEach((item) => observer.observe(item));
+            items.forEach((item) => {
+                const personaId = item.getAttribute("data-persona-id");
+                if (!personaId || observedIds.has(personaId)) return;
+                observer?.observe(item);
+                observedIds.add(personaId);
+            });
         });
     }
 </script>
@@ -118,27 +196,21 @@
 <div class="feed-page" bind:this={feedContainer}>
     <div class="sort-controls">
         <button
-            class:active={currentSort === "realtime"}
-            on:click={() => changeSort("realtime")}
+            class:active={currentTab === "recommended"}
+            on:click={() => changeTab("recommended")}
         >
-            {$t("sort.realtime")}
+            {$t("feed.recommendedTab")}
         </button>
         <button
-            class:active={currentSort === "popular"}
-            on:click={() => changeSort("popular")}
+            class:active={currentTab === "following"}
+            on:click={() => changeTab("following")}
         >
-            {$t("sort.popular")}
-        </button>
-        <button
-            class:active={currentSort === "latest"}
-            on:click={() => changeSort("latest")}
-        >
-            {$t("sort.latest")}
+            {$t("feed.followingTab")}
         </button>
     </div>
 
     {#each personas as persona, i (persona.id)}
-        <div class="feed-item-wrapper" data-index={i}>
+        <div class="feed-item-wrapper" data-index={i} data-persona-id={persona.id}>
             <div class="feed-item-shell">
                 <FeedItem
                     {persona}
@@ -158,7 +230,13 @@
 
     {#if !loading && personas.length === 0}
         <div class="empty-state">
-            <p>No personas found.</p>
+            {#if loadError}
+                <p>{$t("feed.loadFailed")}</p>
+            {:else if currentTab === "following"}
+                <p>{$t("feed.emptyFollowing")}</p>
+            {:else}
+                <p>{$t("feed.emptyRecommended")}</p>
+            {/if}
         </div>
     {/if}
 </div>

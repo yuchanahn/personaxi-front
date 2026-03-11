@@ -330,6 +330,15 @@
   "content": {
     "newArrivals": "새로운 만남",
     "todaysPopular": "화제의 중심",
+    "popularPicks": "지금 많이 찾는 캐릭터",
+    "newVoices": "새로 올라온 캐릭터",
+    "romanceSpotlight": "설레는 로맨스",
+    "scifiSignal": "미래적인 세계관",
+    "fantasyGate": "판타지 세계로",
+    "sliceOfLifeBreak": "잔잔한 일상",
+    "horrorAfterDark": "등골 서늘한 이야기",
+    "live2dSpotlight": "표정이 살아 있는 캐릭터",
+    "vrmSpotlight": "3D로 만나는 캐릭터",
     "live2dTitle": "살아 숨 쉬는 그림",
     "vrmTitle": "입체적인 존재감",
     "allPersonas": "전체 컬렉션",
@@ -407,6 +416,11 @@
     }
   },
   "feed": {
+    "recommendedTab": "추천",
+    "followingTab": "팔로우",
+    "emptyRecommended": "표시할 추천 콘텐츠가 없습니다.",
+    "emptyFollowing": "팔로우한 크리에이터의 콘텐츠가 없습니다.",
+    "loadFailed": "피드를 불러오지 못했습니다.",
     "interact": "대화",
     "alreadyFeedback": "You have already {action} this persona.",
     "feedbackFailed": "Failed to {action} persona: {message}",
