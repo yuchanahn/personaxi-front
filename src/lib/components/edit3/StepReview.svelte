@@ -5,6 +5,7 @@
     import { toast } from "$lib/stores/toast";
     import AssetPreview from "$lib/components/AssetPreview.svelte";
     import type { Persona } from "$lib/types";
+    import { getOptimizedSupabaseImageUrl } from "$lib/utils/mediaTransform";
 
     export let persona: Persona;
     export let validationErrors: string[];
@@ -39,6 +40,19 @@
         normalizedPersonaType === "vrm3d" ||
         !!persona.live2d_model_url?.trim() ||
         !!persona.vrm_url?.trim();
+
+    function getReviewPortraitAsset() {
+        return {
+            url: persona.portrait_url,
+            static_url: persona.static_portrait_url
+                ? getOptimizedSupabaseImageUrl(persona.static_portrait_url, {
+                      width: 480,
+                      quality: 72,
+                  })
+                : undefined,
+            description: "",
+        };
+    }
 </script>
 
 <div class="step-review">
@@ -79,10 +93,7 @@
             <div class="preview-portrait">
                 {#if persona.portrait_url}
                     <AssetPreview
-                        asset={{
-                            url: persona.portrait_url,
-                            description: "",
-                        }}
+                        asset={getReviewPortraitAsset()}
                     />
                 {:else}
                     <div class="portrait-placeholder">

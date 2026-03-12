@@ -22,6 +22,7 @@
     let likedPersonaIds = new Set<string>();
     let loadError = false;
     let seenTrackTimer: ReturnType<typeof setTimeout> | null = null;
+    let recyclingFeed = false;
 
     const SEEN_STORAGE_KEY = "feed:recommended:seen";
     const SEEN_LIMIT = 50;
@@ -52,12 +53,40 @@
         saveSeenIds(current);
     }
 
+    async function recycleRecommendedFeed() {
+        if (recyclingFeed || currentTab !== "recommended") return;
+        recyclingFeed = true;
+        try {
+            saveSeenIds([]);
+            personas = [];
+            offset = 0;
+            hasMore = true;
+            activeIndex = 0;
+            loadError = false;
+            observedIds.clear();
+            observer?.disconnect();
+            observer = null;
+            await loadMore();
+            await tick();
+            setupObserver();
+            feedContainer?.scrollTo({ top: 0, behavior: "auto" });
+        } finally {
+            recyclingFeed = false;
+        }
+    }
+
     // Intersection Observer to detect active item
     let observer: IntersectionObserver | null = null;
     let observedIds = new Set<string>();
 
     async function loadMore() {
-        if (loading || !hasMore) return;
+        if (loading || recyclingFeed) return;
+        if (!hasMore) {
+            if (currentTab === "recommended" && personas.length > 0) {
+                await recycleRecommendedFeed();
+            }
+            return;
+        }
         loading = true;
         loadError = false;
         try {
@@ -73,8 +102,16 @@
             const uniqueNew = newPersonas.filter(
                 (np) => !personas.some((p) => p.id === np.id),
             );
+            if (
+                currentTab === "recommended" &&
+                personas.length > 0 &&
+                (newPersonas.length === 0 || uniqueNew.length === 0)
+            ) {
+                hasMore = false;
+                return;
+            }
+
             if (uniqueNew.length === 0 && newPersonas.length > 0) {
-                // Might be loop or just end
                 if (newPersonas.length < limit) hasMore = false;
             }
 
@@ -88,15 +125,17 @@
         }
     }
 
-    onMount(async () => {
-        await loadMore();
-        try {
-            const likedIds: string[] = await loadlikesdata();
-            likedPersonaIds = new Set(likedIds || []);
-        } catch {
-            likedPersonaIds = new Set();
-        }
-        setupObserver();
+    onMount(() => {
+        void (async () => {
+            await loadMore();
+            try {
+                const likedIds: string[] = await loadlikesdata();
+                likedPersonaIds = new Set(likedIds || []);
+            } catch {
+                likedPersonaIds = new Set();
+            }
+            setupObserver();
+        })();
         return () => {
             if (seenTrackTimer) clearTimeout(seenTrackTimer);
             observer?.disconnect();

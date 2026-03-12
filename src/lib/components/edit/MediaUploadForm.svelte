@@ -13,6 +13,7 @@
     } from "$lib/api/edit_persona";
     import VoiceClonePanel from "$lib/components/edit/VoiceClonePanel.svelte";
     import type { ImageMetadata, Persona } from "$lib/types";
+    import { getOptimizedSupabaseImageUrl } from "$lib/utils/mediaTransform";
 
     export let persona: Persona;
     export let originalPersona: Persona | null;
@@ -43,6 +44,8 @@
     let copiedState = new Map<number, boolean>();
     let modelRightsConfirmed = false;
     let modelLicenseConfirmed = false;
+    let isAutoGeneratingStaticPortrait = false;
+    let lastAutoStaticSource = "";
 
     $: normalizedPersonaType = (persona.personaType || "").trim().toLowerCase();
     $: isModelPersona =
@@ -60,6 +63,82 @@
 
     $: if (persona.model_background_url && !modelBackgroundPreview) {
         modelBackgroundPreview = persona.model_background_url;
+    }
+
+    function getEditAssetPreview(asset: ImageMetadata): ImageMetadata {
+        if (!asset.url?.startsWith("blob:") && asset.type === "image") {
+            return {
+                ...asset,
+                url: getOptimizedSupabaseImageUrl(asset.url, {
+                    width: 240,
+                    height: 240,
+                    quality: 64,
+                    resize: "cover",
+                }),
+            };
+        }
+
+        if (
+            asset.type === "video" &&
+            asset.static_url &&
+            !asset.static_url.startsWith("blob:")
+        ) {
+            return {
+                ...asset,
+                static_url: getOptimizedSupabaseImageUrl(asset.static_url, {
+                    width: 240,
+                    height: 240,
+                    quality: 64,
+                    resize: "cover",
+                }),
+            };
+        }
+
+        return asset;
+    }
+
+    async function ensureStaticPortraitForRemoteVideo() {
+        const sourceUrl = persona.portrait_url?.trim();
+        if (
+            !sourceUrl ||
+            persona.static_portrait_url?.trim() ||
+            sourceUrl.startsWith("blob:") ||
+            isAutoGeneratingStaticPortrait ||
+            lastAutoStaticSource === sourceUrl
+        ) {
+            return;
+        }
+
+        try {
+            isAutoGeneratingStaticPortrait = true;
+            lastAutoStaticSource = sourceUrl;
+
+            const response = await fetch(sourceUrl);
+            if (!response.ok) return;
+
+            const blob = await response.blob();
+            if (!blob.type.startsWith("video/")) return;
+
+            const extension =
+                blob.type.split("/")[1]?.split(";")[0]?.trim() || "mp4";
+            const remoteVideoFile = new File([blob], `portrait.${extension}`, {
+                type: blob.type,
+                lastModified: Date.now(),
+            });
+
+            const frame = await extractFirstFrame(remoteVideoFile);
+            if (!frame) return;
+
+            await uploadStaticPortrait(frame);
+        } catch (e) {
+            console.error("Failed to auto-generate static portrait", e);
+        } finally {
+            isAutoGeneratingStaticPortrait = false;
+        }
+    }
+
+    $: if (persona.portrait_url && !persona.static_portrait_url) {
+        ensureStaticPortraitForRemoteVideo();
     }
 
     async function handleFileChange(event: Event) {
@@ -721,7 +800,9 @@
                         <div class="asset-card">
                             <div class="asset-image-uploader">
                                 {#if asset.url !== ""}
-                                    <AssetPreview {asset} />
+                                    <AssetPreview
+                                        asset={getEditAssetPreview(asset)}
+                                    />
                                 {/if}
                                 {#if assets_progress.has(index)}
                                     <div class="progress-bar-overlay">

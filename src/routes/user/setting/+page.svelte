@@ -20,6 +20,7 @@
     } from "$lib/api/edit_persona";
     import { st_user } from "$lib/stores/user";
     import { chatSessions } from "$lib/stores/chatSessions";
+    import { getOptimizedSupabaseImageUrl } from "$lib/utils/mediaTransform";
 
     const supabaseURL = "/storage/v1/object/public/personaxi-assets/";
 
@@ -59,6 +60,15 @@
     let isEditingProfile = false;
     let originalUser: User | null = null;
     let isPWA = false;
+
+    function getMyPersonaStaticThumb(url?: string) {
+        return url
+            ? getOptimizedSupabaseImageUrl(url, {
+                  width: 480,
+                  quality: 72,
+              })
+            : undefined;
+    }
 
     function fillUserPersonaEditor(persona: UserPersona | null) {
         editingUserPersonaId = persona?.id || "";
@@ -1020,6 +1030,9 @@
                                 <AssetPreview
                                     asset={{
                                         url: persona.portrait_url,
+                                        static_url: getMyPersonaStaticThumb(
+                                            persona.static_portrait_url,
+                                        ),
                                         description: "",
                                     }}
                                 />

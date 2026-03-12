@@ -7,6 +7,7 @@
     import { t } from "svelte-i18n";
     import AssetPreview from "$lib/components/AssetPreview.svelte";
     import { settings } from "$lib/stores/settings";
+    import { getOptimizedSupabaseImageUrl } from "$lib/utils/mediaTransform";
 
     export let content: PersonaDTO;
 
@@ -32,8 +33,13 @@
             description: "",
         };
         if (content.static_portrait_url) {
-            //console.log("static portrait url: ", content.name);
-            meta.static_url = content.static_portrait_url;
+            meta.static_url = getOptimizedSupabaseImageUrl(
+                content.static_portrait_url,
+                {
+                    width: 480,
+                    quality: 72,
+                },
+            );
         }
     }
 </script>
@@ -43,7 +49,11 @@
 <div class="tile" on:click={() => dispatch("click")}>
     <div class="image-container">
         <div class="media-wrapper">
-            <AssetPreview asset={meta} />
+            <AssetPreview
+                asset={meta}
+                showVideoPosterFallback={true}
+                enableVideoPlayback={false}
+            />
         </div>
 
         {#if content.creator_name}

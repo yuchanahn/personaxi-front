@@ -14,6 +14,25 @@
     let currentMetadata: ImageMetadata = { ...metadata };
     let isLoading = false;
     let isError = false;
+    let placeholderAspectRatio = "4 / 5";
+
+    function setDefaultAspectRatio(target: ImageMetadata) {
+        placeholderAspectRatio = target.type === "video" ? "16 / 9" : "4 / 5";
+    }
+
+    function updatePlaceholderAspectRatio(target: ImageMetadata) {
+        setDefaultAspectRatio(target);
+
+        if (!target.static_url || typeof Image === "undefined") return;
+
+        const img = new Image();
+        img.onload = () => {
+            if (img.naturalWidth > 0 && img.naturalHeight > 0) {
+                placeholderAspectRatio = `${img.naturalWidth} / ${img.naturalHeight}`;
+            }
+        };
+        img.src = target.static_url;
+    }
 
     async function unlockAsset() {
         if (!persona?.id) return;
@@ -44,6 +63,7 @@
     }
 
     onMount(() => {
+        updatePlaceholderAspectRatio(currentMetadata);
         if (!currentMetadata.url && persona) {
             unlockAsset();
         }
@@ -54,27 +74,37 @@
     $: if (metadata && metadata.url && metadata.url !== currentMetadata.url) {
         currentMetadata = { ...metadata };
     }
+
+    $: if (metadata?.static_url !== currentMetadata.static_url || metadata?.type !== currentMetadata.type) {
+        updatePlaceholderAspectRatio(currentMetadata);
+    }
 </script>
 
-<div class="chat-image-wrapper">
+<div class="chat-image-wrapper" style={`--chat-asset-ratio: ${placeholderAspectRatio};`}>
     {#if currentMetadata.url}
         <AssetPreview
             asset={currentMetadata}
             on:load={(e) => dispatch("load", e.detail)}
         />
     {:else if isLoading}
-        <div class="loading-placeholder">
-            <div class="spinner"></div>
-            <span>{$t("chat.secretImage.loading")}</span>
+        <div class="placeholder-shell">
+            <div class="loading-placeholder">
+                <div class="spinner"></div>
+                <span>{$t("chat.secretImage.loading")}</span>
+            </div>
         </div>
     {:else if isError}
-        <div class="error-placeholder" title={$t("chat.secretImage.error")}>
-            {$t("chat.secretImage.error")}
+        <div class="placeholder-shell">
+            <div class="error-placeholder" title={$t("chat.secretImage.error")}>
+                {$t("chat.secretImage.error")}
+            </div>
         </div>
     {:else}
         <!-- Fallback / Initial State -->
-        <div class="locked-placeholder">
-            {$t("chat.secretImage.locked")}
+        <div class="placeholder-shell">
+            <div class="locked-placeholder">
+                {$t("chat.secretImage.locked")}
+            </div>
         </div>
     {/if}
 </div>
@@ -85,13 +115,21 @@
         display: flex;
         justify-content: center;
     }
+
+    .placeholder-shell {
+        width: min(100%, 480px);
+        aspect-ratio: var(--chat-asset-ratio, 4 / 5);
+        border-radius: 14px;
+        overflow: hidden;
+    }
+
     .loading-placeholder,
     .error-placeholder,
     .locked-placeholder {
-        width: 200px;
-        height: 200px;
+        width: 100%;
+        height: 100%;
         background: var(--muted);
-        border-radius: 12px;
+        border-radius: 14px;
         display: flex;
         flex-direction: column;
         align-items: center;
@@ -122,6 +160,10 @@
     }
 
     /* Override AssetPreview styles for Chat */
+    .chat-image-wrapper :global(.brand-loading-card) {
+        border-radius: 14px;
+    }
+
     .chat-image-wrapper :global(.asset-preview-media) {
         width: auto !important;
         height: auto !important;

@@ -8,6 +8,7 @@
     import moment from "moment";
     import "moment/dist/locale/ko";
     import { loadPersona } from "$lib/api/edit_persona";
+    import { getOptimizedSupabaseImageUrl } from "$lib/utils/mediaTransform";
 
     export let session: ChatSession = {
         id: "",
@@ -26,13 +27,23 @@
 
     // [Cache Strategy] Initialize avatar URL from local storage cache if available
     let avatarUrl = session.avatar;
+
+    function toSessionThumb(url: string) {
+        return getOptimizedSupabaseImageUrl(url, {
+            width: 96,
+            height: 96,
+            quality: 68,
+            resize: "cover",
+        });
+    }
+
     $: {
         if (typeof localStorage !== "undefined") {
             const cached = localStorage.getItem(`avatar_cache_${session.id}`);
             if (cached) {
                 avatarUrl = cached;
             } else {
-                avatarUrl = session.avatar;
+                avatarUrl = session.avatar ? toSessionThumb(session.avatar) : "";
             }
         }
     }
@@ -88,14 +99,15 @@
                                     }
 
                                     if (newUrl) {
-                                        avatarUrl = newUrl;
+                                        const optimizedUrl = toSessionThumb(newUrl);
+                                        avatarUrl = optimizedUrl;
                                         // Update Cache
                                         if (
                                             typeof localStorage !== "undefined"
                                         ) {
                                             localStorage.setItem(
                                                 `avatar_cache_${session.id}`,
-                                                newUrl,
+                                                optimizedUrl,
                                             );
                                         }
                                     }
