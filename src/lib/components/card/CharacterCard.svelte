@@ -131,11 +131,6 @@
         position: relative; /* Ensure stacking context */
     }
 
-    .tile:hover {
-        transform: translateY(-5px);
-        box-shadow: var(--shadow-popover);
-    }
-
     .image-container {
         position: relative;
         width: 100%;
@@ -149,8 +144,15 @@
         transition: transform 0.5s ease;
     }
 
-    .tile:hover .media-wrapper {
-        transform: scale(1.05); /* Subtle zoom effect */
+    @media (hover: hover) and (pointer: fine) {
+        .tile:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-popover);
+        }
+
+        .tile:hover .media-wrapper {
+            transform: scale(1.05); /* Subtle zoom effect */
+        }
     }
 
     .creator-tag {
