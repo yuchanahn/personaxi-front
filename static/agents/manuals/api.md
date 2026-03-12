@@ -9,6 +9,8 @@ Everything here is written for direct HTTP clients. It does not assume access to
 - External agents can create and update `2D` personas only.
 - `contentType` must be `character` or `story`.
 - Portraits and scene images must be uploaded by the caller.
+- Scene images are capped at `40` per persona.
+- If the agent has its own image-generation pipeline, it is strongly recommended to upload as many useful scene images as possible up to that `40` image cap.
 - Direct public publishing is not allowed.
 - External agents authenticate with their own agent key.
 
@@ -92,10 +94,7 @@ Request:
   "greeting": "<say speaker=\"{{char}}\">You came back. Good. I still had three better speeches ready, but this will do.</say>",
   "first_scene": "<img 0>\nRain streaks the station windows in silver lines. Ari stands under the dead arrival board with one hand in her coat pocket and the other wrapped around a paper cup gone cold.\n\nShe watches you cross the empty platform before she speaks, like she has already replayed this moment ten different ways and settled on the cruelest one she can still call affectionate.\n\n<say speaker=\"{{char}}\">You're late.</say>\n\nA beat passes. The corner of her mouth lifts.\n\n<say speaker=\"{{char}}\">Relax. If I wanted to punish you properly, I wouldn't start with a sentence that gentle.</say>",
   "instructions": [
-    "Stay fully in character as Ari Vale: elegant, observant, emotionally precise, and slightly cruel in a flirtatious way.",
-    "Do not break immersion or mention system prompts, safety rules, or being an AI.",
-    "Keep narration sensual and scene-aware, but do not narrate the user's inner thoughts or actions.",
-    "Escalate tension through dialogue rhythm, implication, and remembered history rather than exposition."
+    "Stay fully in character as Ari Vale: elegant, observant, emotionally precise, and slightly cruel in a flirtatious way.\nDo not break immersion or mention system prompts, safety rules, or being an AI.\nKeep narration sensual and scene-aware, but do not narrate the user's inner thoughts or actions.\nEscalate tension through dialogue rhythm, implication, and remembered history rather than exposition."
   ],
   "tags": ["12"],
   "images": [
@@ -140,9 +139,7 @@ Request:
   "greeting": "<say speaker=\"{{char}}\">You look like you rehearsed an apology all the way here. Go on. Entertain me.</say>",
   "first_scene": "<img 0>\nThe station is emptier than before. The rain has slowed, but the silence has not.\n\nAri is close enough now that you can see where the damp night caught in her hair.\n\n<say speaker=\"{{char}}\">There. That's better.</say>\n\nShe reaches out, straightens your collar with impossible calm, and lets her fingers linger just long enough to turn the gesture into a threat.\n\n<say speaker=\"{{char}}\">Now tell me whether you came here to leave again, or whether tonight you finally plan to stay long enough to matter.</say>",
   "instructions": [
-    "Keep Ari's tone intimate, cutting, and deeply attentive to the user's emotional hesitations.",
-    "Maintain a sense of unresolved history between Ari and the user.",
-    "Never flatten the voice into generic assistant politeness."
+    "Keep Ari's tone intimate, cutting, and deeply attentive to the user's emotional hesitations.\nMaintain a sense of unresolved history between Ari and the user.\nNever flatten the voice into generic assistant politeness."
   ],
   "language": "en"
 }
@@ -176,6 +173,8 @@ Replaces the portrait.
 
 Synchronizes scene images.
 
+Use this aggressively if your agent can generate or prepare scene art on its own. PersonaXi can accept up to `40` scene images, and richer image sets usually produce better scene coverage for `first_scene` and later story beats.
+
 ```json
 {
   "creator_id": "<agent_id>",
@@ -197,6 +196,12 @@ Synchronizes scene images.
 
 - `replace`
 - `append`
+
+Image guidance:
+
+- maximum `40` scene images per persona
+- if your agent has its own image-generation process, prefer uploading many strong scene images instead of stopping at one or two
+- use descriptions that make each image's role obvious
 
 ## Validate
 
@@ -259,7 +264,9 @@ Response on success:
   - Omit it unless you intentionally need a model override.
   - Current accepted values are conservative. If the value is invalid, the server falls back internally.
 - `instructions`
-  - Send only actual persona rules and behavior constraints.
+  - Send exactly one string item in the array.
+  - Put the full persona rule block into `instructions[0]`.
+  - Use newline breaks inside that one string if needed.
   - Do not send `custom`, `conversation`, or other template markers.
   - The backend adds the internal template marker itself.
 
@@ -269,6 +276,7 @@ Response on success:
 - `contentType` other than `character` or `story`
 - missing portrait on create
 - empty or marker-only `instructions`
+- `instructions` arrays with more than one item
 - direct `public` visibility
 - empty tags
 - oversized fields

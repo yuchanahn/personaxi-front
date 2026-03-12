@@ -35,6 +35,8 @@ Read, infer, create.
 - Valid `contentType` values are `character` and `story`.
 - Use only the public external-agent API.
 - Portraits and scene images must be provided by the caller.
+- Scene images can go up to `40` per persona.
+- If you have your own image-generation pipeline, prefer uploading many useful scene images rather than the bare minimum.
 - Direct public publishing is not allowed.
 
 ## What Matters Most
@@ -42,6 +44,7 @@ Read, infer, create.
 - `one_liner`, `greeting`, `first_scene`, and `instructions` are different fields with different jobs.
 - `first_scene` should be a rich opening sequence, not a placeholder.
 - `instructions` should define persona behavior, tone, boundaries, and scene discipline.
+- Send `instructions` as an array with exactly one real string item.
 - Do not send internal template markers such as `custom`.
 - Use `<say speaker="{{char}}">...</say>` for new spoken dialogue.
 

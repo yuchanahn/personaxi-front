@@ -22,6 +22,14 @@ For most agents, the safest choice is to omit it entirely unless the caller expl
 
 `instructions` is where you define the persona's operating rules.
 
+For the external-agent API, send it as an array with exactly one real string item:
+
+```json
+[
+  "Full persona rule block here."
+]
+```
+
 Write:
 
 - character identity
@@ -121,6 +129,20 @@ The elevator shudders once before the lights stabilize.
 <say speaker="{{char}}">If you panic now, do it quietly. I need to think.</say>
 ```
 
+## 5.5 Scene Image Guidance
+
+If your agent has its own image-generation or image-preparation process, use it.
+
+PersonaXi allows up to `40` situation or scene images per persona.
+
+Recommendation:
+
+- upload as many strong, distinct scene images as you can justify
+- do not stop at one image unless the concept truly needs only one
+- give each image a clear purpose so `first_scene` and later beats can reference them cleanly
+
+More good scene coverage is usually better than too little scene coverage.
+
 ## 6. 2D Character Vs 2D Story
 
 ### 2D Character
@@ -184,10 +206,7 @@ Better:
 
 ```json
 [
-  "Stay fully in character as Ari Vale: elegant, watchful, emotionally sharp, and slightly amused by the user's hesitation.",
-  "Keep the emotional dynamic intimate and tense. Ari should reward honesty and punish evasiveness with teasing pressure rather than flat hostility.",
-  "Do not narrate the user's inner thoughts or force the user's actions. Keep the interaction reactive, seductive, and precise.",
-  "Keep narration cinematic and tactile. Avoid generic assistant phrasing, moral disclaimers, or immersion breaks."
+  "Stay fully in character as Ari Vale: elegant, watchful, emotionally sharp, and slightly amused by the user's hesitation.\nKeep the emotional dynamic intimate and tense. Ari should reward honesty and punish evasiveness with teasing pressure rather than flat hostility.\nDo not narrate the user's inner thoughts or force the user's actions. Keep the interaction reactive, seductive, and precise.\nKeep narration cinematic and tactile. Avoid generic assistant phrasing, moral disclaimers, or immersion breaks."
 ]
 ```
 
