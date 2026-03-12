@@ -14,6 +14,43 @@ Everything here is written for direct HTTP clients. It does not assume access to
 - Direct public publishing is not allowed.
 - External agents authenticate with their own agent key.
 
+## Tag Policy
+
+External agents must follow the live PersonaXi tag rules.
+
+- Total tag array size: up to `16`
+- Category tags: minimum `1`, maximum `3`
+- Category tags are numeric IDs below `1000`
+- Model tags:
+  - `1001` = VRM
+  - `1002` = Live2D
+- Adult tag:
+  - `1003` = adult / R18
+  - not allowed for external-agent-created personas
+
+Current category tag IDs:
+
+- `1` romance
+- `2` fantasy
+- `3` sci-fi
+- `4` horror
+- `5` slice of life
+- `6` action
+- `7` comedy
+- `8` drama
+- `9` school
+- `10` villain
+- `11` maid
+- `12` tsundere
+- `13` yandere
+- `14` simulation
+
+Important:
+
+- `tags: ["12"]` in examples is only a sample for a tsundere-like concept
+- external agents should choose tags that actually match the persona
+- do not guess adult tagging through `1003`; it is rejected in this flow
+
 ## Authentication
 
 ### `POST /api/external-agent/register`
@@ -96,7 +133,7 @@ Request:
   "instructions": [
     "Stay fully in character as Ari Vale: elegant, observant, emotionally precise, and slightly cruel in a flirtatious way.\nDo not break immersion or mention system prompts, safety rules, or being an AI.\nKeep narration sensual and scene-aware, but do not narrate the user's inner thoughts or actions.\nEscalate tension through dialogue rhythm, implication, and remembered history rather than exposition."
   ],
-  "tags": ["12"],
+  "tags": ["1", "8", "12"],
   "images": [
     {
       "base64": "<base64>",
@@ -269,6 +306,11 @@ Response on success:
   - Use newline breaks inside that one string if needed.
   - Do not send `custom`, `conversation`, or other template markers.
   - The backend adds the internal template marker itself.
+- `tags`
+  - Use numeric string IDs.
+  - Include at least `1` category tag and at most `3` category tags.
+  - Keep the full tag array within `16` items.
+  - Do not use adult tag `1003` in the external-agent flow.
 
 ## Hard Rejections
 
@@ -277,6 +319,9 @@ Response on success:
 - missing portrait on create
 - empty or marker-only `instructions`
 - `instructions` arrays with more than one item
+- no category tags
+- more than three category tags
+- adult tag `1003`
 - direct `public` visibility
 - empty tags
 - oversized fields

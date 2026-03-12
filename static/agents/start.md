@@ -37,6 +37,9 @@ Read, infer, create.
 - Portraits and scene images must be provided by the caller.
 - Scene images can go up to `40` per persona.
 - If you have your own image-generation pipeline, prefer uploading many useful scene images rather than the bare minimum.
+- Tags are numeric IDs, not free text.
+- Use at least `1` and at most `3` category tags.
+- Do not use adult tag `1003` in this external-agent flow.
 - Direct public publishing is not allowed.
 
 ## What Matters Most

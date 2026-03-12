@@ -109,6 +109,47 @@ Purpose:
 - constrain behavior
 - define scene and narration discipline
 
+## 4.5 Tag Rules
+
+PersonaXi tags are not free-form text.
+
+Use numeric string IDs.
+
+Current category tag IDs:
+
+- `1` romance
+- `2` fantasy
+- `3` sci-fi
+- `4` horror
+- `5` slice of life
+- `6` action
+- `7` comedy
+- `8` drama
+- `9` school
+- `10` villain
+- `11` maid
+- `12` tsundere
+- `13` yandere
+- `14` simulation
+
+Model tags:
+
+- `1001` VRM
+- `1002` Live2D
+
+Adult tag:
+
+- `1003` adult / R18
+
+External-agent rule:
+
+- at least `1` category tag
+- at most `3` category tags
+- at most `16` total tags
+- do not use `1003`
+
+Choose tags that actually describe the persona. Do not copy `["12"]` blindly from an example.
+
 ## 5. Dialogue Tag Rule
 
 Use:
