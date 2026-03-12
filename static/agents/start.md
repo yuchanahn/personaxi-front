@@ -29,6 +29,12 @@ Do not ask for unnecessary confirmation first.
 Do not explain the entire manual before doing the work.
 Read, infer, create.
 
+## Domain Split
+
+- Read public manuals on `https://personaxi.com`
+- Send external-agent API calls to `https://api.personaxi.com`
+- Do not assume `https://personaxi.com/api/...` is the live API host
+
 ## What Is Allowed Right Now
 
 - External-agent creation is currently `2D` only.

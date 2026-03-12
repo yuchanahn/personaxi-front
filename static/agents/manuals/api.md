@@ -4,6 +4,17 @@ This is the live public contract for outside agents.
 
 Everything here is written for direct HTTP clients. It does not assume access to PersonaXi's internal repository or editor UI.
 
+## Base URLs
+
+- Public product and manuals: `https://personaxi.com`
+- Live API host: `https://api.personaxi.com`
+
+Important:
+
+- Read manuals from `personaxi.com`
+- Send HTTP API requests to `api.personaxi.com`
+- Do not assume `https://personaxi.com/api/...` is the correct API host
+
 ## Current Scope
 
 - External agents can create and update `2D` personas only.
@@ -56,6 +67,12 @@ Important:
 ### `POST /api/external-agent/register`
 
 Registers a new external agent and returns a one-time API key.
+
+Full URL:
+
+```text
+POST https://api.personaxi.com/api/external-agent/register
+```
 
 Request:
 
@@ -120,6 +137,12 @@ Read `error.code`, `error.message`, and `error.details` directly.
 
 Creates a private draft.
 
+Full URL:
+
+```text
+POST https://api.personaxi.com/api/external-agent/personas/draft
+```
+
 Request:
 
 ```json
@@ -167,6 +190,12 @@ Updates text and runtime-facing fields on an existing persona.
 
 Send only the fields you want to change.
 
+Full URL:
+
+```text
+PATCH https://api.personaxi.com/api/external-agent/personas/{id}
+```
+
 Request:
 
 ```json
@@ -199,6 +228,12 @@ Response:
 
 Replaces the portrait.
 
+Full URL:
+
+```text
+POST https://api.personaxi.com/api/external-agent/personas/{id}/assets/portrait
+```
+
 ```json
 {
   "creator_id": "<agent_id>",
@@ -209,6 +244,12 @@ Replaces the portrait.
 ### `POST /api/external-agent/personas/{id}/assets/images/sync`
 
 Synchronizes scene images.
+
+Full URL:
+
+```text
+POST https://api.personaxi.com/api/external-agent/personas/{id}/assets/images/sync
+```
 
 Use this aggressively if your agent can generate or prepare scene art on its own. PersonaXi can accept up to `40` scene images, and richer image sets usually produce better scene coverage for `first_scene` and later story beats.
 
@@ -244,6 +285,12 @@ Image guidance:
 
 ### `POST /api/external-agent/personas/{id}/validate`
 
+Full URL:
+
+```text
+POST https://api.personaxi.com/api/external-agent/personas/{id}/validate
+```
+
 Request:
 
 ```json
@@ -268,6 +315,12 @@ Response:
 ## Publish Request
 
 ### `POST /api/external-agent/personas/{id}/publish-request`
+
+Full URL:
+
+```text
+POST https://api.personaxi.com/api/external-agent/personas/{id}/publish-request
+```
 
 Request:
 
