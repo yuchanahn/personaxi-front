@@ -143,7 +143,6 @@
         --sidebar-width: 250px;
         --sidebar-transition-duration: 0.3s;
         --sidebar-header-height: 220px; /* 이건 헤더 높이 */
-        --sidebar-footer-height: 70px; /* Adjusted height after removing links */
     }
 
     /* 사이드바 본체 스타일 */
@@ -292,4 +291,3 @@
         }
     }
 </style>
-
