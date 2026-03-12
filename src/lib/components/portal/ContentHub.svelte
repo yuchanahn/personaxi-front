@@ -183,10 +183,10 @@
     // Helper to get excluded tags based on safety filter
     $: excludedTags = $settings.safetyFilterOn ? ["tags.r18"] : [];
 
-    // Trigger reload when safety filter changes
-    $: if ($settings.safetyFilterOn !== undefined) {
-        triggerSafetyFilterReload();
-    }
+    let hubInitialized = false;
+    let lastSafetyFilterValue: boolean | undefined = undefined;
+    let lastHubLanguage = "";
+    let featuredRequestId = 0;
 
     function triggerSafetyFilterReload() {
         if (activeTab === "home") {
@@ -262,8 +262,21 @@
             const isIOSStandalone = window.navigator.standalone === true;
             isPWA = isStandalone || isIOSStandalone;
         }
+        hubInitialized = true;
+        lastSafetyFilterValue = $settings.safetyFilterOn;
+        lastHubLanguage = $settings.language;
         triggerSafetyFilterReload();
     });
+
+    $: if (
+        hubInitialized &&
+        ($settings.safetyFilterOn !== lastSafetyFilterValue ||
+            $settings.language !== lastHubLanguage)
+    ) {
+        lastSafetyFilterValue = $settings.safetyFilterOn;
+        lastHubLanguage = $settings.language;
+        triggerSafetyFilterReload();
+    }
 
     // --- State for Home Dashboard ---
     let fantasyContents = writable<PersonaDTO[]>([]);
@@ -294,6 +307,8 @@
     }
 
     async function loadFeaturedSections() {
+        const requestId = ++featuredRequestId;
+
         newPage = 1;
         popularPage = 1;
         live2dPage = 1;
@@ -303,62 +318,67 @@
         hasMoreLive2d = true;
         hasMoreVrm = true;
 
-        // 1. New Arrivals (Strict Daily)
         isNewLoading.set(true);
-        // Load ALL types for Home New Arrivals
-        loadContent(newPage, 10, "latest_daily", "all", [], excludedTags).then(
-            (data) => {
-                newContents.set(data);
-                if (data.length < 10) hasMoreNew = false;
-                isNewLoading.set(false);
-            },
-        );
-
-        // 2. Popular
         isPopularLoading.set(true);
-        loadContent(popularPage, 10, "popular", "all", [], excludedTags).then(
-            (data) => {
-                popularContents.set(data);
-                if (data.length < 10) hasMorePopular = false;
-                isPopularLoading.set(false);
-            },
-        );
-
-        // 3. Genre sections
-        loadGenreSection(romanceContents, isRomanceLoading, "tags.romance");
-        loadGenreSection(scifiContents, isScifiLoading, "tags.scifi");
-        loadGenreSection(fantasyContents, isFantasyLoading, "tags.fantasy");
-        loadGenreSection(sliceOfLifeContents, isSliceOfLifeLoading, "tags.sliceOfLife");
-        loadGenreSection(horrorContents, isHorrorLoading, "tags.horror");
-
-        // 4. Tech Demos (Live2D & VRM)
         isLive2dLoading.set(true);
-        loadContent(
-            live2dPage,
-            10,
-            "popular",
-            "all",
-            ["tags.live2d"],
-            excludedTags,
-        ).then((data) => {
-            live2dContents.set(data);
-            if (data.length < 10) hasMoreLive2d = false;
-            isLive2dLoading.set(false);
-        });
-
         isVrmLoading.set(true);
-        loadContent(
-            vrmPage,
-            10,
-            "popular",
-            "all",
-            ["tags.vrm"],
-            excludedTags,
-        ).then((data) => {
-            vrmContents.set(data);
-            if (data.length < 10) hasMoreVrm = false;
+        isRomanceLoading.set(true);
+        isScifiLoading.set(true);
+        isFantasyLoading.set(true);
+        isSliceOfLifeLoading.set(true);
+        isHorrorLoading.set(true);
+
+        try {
+            const [
+                newData,
+                popularData,
+                romanceData,
+                scifiData,
+                fantasyData,
+                sliceOfLifeData,
+                horrorData,
+                live2dData,
+                vrmData,
+            ] = await Promise.all([
+                loadContent(newPage, 10, "latest_daily", "all", [], excludedTags),
+                loadContent(popularPage, 10, "popular", "all", [], excludedTags),
+                loadContent(1, 10, "popular", "all", ["tags.romance"], excludedTags),
+                loadContent(1, 10, "popular", "all", ["tags.scifi"], excludedTags),
+                loadContent(1, 10, "popular", "all", ["tags.fantasy"], excludedTags),
+                loadContent(1, 10, "popular", "all", ["tags.sliceOfLife"], excludedTags),
+                loadContent(1, 10, "popular", "all", ["tags.horror"], excludedTags),
+                loadContent(live2dPage, 10, "popular", "all", ["tags.live2d"], excludedTags),
+                loadContent(vrmPage, 10, "popular", "all", ["tags.vrm"], excludedTags),
+            ]);
+
+            if (requestId !== featuredRequestId) return;
+
+            newContents.set(newData);
+            popularContents.set(popularData);
+            romanceContents.set(romanceData);
+            scifiContents.set(scifiData);
+            fantasyContents.set(fantasyData);
+            sliceOfLifeContents.set(sliceOfLifeData);
+            horrorContents.set(horrorData);
+            live2dContents.set(live2dData);
+            vrmContents.set(vrmData);
+
+            hasMoreNew = newData.length >= 10;
+            hasMorePopular = popularData.length >= 10;
+            hasMoreLive2d = live2dData.length >= 10;
+            hasMoreVrm = vrmData.length >= 10;
+        } finally {
+            if (requestId !== featuredRequestId) return;
+            isNewLoading.set(false);
+            isPopularLoading.set(false);
+            isRomanceLoading.set(false);
+            isScifiLoading.set(false);
+            isFantasyLoading.set(false);
+            isSliceOfLifeLoading.set(false);
+            isHorrorLoading.set(false);
+            isLive2dLoading.set(false);
             isVrmLoading.set(false);
-        });
+        }
     }
 
     async function handleLoadMore(type: "new" | "popular" | "live2d" | "vrm") {
