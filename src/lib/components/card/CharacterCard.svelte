@@ -28,19 +28,21 @@
     let meta: ImageMetadata;
 
     $: if (content && content.id) {
+        const optimizedStaticUrl = content.static_portrait_url
+            ? getOptimizedSupabaseImageUrl(content.static_portrait_url, {
+                  width: 480,
+                  quality: 72,
+              })
+            : "";
+
         meta = {
-            url: content.portrait_url,
+            url: optimizedStaticUrl || content.portrait_url,
+            static_url: optimizedStaticUrl || undefined,
             description: "",
+            // Hub cards are thumbnail-only. Force image mode to avoid probing the
+            // original portrait URL and keep video profiles on their static poster.
+            type: "image",
         };
-        if (content.static_portrait_url) {
-            meta.static_url = getOptimizedSupabaseImageUrl(
-                content.static_portrait_url,
-                {
-                    width: 480,
-                    quality: 72,
-                },
-            );
-        }
     }
 </script>
 
