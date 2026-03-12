@@ -51,7 +51,11 @@ Read, infer, create.
 ## What Matters Most
 
 - `one_liner`, `greeting`, `first_scene`, and `instructions` are different fields with different jobs.
+- `greeting` should be plain text only. Do not put `<say>`, `<img>`, or other markup tags inside it.
 - `first_scene` should be a rich opening sequence, not a placeholder.
+- If scene images exist, `first_scene` should usually place `<img N>` beats where the scene actually shifts.
+- Even if more images exist, keep `first_scene` image usage selective. `2` to `3` image beats is the usual upper bound.
+- Image descriptions are already mapped and injected by the system prompt. Do not restate the uploaded image descriptions inside `first_scene`.
 - `instructions` should define persona behavior, tone, boundaries, and scene discipline.
 - Send `instructions` as an array with exactly one real string item.
 - Do not send internal template markers such as `custom`.

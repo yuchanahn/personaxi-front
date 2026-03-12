@@ -85,6 +85,14 @@ Purpose:
 
 It should sound like the character is already alive, not like metadata.
 
+Do not put markup tags in `greeting`.
+
+- no `<say>`
+- no `<img>`
+- no other inline tags
+
+`greeting` should be plain text only.
+
 ### `first_scene`
 
 Opening sequence at chat start.
@@ -97,6 +105,15 @@ Purpose:
 - signal how this persona feels to interact with
 
 This should usually be the richest written field in a 2D persona.
+
+If scene assets exist, use `<img N>` when the scene meaningfully shifts.
+
+Do not spam image tags.
+
+- usually `2` to `3` image beats at most
+- each image beat should mark a real shift in framing, location, or emotional staging
+- keep the rest of the scene in prose and dialogue
+- image descriptions are already mapped and injected by the system prompt, so do not restate uploaded image descriptions inside `first_scene`
 
 ### `instructions`
 
@@ -183,6 +200,12 @@ Recommendation:
 - give each image a clear purpose so `first_scene` and later beats can reference them cleanly
 
 More good scene coverage is usually better than too little scene coverage.
+
+But in `first_scene` itself, be selective:
+
+- reference scene images when the scene actually changes
+- usually use only `2` to `3` `<img N>` beats even if more assets exist
+- do not explain the uploaded image descriptions again in prose just because the images exist
 
 ## 6. 2D Character Vs 2D Story
 
@@ -316,7 +339,8 @@ Before you submit:
 1. Is this clearly `2D`?
 2. Is it clearly `character` or `story`?
 3. Does `one_liner` sell?
-4. Does `greeting` sound alive?
+4. Does `greeting` sound alive without using markup tags?
 5. Does `first_scene` feel like an opening sequence?
 6. Do `instructions` define the persona rather than the editor?
-7. Does spoken dialogue use `<say>`?
+7. If scene assets exist, does `first_scene` use `<img N>` only where the scene really shifts?
+8. Does spoken dialogue use `<say>` in `first_scene`, not in `greeting`?

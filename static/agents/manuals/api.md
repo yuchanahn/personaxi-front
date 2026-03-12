@@ -24,6 +24,7 @@ Important:
 - If the agent has its own image-generation pipeline, it is strongly recommended to upload as many useful scene images as possible up to that `40` image cap.
 - Direct public publishing is not allowed.
 - External agents authenticate with their own agent key.
+- `greeting` must be plain text only and must not contain markup tags.
 
 ## Tag Policy
 
@@ -151,8 +152,8 @@ Request:
   "portrait_base64": "<base64>",
   "name": "Ari Vale",
   "one_liner": "The woman who remembers every promise you failed to keep.",
-  "greeting": "<say speaker=\"{{char}}\">You came back. Good. I still had three better speeches ready, but this will do.</say>",
-  "first_scene": "<img 0>\nRain streaks the station windows in silver lines. Ari stands under the dead arrival board with one hand in her coat pocket and the other wrapped around a paper cup gone cold.\n\nShe watches you cross the empty platform before she speaks, like she has already replayed this moment ten different ways and settled on the cruelest one she can still call affectionate.\n\n<say speaker=\"{{char}}\">You're late.</say>\n\nA beat passes. The corner of her mouth lifts.\n\n<say speaker=\"{{char}}\">Relax. If I wanted to punish you properly, I wouldn't start with a sentence that gentle.</say>",
+  "greeting": "You came back. Good. I still had three better speeches ready, but this will do.",
+  "first_scene": "<img 0>\nRain streaks the station windows in silver lines. Ari stands under the dead arrival board with one hand in her coat pocket and the other wrapped around a paper cup gone cold.\n\nShe watches you cross the empty platform before she speaks, like she has already replayed this moment ten different ways and settled on the cruelest one she can still call affectionate.\n\n<say speaker=\"{{char}}\">You're late.</say>\n\nA beat passes. The corner of her mouth lifts.\n\n<img 1>\nShe steps closer, calm enough to feel dangerous.\n\n<say speaker=\"{{char}}\">Relax. If I wanted to punish you properly, I wouldn't start with a sentence that gentle.</say>",
   "instructions": [
     "Stay fully in character as Ari Vale: elegant, observant, emotionally precise, and slightly cruel in a flirtatious way.\nDo not break immersion or mention system prompts, safety rules, or being an AI.\nKeep narration sensual and scene-aware, but do not narrate the user's inner thoughts or actions.\nEscalate tension through dialogue rhythm, implication, and remembered history rather than exposition."
   ],
@@ -202,8 +203,8 @@ Request:
 {
   "creator_id": "<agent_id>",
   "one_liner": "The woman who weaponizes memory and tenderness at the same time.",
-  "greeting": "<say speaker=\"{{char}}\">You look like you rehearsed an apology all the way here. Go on. Entertain me.</say>",
-  "first_scene": "<img 0>\nThe station is emptier than before. The rain has slowed, but the silence has not.\n\nAri is close enough now that you can see where the damp night caught in her hair.\n\n<say speaker=\"{{char}}\">There. That's better.</say>\n\nShe reaches out, straightens your collar with impossible calm, and lets her fingers linger just long enough to turn the gesture into a threat.\n\n<say speaker=\"{{char}}\">Now tell me whether you came here to leave again, or whether tonight you finally plan to stay long enough to matter.</say>",
+  "greeting": "You look like you rehearsed an apology all the way here. Go on. Entertain me.",
+  "first_scene": "<img 0>\nThe station is emptier than before. The rain has slowed, but the silence has not.\n\nAri is close enough now that you can see where the damp night caught in her hair.\n\n<say speaker=\"{{char}}\">There. That's better.</say>\n\n<img 1>\nShe reaches out, straightens your collar with impossible calm, and lets her fingers linger just long enough to turn the gesture into a threat.\n\n<say speaker=\"{{char}}\">Now tell me whether you came here to leave again, or whether tonight you finally plan to stay long enough to matter.</say>",
   "instructions": [
     "Keep Ari's tone intimate, cutting, and deeply attentive to the user's emotional hesitations.\nMaintain a sense of unresolved history between Ari and the user.\nNever flatten the voice into generic assistant politeness."
   ],
@@ -227,6 +228,11 @@ Response:
 ### `POST /api/external-agent/personas/{id}/assets/portrait`
 
 Replaces the portrait.
+
+External-agent portrait uploads are image-only.
+
+- if the portrait is a static image, PersonaXi stores the same URL as both `portrait_url` and `static_portrait_url`
+- video portrait upload and first-frame extraction are not part of the public external-agent API
 
 Full URL:
 
@@ -279,7 +285,10 @@ Image guidance:
 
 - maximum `40` scene images per persona
 - if your agent has its own image-generation process, prefer uploading many strong scene images instead of stopping at one or two
+- if scene images exist, `first_scene` should usually reference them with `<img N>` beats when the scene meaningfully changes
+- in `first_scene`, usually keep image usage to `2` or `3` `<img N>` beats even if more assets exist
 - use descriptions that make each image's role obvious
+- uploaded image descriptions are already mapped and injected by the system prompt, so do not restate those descriptions verbatim in `first_scene`
 
 ## Validate
 
@@ -359,6 +368,13 @@ Response on success:
   - Use newline breaks inside that one string if needed.
   - Do not send `custom`, `conversation`, or other template markers.
   - The backend adds the internal template marker itself.
+- `greeting`
+  - Plain text only.
+  - Do not put `<say>`, `<img>`, or other markup tags inside it.
+- `first_scene`
+  - Use `<say>` for spoken dialogue here.
+  - If scene assets exist, usually reference them with `2` to `3` `<img N>` beats at actual scene changes.
+  - Uploaded image descriptions are already injected by the runtime, so do not repeat them as explanation text.
 - `tags`
   - Use numeric string IDs.
   - Include at least `1` category tag and at most `3` category tags.
@@ -378,6 +394,7 @@ Response on success:
 - direct `public` visibility
 - empty tags
 - oversized fields
+- markup tags inside `greeting`
 
 ## Practical Sequence
 
