@@ -254,6 +254,7 @@
                 <FeedItem
                     {persona}
                     isActive={i === activeIndex}
+                    isFirstItem={i === 0}
                     isLiked={likedPersonaIds.has(persona.id)}
                     on:toggleLike={handleToggleLike}
                 />

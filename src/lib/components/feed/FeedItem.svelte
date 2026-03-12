@@ -8,13 +8,19 @@
     import { t } from "svelte-i18n";
     import { get } from "svelte/store";
     import { api } from "$lib/api";
+    import { browser } from "$app/environment";
 
     export let persona: Persona;
     export let isActive: boolean = false;
     export let isLiked: boolean = false;
+    export let isFirstItem: boolean = false;
 
     const dispatch = createEventDispatcher();
     let liking = false;
+    let isMobileFeed = false;
+    let mediaReady = false;
+    let showOverlay = true;
+    let overlayRenderKey = 0;
 
     // -- Image Cycling --
     let currentImageIndex = 0;
@@ -86,6 +92,62 @@
         displayedText = persona?.one_liner || persona?.greeting || "";
         // Reset text? Maybe not, keeps it smooth if scrolling back
     }
+
+    function shouldDelayOverlay() {
+        return isMobileFeed && isFirstItem;
+    }
+
+    function resetOverlayState() {
+        mediaReady = false;
+        showOverlay = !shouldDelayOverlay();
+    }
+
+    async function revealOverlayAfterMediaReady() {
+        if (!shouldDelayOverlay() || !browser) {
+            showOverlay = true;
+            return;
+        }
+
+        showOverlay = false;
+        await new Promise((resolve) => requestAnimationFrame(resolve));
+        await new Promise((resolve) => requestAnimationFrame(resolve));
+        overlayRenderKey += 1;
+        showOverlay = true;
+    }
+
+    function handleMediaLoad() {
+        mediaReady = true;
+        void revealOverlayAfterMediaReady();
+    }
+
+    $: if (persona?.id && currentImageIndex >= 0) {
+        resetOverlayState();
+    }
+
+    $: if (!shouldDelayOverlay()) {
+        showOverlay = true;
+    } else if (mediaReady) {
+        void revealOverlayAfterMediaReady();
+    }
+
+    onMount(() => {
+        if (!browser) return;
+        const media = window.matchMedia(
+            "(max-width: 1023px), (pointer: coarse)",
+        );
+
+        const apply = () => {
+            isMobileFeed = media.matches;
+            resetOverlayState();
+        };
+
+        apply();
+        media.addEventListener?.("change", apply);
+
+        return () => {
+            media.removeEventListener?.("change", apply);
+        };
+    });
 
     onDestroy(() => {
         stopImageCycle();
@@ -160,86 +222,95 @@
         {#if images.length > 0}
             {#key currentImageIndex}
                 <div class="fade-in">
-                    <AssetPreview asset={images[currentImageIndex]} />
+                    <AssetPreview
+                        asset={images[currentImageIndex]}
+                        showVideoPosterFallback={true}
+                        enableVideoPlayback={true}
+                        on:load={handleMediaLoad}
+                    />
                 </div>
             {/key}
         {/if}
         <div class="gradient-overlay"></div>
     </div>
 
-    <div class="info-layer">
-        <div class="header">
-            <div class="creator-badge" on:click={handleCreatorClick}>
-                <Icon icon="ph:user-circle-duotone" />
-                <span>{persona.creator_name}</span>
-            </div>
-
-            <!-- Badges -->
-            <div class="badges">
-                {#if persona.personaType === "3D" || persona.tags?.includes("1001")}
-                    <div class="badge vrm">
-                        <Icon icon="ph:cube-transparent-duotone" /> VRM
+    {#key overlayRenderKey}
+        {#if showOverlay}
+            <div class="info-layer">
+                <div class="header">
+                    <div class="creator-badge" on:click={handleCreatorClick}>
+                        <Icon icon="ph:user-circle-duotone" />
+                        <span>{persona.creator_name}</span>
                     </div>
-                {/if}
-                {#if persona.personaType === "2D" && persona.live2d_model_url}
-                    <div class="badge live2d">
-                        <Icon icon="ph:star-four-duotone" /> Live2D
+
+                    <!-- Badges -->
+                    <div class="badges">
+                        {#if persona.personaType === "3D" || persona.tags?.includes("1001")}
+                            <div class="badge vrm">
+                                <Icon icon="ph:cube-transparent-duotone" /> VRM
+                            </div>
+                        {/if}
+                        {#if persona.personaType === "2D" && persona.live2d_model_url}
+                            <div class="badge live2d">
+                                <Icon icon="ph:star-four-duotone" /> Live2D
+                            </div>
+                        {/if}
                     </div>
-                {/if}
-            </div>
-        </div>
-
-        <div class="content-area">
-            <h2 class="name">{persona.name}</h2>
-
-            <div class="one-liner-container">
-                <p class="one-liner">
-                    {displayedText}
-                    {#if isActive && !isTypingFinished && persona.one_liner}
-                        <span class="cursor">|</span>
-                    {/if}
-                </p>
-                {#if !persona.one_liner}
-                    <p class="greeting-fallback">{persona.greeting}</p>
-                {/if}
-            </div>
-
-            <div class="stats-row">
-                <div class="stat">
-                    <Icon icon="mdi:heart" />
-                    {persona.likes_count}
                 </div>
-                <div class="stat">
-                    <Icon icon="mdi:chat" />
-                    {persona.chat_count}
+
+                <div class="content-area">
+                    <h2 class="name">{persona.name}</h2>
+
+                    <div class="one-liner-container">
+                        <p class="one-liner">
+                            {displayedText}
+                            {#if isActive && !isTypingFinished && persona.one_liner}
+                                <span class="cursor">|</span>
+                            {/if}
+                        </p>
+                        {#if !persona.one_liner}
+                            <p class="greeting-fallback">{persona.greeting}</p>
+                        {/if}
+                    </div>
+
+                    <div class="stats-row">
+                        <div class="stat">
+                            <Icon icon="mdi:heart" />
+                            {persona.likes_count}
+                        </div>
+                        <div class="stat">
+                            <Icon icon="mdi:chat" />
+                            {persona.chat_count}
+                        </div>
+                    </div>
                 </div>
             </div>
-        </div>
-    </div>
 
-    <div class="actions-area">
-        <button
-            class="action-btn like-btn"
-            class:liked={isLiked}
-            type="button"
-            on:click={handleLike}
-        >
-            <Icon icon={isLiked ? "mdi:heart" : "mdi:heart-outline"} width="24" />
-        </button>
-        <button class="action-btn side-icon-btn" on:click={handleShare}>
-            <Icon icon="ph:share-network" width="22" />
-        </button>
-        <button class="action-btn chat-btn" on:click={handleChat}>
-            <Icon icon="ph:chat-circle-text-fill" width="24" />
-            <span>Chat</span>
-        </button>
-        <button
-            class="action-btn info-btn"
-            on:click={() => goto(`/profile?c=${persona.id}`)}
-        >
-            <Icon icon="ph:info" width="24" />
-        </button>
-    </div>
+            <div class="actions-area">
+                <button
+                    class="action-btn like-btn"
+                    class:liked={isLiked}
+                    type="button"
+                    on:click={handleLike}
+                >
+                    <Icon icon={isLiked ? "mdi:heart" : "mdi:heart-outline"} width="24" />
+                </button>
+                <button class="action-btn side-icon-btn" on:click={handleShare}>
+                    <Icon icon="ph:share-network" width="22" />
+                </button>
+                <button class="action-btn chat-btn" on:click={handleChat}>
+                    <Icon icon="ph:chat-circle-text-fill" width="24" />
+                    <span>Chat</span>
+                </button>
+                <button
+                    class="action-btn info-btn"
+                    on:click={() => goto(`/profile?c=${persona.id}`)}
+                >
+                    <Icon icon="ph:info" width="24" />
+                </button>
+            </div>
+        {/if}
+    {/key}
 </div>
 
 <style>
