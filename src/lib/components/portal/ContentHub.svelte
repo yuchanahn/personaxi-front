@@ -30,6 +30,7 @@
     import HubBanner from "./HubBanner.svelte";
 
     let isAgeVerificationModalOpen = false;
+    let safetyModalMode: "kr_verification" | "overseas_birthdate" = "overseas_birthdate";
     let overseasBirthDate = "";
     let isUpdatingSafety = false;
 
@@ -73,6 +74,15 @@
         },
     ];
 
+    function normalizeDateInputValue(raw?: string) {
+        const value = raw?.trim();
+        if (!value) return "";
+        if (/^\d{8}$/.test(value)) {
+            return `${value.slice(0, 4)}-${value.slice(4, 6)}-${value.slice(6, 8)}`;
+        }
+        return value;
+    }
+
     async function handleHubSafetyToggle() {
         if (isCheckingIp || isUpdatingSafety) return;
 
@@ -84,17 +94,51 @@
         }
 
         if (isOverseas && user.data?.birthDate) {
-            overseasBirthDate = user.data.birthDate;
+            overseasBirthDate = normalizeDateInputValue(user.data.birthDate);
         }
 
         if (!isOverseas && !user.data?.isVerified) {
-            handleHubIdentityVerification();
+            safetyModalMode = "kr_verification";
+            isAgeVerificationModalOpen = true;
             return;
         }
 
         if ($settings.safetyFilterOn) {
-            // Turning OFF the filter (enabling adult content)
-            isAgeVerificationModalOpen = true;
+            if (isOverseas) {
+                safetyModalMode = "overseas_birthdate";
+                isAgeVerificationModalOpen = true;
+                return;
+            }
+
+            isUpdatingSafety = true;
+            try {
+                const result = await updateSafetyFilter(false);
+                settings.update((current) => ({
+                    ...current,
+                    safetyFilterOn: result.safetyFilterOn,
+                }));
+                st_user.update((current) =>
+                    current
+                        ? {
+                              ...current,
+                              data: {
+                                  ...current.data,
+                                  safetyFilterOn: result.safetyFilterOn,
+                                  isVerified:
+                                      result.isVerified ?? current.data?.isVerified,
+                              },
+                          }
+                        : current,
+                );
+            } catch (error) {
+                toast.error(
+                    error instanceof Error
+                        ? error.message
+                        : $t("settingPageModal.safetyUpdateFailed"),
+                );
+            } finally {
+                isUpdatingSafety = false;
+            }
         } else {
             // Turning ON the filter
             isUpdatingSafety = true;
@@ -135,9 +179,15 @@
             return;
         }
 
+        if (safetyModalMode === "kr_verification") {
+            isAgeVerificationModalOpen = false;
+            await handleHubIdentityVerification();
+            return;
+        }
+
         isUpdatingSafety = true;
         try {
-            if (isOverseas) {
+            if (safetyModalMode === "overseas_birthdate") {
                 const normalizedBirthDate = overseasBirthDate.trim();
                 if (!normalizedBirthDate) {
                     toast.error($t("settingPageModal.birthDateRequired"));
@@ -968,15 +1018,21 @@
                 <button class="close-button" on:click={cancelAgeVerification}>
                     <Icon icon="mdi:close" />
                 </button>
-                <h2>{$t("ageVerificationModal.title")}</h2>
-                <p class="age-verification-message">
-                    {#if isOverseas}
-                        {$t("settingPageModal.birthDateDescription")}
+                <h2>
+                    {#if safetyModalMode === "kr_verification"}
+                        {$t("ageVerificationModal.title")}
                     {:else}
-                        {$t("ageVerificationModal.message")}
+                        {$t("settingPageModal.birthDateLabel")}
+                    {/if}
+                </h2>
+                <p class="age-verification-message">
+                    {#if safetyModalMode === "kr_verification"}
+                        {$t("settingPageModal.safetyVerificationRequired")}
+                    {:else}
+                        {$t("settingPageModal.birthDateDescription")}
                     {/if}
                 </p>
-                {#if isOverseas}
+                {#if safetyModalMode === "overseas_birthdate"}
                     <input
                         class="age-birthdate-input"
                         type="date"
@@ -993,10 +1049,10 @@
                         on:click={confirmAgeVerification}
                         disabled={isUpdatingSafety}
                     >
-                        {#if isOverseas}
-                            {$t("common.save")}
+                        {#if safetyModalMode === "kr_verification"}
+                            {$t("settingPageModal.verificationAction")}
                         {:else}
-                            {$t("ageVerificationModal.confirm")}
+                            {$t("common.save")}
                         {/if}
                     </button>
                 </div>
@@ -1095,20 +1151,6 @@
                             <option value="KR">Korea</option>
                             <option value="US">Overseas</option>
                         </select>
-                    {/if}
-
-                    {#if !isCheckingIp && !isOverseas && $st_user?.id && !$st_user?.data?.isVerified}
-                        <button
-                            class="verification-entry-btn"
-                            on:click={handleHubIdentityVerification}
-                        >
-                            <Icon
-                                icon="ph:shield-check-bold"
-                                width="18"
-                                height="18"
-                            />
-                            <span>본인인증</span>
-                        </button>
                     {/if}
 
                     <!-- Safety Filter Toggle -->
@@ -1716,31 +1758,6 @@
         color: var(--foreground);
         padding: 0.5rem;
         cursor: pointer;
-    }
-
-    .verification-entry-btn {
-        display: inline-flex;
-        align-items: center;
-        gap: 0.4rem;
-        border: 1px solid rgba(59, 130, 246, 0.35);
-        background: rgba(59, 130, 246, 0.12);
-        color: #60a5fa;
-        border-radius: 999px;
-        padding: 0.45rem 0.8rem;
-        font-size: 0.85rem;
-        font-weight: 700;
-        cursor: pointer;
-        transition:
-            background 0.2s,
-            transform 0.2s,
-            border-color 0.2s;
-        margin-right: 0.4rem;
-    }
-
-    .verification-entry-btn:hover {
-        background: rgba(59, 130, 246, 0.18);
-        border-color: rgba(96, 165, 250, 0.5);
-        transform: translateY(-1px);
     }
 
     .neuron-balance-chip {

@@ -19,8 +19,17 @@
     let isCheckingRegion = true;
     let overseasBirthDate = "";
 
+    function normalizeDateInputValue(raw?: string) {
+        const value = raw?.trim();
+        if (!value) return "";
+        if (/^\d{8}$/.test(value)) {
+            return `${value.slice(0, 4)}-${value.slice(4, 6)}-${value.slice(6, 8)}`;
+        }
+        return value;
+    }
+
     $: if (isOverseas && !isSavingBirthDate && $st_user?.data?.birthDate) {
-        overseasBirthDate = $st_user.data.birthDate;
+        overseasBirthDate = normalizeDateInputValue($st_user.data.birthDate);
     }
 
     function closeModal() {
