@@ -171,6 +171,8 @@
     import { requestIdentityVerification } from "$lib/services/verification";
 
     let isVerifying = false;
+    let isOverseas = false;
+    let isCheckingRegion = true;
 
     async function handleIdentityVerification() {
         if (isVerifying) return;
@@ -193,6 +195,19 @@
     }
 
     onMount(async () => {
+        try {
+            const res = await fetch("https://ipapi.co/json/");
+            const data = await res.json();
+            isOverseas = data?.country_code !== "KR";
+        } catch (error) {
+            console.error("Failed to detect region for verification button", error);
+            isOverseas = false;
+        } finally {
+            isCheckingRegion = false;
+        }
+    });
+
+    onMount(async () => {
         if (typeof window !== "undefined") {
             const isStandalone = window.matchMedia(
                 "(display-mode: standalone)",
@@ -200,15 +215,6 @@
             // @ts-ignore
             const isIOSStandalone = window.navigator.standalone === true;
             isPWA = isStandalone || isIOSStandalone;
-
-            // Load PortOne SDK
-            if (!document.getElementById("portone-v2-sdk")) {
-                const script = document.createElement("script");
-                script.id = "portone-v2-sdk";
-                script.src = "https://cdn.portone.io/v2/browser-sdk.js";
-                script.defer = true;
-                document.body.appendChild(script);
-            }
         }
 
         try {
@@ -677,7 +683,7 @@
                                                     color="#3b82f6"
                                                 />
                                             </span>
-                                        {:else}
+                                        {:else if !isCheckingRegion && !isOverseas}
                                             <button
                                                 class="verification-btn-small"
                                                 on:click={handleIdentityVerification}

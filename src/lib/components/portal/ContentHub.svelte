@@ -23,12 +23,15 @@
     import { st_user } from "$lib/stores/user";
     import { get } from "svelte/store";
     import { toastError } from "$lib/utils/errorMapper";
-    import { showNeedMoreNeuronsModal } from "$lib/stores/modal";
     import { toast } from "$lib/stores/toast";
+    import { showNeedMoreNeuronsModal } from "$lib/stores/modal";
     import { requestIdentityVerification } from "$lib/services/verification";
+    import { updateBirthDate, updateSafetyFilter } from "$lib/api/user";
     import HubBanner from "./HubBanner.svelte";
 
     let isAgeVerificationModalOpen = false;
+    let overseasBirthDate = "";
+    let isUpdatingSafety = false;
 
     let isOverseas = false;
     let isCheckingIp = true;
@@ -70,15 +73,8 @@
         },
     ];
 
-    function handleHubSafetyToggle() {
-        if (isCheckingIp) return;
-
-        if (!isOverseas) {
-            toast.error(
-                "국내 접속 시 19세 제반 인증 연동 전까지 필터 해제가 제한됩니다. (KR region restricted)",
-            );
-            return;
-        }
+    async function handleHubSafetyToggle() {
+        if (isCheckingIp || isUpdatingSafety) return;
 
         const user = get(st_user);
         if (!user) {
@@ -87,22 +83,136 @@
             return;
         }
 
+        if (isOverseas && user.data?.birthDate) {
+            overseasBirthDate = user.data.birthDate;
+        }
+
+        if (!isOverseas && !user.data?.isVerified) {
+            handleHubIdentityVerification();
+            return;
+        }
+
         if ($settings.safetyFilterOn) {
             // Turning OFF the filter (enabling adult content)
             isAgeVerificationModalOpen = true;
         } else {
             // Turning ON the filter
-            $settings.safetyFilterOn = true;
+            isUpdatingSafety = true;
+            try {
+                const result = await updateSafetyFilter(true);
+                settings.update((current) => ({
+                    ...current,
+                    safetyFilterOn: result.safetyFilterOn,
+                }));
+                st_user.update((current) =>
+                    current
+                        ? {
+                              ...current,
+                              data: {
+                                  ...current.data,
+                                  safetyFilterOn: result.safetyFilterOn,
+                              },
+                          }
+                        : current,
+                );
+            } catch (error) {
+                toast.error(
+                    error instanceof Error
+                        ? error.message
+                        : $t("settingPageModal.safetyUpdateFailed"),
+                );
+            } finally {
+                isUpdatingSafety = false;
+            }
         }
     }
 
-    function confirmAgeVerification() {
-        $settings.safetyFilterOn = false;
-        isAgeVerificationModalOpen = false;
+    async function confirmAgeVerification() {
+        const user = get(st_user);
+        if (!user) {
+            toastError("loginRequired");
+            goto("/login");
+            return;
+        }
+
+        isUpdatingSafety = true;
+        try {
+            if (isOverseas) {
+                const normalizedBirthDate = overseasBirthDate.trim();
+                if (!normalizedBirthDate) {
+                    toast.error($t("settingPageModal.birthDateRequired"));
+                    return;
+                }
+
+                const birthResult = await updateBirthDate(normalizedBirthDate);
+                st_user.update((current) =>
+                    current
+                        ? {
+                              ...current,
+                              data: {
+                                  ...current.data,
+                                  birthDate: birthResult.birthDate,
+                                  safetyFilterOn: birthResult.safetyFilterOn,
+                              },
+                          }
+                        : current,
+                );
+                settings.update((current) => ({
+                    ...current,
+                    safetyFilterOn: birthResult.safetyFilterOn,
+                }));
+
+                if (!birthResult.isAdult) {
+                    toast.error($t("settingPageModal.adultAgeRequired"));
+                    return;
+                }
+            }
+
+            const result = await updateSafetyFilter(false);
+            settings.update((current) => ({
+                ...current,
+                safetyFilterOn: result.safetyFilterOn,
+            }));
+            st_user.update((current) =>
+                current
+                    ? {
+                          ...current,
+                          data: {
+                              ...current.data,
+                              safetyFilterOn: result.safetyFilterOn,
+                              isVerified:
+                                  result.isVerified ?? current.data?.isVerified,
+                          },
+                      }
+                    : current,
+            );
+            isAgeVerificationModalOpen = false;
+        } catch (error) {
+            toast.error(
+                error instanceof Error
+                    ? error.message
+                    : $t("settingPageModal.safetyUpdateFailed"),
+            );
+        } finally {
+            isUpdatingSafety = false;
+        }
     }
 
     function cancelAgeVerification() {
         isAgeVerificationModalOpen = false;
+    }
+
+    async function handleHubIdentityVerification() {
+        const user = get(st_user);
+        if (!user) {
+            toastError("loginRequired");
+            goto("/login");
+            return;
+        }
+
+        await requestIdentityVerification({
+            onSuccess: () => {},
+        });
     }
 
     function handleSimulatedCountryChange(e: Event) {
@@ -860,8 +970,20 @@
                 </button>
                 <h2>{$t("ageVerificationModal.title")}</h2>
                 <p class="age-verification-message">
-                    {$t("ageVerificationModal.message")}
+                    {#if isOverseas}
+                        {$t("settingPageModal.birthDateDescription")}
+                    {:else}
+                        {$t("ageVerificationModal.message")}
+                    {/if}
                 </p>
+                {#if isOverseas}
+                    <input
+                        class="age-birthdate-input"
+                        type="date"
+                        bind:value={overseasBirthDate}
+                        max={new Date().toISOString().slice(0, 10)}
+                    />
+                {/if}
                 <div class="age-verification-actions">
                     <button class="cancel-btn" on:click={cancelAgeVerification}>
                         {$t("ageVerificationModal.cancel")}
@@ -869,8 +991,13 @@
                     <button
                         class="confirm-btn"
                         on:click={confirmAgeVerification}
+                        disabled={isUpdatingSafety}
                     >
-                        {$t("ageVerificationModal.confirm")}
+                        {#if isOverseas}
+                            {$t("common.save")}
+                        {:else}
+                            {$t("ageVerificationModal.confirm")}
+                        {/if}
                     </button>
                 </div>
             </div>
@@ -968,6 +1095,20 @@
                             <option value="KR">Korea</option>
                             <option value="US">Overseas</option>
                         </select>
+                    {/if}
+
+                    {#if !isCheckingIp && !isOverseas && $st_user?.id && !$st_user?.data?.isVerified}
+                        <button
+                            class="verification-entry-btn"
+                            on:click={handleHubIdentityVerification}
+                        >
+                            <Icon
+                                icon="ph:shield-check-bold"
+                                width="18"
+                                height="18"
+                            />
+                            <span>본인인증</span>
+                        </button>
                     {/if}
 
                     <!-- Safety Filter Toggle -->
@@ -1536,6 +1677,19 @@
         transition: all 0.2s;
         border: none;
     }
+    .age-verification-actions button:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+    }
+    .age-birthdate-input {
+        width: 100%;
+        margin-bottom: 1rem;
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        background-color: var(--background);
+        color: var(--foreground);
+        padding: 0.75rem 0.9rem;
+    }
 
     .age-verification-actions .cancel-btn {
         background-color: var(--secondary);
@@ -1562,6 +1716,31 @@
         color: var(--foreground);
         padding: 0.5rem;
         cursor: pointer;
+    }
+
+    .verification-entry-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        border: 1px solid rgba(59, 130, 246, 0.35);
+        background: rgba(59, 130, 246, 0.12);
+        color: #60a5fa;
+        border-radius: 999px;
+        padding: 0.45rem 0.8rem;
+        font-size: 0.85rem;
+        font-weight: 700;
+        cursor: pointer;
+        transition:
+            background 0.2s,
+            transform 0.2s,
+            border-color 0.2s;
+        margin-right: 0.4rem;
+    }
+
+    .verification-entry-btn:hover {
+        background: rgba(59, 130, 246, 0.18);
+        border-color: rgba(96, 165, 250, 0.5);
+        transform: translateY(-1px);
     }
 
     .neuron-balance-chip {

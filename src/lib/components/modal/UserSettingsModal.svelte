@@ -3,7 +3,7 @@
     import { t } from "svelte-i18n";
     import Icon from "@iconify/svelte";
     import { settings } from "$lib/stores/settings";
-    import { deleteUser, updateSafetyFilter } from "$lib/api/user";
+    import { deleteUser, updateBirthDate, updateSafetyFilter } from "$lib/api/user";
     import { goto } from "$app/navigation";
     import { supabase } from "$lib/supabase";
     import { accessToken } from "$lib/stores/auth";
@@ -14,8 +14,14 @@
     export let isOpen: boolean = false;
     const dispatch = createEventDispatcher();
     let isSavingSafety = false;
+    let isSavingBirthDate = false;
     let isOverseas = false;
     let isCheckingRegion = true;
+    let overseasBirthDate = "";
+
+    $: if (isOverseas && !isSavingBirthDate && $st_user?.data?.birthDate) {
+        overseasBirthDate = $st_user.data.birthDate;
+    }
 
     function closeModal() {
         isOpen = false;
@@ -67,6 +73,50 @@
     async function handleSafetyFilterChange(nextValue: boolean) {
         if (isSavingSafety || $settings.safetyFilterOn === nextValue) {
             return;
+        }
+
+        if (!nextValue && isOverseas) {
+            const normalizedBirthDate = overseasBirthDate?.trim();
+            if (!normalizedBirthDate) {
+                toast.error($t("settingPageModal.birthDateRequired"));
+                return;
+            }
+
+            isSavingBirthDate = true;
+            try {
+                const birthResult = await updateBirthDate(normalizedBirthDate);
+                st_user.update((current) =>
+                    current
+                        ? {
+                              ...current,
+                              data: {
+                                  ...current.data,
+                                  birthDate: birthResult.birthDate,
+                                  safetyFilterOn: birthResult.safetyFilterOn,
+                              },
+                          }
+                        : current,
+                );
+                settings.update((current) => ({
+                    ...current,
+                    safetyFilterOn: birthResult.safetyFilterOn,
+                }));
+
+                if (!birthResult.isAdult) {
+                    toast.error($t("settingPageModal.adultAgeRequired"));
+                    return;
+                }
+            } catch (error) {
+                console.error("Failed to save overseas birth date", error);
+                toast.error(
+                    error instanceof Error
+                        ? error.message
+                        : $t("settingPageModal.birthDateSaveFailed"),
+                );
+                return;
+            } finally {
+                isSavingBirthDate = false;
+            }
         }
 
         if (!nextValue && !isOverseas && !$st_user?.data?.isVerified) {
@@ -182,11 +232,27 @@
                 <div class="filter-description">
                     {$t("settingPageModal.safetyDescription")}
                 </div>
+                {#if !isCheckingRegion && isOverseas}
+                    <div class="birthdate-box">
+                        <label for="overseas-birthdate">
+                            {$t("settingPageModal.birthDateLabel")}
+                        </label>
+                        <div class="birthdate-description">
+                            {$t("settingPageModal.birthDateDescription")}
+                        </div>
+                        <input
+                            id="overseas-birthdate"
+                            type="date"
+                            bind:value={overseasBirthDate}
+                            max={new Date().toISOString().slice(0, 10)}
+                        />
+                    </div>
+                {/if}
                 <div class="button-group">
                     <button
                         class:active={$settings.safetyFilterOn}
                         on:click={() => handleSafetyFilterChange(true)}
-                        disabled={isSavingSafety}
+                        disabled={isSavingSafety || isSavingBirthDate}
                     >
                         <Icon icon="ph:shield-check-bold" />
                         Safe
@@ -195,7 +261,7 @@
                         class:active={!$settings.safetyFilterOn}
                         class:danger-active={!$settings.safetyFilterOn}
                         on:click={() => handleSafetyFilterChange(false)}
-                        disabled={isSavingSafety || (isCheckingRegion || (!isOverseas && !$st_user?.data?.isVerified))}
+                        disabled={isSavingSafety || isSavingBirthDate || (isCheckingRegion || (!isOverseas && !$st_user?.data?.isVerified))}
                     >
                         <Icon icon="ph:warning-bold" />
                         Allow
@@ -323,6 +389,31 @@
         color: var(--muted-foreground);
         margin-bottom: 0.75rem;
         line-height: 1.4;
+    }
+    .birthdate-box {
+        margin-bottom: 0.75rem;
+        padding: 0.9rem;
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        background-color: var(--background);
+    }
+    .birthdate-box label {
+        margin-bottom: 0.35rem;
+        font-size: 0.95rem;
+    }
+    .birthdate-description {
+        font-size: 0.82rem;
+        color: var(--muted-foreground);
+        margin-bottom: 0.65rem;
+        line-height: 1.4;
+    }
+    .birthdate-box input {
+        width: 100%;
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        background-color: var(--popover);
+        color: var(--foreground);
+        padding: 0.7rem 0.85rem;
     }
     .status-badge {
         font-size: 0.75rem;

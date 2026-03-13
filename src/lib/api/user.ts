@@ -51,6 +51,17 @@ export async function updateSafetyFilter(
     return await res.json();
 }
 
+export async function updateBirthDate(
+    birthDate: string,
+): Promise<{ success: boolean; birthDate: string; isAdult: boolean; safetyFilterOn: boolean }> {
+    const res = await api.post("/api/user/birth-date", { birthDate });
+    if (!res.ok) {
+        const errorText = await res.text();
+        throw new Error(errorText || "Failed to update birth date");
+    }
+    return await res.json();
+}
+
 import type { PaymentRecord } from "$lib/types";
 
 export async function getPaymentHistory(
