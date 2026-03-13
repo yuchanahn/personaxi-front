@@ -57,11 +57,20 @@ async function fetchWithAuth(url: string, options: AuthRequestInit = {}): Promis
     }
 
     if (response.status === 403) {
-        // 403 Forbidden (Banned)
-        if (window.location.pathname !== '/suspended') {
-            window.location.href = '/suspended';
+        const cloned = response.clone();
+        let errorText = "";
+        try {
+            errorText = (await cloned.text()).trim();
+        } catch {
+            errorText = "";
         }
-        throw new Error('Forbidden');
+
+        if (errorText === 'ERR_ACCOUNT_SUSPENDED') {
+            if (window.location.pathname !== '/suspended') {
+                window.location.href = '/suspended';
+            }
+            throw new Error('ERR_ACCOUNT_SUSPENDED');
+        }
     }
 
     return response;
