@@ -8,6 +8,15 @@ import { get } from 'svelte/store';
 import type { ESFPrompt, Persona } from '$lib/types';
 import { chatSessions } from '$lib/stores/chatSessions';
 
+function createFirstSceneMessage(): Message {
+    return {
+        role: "assistant",
+        content: "<first_scene>",
+        done: true,
+        key: `first-scene-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+    };
+}
+
 function shouldUsePromptkitPreviewRoute(): boolean {
     if (typeof window === 'undefined') return false;
     const host = window.location.hostname.toLowerCase();
@@ -61,7 +70,7 @@ export async function loadChatHistory(sessionId: string, callback?: (esfprompt: 
                 recent_turns: [],
             };
             callback?.(esf);
-            messages.set([{ role: "assistant", content: "<first_scene>", done: true }]);
+            messages.set([createFirstSceneMessage()]);
             console.warn("No chat history found for session:", sessionId);
             return;
         }
@@ -94,7 +103,7 @@ export async function loadChatHistory(sessionId: string, callback?: (esfprompt: 
 
         messages.set(
             [
-                { role: "assistant", content: "<first_scene>", done: true },
+                createFirstSceneMessage(),
                 ...history.map((msg: any) => ({
                     role: msg.role,
                     content: msg.role === 'assistant' ? parseESFResponse(msg.content) : msg.content,
@@ -103,7 +112,7 @@ export async function loadChatHistory(sessionId: string, callback?: (esfprompt: 
             ]
         );
     } else {
-        messages.set([{ role: "assistant", content: "<first_scene>", done: true }]);
+        messages.set([createFirstSceneMessage()]);
     }
 }
 
@@ -117,9 +126,13 @@ export async function resetChatHistory(sessionId: string) {
     if (res.ok) {
         const r = await res.json();
         console.log("Reset chat history response:", r);
-        messages.set([{ role: "assistant", content: "<first_scene>", done: true }]);
+        messages.set([]);
+        await Promise.resolve();
+        messages.set([createFirstSceneMessage()]);
     } else {
-        messages.set([{ role: "assistant", content: "<first_scene>", done: true }]);
+        messages.set([]);
+        await Promise.resolve();
+        messages.set([createFirstSceneMessage()]);
     }
 }
 

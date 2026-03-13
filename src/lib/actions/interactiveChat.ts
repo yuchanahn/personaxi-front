@@ -5,9 +5,25 @@ import {
     generateAstrologyAnalysisPrompt,
 } from "$lib/components/astrology/astrologyPrompt";
 
-export function interactiveChat(node: HTMLElement, callback: (payload: string) => void) {
+type InteractiveChatParams = {
+    callback: (payload: string) => void;
+    resetKey?: string | number;
+};
+
+export function interactiveChat(
+    node: HTMLElement,
+    params: InteractiveChatParams | ((payload: string) => void),
+) {
+    let callback =
+        typeof params === "function" ? params : params.callback;
+    let resetKey =
+        typeof params === "function" ? undefined : params.resetKey;
 
     let queue: string[] = [];
+
+    function resetInteractiveState() {
+        queue = [];
+    }
 
     function getLastActiveElement(selector: string): HTMLElement | null {
         const allActiveElements = node.querySelectorAll(selector + ":not(.used)");
@@ -241,6 +257,22 @@ export function interactiveChat(node: HTMLElement, callback: (payload: string) =
     node.addEventListener("click", handleClick);
 
     return {
+        update(nextParams: InteractiveChatParams | ((payload: string) => void)) {
+            const nextCallback =
+                typeof nextParams === "function"
+                    ? nextParams
+                    : nextParams.callback;
+            const nextResetKey =
+                typeof nextParams === "function"
+                    ? undefined
+                    : nextParams.resetKey;
+
+            callback = nextCallback;
+            if (nextResetKey !== resetKey) {
+                resetKey = nextResetKey;
+                resetInteractiveState();
+            }
+        },
         destroy() {
             node.removeEventListener("click", handleClick);
         },

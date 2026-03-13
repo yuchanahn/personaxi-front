@@ -520,6 +520,36 @@
     return s;
   }
 
+  function findMatchingHtmlTagEnd(
+    content: string,
+    startIndex: number,
+    tagName: string,
+  ): number {
+    const tagRegex = new RegExp(`<\\/?${tagName}\\b[^>]*>`, "gi");
+    tagRegex.lastIndex = startIndex;
+
+    let depth = 0;
+    let match: RegExpExecArray | null;
+
+    while ((match = tagRegex.exec(content)) !== null) {
+      const tag = match[0];
+      const isClosing = tag.startsWith("</");
+      const isSelfClosing = tag.endsWith("/>");
+
+      if (!isClosing) {
+        depth += 1;
+        if (isSelfClosing) depth -= 1;
+      } else {
+        depth -= 1;
+        if (depth === 0) {
+          return match.index + tag.length;
+        }
+      }
+    }
+
+    return -1;
+  }
+
   function calculateBlockSkipIndex(
     content: string,
     startIndex: number,
@@ -540,7 +570,35 @@
     if (!match) return -1;
 
     const tagName = match[1].toLowerCase();
-    const SKIP_TAGS = ["style"];
+    const SKIP_TAGS = [
+      "style",
+      "div",
+      "table",
+      "thead",
+      "tbody",
+      "tr",
+      "td",
+      "th",
+      "p",
+      "span",
+      "section",
+      "article",
+      "header",
+      "footer",
+      "main",
+      "aside",
+      "blockquote",
+      "ul",
+      "ol",
+      "li",
+      "br",
+      "h1",
+      "h2",
+      "h3",
+      "h4",
+      "h5",
+      "h6",
+    ];
 
     if (!SKIP_TAGS.includes(tagName)) return -1;
 
@@ -549,11 +607,15 @@
     if (isSelfClosing) {
       const closeIdx = content.indexOf(">", startIndex);
       return closeIdx !== -1 ? closeIdx + 1 : -1;
-    } else {
-      const closingTag = `</${tagName}>`;
+    }
+
+    if (tagName === "style") {
+      const closingTag = `</style>`;
       const closeIdx = content.indexOf(closingTag, startIndex);
       return closeIdx !== -1 ? closeIdx + closingTag.length : -1;
     }
+
+    return findMatchingHtmlTagEnd(content, startIndex, tagName);
   }
 
   function startThrottleLoop() {
@@ -693,7 +755,7 @@
     const newChatLog: ChatLogItem[] = [];
 
     visibleMessages.forEach((msg, i) => {
-      const messageId = `msg-${i}`;
+      const messageId = msg.key ? `msg-${msg.key}` : `msg-${i}`;
       const cacheKey = `${messageId}-${persona?.id || "null"}-${msg.content}`;
       const isLast = i === visibleMessages.length - 1;
 
@@ -870,8 +932,16 @@
   style:pointer-events={showChat ? "auto" : "none"}
   role="log"
   aria-label="채팅 메시지"
-  use:interactiveChat={(payload) => {
-    SendMessage(payload);
+  use:interactiveChat={{
+    callback: (payload) => {
+      SendMessage(payload);
+    },
+    resetKey:
+      visibleMessages.length === 1 &&
+      visibleMessages[0]?.role === "assistant" &&
+      visibleMessages[0]?.content === "<first_scene>"
+        ? visibleMessages[0]?.key || "first-scene"
+        : persona?.id || "chat-window",
   }}
 >
   {#if activeBackgroundImage}
