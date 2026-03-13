@@ -21,7 +21,10 @@ The Company processes personal information for the following purposes. The perso
 2. **Provision of Goods or Services**
    Provision of AI character chat services, conversion of chat responses (text) to speech (TTS), storage and management of Persona settings, provision of file upload functionality (images, VRM, etc.), provision of personalized services, and payment processing.
 
-3. **Service Improvement and Research**
+3. **Identity Verification and Age Verification**
+   Processing identity verification data through the integrated authentication service for identity checks, adult verification, age verification, duplicate account prevention, retention of authentication results, and compliance with applicable laws.
+
+4. **Service Improvement and Research**
    User input data (prompts) and AI-generated responses shall be pseudonymized and used for the purpose of improving AI model performance, optimizing algorithms, and developing new features. The specific methods and protective measures for pseudonymization are specified in Section 10.
 
 ---
@@ -88,10 +91,13 @@ The Company shall process personal information only within the scope specified i
    - **Google:** (Required) Email address, profile name, UID / (Optional) Gender, profile photo
    - **Kakao:** (Required) Email address, nickname, UID / (Optional) Gender, profile photo
 
-2. **Service Usage Data**
+2. **Identity Verification and Adult Verification Data**
+   - (Required) Name, date of birth, mobile phone number, telecom carrier, domestic/foreign status, encrypted user verification value (CI), duplicate registration verification information (DI)
+
+3. **Service Usage Data**
    - (Required) Chat records, user prompts, Persona settings (instructions, background, etc.), uploaded files (images, VRM)
 
-3. **Automatically Collected Information**
+4. **Automatically Collected Information**
    - IP address, cookies, service usage records, browser/OS information, records of misuse
 
 ---
