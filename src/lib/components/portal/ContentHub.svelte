@@ -154,6 +154,7 @@
     let hasMoreMain = true;
     let hubContainerEl: HTMLDivElement;
     let hubScrollTarget: HTMLElement | Window | null = null;
+    let popularSortMode: "realtime" | "popular" = "realtime";
 
     let isCategoryExpanded = false;
 
@@ -466,6 +467,36 @@
         }
     }
 
+    async function loadPopularSectionPage(pageNum: number) {
+        if (pageNum === 1) {
+            const realtimeData = await loadContent(
+                1,
+                10,
+                "realtime",
+                "all",
+                [],
+                excludedTags,
+            );
+
+            if (realtimeData.length > 0) {
+                popularSortMode = "realtime";
+                return realtimeData;
+            }
+
+            popularSortMode = "popular";
+            return await loadContent(1, 10, "popular", "all", [], excludedTags);
+        }
+
+        return await loadContent(
+            pageNum,
+            10,
+            popularSortMode,
+            "all",
+            [],
+            excludedTags,
+        );
+    }
+
     async function loadFeaturedSections() {
         const requestId = ++featuredRequestId;
 
@@ -473,6 +504,7 @@
         popularPage = 1;
         live2dPage = 1;
         vrmPage = 1;
+        popularSortMode = "realtime";
         hasMoreNew = true;
         hasMorePopular = true;
         hasMoreLive2d = true;
@@ -501,7 +533,7 @@
                 vrmData,
             ] = await Promise.all([
                 loadContent(newPage, 10, "latest_daily", "all", [], excludedTags),
-                loadContent(popularPage, 10, "popular", "all", [], excludedTags),
+                loadPopularSectionPage(popularPage),
                 loadContent(1, 10, "popular", "all", ["tags.romance"], excludedTags),
                 loadContent(1, 10, "popular", "all", ["tags.scifi"], excludedTags),
                 loadContent(1, 10, "popular", "all", ["tags.fantasy"], excludedTags),
@@ -568,7 +600,7 @@
             const data = await loadContent(
                 popularPage,
                 10,
-                "popular",
+                popularSortMode,
                 "all",
                 [],
                 excludedTags,
