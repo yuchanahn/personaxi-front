@@ -8,7 +8,7 @@
         loadLikedContent,
     } from "$lib/api/content";
     import type { PersonaDTO } from "$lib/types";
-    import { onMount, tick } from "svelte";
+    import { onDestroy, onMount, tick } from "svelte";
     import { writable } from "svelte/store";
     import { t } from "svelte-i18n";
     import CharacterCard from "../card/CharacterCard.svelte";
@@ -151,6 +151,9 @@
     let hasMorePopular = true;
     let hasMoreLive2d = true;
     let hasMoreVrm = true;
+    let hasMoreMain = true;
+    let hubContainerEl: HTMLDivElement;
+    let hubScrollTarget: HTMLElement | Window | null = null;
 
     let isCategoryExpanded = false;
 
@@ -223,11 +226,148 @@
                 tabExcludedTags,
             );
             contents.set(data || []);
+            hasMoreMain = (data?.length || 0) >= limit;
         } catch (e) {
             console.error(e);
         } finally {
             isLoading.set(false);
         }
+    }
+
+    function shouldPaginateMainList() {
+        return selectedCategory !== "following" &&
+            selectedCategory !== "liked" &&
+            selectedCategory !== "search";
+    }
+
+    async function fetchMainListPage(pageNum: number): Promise<PersonaDTO[]> {
+        let tags: string[] = [];
+        if (activeTab === "2d") tags.push("tags.live2d");
+        if (activeTab === "3d") tags.push("tags.vrm");
+
+        if (
+            selectedCategory &&
+            selectedCategory !== "following" &&
+            selectedCategory !== "liked" &&
+            selectedCategory !== "search"
+        ) {
+            tags.push(selectedCategory);
+        }
+
+        let tabExcludedTags: string[] = [...excludedTags];
+        if (activeTab === "character") {
+            tabExcludedTags.push("tags.live2d", "tags.vrm");
+        }
+
+        if (selectedCategory === null && tags.length === 0) {
+            if (tabExcludedTags.length > 0) {
+                return await loadContentWithTags(
+                    [],
+                    pageNum,
+                    limit,
+                    currentSort,
+                    currentContentType,
+                    tabExcludedTags,
+                );
+            }
+
+            return await loadContent(
+                pageNum,
+                limit,
+                currentSort,
+                currentContentType,
+            );
+        }
+
+        return await loadContentWithTags(
+            tags,
+            pageNum,
+            limit,
+            currentSort,
+            currentContentType,
+            tabExcludedTags,
+        );
+    }
+
+    async function loadMoreMainList() {
+        if ($isLoading || !hasMoreMain || activeTab === "home") return;
+        if (!shouldPaginateMainList()) return;
+
+        isLoading.set(true);
+        try {
+            const nextPage = page + 1;
+            const data = await fetchMainListPage(nextPage);
+
+            if (data.length > 0) {
+                page = nextPage;
+                contents.update((current) => [...current, ...data]);
+                hasMoreMain = data.length >= limit;
+            } else {
+                hasMoreMain = false;
+            }
+        } catch (e) {
+            console.error("Failed to load more hub contents:", e);
+        } finally {
+            isLoading.set(false);
+        }
+    }
+
+    function isScrollableElement(node: HTMLElement) {
+        const style = getComputedStyle(node);
+        const overflowY = style.overflowY;
+        return (
+            (overflowY === "auto" || overflowY === "scroll") &&
+            node.scrollHeight > node.clientHeight
+        );
+    }
+
+    function findScrollParent(node: HTMLElement | null) {
+        let current = node?.parentElement ?? null;
+
+        while (current) {
+            if (isScrollableElement(current)) {
+                return current;
+            }
+            current = current.parentElement;
+        }
+
+        return window;
+    }
+
+    function getScrollMetrics(target: HTMLElement | Window) {
+        if (target instanceof Window) {
+            const doc = document.documentElement;
+            const body = document.body;
+            const scrollTop = window.scrollY || doc.scrollTop || body.scrollTop || 0;
+            const clientHeight = window.innerHeight;
+            const scrollHeight = Math.max(
+                body.scrollHeight,
+                doc.scrollHeight,
+                body.offsetHeight,
+                doc.offsetHeight,
+                body.clientHeight,
+                doc.clientHeight,
+            );
+
+            return { scrollTop, clientHeight, scrollHeight };
+        }
+
+        return {
+            scrollTop: target.scrollTop,
+            clientHeight: target.clientHeight,
+            scrollHeight: target.scrollHeight,
+        };
+    }
+
+    function bindHubScrollTarget() {
+        if (hubScrollTarget) {
+            hubScrollTarget.removeEventListener("scroll", handleHubScroll);
+        }
+
+        hubScrollTarget = findScrollParent(hubContainerEl);
+        hubScrollTarget.addEventListener("scroll", handleHubScroll, {
+            passive: true,
+        });
     }
 
     onMount(async () => {
@@ -265,7 +405,14 @@
         hubInitialized = true;
         lastSafetyFilterValue = $settings.safetyFilterOn;
         lastHubLanguage = $settings.language;
+        bindHubScrollTarget();
         triggerSafetyFilterReload();
+    });
+
+    onDestroy(() => {
+        if (hubScrollTarget) {
+            hubScrollTarget.removeEventListener("scroll", handleHubScroll);
+        }
     });
 
     $: if (
@@ -276,6 +423,19 @@
         lastSafetyFilterValue = $settings.safetyFilterOn;
         lastHubLanguage = $settings.language;
         triggerSafetyFilterReload();
+    }
+
+    function handleHubScroll() {
+        if (!hubScrollTarget || activeTab === "home") return;
+        if (!shouldPaginateMainList() || $isLoading || !hasMoreMain) return;
+
+        const { scrollTop, clientHeight, scrollHeight } =
+            getScrollMetrics(hubScrollTarget);
+        const distanceToBottom = scrollHeight - (scrollTop + clientHeight);
+
+        if (distanceToBottom <= 96) {
+            loadMoreMainList();
+        }
     }
 
     // --- State for Home Dashboard ---
@@ -460,6 +620,7 @@
     async function filterByCategory(category: string | null) {
         selectedCategory = category;
         page = 1;
+        hasMoreMain = true;
         isLoading.set(true);
         let data: PersonaDTO[] = [];
 
@@ -509,6 +670,7 @@
             );
         }
         contents.set(data);
+        hasMoreMain = shouldPaginateMainList() && data.length >= limit;
         isLoading.set(false);
     }
 
@@ -516,6 +678,7 @@
         if (currentSort === sort) return;
         currentSort = sort;
         page = 1;
+        hasMoreMain = true;
         isLoading.set(true);
         let data: PersonaDTO[] = [];
 
@@ -573,6 +736,7 @@
             );
         }
         contents.set(data);
+        hasMoreMain = shouldPaginateMainList() && data.length >= limit;
         isLoading.set(false);
     }
 
@@ -583,6 +747,7 @@
 
         let data: PersonaDTO[] = [];
         page = 1;
+        hasMoreMain = false;
 
         if (!query.trim()) {
             data = await loadContent(page, limit, currentSort);
@@ -841,7 +1006,7 @@
         </div>
     {/if}
 
-    <div class="hub-container">
+    <div class="hub-container" bind:this={hubContainerEl}>
         <div class="hub-content max-w-screen-xl mx-auto w-full">
             <!-- Top Banners -->
             <HubBanner banners={hubBanners} />
@@ -982,7 +1147,7 @@
                         </div>
                     </div>
 
-                    {#if $isLoading}
+                    {#if $isLoading && $contents.length === 0}
                         <div class="center-message">Loading...</div>
                     {:else if $contents.length === 0}
                         <div class="center-message">
@@ -997,6 +1162,11 @@
                                 />
                             {/each}
                         </div>
+                        {#if $isLoading && $contents.length > 0}
+                            <div class="center-message list-loading-more">
+                                Loading...
+                            </div>
+                        {/if}
                     {/if}
                 </section>
             {/if}
@@ -1217,6 +1387,16 @@
         grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
         gap: 1.5rem;
         padding-right: 1.5rem;
+    }
+
+    .center-message {
+        color: var(--muted-foreground);
+        text-align: center;
+        padding: 2rem 1.5rem 1rem 0;
+    }
+
+    .list-loading-more {
+        padding-top: 0.75rem;
     }
 
     /* --- Search Modal --- */
@@ -1465,6 +1645,11 @@
             gap: 1rem;
             padding: 1rem 0.5rem;
         }
+
+        .hub-container {
+            padding-bottom: calc(96px + env(safe-area-inset-bottom, 0px));
+        }
+
         .content.flex-grid {
             grid-template-columns: repeat(2, 1fr);
             gap: 0.3rem;
