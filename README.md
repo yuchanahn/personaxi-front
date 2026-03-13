@@ -20,7 +20,7 @@
   ---
   
   <sub>
-  Note: We are among the first platforms to support both **VRM (3D)** and **Live2D (2D)** avatars with live voice chat in a single service. See <a href="#credits--licenses">Legal & Privacy</a> for upload and licensing rules.
+  Note: We support both **VRM (3D)** and **Live2D (2D)** avatars with live voice chat in one service. Public web docs currently available: FAQ and Welcome pages.
   </sub>
 </div>
 
@@ -152,7 +152,7 @@ Basic features are free!
 <summary><b>Can I use it commercially?</b></summary>
 <br>
 Creators can earn points!
-Please check the [Terms of Service](link) for details.
+Please check the repository policy documents below for details.
 </details>
 
 ---
@@ -160,15 +160,15 @@ Please check the [Terms of Service](link) for details.
 ## 🔗 Links
 
 - 🌐 [PersonaXi Website](https://personaxi.com)
+- ❓ [FAQ](https://personaxi.com/faq.html)
+- 👋 [Welcome](https://personaxi.com/welcome.html)
 - 💬 [Discord Community](https://discord.gg/v88p26Fpmc)
-- 📺 [YouTube Tutorial](#)
-- 📸 [Instagram Showcase](#)
-- 🐦 [X (Twitter)](#)
 
-## Legal & Privacy
-- Terms of Service: https://personaxi.com/terms
-- Privacy Policy: https://personaxi.com/privacy
-- Content & Upload Policy: https://personaxi.com/policy
+## Legal & Policy
+- Terms of Service: https://personaxi.com/terms.html
+- Privacy Policy: https://personaxi.com/privacy.html
+- Terms source (repo): [src/lib/i18n/locales/en/terms.md](src/lib/i18n/locales/en/terms.md)
+- Privacy source (repo): [src/lib/i18n/locales/en/policy.md](src/lib/i18n/locales/en/policy.md)
 
 ---
 

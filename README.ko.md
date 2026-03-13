@@ -152,7 +152,7 @@
 <summary><b>상업적 이용 가능한가요?</b></summary>
 <br>
 크리에이터가 되면 일정량의 포인트를 얻을 수 있어요!
-자세한 내용은 [이용약관](링크)을 확인해주세요.
+자세한 내용은 아래 리포지토리 정책 문서를 확인해주세요.
 </details>
 
 ---
@@ -160,15 +160,15 @@
 ## 🔗 바로가기
 
 - 🌐 [PersonaXi 웹사이트](https://personaxi.com)
+- ❓ [FAQ](https://personaxi.com/faq.html)
+- 👋 [Welcome](https://personaxi.com/welcome.html)
 - 💬 [Discord 커뮤니티](https://discord.gg/v88p26Fpmc)
-- 📺 [YouTube 튜토리얼](#)
-- 📸 [Instagram 쇼케이스](#)
-- 🐦 [X (Twitter)](#)
 
-## Legal & Privacy
-- 이용약관: https://personaxi.com/terms
-- 개인정보처리방침: https://personaxi.com/privacy
-- 콘텐츠 정책: https://personaxi.com/policy
+## Legal & Policy
+- 이용약관: https://personaxi.com/terms.html
+- 개인정보처리방침: https://personaxi.com/privacy.html
+- 이용약관 원문 (repo): [src/lib/i18n/locales/ko/terms.md](src/lib/i18n/locales/ko/terms.md)
+- 개인정보처리방침 원문 (repo): [src/lib/i18n/locales/ko/policy.md](src/lib/i18n/locales/ko/policy.md)
 
 ---
 
