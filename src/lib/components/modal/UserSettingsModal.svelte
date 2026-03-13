@@ -28,6 +28,10 @@
         return value;
     }
 
+    function getStoredBirthDate() {
+        return normalizeDateInputValue($st_user?.data?.birthDate);
+    }
+
     $: if (isOverseas && !isSavingBirthDate && $st_user?.data?.birthDate) {
         overseasBirthDate = normalizeDateInputValue($st_user.data.birthDate);
     }
@@ -85,46 +89,48 @@
         }
 
         if (!nextValue && isOverseas) {
-            const normalizedBirthDate = overseasBirthDate?.trim();
+            const normalizedBirthDate = overseasBirthDate?.trim() || getStoredBirthDate();
             if (!normalizedBirthDate) {
                 toast.error($t("settingPageModal.birthDateRequired"));
                 return;
             }
 
-            isSavingBirthDate = true;
-            try {
-                const birthResult = await updateBirthDate(normalizedBirthDate);
-                st_user.update((current) =>
-                    current
-                        ? {
-                              ...current,
-                              data: {
-                                  ...current.data,
-                                  birthDate: birthResult.birthDate,
-                                  safetyFilterOn: birthResult.safetyFilterOn,
-                              },
-                          }
-                        : current,
-                );
-                settings.update((current) => ({
-                    ...current,
-                    safetyFilterOn: birthResult.safetyFilterOn,
-                }));
+            if (!getStoredBirthDate()) {
+                isSavingBirthDate = true;
+                try {
+                    const birthResult = await updateBirthDate(normalizedBirthDate);
+                    st_user.update((current) =>
+                        current
+                            ? {
+                                  ...current,
+                                  data: {
+                                      ...current.data,
+                                      birthDate: birthResult.birthDate,
+                                      safetyFilterOn: birthResult.safetyFilterOn,
+                                  },
+                              }
+                            : current,
+                    );
+                    settings.update((current) => ({
+                        ...current,
+                        safetyFilterOn: birthResult.safetyFilterOn,
+                    }));
 
-                if (!birthResult.isAdult) {
-                    toast.error($t("settingPageModal.adultAgeRequired"));
+                    if (!birthResult.isAdult) {
+                        toast.error($t("settingPageModal.adultAgeRequired"));
+                        return;
+                    }
+                } catch (error) {
+                    console.error("Failed to save overseas birth date", error);
+                    toast.error(
+                        error instanceof Error
+                            ? error.message
+                            : $t("settingPageModal.birthDateSaveFailed"),
+                    );
                     return;
+                } finally {
+                    isSavingBirthDate = false;
                 }
-            } catch (error) {
-                console.error("Failed to save overseas birth date", error);
-                toast.error(
-                    error instanceof Error
-                        ? error.message
-                        : $t("settingPageModal.birthDateSaveFailed"),
-                );
-                return;
-            } finally {
-                isSavingBirthDate = false;
             }
         }
 

@@ -83,6 +83,10 @@
         return value;
     }
 
+    function getStoredBirthDate() {
+        return normalizeDateInputValue(get(st_user)?.data?.birthDate);
+    }
+
     async function handleHubSafetyToggle() {
         if (isCheckingIp || isUpdatingSafety) return;
 
@@ -93,8 +97,9 @@
             return;
         }
 
-        if (isOverseas && user.data?.birthDate) {
-            overseasBirthDate = normalizeDateInputValue(user.data.birthDate);
+        const storedBirthDate = getStoredBirthDate();
+        if (isOverseas && storedBirthDate) {
+            overseasBirthDate = storedBirthDate;
         }
 
         if (!isOverseas && !user.data?.isVerified) {
@@ -105,6 +110,39 @@
 
         if ($settings.safetyFilterOn) {
             if (isOverseas) {
+                if (storedBirthDate) {
+                    isUpdatingSafety = true;
+                    try {
+                        const result = await updateSafetyFilter(false);
+                        settings.update((current) => ({
+                            ...current,
+                            safetyFilterOn: result.safetyFilterOn,
+                        }));
+                        st_user.update((current) =>
+                            current
+                                ? {
+                                      ...current,
+                                      data: {
+                                          ...current.data,
+                                          safetyFilterOn: result.safetyFilterOn,
+                                          isVerified:
+                                              result.isVerified ?? current.data?.isVerified,
+                                      },
+                                  }
+                                : current,
+                        );
+                    } catch (error) {
+                        toast.error(
+                            error instanceof Error
+                                ? error.message
+                                : $t("settingPageModal.safetyUpdateFailed"),
+                        );
+                    } finally {
+                        isUpdatingSafety = false;
+                    }
+                    return;
+                }
+
                 safetyModalMode = "overseas_birthdate";
                 isAgeVerificationModalOpen = true;
                 return;
