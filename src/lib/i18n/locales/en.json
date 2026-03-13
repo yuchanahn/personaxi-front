@@ -482,7 +482,8 @@
   "chatWindow": {
     "noConversation": "{name}, No conversation yet. Type a question to start.",
     "thinking": "Thinking",
-    "selectionComplete": "Selection Complete"
+    "selectionComplete": "Selection Complete",
+    "interactiveRenderPending": "Rendering interactive scene..."
   },
   "livePage": {
     "viewer1": "Viewer1",

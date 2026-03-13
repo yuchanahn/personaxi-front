@@ -104,6 +104,34 @@
     input: AstroChartInput;
   }
 
+  const INTERACTIVE_RENDER_TAGS = [
+    "div",
+    "table",
+    "thead",
+    "tbody",
+    "tr",
+    "td",
+    "th",
+    "p",
+    "span",
+    "section",
+    "article",
+    "header",
+    "footer",
+    "main",
+    "aside",
+    "blockquote",
+    "ul",
+    "ol",
+    "li",
+    "h1",
+    "h2",
+    "h3",
+    "h4",
+    "h5",
+    "h6",
+  ];
+
   type ChatLogItem =
     | NarrationBlock
     | UserInteractionBlock
@@ -362,6 +390,7 @@
   let currentThrottleIndex = -1;
   let currentThrottleCharIndex = 0;
   let typingDone = true; // true when throttle finishes + stream done
+  let pendingInteractiveRender = false;
 
   // Sync visibleMessages with global messages
   $: updateVisibleMessages($messages);
@@ -426,6 +455,7 @@
   function updateVisibleMessages(globalMsgs: Message[]) {
     if (globalMsgs.length === 0) {
       visibleMessages = [];
+      pendingInteractiveRender = false;
       cancelThrottle();
       return;
     }
@@ -491,6 +521,54 @@
   function cancelThrottle() {
     if (throttleFrame) cancelAnimationFrame(throttleFrame);
     throttleFrame = 0;
+  }
+
+  function hasPendingInteractiveRender(content: string, done?: boolean): boolean {
+    if (persona?.personaType !== "2D" || done === true) {
+      return false;
+    }
+
+    if (findIncompleteStyleTagStart(content) !== -1) {
+      return true;
+    }
+
+    return INTERACTIVE_RENDER_TAGS.some((tagName) =>
+      hasIncompleteInteractiveTag(content, tagName),
+    );
+  }
+
+  function updatePendingInteractiveRenderState(content: string, done?: boolean) {
+    pendingInteractiveRender = hasPendingInteractiveRender(content, done);
+  }
+
+  function findIncompleteStyleTagStart(content: string): number {
+    const styleOpenRegex = /<style\b[^>]*>/gi;
+    let match: RegExpExecArray | null;
+
+    while ((match = styleOpenRegex.exec(content)) !== null) {
+      const closeIdx = content.indexOf("</style>", match.index);
+      if (closeIdx === -1) {
+        return match.index;
+      }
+      styleOpenRegex.lastIndex = closeIdx + "</style>".length;
+    }
+
+    return -1;
+  }
+
+  function hasIncompleteInteractiveTag(content: string, tagName: string): boolean {
+    const tagRegex = new RegExp(`<${tagName}\\b[^>]*>`, "gi");
+    let match: RegExpExecArray | null;
+
+    while ((match = tagRegex.exec(content)) !== null) {
+      const end = findMatchingHtmlTagEnd(content, match.index, tagName);
+      if (end === -1) {
+        return true;
+      }
+      tagRegex.lastIndex = end;
+    }
+
+    return false;
   }
 
   export function patchUnclosedDialogueForParse(raw: string): string {
@@ -652,6 +730,10 @@
 
       const targetContent = globalMsgs[currentThrottleIndex].content;
       let currentContent = visibleMessages[currentThrottleIndex].content;
+      updatePendingInteractiveRenderState(
+        targetContent,
+        globalMsgs[currentThrottleIndex]?.done,
+      );
 
       if (currentContent.length < targetContent.length) {
         const effectiveSpeed = getTypingSpeed(targetContent);
@@ -733,6 +815,7 @@
           scrollToBottom();
         }
       } else {
+        pendingInteractiveRender = false;
         if (Math.floor(currentThrottleCharIndex) >= targetContent.length) {
           cancelThrottle();
           // Check if the stream is also done (msg.done flag)
@@ -860,6 +943,14 @@
     }
   }
 
+  $: {
+    const lastMessage = $messages.at(-1);
+    pendingInteractiveRender =
+      lastMessage?.role === "assistant"
+        ? hasPendingInteractiveRender(lastMessage.content, lastMessage.done)
+        : false;
+  }
+
   function scrollToBottom() {
     if (!chatWindowEl) return;
     if (!autoScroll) return;
@@ -955,6 +1046,15 @@
       {$t("chatWindow.noConversation", {
         values: { name: persona?.name || "AI" },
       })}
+    </div>
+  {/if}
+
+  {#if pendingInteractiveRender}
+    <div class="interactive-render-placeholder" role="status" aria-live="polite">
+      <div class="interactive-render-dots" aria-hidden="true">
+        <span></span><span></span><span></span>
+      </div>
+      <span>{$t("chatWindow.interactiveRenderPending")}</span>
     </div>
   {/if}
 
@@ -1374,6 +1474,58 @@
     color: var(--muted-foreground);
     font-style: italic;
   }
+
+  .interactive-render-placeholder {
+    align-self: flex-start;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.65rem;
+    padding: 0.75rem 1rem;
+    border-radius: 16px;
+    border: 1px solid var(--border);
+    background: color-mix(in oklab, var(--secondary) 88%, transparent);
+    color: var(--muted-foreground);
+    position: relative;
+    z-index: 1;
+    font-size: 0.92rem;
+  }
+
+  .interactive-render-dots {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.22rem;
+  }
+
+  .interactive-render-dots span {
+    width: 0.42rem;
+    height: 0.42rem;
+    border-radius: 999px;
+    background: currentColor;
+    opacity: 0.3;
+    animation: interactive-render-pulse 1.1s infinite ease-in-out;
+  }
+
+  .interactive-render-dots span:nth-child(2) {
+    animation-delay: 0.15s;
+  }
+
+  .interactive-render-dots span:nth-child(3) {
+    animation-delay: 0.3s;
+  }
+
+  @keyframes interactive-render-pulse {
+    0%,
+    80%,
+    100% {
+      opacity: 0.25;
+      transform: translateY(0);
+    }
+    40% {
+      opacity: 0.9;
+      transform: translateY(-1px);
+    }
+  }
+
   .assistant-placeholder {
     align-self: flex-start;
   }

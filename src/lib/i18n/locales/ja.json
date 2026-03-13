@@ -116,7 +116,8 @@
   "chatWindow": {
     "noConversation": "{name}さんとの会話を始めましょう！",
     "thinking": "考え中",
-    "selectionComplete": "選択完了"
+    "selectionComplete": "選択完了",
+    "interactiveRenderPending": "インタラクティブシーンを描画中です..."
   },
   "sidebar": {
     "hide": "サイドバーを隠す",
