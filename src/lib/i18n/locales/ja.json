@@ -581,6 +581,7 @@
   "profilePage": {
     "translating": "コンテンツを翻訳中です。しばらくしてからリロードすると確認できます。",
     "loadingPersona": "キャラクター情報を読み込み中...",
+    "restrictedOrMissing": "このキャラクターは読み込めませんでした。成人向けコンテンツか、アクセス権限のないリンクの可能性があります。",
     "imageAlt": "{name} 画像 {index}",
     "imageMoveLabel": "{index}番目の画像へ移動",
     "creatorInfo": "制作：@{creatorName}",

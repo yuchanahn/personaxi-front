@@ -6,6 +6,15 @@ import { accessToken } from "$lib/stores/auth";
 import { get } from "svelte/store";
 import { xorEncryptDecrypt } from "$lib/utils/crypto";
 
+export class PersonaLoadError extends Error {
+    status: number;
+
+    constructor(status: number, message: string) {
+        super(message);
+        this.name = "PersonaLoadError";
+        this.status = status;
+    }
+}
 
 export async function getUploadUrl(
     fileType: "vrm" | "portrait" | "asset" | "user_profile",
@@ -103,7 +112,16 @@ export async function savePersona(persona: Persona): Promise<string> {
 export async function loadPersona(id: string): Promise<Persona> {
     const response = await api.get2(`/api/persona?id=${id}&locale=${get(settings).language}`);
     if (!response.ok) {
-        throw new Error("Failed to load persona");
+        let message = "Failed to load persona";
+        try {
+            const errorData = await response.json();
+            if (typeof errorData?.error === "string" && errorData.error.trim()) {
+                message = errorData.error;
+            }
+        } catch {
+            // Ignore non-JSON error bodies and keep the default message.
+        }
+        throw new PersonaLoadError(response.status, message);
     }
     return (await response.json()) as Persona;
 }

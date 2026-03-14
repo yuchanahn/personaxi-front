@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { onMount } from "svelte";
+    import { createEventDispatcher, onMount, tick } from "svelte";
 
     /** Raw HTML template from the creator, with {{{var}}} placeholders */
     export let template: string = "";
@@ -9,6 +9,8 @@
     export let variables: Record<string, string> = {};
 
     let containerEl: HTMLElement;
+    let resizeObserver: ResizeObserver | null = null;
+    const dispatch = createEventDispatcher<{ rendered: void }>();
 
     // Render the template with variable values substituted
     function renderTemplate(
@@ -47,6 +49,22 @@
     }
 
     $: renderedHtml = sanitizeHtml(renderTemplate(template, variables));
+    $: if (template) {
+        tick().then(() => dispatch("rendered"));
+    }
+
+    onMount(() => {
+        if (typeof ResizeObserver !== "undefined" && containerEl) {
+            resizeObserver = new ResizeObserver(() => {
+                dispatch("rendered");
+            });
+            resizeObserver.observe(containerEl);
+        }
+
+        return () => {
+            resizeObserver?.disconnect();
+        };
+    });
 </script>
 
 {#if template}

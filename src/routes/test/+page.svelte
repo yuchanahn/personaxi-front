@@ -18,6 +18,10 @@
 
 <div class="test-page">
     <h1>🔬 Track Element Test</h1>
+    <p class="links">
+        <a href="/test/chat2d">/test/chat2d</a>
+        <span>2D 채팅 렌더 샌드박스</span>
+    </p>
 
     <hr />
 
@@ -102,5 +106,16 @@
         padding: 10px;
         font-size: 0.8rem;
         font-family: monospace;
+    }
+    .links {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+        flex-wrap: wrap;
+        font-size: 0.9rem;
+    }
+    .links a {
+        color: #2563eb;
+        font-weight: 700;
     }
 </style>

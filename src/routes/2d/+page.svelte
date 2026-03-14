@@ -1,7 +1,7 @@
 <script lang="ts">
   import { page } from "$app/stores";
   import { loadChatHistory, sendPromptStream } from "$lib/api/chat";
-  import ChatWindow from "$lib/components/chat/ChatWindow.svelte";
+  import ChatWindow2D from "$lib/components/chat/ChatWindow2D.svelte";
   import ChatInput from "$lib/components/chat/ChatInput.svelte";
   import SettingsButton from "$lib/components/common/SettingsButton.svelte";
   import { fetchAndSetAssetTypes, loadPersona } from "$lib/api/edit_persona";
@@ -49,15 +49,15 @@
       showModelSelector = false;
 
       try {
-        // 2. Load Persona & Assets FIRST
-        const p = await loadPersona(sessionId);
+        // Load persona and history in parallel to reduce first paint delay.
+        const [p] = await Promise.all([
+          loadPersona(sessionId),
+          loadChatHistory(sessionId ?? ""),
+        ]);
         const metadatas = p.image_metadatas ?? [];
         const assets = await fetchAndSetAssetTypes(metadatas);
         p.image_metadatas = assets;
         persona = p;
-
-        // 3. Load Chat History
-        await loadChatHistory(sessionId ?? "");
 
         // 4. Check for New Session state
         if ($messages.length <= 1) {
@@ -201,7 +201,7 @@
   </div>
 
   <div class="chat-container">
-    <ChatWindow
+    <ChatWindow2D
       {isLoading}
       {persona}
       {showImage}

@@ -525,6 +525,7 @@
   "profilePage": {
     "translating": "콘텐츠를 번역하고 있어요. 잠시 후 새로고침하면 확인하실 수 있습니다.",
     "loadingPersona": "캐릭터 정보를 불러오는 중...",
+    "restrictedOrMissing": "해당 캐릭터를 불러올 수 없습니다. 성인 콘텐츠이거나 접근 권한이 없는 링크일 수 있습니다.",
     "imageAlt": "{name} 이미지 {index}",
     "imageMoveLabel": "{index}번 이미지로 이동",
     "creatorInfo": "제작: @{creatorName}",

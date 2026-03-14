@@ -2,7 +2,11 @@
     import { onMount } from "svelte";
     import { page } from "$app/stores";
     import { goto } from "$app/navigation";
-    import { fetchAndSetAssetTypes, loadPersona } from "$lib/api/edit_persona";
+    import {
+        fetchAndSetAssetTypes,
+        loadPersona,
+        PersonaLoadError,
+    } from "$lib/api/edit_persona";
     import type { Persona, ImageMetadata, Comment } from "$lib/types";
     import { PORTRAIT_URL, allCategories } from "$lib/constants";
     import Icon from "@iconify/svelte";
@@ -135,6 +139,10 @@
             });
         } catch (error) {
             console.error("Failed to load persona data:", error);
+            if (error instanceof PersonaLoadError && error.status === 404) {
+                toast.error($t("profilePage.restrictedOrMissing"));
+                goto("/hub", { replaceState: true });
+            }
         } finally {
             isLoading = false;
         }
