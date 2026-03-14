@@ -3,6 +3,7 @@
   import { loadChatHistory, sendPromptStream } from "$lib/api/chat";
   import ChatWindow2D from "$lib/components/chat/ChatWindow2D.svelte";
   import ChatInput from "$lib/components/chat/ChatInput.svelte";
+  import { onMount } from "svelte";
   import SettingsButton from "$lib/components/common/SettingsButton.svelte";
   import { fetchAndSetAssetTypes, loadPersona } from "$lib/api/edit_persona";
   import type { Persona } from "$lib/types";
@@ -121,8 +122,12 @@
   let showBackground = $settings.showBackground ?? false;
   let showVariableStatus = $settings.showVariableStatus ?? false;
 
+  // Mounted guard prevents initial load from triggering settings.update cascade
+  let mounted2d = false;
+  onMount(() => { mounted2d = true; });
+
   // Sync back to persistent settings when local values change
-  $: {
+  $: if (mounted2d) {
     settings.update((s) => ({
       ...s,
       showImage,
@@ -242,10 +247,10 @@
 
   @media (display-mode: standalone) {
     .chat-layout {
-      height: 100vh;
+      height: 100dvh;
     }
     .chat-container {
-      height: 100vh;
+      height: 100dvh;
     }
   }
 

@@ -575,22 +575,23 @@
             window.location.hostname === "localhost" ||
             window.location.hostname === "127.0.0.1";
 
-        // Check IP for Safety Filter
-        try {
-            const res = await fetch("https://ipapi.co/json/");
-            if (res.ok) {
-                const data = await res.json();
-                if (isLocalhost) {
-                    isOverseas = simulatedCountryCode !== "KR";
-                } else if (data.country_code !== "KR") {
-                    isOverseas = true;
+        // IP check runs concurrently — doesn't block hub rendering
+        isCheckingIp = false;
+        (async () => {
+            try {
+                const res = await fetch("https://ipapi.co/json/");
+                if (res.ok) {
+                    const data = await res.json();
+                    if (isLocalhost) {
+                        isOverseas = simulatedCountryCode !== "KR";
+                    } else if (data.country_code !== "KR") {
+                        isOverseas = true;
+                    }
                 }
+            } catch (e) {
+                console.error("Failed to check IP", e);
             }
-        } catch (e) {
-            console.error("Failed to check IP", e);
-        } finally {
-            isCheckingIp = false;
-        }
+        })();
 
         // Check if running as PWA
         if (typeof window !== "undefined") {

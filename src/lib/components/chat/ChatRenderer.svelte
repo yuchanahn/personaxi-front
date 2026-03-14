@@ -17,11 +17,10 @@
     const rawHtmlRegex =
         /<(div|table|thead|tbody|tr|td|th|p|span|section|article|header|footer|main|aside|blockquote|ul|ol|li|h[1-6]|br)\b/i;
 
+    // Only re-parse when content actually changes — prevents redundant marked+DOMPurify during typing
     $: if (content !== prevContent) {
         prevContent = content;
-    }
 
-    $: {
         let styles = "";
 
         let cleanContent = content.replace(styleRegex, (match, css) => {

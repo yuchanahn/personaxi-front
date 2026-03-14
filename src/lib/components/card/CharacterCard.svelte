@@ -167,7 +167,6 @@
         font-weight: 500;
         z-index: 2;
         border: 1px solid rgba(255, 255, 255, 0.1);
-        backdrop-filter: blur(4px);
         cursor: pointer;
         transition: background-color 0.2s;
     }
@@ -193,12 +192,11 @@
         gap: 0.3rem;
         font-size: 0.7rem;
         color: white;
-        background-color: rgba(0, 0, 0, 0.4);
+        background-color: rgba(0, 0, 0, 0.55);
         padding: 0.2rem 0.4rem;
         border-radius: var(--radius-button);
         font-weight: 600;
         border: 1px solid rgba(255, 255, 255, 0.1);
-        backdrop-filter: blur(4px);
     }
 
     /* Merged info into overlay */
@@ -288,7 +286,6 @@
         box-shadow: 0 2px 8px rgba(99, 102, 241, 0.4);
         z-index: 3;
         border: 1px solid rgba(255, 255, 255, 0.2);
-        backdrop-filter: blur(4px);
         text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
     }
 
@@ -308,7 +305,6 @@
         box-shadow: 0 2px 8px rgba(236, 72, 153, 0.4);
         z-index: 3;
         border: 1px solid rgba(255, 255, 255, 0.2);
-        backdrop-filter: blur(4px);
         text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
     }
 </style>

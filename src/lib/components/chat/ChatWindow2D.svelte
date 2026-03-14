@@ -47,6 +47,9 @@
   let currentThrottleIndex = -1;
   let currentThrottleCharIndex = 0;
   let typingDone = true;
+  let rebuildTimer = 0;
+  let lastAssembleInput = "";
+  let lastAssembleResult = { content: "", hasPendingStyle: false };
   let loadedImageUrls: Record<string, true> = {};
   let lastAutoScrollMessageCount = 0;
   let lastAutoScrollTailSignature = "";
@@ -117,7 +120,7 @@
       return;
     }
 
-    const assembled = assembleRenderableAssistantContent(last.content);
+    const assembled = cachedAssemble(last.content);
     pendingInteractiveRender = assembled.hasPendingStyle;
     const previousVisible = visibleMessages[lastIndex]?.content ?? "";
     const sameIndex = currentThrottleIndex === lastIndex;
@@ -186,6 +189,22 @@
     updateBackground();
   }
 
+  // Throttled rebuild — prevents per-frame full re-parse during typing
+  function scheduleRebuild() {
+    if (rebuildTimer) return;
+    rebuildTimer = window.setTimeout(() => {
+      rebuildTimer = 0;
+      rebuildChatBlocks(visibleMessages, persona, showVariableStatus);
+    }, 80);
+  }
+
+  function cachedAssemble(content: string) {
+    if (content === lastAssembleInput) return lastAssembleResult;
+    lastAssembleInput = content;
+    lastAssembleResult = assembleRenderableAssistantContent(content);
+    return lastAssembleResult;
+  }
+
   function startThrottleLoop() {
     if (throttleFrame) return;
 
@@ -215,9 +234,7 @@
         return;
       }
 
-      const assembled = assembleRenderableAssistantContent(
-        sourceMessage.content,
-      );
+      const assembled = cachedAssemble(sourceMessage.content);
       pendingInteractiveRender = assembled.hasPendingStyle;
       const targetContent = assembled.content;
       const currentContent =
@@ -229,7 +246,8 @@
           content: targetContent,
           done: sourceMessage.done,
         };
-        visibleMessages = [...visibleMessages];
+        visibleMessages = visibleMessages;
+        scheduleRebuild();
 
         if (sourceMessage.done === true) {
           typingDone = true;
@@ -261,7 +279,8 @@
           ),
           done: false,
         };
-        visibleMessages = [...visibleMessages];
+        visibleMessages = visibleMessages;
+        scheduleRebuild();
       }
 
       if (scrollController?.canAutoFollow()) {
@@ -381,7 +400,10 @@
   }
 
   $: updateVisibleState($messages);
-  $: rebuildChatBlocks(visibleMessages, persona, showVariableStatus);
+  // Rebuild on persona/settings change (rare) — visibleMessages rebuilds are throttled via scheduleRebuild()
+  $: if (persona || showVariableStatus !== undefined) {
+    rebuildChatBlocks(visibleMessages, persona, showVariableStatus);
+  }
   $: updateBackground();
 
   $: if (chatWindowEl && autoScroll) {

@@ -74,7 +74,6 @@
         box-shadow:
             0 -4px 16px rgba(0, 0, 0, 0.1),
             0 -2px 8px rgba(0, 0, 0, 0.06);
-        backdrop-filter: blur(10px);
         padding: 8px 0;
     }
 

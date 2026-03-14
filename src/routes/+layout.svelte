@@ -82,7 +82,7 @@
         };
         window.addEventListener("chat-error", handleChatError as EventListener);
 
-        pricingStore.fetchPricingPolicy();
+        // pricingStore.fetchPricingPolicy() — called in accessToken.subscribe, no duplicate needed
 
         // 1. 초기 세션 로드
         supabase.auth.getSession().then(({ data: { session } }) => {

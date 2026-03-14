@@ -16,6 +16,18 @@ export default defineConfig({
     rollupOptions: {
       // Three.js WebGPU 모듈을 클라이언트 측에서만 로드
       external: ['three/build/three.webgpu.js'],
+      output: {
+        manualChunks(id) {
+          // three.js + VRM 관련 → 별도 chunk (VRM/Live2D 페이지에서만 로드)
+          if (id.includes('node_modules/three') || id.includes('node_modules/@pixiv/three-vrm')) {
+            return 'vendor-three';
+          }
+          // Markdown 파싱 → 별도 chunk (채팅 페이지에서만 로드)
+          if (id.includes('node_modules/marked') || id.includes('node_modules/isomorphic-dompurify') || id.includes('node_modules/dompurify')) {
+            return 'vendor-markdown';
+          }
+        },
+      },
     },
     target: 'esnext',
   },

@@ -1,7 +1,11 @@
-import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
-import { VRMLoaderPlugin } from "@pixiv/three-vrm";
+// Dynamic imports — three.js is only loaded when this function is actually called,
+// not when the module is imported. This prevents edit3/hub pages from loading
+// ~600KB of three.js on initial page load.
 
 export async function validateVRMLicense(file: File): Promise<boolean> {
+    const { GLTFLoader } = await import("three/examples/jsm/loaders/GLTFLoader.js");
+    const { VRMLoaderPlugin } = await import("@pixiv/three-vrm");
+
     return new Promise((resolve, reject) => {
         const url = URL.createObjectURL(file);
         const loader = new GLTFLoader();
@@ -23,15 +27,10 @@ export async function validateVRMLicense(file: File): Promise<boolean> {
                 }
 
                 // Relaxed Validation: Just check if it has valid VRM metadata
-                // We no longer enforce "personaxi" in the license or author name.
-                // console.log("VRM Metadata found:", meta);
                 resolve(true);
             },
             (progress) => {
-                // console.log(
-                //     "Loading VRM for validation...",
-                //     (progress.loaded / progress.total) * 100 + "%",
-                // );
+                // Loading progress
             },
             (error) => {
                 URL.revokeObjectURL(url);
