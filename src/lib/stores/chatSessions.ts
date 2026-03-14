@@ -73,6 +73,10 @@ export const updateSession = (id: string, session: ChatSession) => {
     });
 };
 
+export const removeSession = (id: string) => {
+    chatSessions.update((sessions) => sessions.filter((session) => session.id !== id));
+};
+
 export const getSessionById = (id: string) => {
     let session: ChatSession | undefined;
     chatSessions.subscribe((sessions) => {

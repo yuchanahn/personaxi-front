@@ -6,7 +6,7 @@ import { api } from '$lib/api';
 import { showNeedMoreNeuronsModal } from '$lib/stores/modal';
 import { get } from 'svelte/store';
 import type { ESFPrompt, Persona } from '$lib/types';
-import { chatSessions } from '$lib/stores/chatSessions';
+import { chatSessions, removeSession } from '$lib/stores/chatSessions';
 
 function createFirstSceneMessage(): Message {
     return {
@@ -137,18 +137,21 @@ export async function resetChatHistory(sessionId: string) {
 }
 
 export async function deleteChatHistory(sessionId: string) {
+    console.log("Optimistically deleting chat history for session:", sessionId);
+    messages.set([]);
+    removeSession(sessionId);
+    goto(`/hub`, { replaceState: true });
+
     const res = await api.get(`/api/chat/delete?CSSID=${sessionId}`);
     if (res.ok) {
-        console.log("Deleting chat history for session:", sessionId);
-
         const r = await res.json();
         console.log("Delete chat history response:", r);
-        messages.set([]);
         await loadCharacterSessions();
-        goto(`/hub`);
-
-        //messages.set(history.map((msg: any) => ({ role: msg.role, content: msg.content })));
+        return;
     }
+
+    console.error("Failed to delete chat history for session:", sessionId, res.status);
+    await loadCharacterSessions();
 }
 
 

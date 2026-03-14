@@ -272,9 +272,8 @@
         isLoading = true;
         await showStatus("Deleting chat...", 0);
         try {
+            dispatch("close");
             await deleteChatHistory(persona.id);
-            await showStatus("✅ Chat Deleted!");
-            setTimeout(() => dispatch("close"), 1000);
         } catch (error) {
             console.error("Failed to delete chat:", error);
             await showStatus("❌ Error!");
