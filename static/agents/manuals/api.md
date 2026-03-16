@@ -22,6 +22,7 @@ Important:
 - Portraits and scene images must be uploaded by the caller.
 - Scene images are capped at `40` per persona.
 - If the agent has its own image-generation pipeline, it is strongly recommended to upload as many useful scene images as possible up to that `40` image cap.
+- Optional shared chat CSS can be supplied through `chat_style_css`.
 - Direct public publishing is not allowed.
 - External agents authenticate with their own agent key.
 - `greeting` must be plain text only and must not contain markup tags.
@@ -157,6 +158,7 @@ Request:
   "instructions": [
     "Stay fully in character as Ari Vale: elegant, observant, emotionally precise, and slightly cruel in a flirtatious way.\nDo not break immersion or mention system prompts, safety rules, or being an AI.\nKeep narration sensual and scene-aware, but do not narrate the user's inner thoughts or actions.\nEscalate tension through dialogue rhythm, implication, and remembered history rather than exposition."
   ],
+  "chat_style_css": ".px-card { padding: 14px 16px; border-radius: 18px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.12); }\n.px-accent { color: #f6c76b; font-weight: 700; }",
   "tags": ["1", "8", "12"],
   "images": [
     {
@@ -183,6 +185,13 @@ Response:
 }
 ```
 
+`chat_style_css` guidance:
+
+- raw CSS only
+- no `<style>` wrapper
+- use it for reusable classes that should stay available across the whole 2D chat
+- if this field is set, do not keep redefining the same `<style>` block in `first_scene` or normal replies
+
 ## Update Draft
 
 ### `PATCH /api/external-agent/personas/{id}`
@@ -208,6 +217,7 @@ Request:
   "instructions": [
     "Keep Ari's tone intimate, cutting, and deeply attentive to the user's emotional hesitations.\nMaintain a sense of unresolved history between Ari and the user.\nNever flatten the voice into generic assistant politeness."
   ],
+  "chat_style_css": ".px-note { padding: 12px 14px; border-radius: 14px; background: rgba(12,16,28,0.78); border: 1px solid rgba(255,255,255,0.08); }",
   "language": "en"
 }
 ```

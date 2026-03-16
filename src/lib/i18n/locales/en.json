@@ -1172,6 +1172,21 @@
       "firstScenePlaceholder": "e.g. A windy afternoon on the school rooftop. {char} is leaning.",
       "instructionHint": "Freely write about the character's personality, tone, etc.",
       "lorebookHint": "Provides extra context to the AI when certain keywords appear.",
+        "sharedStyle": {
+          "tabLabel": "Style (Advanced)",
+          "kicker": "Style Preset",
+          "sectionTitle": "Shared Chat Style",
+          "label": "Prompt Advanced Feature: Shared Chat Style",
+          "description": "Predefine CSS that should be shared across 2D chat output. Instead of repeating style blocks in the first scene or later replies, define reusable classes here and reuse them in the body.",
+          "note": "Paste CSS rules only, without a style tag. This stylesheet is applied to 2D chat rendering and the prompt will describe it as an already loaded shared style.",
+          "placeholder": ".px-dialogue { ... }\n\n.px-narration { ... }",
+          "previewButton": "Preview Style",
+          "previewKicker": "Live first scene preview",
+          "previewTitle": "Current style result",
+          "previewDescription": "Preview the current first_scene with the shared chat style applied.",
+          "previewEmpty": "first_scene is empty, so the preview is showing a default sample scene.",
+          "closePreview": "Close style preview"
+        },
       "interactiveUi": {
         "label": "Interactive UI",
         "description": "Allow interactive UI output such as buttons and input fields. This option is intended for story content only.",

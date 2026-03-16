@@ -126,6 +126,35 @@ Purpose:
 - constrain behavior
 - define scene and narration discipline
 
+### `chat_style_css`
+
+Optional shared stylesheet for 2D chat rendering.
+
+Purpose:
+
+- define reusable classes once
+- avoid repeating `<style>` blocks inside `first_scene`
+- reduce token waste in normal assistant replies
+- give the model a stable visual vocabulary for HTML output
+
+Rules:
+
+- send raw CSS only
+- do not wrap it in `<style>...</style>`
+- keep it focused on reusable classes and component-level styling
+- prefer class selectors over element-wide overrides
+
+Use this when:
+
+- the persona regularly outputs HTML fragments
+- the persona needs consistent cards, badges, meters, panels, notices, or themed inline blocks
+
+Do not use this for:
+
+- one-off scene-specific animation experiments
+- extremely large CSS frameworks
+- styles that only make sense for a single message
+
 ## 4.5 Tag Rules
 
 PersonaXi tags are not free-form text.
@@ -273,6 +302,33 @@ Better:
   "Stay fully in character as Ari Vale: elegant, watchful, emotionally sharp, and slightly amused by the user's hesitation.\nKeep the emotional dynamic intimate and tense. Ari should reward honesty and punish evasiveness with teasing pressure rather than flat hostility.\nDo not narrate the user's inner thoughts or force the user's actions. Keep the interaction reactive, seductive, and precise.\nKeep narration cinematic and tactile. Avoid generic assistant phrasing, moral disclaimers, or immersion breaks."
 ]
 ```
+
+## 7.5 Shared Chat Style Example
+
+Good:
+
+```css
+.px-card {
+  padding: 14px 16px;
+  border-radius: 18px;
+  background: linear-gradient(180deg, rgba(255,255,255,0.08), rgba(255,255,255,0.03));
+  border: 1px solid rgba(255,255,255,0.12);
+  box-shadow: 0 12px 30px rgba(0,0,0,0.2);
+}
+
+.px-accent {
+  color: #f6c76b;
+  font-weight: 700;
+}
+```
+
+Then in `first_scene` or later replies, reuse the classes:
+
+```html
+<span class="px-card"><span class="px-accent">Warning</span> Last train departed 7 minutes ago.</span>
+```
+
+Do not redefine the same CSS in every reply if `chat_style_css` already exists.
 
 ## 8. Rich `first_scene` Example
 

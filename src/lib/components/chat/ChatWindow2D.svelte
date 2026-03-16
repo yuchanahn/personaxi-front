@@ -41,6 +41,7 @@
   let pendingInteractiveRender = false;
   let activeBackgroundImage: string | null = null;
   let backgroundMeta: ImageMetadata = { url: "", description: "" };
+  let sharedChatStyleCSS = "";
 
   let isGeneratingImage = false;
   let throttleFrame = 0;
@@ -54,6 +55,14 @@
   let lastAutoScrollMessageCount = 0;
   let lastAutoScrollTailSignature = "";
   let showJumpToBottom = false;
+
+  function normalizeSharedChatStyleCSS(raw: string | undefined) {
+    if (!raw) return "";
+    return raw
+      .replace(/<style\b[^>]*>/gi, "")
+      .replace(/<\/style>/gi, "")
+      .trim();
+  }
 
   function getEffectiveUserName() {
     const user = get(st_user);
@@ -358,6 +367,10 @@
     return (last.content || "").trim().length === 0;
   }
 
+  $: sharedChatStyleCSS = normalizeSharedChatStyleCSS(
+    persona?.chat_style_css,
+  );
+
   function updateBackground() {
     if (!showBackground) {
       activeBackgroundImage = null;
@@ -537,6 +550,10 @@
         : persona?.id || "chat-window-2d",
   }}
 >
+  {#if sharedChatStyleCSS}
+    <svelte:element this={"style"}>{sharedChatStyleCSS}</svelte:element>
+  {/if}
+
   {#if showBackground && hasVideoBackground(backgroundMeta)}
     <div class="chat-background-video-layer" aria-hidden="true">
       <video

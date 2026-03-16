@@ -27,6 +27,48 @@
     import StepPrompt from "$lib/components/edit3/StepPrompt.svelte";
     import StepReview from "$lib/components/edit3/StepReview.svelte";
 
+    const AUTO_SAVE_KEY = "edit3_draft";
+    const LIVE2D_EDITOR_BRIDGE_PREFIX = "live2d_editor_config_bridge:";
+    const DEFAULT_SHARED_CHAT_STYLE_CSS = `.px-dialogue {
+    display: block;
+    margin: 0.35rem 0;
+    padding: 0.85rem 1rem;
+    border-radius: 18px;
+    font-size: 1rem;
+    line-height: 1.65;
+  }
+
+  .px-dialogue--emphasis {
+    font-weight: 700;
+    letter-spacing: 0.01em;
+  }
+
+  .px-narration {
+    display: block;
+    margin: 0.5rem 0 0.8rem;
+    font-size: 0.98rem;
+    line-height: 1.72;
+    font-style: italic;
+  }
+
+  .px-narration--soft {
+    font-size: 0.94rem;
+  }
+
+  .px-note {
+    display: block;
+    margin: 0.5rem 0;
+    padding: 0.8rem 0.95rem;
+    border-radius: 14px;
+    font-size: 0.95rem;
+    line-height: 1.6;
+  }
+
+  .px-accent {
+    font-weight: 700;
+    letter-spacing: 0.01em;
+  }`;
+
     // ── State ──
     let originalPersona: Persona | null = null;
     let persona: Persona = createEmptyPersona();
@@ -35,14 +77,8 @@
     let loading = false;
     let showSuccess = false;
 
-    // Template & Instruction State
-    const kintsugiTemplateId = "kintsugi_v1";
-    let selectedTemplate = "custom";
+    // Instruction State
     let singleInstruction = "";
-    let k_description = "";
-    let k_personality = "";
-    let k_userPersona = "";
-    let k_scenario = "";
 
     // Live2D/3D Helpers
     let availableExpressions: string[] = [];
@@ -59,8 +95,6 @@
 
     // Auto-save timer
     let autoSaveInterval: ReturnType<typeof setInterval>;
-    const AUTO_SAVE_KEY = "edit3_draft";
-const LIVE2D_EDITOR_BRIDGE_PREFIX = "live2d_editor_config_bridge:";
     const DEFAULT_LIVE2D_GESTURE_ANIM_LIST = `[NOD] : Nodding (Permission, Agreement)
 [SHAKE] : Shaking head (Denial, Refusal)
 [TILT] : Tilting head (Question, Doubt)
@@ -113,17 +147,11 @@ const LIVE2D_EDITOR_BRIDGE_PREFIX = "live2d_editor_config_bridge:";
     $: validationErrors = getValidationErrors(
         persona,
         singleInstruction,
-        selectedTemplate,
-        kintsugiTemplateId,
-        k_description,
     );
     $: canProceed = validateCurrentStep(
         currentStep,
         persona,
         singleInstruction,
-        selectedTemplate,
-        kintsugiTemplateId,
-        k_description,
     );
 
     // ── Functions ──
@@ -328,16 +356,22 @@ const LIVE2D_EDITOR_BRIDGE_PREFIX = "live2d_editor_config_bridge:";
             likes_count: 0,
             dislikes_count: 0,
             chat_count: 0,
+            chat_style_css: DEFAULT_SHARED_CHAT_STYLE_CSS,
             interactiveUIEnabled: false,
         };
+    }
+
+    function normalizeSharedChatStyleCSS(raw: string | undefined): string {
+        const normalized = (raw || "")
+            .replace(/<style\b[^>]*>/gi, "")
+            .replace(/<\/style>/gi, "")
+            .trim();
+        return normalized || DEFAULT_SHARED_CHAT_STYLE_CSS;
     }
 
     function getValidationErrors(
         p: Persona,
         instruction: string,
-        template: string,
-        kintsugiId: string,
-        kDesc: string,
     ): string[] {
         const errors: string[] = [];
         const normalizedType = (p.personaType || "").trim().toLowerCase();
@@ -358,12 +392,12 @@ const LIVE2D_EDITOR_BRIDGE_PREFIX = "live2d_editor_config_bridge:";
             errors.push(get(t)("editPage.validation.allFieldsRequired"));
         if (!p.first_scene.trim())
             errors.push(get(t)("edit3.validation.firstSceneRequired"));
-        if (template === kintsugiId) {
-            if (!kDesc.trim())
-                errors.push(get(t)("edit3.validation.kintsugiDescRequired"));
-        } else if (!isAvatarType) {
+        if (!isAvatarType) {
             if (!instruction.trim())
                 errors.push(get(t)("edit3.validation.instructionRequired"));
+            if ((p.chat_style_css || "").trim().length > 12000) {
+                errors.push("Chat shared style must be 12000 characters or fewer");
+            }
         }
         if (isLive2DType && !hasLive2DModel) {
             errors.push(get(t)("edit3.validation.live2dModelRequired"));
@@ -380,9 +414,6 @@ const LIVE2D_EDITOR_BRIDGE_PREFIX = "live2d_editor_config_bridge:";
         step: number,
         p: Persona,
         instruction: string,
-        template: string,
-        kintsugiId: string,
-        kDesc: string,
     ): boolean {
         const normalizedType = (p.personaType || "").trim().toLowerCase();
         const isLive2DType =
@@ -401,7 +432,6 @@ const LIVE2D_EDITOR_BRIDGE_PREFIX = "live2d_editor_config_bridge:";
             case 2:
                 return true; // Media is optional
             case 3:
-                if (template === kintsugiId) return !!kDesc.trim();
                 return !!p.first_scene.trim() && (isAvatarType || !!instruction.trim());
             case 4:
                 return (
@@ -430,36 +460,9 @@ const LIVE2D_EDITOR_BRIDGE_PREFIX = "live2d_editor_config_bridge:";
         try {
             const p = await loadPersonaOriginal(id);
             originalPersona = JSON.parse(JSON.stringify(p));
+            p.chat_style_css = normalizeSharedChatStyleCSS(p.chat_style_css);
 
-            // Parse Instructions for Templates
-            if (p.instructions.length > 1 && p.instructions[1]) {
-                const templateIdentifier = p.instructions[1];
-                if (templateIdentifier === "conversation") {
-                    selectedTemplate = "conversation";
-                    singleInstruction = p.instructions[0] || "";
-                } else if (templateIdentifier === "simulation") {
-                    selectedTemplate = "simulation";
-                    singleInstruction = p.instructions[0] || "";
-                } else if (templateIdentifier === kintsugiTemplateId) {
-                    selectedTemplate = kintsugiTemplateId;
-                    try {
-                        const data = JSON.parse(p.instructions[0] || "{}");
-                        k_description = data.description || "";
-                        k_personality = data.personality || "";
-                        k_userPersona = data.userPersona || "";
-                        k_scenario = data.scenario || "";
-                    } catch (e) {
-                        console.error("Kintsugi JSON parse failed", e);
-                        k_description = p.instructions[0] || "";
-                    }
-                } else {
-                    selectedTemplate = "custom";
-                    singleInstruction = p.instructions[0] || "";
-                }
-            } else {
-                selectedTemplate = "custom";
-                singleInstruction = p.instructions[0] || "";
-            }
+            singleInstruction = p.instructions[0] || "";
 
             if (p.voice_id) selectedVoiceId = p.voice_id;
             else selectedVoiceId = "";
@@ -594,49 +597,34 @@ const LIVE2D_EDITOR_BRIDGE_PREFIX = "live2d_editor_config_bridge:";
         if (loading || showSuccess) return;
         error = "";
 
-        // Assemble instructions
-        let finalInstructions: string[] = [];
+        const normalizedType = (persona.personaType || "").trim().toLowerCase();
+        const isLive2DType =
+            normalizedType === "2.5d" || normalizedType === "live2d";
+        const is3DType = normalizedType === "3d" || normalizedType === "vrm3d";
+        const isAvatarType = isLive2DType || is3DType;
+        persona.chat_style_css = normalizeSharedChatStyleCSS(
+            persona.chat_style_css,
+        );
 
-        if (selectedTemplate === kintsugiTemplateId) {
-            if (k_description.length > 1000) {
-                error = $t("editPage.validation.kintsugiDescLimit");
-                toast.error(error);
-                return;
-            }
-            const kintsugiJson = JSON.stringify({
-                description: k_description,
-                personality: k_personality,
-                userPersona: k_userPersona,
-                scenario: k_scenario,
-            });
-            finalInstructions.push(kintsugiJson);
-        } else {
-            finalInstructions.push(singleInstruction);
-            if (singleInstruction.length > 3000) {
-                error = $t("editPage.validation.instructionsLimitExceeded");
-                toast.error(error);
-                return;
-            }
-            const normalizedType = (persona.personaType || "").trim().toLowerCase();
-            const isAvatarType =
-                normalizedType === "2.5d" ||
-                normalizedType === "live2d" ||
-                normalizedType === "3d" ||
-                normalizedType === "vrm3d";
-            if (!isAvatarType && !singleInstruction.trim()) {
-                error = $t("editPage.validation.allFieldsRequired");
-                toast.error(error);
-                return;
-            }
+        // Prompt v2 no longer uses editable prompt templates in edit3.
+        // Persist the freeform instruction body and keep the legacy marker fixed.
+        if (singleInstruction.length > 3000) {
+            error = $t("editPage.validation.instructionsLimitExceeded");
+            toast.error(error);
+            return;
+        }
+        if ((persona.chat_style_css || "").length > 12000) {
+            error = "Chat shared style must be 12000 characters or fewer";
+            toast.error(error);
+            return;
+        }
+        if (!isAvatarType && !singleInstruction.trim()) {
+            error = $t("editPage.validation.allFieldsRequired");
+            toast.error(error);
+            return;
         }
 
-        if (selectedTemplate === "conversation")
-            finalInstructions.push("conversation");
-        else if (selectedTemplate === "simulation")
-            finalInstructions.push("simulation");
-        else if (selectedTemplate === kintsugiTemplateId)
-            finalInstructions.push(kintsugiTemplateId);
-        else finalInstructions.push("custom");
+        const finalInstructions: string[] = [singleInstruction, "custom"];
 
         persona.instructions = finalInstructions;
         ensureLive2DAnimListInFirstScene(persona);
@@ -654,10 +642,6 @@ const LIVE2D_EDITOR_BRIDGE_PREFIX = "live2d_editor_config_bridge:";
             toast.error(error);
             return;
         }
-        const normalizedType = (persona.personaType || "").trim().toLowerCase();
-        const isLive2DType =
-            normalizedType === "2.5d" || normalizedType === "live2d";
-        const is3DType = normalizedType === "3d" || normalizedType === "vrm3d";
 
         if (isLive2DType && !persona.live2d_model_url?.trim()) {
             error = $t("edit3.validation.live2dModelRequired");
@@ -742,12 +726,7 @@ const LIVE2D_EDITOR_BRIDGE_PREFIX = "live2d_editor_config_bridge:";
         try {
             const draft = {
                 persona,
-                selectedTemplate,
                 singleInstruction,
-                k_description,
-                k_personality,
-                k_userPersona,
-                k_scenario,
                 firstSceneJson,
                 selectedVoiceId,
                 currentStep,
@@ -772,12 +751,10 @@ const LIVE2D_EDITOR_BRIDGE_PREFIX = "live2d_editor_config_bridge:";
             }
 
             persona = { ...createEmptyPersona(), ...draft.persona };
-            selectedTemplate = draft.selectedTemplate || "custom";
+            persona.chat_style_css = normalizeSharedChatStyleCSS(
+                persona.chat_style_css,
+            );
             singleInstruction = draft.singleInstruction || "";
-            k_description = draft.k_description || "";
-            k_personality = draft.k_personality || "";
-            k_userPersona = draft.k_userPersona || "";
-            k_scenario = draft.k_scenario || "";
             firstSceneJson = draft.firstSceneJson || "";
             selectedVoiceId = draft.selectedVoiceId || "";
             const restoredStep = Number(draft.currentStep);
@@ -861,16 +838,10 @@ const LIVE2D_EDITOR_BRIDGE_PREFIX = "live2d_editor_config_bridge:";
         {:else if currentStep === 3}
             <StepPrompt
                 bind:persona
-                bind:selectedTemplate
                 bind:singleInstruction
-                bind:k_description
-                bind:k_personality
-                bind:k_userPersona
-                bind:k_scenario
                 bind:firstSceneJson
                 {availableExpressions}
                 {availableMotions}
-                {kintsugiTemplateId}
                 bind:pendingLoreLinks
             />
         {:else if currentStep === 4}
@@ -895,16 +866,10 @@ const LIVE2D_EDITOR_BRIDGE_PREFIX = "live2d_editor_config_bridge:";
             {:else if currentStep + 1 === 3}
                 <StepPrompt
                     bind:persona
-                    bind:selectedTemplate
                     bind:singleInstruction
-                    bind:k_description
-                    bind:k_personality
-                    bind:k_userPersona
-                    bind:k_scenario
                     bind:firstSceneJson
                     {availableExpressions}
                     {availableMotions}
-                    {kintsugiTemplateId}
                     bind:pendingLoreLinks
                 />
             {:else if currentStep + 1 === 4}

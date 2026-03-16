@@ -1172,6 +1172,21 @@
       "firstScenePlaceholder": "例：学校の屋上で風が吹く午後。{char}が手すりに寄りかかり空を眺めている。",
       "instructionHint": "キャラクターの性格、言葉遣い、行動ルールなどを自由に記述してください。",
       "lorebookHint": "特定のキーワードが登場した際にAIに追加情報を提供します。",
+        "sharedStyle": {
+          "tabLabel": "スタイル (高度)",
+          "kicker": "スタイル事前指定",
+          "sectionTitle": "共通チャットスタイル",
+          "label": "プロンプト高度機能: 共通チャットスタイル",
+          "description": "2Dチャットで共通適用するCSSを事前に指定します。first_scene や各応答ごとに style ブロックを繰り返す代わりに、ここで再利用クラスを定義し、本文ではそのクラスを使い回してください。",
+          "note": "style タグは入れず、CSS本文だけを貼り付けてください。このスタイルは2Dチャット描画に共通適用され、プロンプトでも既に読み込まれた共有スタイルとして案内されます。",
+          "placeholder": ".px-dialogue { ... }\n\n.px-narration { ... }",
+          "previewButton": "スタイルをプレビュー",
+          "previewKicker": "first_scene リアルタイムプレビュー",
+          "previewTitle": "現在のスタイル適用結果",
+          "previewDescription": "現在編集中の first_scene と共有チャットスタイルをそのまま確認します。",
+          "previewEmpty": "first_scene が空のため、デフォルトのサンプルシーンを表示しています。",
+          "closePreview": "スタイルプレビューを閉じる"
+        },
       "interactiveUi": {
         "label": "インタラクティブUI",
         "description": "ボタンや入力欄などのインタラクティブUI出力を許可します。ストーリー型コンテンツ専用の設定です。",

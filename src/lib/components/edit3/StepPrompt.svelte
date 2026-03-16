@@ -3,22 +3,18 @@
     import Icon from "@iconify/svelte";
     import { tick } from "svelte";
     import FirstSceneBuilder from "$lib/components/FirstSceneBuilder.svelte";
-    import KintsugiForm from "$lib/components/edit/KintsugiForm.svelte";
     import VariableEditor from "$lib/components/edit3/VariableEditor.svelte";
     import LoreLinker from "$lib/components/lore/LoreLinker.svelte";
     import type { Persona } from "$lib/types";
+    import { parseChat2DMessages } from "$lib/chat2d/parser";
+    import type { Chat2DBlock } from "$lib/chat2d/types";
+    import type { Message } from "$lib/stores/messages";
 
     export let persona: Persona;
-    export let selectedTemplate: string;
     export let singleInstruction: string;
-    export let k_description: string;
-    export let k_personality: string;
-    export let k_userPersona: string;
-    export let k_scenario: string;
     export let firstSceneJson: string;
     export let availableExpressions: string[];
     export let availableMotions: string[];
-    export let kintsugiTemplateId: string;
     export let pendingLoreLinks = new Set<string>();
     $: void pendingLoreLinks;
 
@@ -26,6 +22,7 @@
     let toggleDialogueTag = false;
     let isAvatarPersona = false;
     let isStoryPersona = false;
+    let showStylePreview = false;
 
     const jsonPlaceholder =
         '{"greeting": "안녕하세요!", "expression": "happy", "motion": "idle"}';
@@ -46,7 +43,7 @@
             firstSceneTextarea.selectionEnd = newPos;
         });
     }
-    let activeTab = "prompt"; // prompt, variable, lore
+    let activeTab = "prompt"; // prompt, variable, lore, style
     $: isAvatarPersona =
         persona.personaType === "3D" || persona.personaType === "2.5D";
     $: isStoryPersona = persona.contentType === "story" && !isAvatarPersona;
@@ -67,15 +64,50 @@
             label: "editPage.tabs.lorebook",
             icon: "ph:book-bookmark-duotone",
         },
+        {
+            id: "style",
+            label: "edit3.prompt.sharedStyle.tabLabel",
+            icon: "ph:paint-brush-broad-duotone",
+        },
     ];
+
+    $: stylePreviewMessages = buildStylePreviewMessages(persona);
+    $: stylePreviewBlocks = parseChat2DMessages(
+        stylePreviewMessages,
+        {
+            persona,
+            userName: "User",
+        },
+        {
+            showVariableStatus: false,
+            revealVariableStatus: false,
+        },
+    );
+
+    function buildStylePreviewMessages(currentPersona: Persona): Message[] {
+        const previewContent =
+            currentPersona.first_scene?.trim() ||
+            `<say speaker="{{char}}">스타일 미리보기용 대사입니다.</say>\n\n이 영역에서 현재 입력한 공통 스타일이 실제 퍼스트씬에 어떻게 적용되는지 확인할 수 있습니다.`;
+
+        return [
+            {
+                role: "assistant",
+                content: previewContent,
+                done: true,
+                key: "style-preview",
+            },
+        ];
+    }
 </script>
 
 <div class="step-prompt">
     <!-- Tab Navigation -->
     <div class="tabs">
         {#each tabs as tab}
-            {#if tab.id === "variable" && (persona.personaType === "3D" || persona.personaType === "2.5D")}
+            {#if tab.id === "variable" && isAvatarPersona}
                 <!-- Skip Variable tab for 3D/2.5D -->
+            {:else if tab.id === "lore" && isAvatarPersona}
+                <!-- Skip Lore tab for 3D/2.5D -->
             {:else}
                 <button
                     class="tab-btn"
@@ -83,7 +115,7 @@
                     on:click={() => (activeTab = tab.id)}
                 >
                     <Icon icon={tab.icon} width="18" />
-                    {#if tab.id === "lore" && isAvatarPersona}
+                    {#if tab.id === "style" && isAvatarPersona}
                         {$t("editPage.tabs.advanced", {
                             default: "고급 설정",
                         })}
@@ -197,44 +229,6 @@
             {/if}
         </div>
 
-        <!-- Prompt Template (2D only) -->
-        {#if !isAvatarPersona}
-            <div class="field-group">
-                <label for="e3-template" class="field-label">
-                    <Icon icon="ph:file-code-duotone" width="18" />
-                    {$t("editPage.aiSettings.templateLabel", {
-                        default: "프롬프트 템플릿",
-                    })}
-                </label>
-                <select
-                    id="e3-template"
-                    class="field-select"
-                    bind:value={selectedTemplate}
-                >
-                    <option value="custom"
-                        >{$t("editPage.aiSettings.templateCustom", {
-                            default: "자유 형식",
-                        })}</option
-                    >
-                    <option value="conversation"
-                        >{$t("editPage.aiSettings.templateConversation", {
-                            default: "대화형",
-                        })}</option
-                    >
-                    <option value="simulation"
-                        >{$t("editPage.aiSettings.templateSimulation", {
-                            default: "시뮬레이션",
-                        })}</option
-                    >
-                    <option value={kintsugiTemplateId}
-                        >{$t("editPage.aiSettings.templateKintsugi", {
-                            default: "Kintsugi",
-                        })}</option
-                    >
-                </select>
-            </div>
-        {/if}
-
         {#if isStoryPersona}
             <div class="field-group">
                 <label class="field-label">
@@ -311,33 +305,23 @@
                             "캐릭터의 성격, 말투, 행동 규칙 등을 자유롭게 작성하세요.",
                     })}
                 </p>
-
-                {#if selectedTemplate !== kintsugiTemplateId}
-                    <textarea
-                        id="e3-instructions"
-                        class="field-textarea"
-                        bind:value={singleInstruction}
-                        rows="8"
-                        maxlength="3000"
-                        placeholder={$t("editPage.instructionsPlaceholder", {
-                            default: "캐릭터의 성격과 말투를 설명하세요...",
-                        })}
-                    ></textarea>
-                    <div
-                        class="char-counter"
-                        class:warning={singleInstruction.length > 2800}
-                        class:error={singleInstruction.length >= 3000}
-                    >
-                        {singleInstruction.length} / 3000
-                    </div>
-                {:else}
-                    <KintsugiForm
-                        bind:k_description
-                        bind:k_personality
-                        bind:k_userPersona
-                        bind:k_scenario
-                    />
-                {/if}
+                <textarea
+                    id="e3-instructions"
+                    class="field-textarea"
+                    bind:value={singleInstruction}
+                    rows="8"
+                    maxlength="3000"
+                    placeholder={$t("editPage.instructionsPlaceholder", {
+                        default: "캐릭터의 성격과 말투를 설명하세요...",
+                    })}
+                ></textarea>
+                <div
+                    class="char-counter"
+                    class:warning={singleInstruction.length > 2800}
+                    class:error={singleInstruction.length >= 3000}
+                >
+                    {singleInstruction.length} / 3000
+                </div>
             </div>
         {/if}
         {/if}
@@ -355,15 +339,37 @@
 
     <div class="tab-content" class:active={activeTab === "lore"}>
         {#if activeTab === "lore"}
+            <!-- Lorebook System (Advanced Context) -->
+            <div class="field-group">
+                <label class="field-label">
+                    <Icon icon="ph:book-bookmark-duotone" width="18" />
+                    {$t("editPage.lorebookLabel", {
+                        default: "로어북 (Lorebook)",
+                    })}
+                </label>
+                <p class="field-hint">
+                    {$t("editPage.lorebookDescription", {
+                        default:
+                            "특정 키워드가 등장할 때 AI에게 추가 정보를 제공합니다.",
+                    })}
+                </p>
+                <LoreLinker personaId={persona.id} />
+            </div>
+        {/if}
+    </div>
+
+    <div class="tab-content" class:active={activeTab === "style"}>
+        {#if activeTab === "style"}
             {#if isAvatarPersona}
                 <div class="field-group">
                     <label class="field-label">
                         <Icon icon="ph:sliders-horizontal-duotone" width="18" />
-                        고급 캐릭터 설정
+                        {$t("editPage.tabs.advanced", {
+                            default: "고급 설정",
+                        })}
                     </label>
                     <p class="field-hint">
-                        Live2D/VRM 캐릭터는 로어북 대신 이 탭에서 고급 설정을
-                        관리합니다.
+                        Live2D/VRM 캐릭터의 고급 설정을 관리합니다.
                     </p>
                     <FirstSceneBuilder
                         initialData={persona.first_scene}
@@ -381,32 +387,205 @@
                     />
                 </div>
             {:else}
-                <!-- Lorebook System (Advanced Context) -->
-                <div class="field-group">
-                    <label class="field-label">
-                        <Icon icon="ph:book-bookmark-duotone" width="18" />
-                        {$t("editPage.lorebookLabel", {
-                            default: "로어북 (Lorebook)",
+                <div class="field-group prompt-advanced-group">
+                    <div class="field-section-header">
+                        <span class="section-kicker">
+                            {$t("edit3.prompt.sharedStyle.kicker", {
+                                default: "스타일 미리지정",
+                            })}
+                        </span>
+                        <h3 class="section-title">
+                            {$t("edit3.prompt.sharedStyle.sectionTitle", {
+                                default: "공통 채팅 스타일",
+                            })}
+                        </h3>
+                    </div>
+                    <label
+                        for="e3-chat-style-css"
+                        class="field-label"
+                    >
+                        <Icon icon="ph:paint-brush-broad-duotone" width="18" />
+                        {$t("edit3.prompt.sharedStyle.label", {
+                            default: "프롬프트 고급 기능: 채팅 공통 스타일",
                         })}
                     </label>
                     <p class="field-hint">
-                        {$t("editPage.lorebookDescription", {
+                        {$t("edit3.prompt.sharedStyle.description", {
                             default:
-                                "특정 키워드가 등장할 때 AI에게 추가 정보를 제공합니다.",
+                                "2D 채팅에서 공통으로 적용할 CSS를 미리 지정합니다. 퍼스트씬이나 응답마다 스타일 블록을 반복해서 넣지 말고, 여기서 클래스 스타일을 정의한 뒤 본문에서는 그 클래스를 재사용하세요.",
                         })}
                     </p>
-                    <LoreLinker personaId={persona.id} />
+                    <p class="field-hint subtle">
+                        {$t("edit3.prompt.sharedStyle.note", {
+                            default:
+                                "style 태그 없이 CSS 본문만 넣으세요. 이 스타일은 2D 채팅 렌더에 공통 적용되고, 프롬프트에도 이미 로드된 스타일로 안내됩니다.",
+                        })}
+                    </p>
+                    <div class="style-preview-actions">
+                        <button
+                            type="button"
+                            class="btn-util preview-btn"
+                            on:click={() => (showStylePreview = true)}
+                        >
+                            <Icon icon="ph:eye-duotone" width="16" />
+                            {$t("edit3.prompt.sharedStyle.previewButton", {
+                                default: "스타일 미리보기",
+                            })}
+                        </button>
+                    </div>
+                    <textarea
+                        id="e3-chat-style-css"
+                        class="field-textarea code-textarea"
+                        bind:value={persona.chat_style_css}
+                        rows="8"
+                        maxlength="12000"
+                        placeholder={$t("edit3.prompt.sharedStyle.placeholder", {
+                            default:
+                                ".px-dialogue { ... }\n\n.px-narration { ... }",
+                        })}
+                    ></textarea>
+                    <div
+                        class="char-counter"
+                        class:warning={(persona.chat_style_css?.length || 0) > 11000}
+                        class:error={(persona.chat_style_css?.length || 0) >= 12000}
+                    >
+                        {persona.chat_style_css?.length || 0} / 12000
+                    </div>
                 </div>
             {/if}
         {/if}
     </div>
 </div>
 
+{#if showStylePreview}
+    <div
+        class="style-preview-overlay"
+        role="button"
+        tabindex="0"
+        aria-label={$t("edit3.prompt.sharedStyle.closePreview", {
+            default: "스타일 미리보기 닫기",
+        })}
+        on:click={() => (showStylePreview = false)}
+        on:keydown={(e) => {
+            if (e.key === "Escape" || e.key === "Enter" || e.key === " ") {
+                showStylePreview = false;
+            }
+        }}
+    >
+        <div
+            class="style-preview-modal"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="style-preview-title"
+            on:click={(e) => e.stopPropagation()}
+        >
+            {#if persona.chat_style_css?.trim()}
+                <svelte:element this={"style"}>{persona.chat_style_css}</svelte:element>
+            {/if}
+
+            <div class="style-preview-header">
+                <div>
+                    <span class="style-preview-kicker">
+                        {$t("edit3.prompt.sharedStyle.previewKicker", {
+                            default: "퍼스트씬 실시간 미리보기",
+                        })}
+                    </span>
+                    <h3 id="style-preview-title" class="style-preview-title">
+                        {$t("edit3.prompt.sharedStyle.previewTitle", {
+                            default: "현재 스타일 적용 결과",
+                        })}
+                    </h3>
+                    <p class="style-preview-description">
+                        {$t("edit3.prompt.sharedStyle.previewDescription", {
+                            default:
+                                "현재 편집 중인 first_scene와 공통 채팅 스타일을 바로 확인합니다.",
+                        })}
+                    </p>
+                </div>
+                <button
+                    type="button"
+                    class="style-preview-close"
+                    on:click={() => (showStylePreview = false)}
+                    aria-label={$t("edit3.prompt.sharedStyle.closePreview", {
+                        default: "스타일 미리보기 닫기",
+                    })}
+                >
+                    <Icon icon="ph:x-bold" width="18" />
+                </button>
+            </div>
+
+            <div class="style-preview-body">
+                {#if !persona.first_scene?.trim()}
+                    <div class="style-preview-empty">
+                        {$t("edit3.prompt.sharedStyle.previewEmpty", {
+                            default:
+                                "first_scene가 비어 있어 기본 예시 장면으로 미리보기를 표시합니다.",
+                        })}
+                    </div>
+                {/if}
+
+                <div class="style-preview-chat">
+                    {#each stylePreviewBlocks as block (block.id)}
+                        {#if block.type === "narration"}
+                            <div class="preview-narration">{block.content}</div>
+                        {:else if block.type === "dialogue"}
+                            <div class="preview-dialogue-wrap">
+                                <div class="preview-speaker">{block.speaker}</div>
+                                <div class="preview-dialogue">{block.content}</div>
+                            </div>
+                        {:else if block.type === "image"}
+                            <figure class="preview-image-card">
+                                <img
+                                    src={block.metadata.static_url || block.url}
+                                    alt={block.alt}
+                                />
+                                <figcaption>
+                                    {block.alt || `Image ${block.index}`}
+                                </figcaption>
+                            </figure>
+                        {:else if block.type === "markdown_image"}
+                            <figure class="preview-image-card">
+                                <img src={block.url} alt={block.alt} />
+                                <figcaption>{block.alt || "Generated image"}</figcaption>
+                            </figure>
+                        {:else if block.type === "code"}
+                            <pre class="preview-code"><code>{block.content}</code></pre>
+                        {:else if block.type === "user-interaction"}
+                            <div class="preview-system-badge">{block.content}</div>
+                        {/if}
+                    {/each}
+                </div>
+            </div>
+        </div>
+    </div>
+{/if}
+
 <style>
     .step-prompt {
         display: flex;
         flex-direction: column;
         gap: 1.5rem;
+    }
+
+    .field-section-header {
+        display: flex;
+        flex-direction: column;
+        gap: 0.2rem;
+        margin-bottom: 0.75rem;
+    }
+
+    .section-kicker {
+        font-size: 0.78rem;
+        font-weight: 700;
+        letter-spacing: 0.04em;
+        color: var(--primary);
+    }
+
+    .section-title {
+        margin: 0;
+        font-size: 1rem;
+        font-weight: 700;
+        color: var(--foreground);
     }
 
     /* Tabs */
@@ -595,9 +774,219 @@
         color: var(--destructive);
     }
 
+    .prompt-advanced-group {
+        padding-top: 0.5rem;
+        border-top: 1px solid var(--border);
+    }
+
+    .style-preview-actions {
+        display: flex;
+        justify-content: flex-end;
+        margin-top: 0.2rem;
+    }
+
+    .preview-btn {
+        gap: 0.45rem;
+    }
+
+    .style-preview-overlay {
+        position: fixed;
+        inset: 0;
+        z-index: 1000;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 1.5rem;
+        background: rgba(10, 12, 18, 0.72);
+        backdrop-filter: blur(10px);
+    }
+
+    .style-preview-modal {
+        width: min(860px, 100%);
+        max-height: min(84vh, 920px);
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        border-radius: 24px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        background: var(--card);
+        box-shadow: 0 28px 80px rgba(0, 0, 0, 0.35);
+    }
+
+    .style-preview-header {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 1rem;
+        padding: 1.25rem 1.35rem 1rem;
+        border-bottom: 1px solid var(--border);
+    }
+
+    .style-preview-kicker {
+        display: inline-block;
+        margin-bottom: 0.25rem;
+        font-size: 0.78rem;
+        font-weight: 700;
+        letter-spacing: 0.04em;
+        color: var(--primary);
+    }
+
+    .style-preview-title {
+        margin: 0;
+        font-size: 1.08rem;
+        font-weight: 800;
+        color: var(--foreground);
+    }
+
+    .style-preview-description {
+        margin: 0.35rem 0 0;
+        font-size: 0.85rem;
+        line-height: 1.45;
+        color: var(--muted-foreground);
+    }
+
+    .style-preview-close {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 36px;
+        height: 36px;
+        border: 1px solid var(--border);
+        border-radius: 999px;
+        background: var(--background);
+        color: var(--foreground);
+        cursor: pointer;
+        flex-shrink: 0;
+    }
+
+    .style-preview-body {
+        overflow: auto;
+        padding: 1.1rem 1.35rem 1.35rem;
+        background:
+            radial-gradient(circle at top, rgba(255, 255, 255, 0.04), transparent 38%),
+            var(--background);
+    }
+
+    .style-preview-empty {
+        margin-bottom: 0.9rem;
+        padding: 0.8rem 0.95rem;
+        border-radius: 14px;
+        background: color-mix(in srgb, var(--muted) 82%, transparent);
+        color: var(--muted-foreground);
+        font-size: 0.85rem;
+        line-height: 1.45;
+    }
+
+    .style-preview-chat {
+        display: flex;
+        flex-direction: column;
+        gap: 0.95rem;
+    }
+
+    .preview-narration {
+        color: var(--muted-foreground);
+        line-height: 1.72;
+        white-space: pre-wrap;
+    }
+
+    .preview-dialogue-wrap {
+        display: flex;
+        flex-direction: column;
+        gap: 0.35rem;
+        align-items: flex-start;
+    }
+
+    .preview-speaker {
+        font-size: 0.82rem;
+        font-weight: 800;
+        color: var(--foreground);
+    }
+
+    .preview-dialogue {
+        max-width: min(560px, 100%);
+        padding: 0.85rem 1rem;
+        border-radius: 18px;
+        background: color-mix(in srgb, var(--muted) 88%, transparent);
+        color: var(--foreground);
+        white-space: pre-wrap;
+        line-height: 1.65;
+    }
+
+    .preview-image-card {
+        margin: 0;
+        overflow: hidden;
+        border-radius: 18px;
+        border: 1px solid var(--border);
+        background: color-mix(in srgb, var(--muted) 78%, transparent);
+    }
+
+    .preview-image-card img {
+        display: block;
+        width: 100%;
+        max-height: 340px;
+        object-fit: cover;
+    }
+
+    .preview-image-card figcaption {
+        padding: 0.75rem 0.9rem;
+        font-size: 0.82rem;
+        color: var(--muted-foreground);
+    }
+
+    .preview-code {
+        margin: 0;
+        padding: 0.95rem 1rem;
+        border-radius: 16px;
+        background: #0b1020;
+        color: #dbe6ff;
+        overflow: auto;
+        font-size: 0.84rem;
+        line-height: 1.6;
+    }
+
+    .preview-system-badge {
+        display: inline-flex;
+        align-items: center;
+        align-self: flex-start;
+        padding: 0.45rem 0.75rem;
+        border-radius: 999px;
+        background: color-mix(in srgb, var(--primary) 12%, transparent);
+        color: var(--primary);
+        font-size: 0.8rem;
+        font-weight: 700;
+    }
+
+    .field-hint.subtle {
+        margin-top: -0.1rem;
+    }
+
+    .code-textarea {
+        font-family:
+            "JetBrains Mono", "Fira Code", "SFMono-Regular", Consolas,
+            "Liberation Mono", monospace;
+        font-size: 0.85rem;
+        line-height: 1.6;
+        white-space: pre;
+    }
+
     @media (max-width: 640px) {
         .visibility-toggle {
             grid-template-columns: 1fr;
+        }
+
+        .style-preview-overlay {
+            padding: 0.9rem;
+        }
+
+        .style-preview-modal {
+            max-height: 88vh;
+            border-radius: 20px;
+        }
+
+        .style-preview-header,
+        .style-preview-body {
+            padding-left: 1rem;
+            padding-right: 1rem;
         }
     }
 
