@@ -98,6 +98,10 @@
             },
         ];
     }
+
+    function containsPreviewHtml(content: string): boolean {
+        return /<\/?[a-z][^>]*>/i.test(content);
+    }
 </script>
 
 <div class="step-prompt">
@@ -527,7 +531,13 @@
                 <div class="style-preview-chat">
                     {#each stylePreviewBlocks as block (block.id)}
                         {#if block.type === "narration"}
-                            <div class="preview-narration">{block.content}</div>
+                            {#if containsPreviewHtml(block.content)}
+                                <div class="preview-html-block">
+                                    {@html block.content}
+                                </div>
+                            {:else}
+                                <div class="preview-narration">{block.content}</div>
+                            {/if}
                         {:else if block.type === "dialogue"}
                             <div class="preview-dialogue-wrap">
                                 <div class="preview-speaker">{block.speaker}</div>
@@ -887,6 +897,10 @@
         color: var(--muted-foreground);
         line-height: 1.72;
         white-space: pre-wrap;
+    }
+
+    .preview-html-block {
+        color: var(--foreground);
     }
 
     .preview-dialogue-wrap {
