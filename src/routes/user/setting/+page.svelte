@@ -273,8 +273,13 @@
     }
 
     async function toggleVisibility(persona: Persona) {
+        const currentVisibility = persona.visibility || "private";
         const newVisibility =
-            persona.visibility === "public" ? "private" : "public";
+            currentVisibility === "public"
+                ? "link"
+                : currentVisibility === "link"
+                  ? "private"
+                  : "public";
 
         try {
             const res = await api.post(`/api/persona/visibility`, {
@@ -298,6 +303,20 @@
         } catch (err) {
             error = "Error updating visibility: " + err;
         }
+    }
+
+    function getVisibilityToggleLabel(visibility: string) {
+        const currentVisibility = visibility || "private";
+        if (currentVisibility === "public") return "Make Link-only";
+        if (currentVisibility === "link") return "Make Private";
+        return "Make Public";
+    }
+
+    function getVisibilityToggleIcon(visibility: string) {
+        const currentVisibility = visibility || "private";
+        if (currentVisibility === "public") return "ph:eye-bold";
+        if (currentVisibility === "link") return "ph:link-bold";
+        return "ph:lock-bold";
     }
 
     function openAuctionModal(p: Persona) {
@@ -1076,17 +1095,17 @@
                                 </button>
                                 <button
                                     class="action-btn"
-                                    class:active={persona.visibility ===
-                                        "public"}
+                                    class:active={persona.visibility !==
+                                        "private"}
                                     on:click={() => toggleVisibility(persona)}
-                                    aria-label={persona.visibility === "public"
-                                        ? "Make Private"
-                                        : "Make Public"}
+                                    aria-label={getVisibilityToggleLabel(
+                                        persona.visibility,
+                                    )}
                                 >
                                     <Icon
-                                        icon={persona.visibility === "public"
-                                            ? "ph:eye-bold"
-                                            : "ph:eye-slash-bold"}
+                                        icon={getVisibilityToggleIcon(
+                                            persona.visibility,
+                                        )}
                                         width="18"
                                         height="18"
                                     />

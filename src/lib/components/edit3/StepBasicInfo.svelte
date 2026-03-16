@@ -127,6 +127,25 @@
             </button>
             <button
                 class="vis-btn"
+                class:active={persona.visibility === "link"}
+                on:click={() => (persona.visibility = "link")}
+            >
+                <Icon icon="ph:link-duotone" width="20" />
+                <div class="vis-text">
+                    <span class="vis-label"
+                        >{$t("editPage.linkPublic", {
+                            default: "링크공개",
+                        })}</span
+                    >
+                    <span class="vis-desc"
+                        >{$t("editPage.linkPublicDesc", {
+                            default: "목록에는 숨겨지고 링크로만 열려요",
+                        })}</span
+                    >
+                </div>
+            </button>
+            <button
+                class="vis-btn"
                 class:active={persona.visibility === "private"}
                 on:click={() => (persona.visibility = "private")}
             >
@@ -137,7 +156,7 @@
                     >
                     <span class="vis-desc"
                         >{$t("editPage.privateDesc", {
-                            default: "나만 볼 수 있어요",
+                            default: "제작자인 나만 접근할 수 있어요",
                         })}</span
                     >
                 </div>

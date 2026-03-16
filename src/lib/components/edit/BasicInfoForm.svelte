@@ -194,6 +194,21 @@
                 </div>
             </button>
             <button
+                class:active={persona.visibility === "link"}
+                on:click={() => (persona.visibility = "link")}
+                type="button"
+            >
+                <Icon icon="ph:link-duotone" width="24" />
+                <div class="text">
+                    <span class="title">{$t("editPage.linkPublic")}</span>
+                    <span class="desc"
+                        >{$t("editPage.linkPublicDesc", {
+                            default: "Hidden from lists, accessible by link",
+                        })}</span
+                    >
+                </div>
+            </button>
+            <button
                 class:active={persona.visibility === "private"}
                 on:click={() => (persona.visibility = "private")}
                 type="button"
@@ -203,7 +218,7 @@
                     <span class="title">{$t("editPage.private")}</span>
                     <span class="desc"
                         >{$t("editPage.privateDesc", {
-                            default: "Only you can access",
+                            default: "Only the creator can access",
                         })}</span
                     >
                 </div>

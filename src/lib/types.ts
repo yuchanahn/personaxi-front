@@ -37,7 +37,7 @@ export interface Persona {
     static_portrait_url?: string; // Extracted frame for video portraits
     image_metadatas: ImageMetadata[];
     image_count: number;
-    visibility: string; // e.g., "public", "private"
+    visibility: string; // e.g., "public", "link", "private"
     created_at: string;
     updated_at: string;
     creator_name: string;

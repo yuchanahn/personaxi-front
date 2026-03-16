@@ -217,7 +217,7 @@
     }
 
     async function handleShare() {
-        if (!persona || !persona.id) return;
+        if (!persona || !persona.id || persona.visibility === "private") return;
 
         const shareUrl = `${window.location.origin}/profile?c=${persona.id}`;
 
@@ -693,16 +693,19 @@
                                 <span>{$t("profilePage.startChatButton")}</span>
                             </button>
                             <div class="action-buttons">
-                                <button
-                                    class="action-btn"
-                                    on:click={handleShare}
-                                    title={$t("settingModal.share") || "Share"}
-                                >
-                                    <Icon
-                                        icon="ph:share-network-bold"
-                                        width="20"
-                                    />
-                                </button>
+                                {#if persona.visibility !== "private"}
+                                    <button
+                                        class="action-btn"
+                                        on:click={handleShare}
+                                        title={$t("settingModal.share") ||
+                                            "Share"}
+                                    >
+                                        <Icon
+                                            icon="ph:share-network-bold"
+                                            width="20"
+                                        />
+                                    </button>
+                                {/if}
                                 <button
                                     class="action-btn destructive"
                                     on:click={() => (showReportModal = true)}

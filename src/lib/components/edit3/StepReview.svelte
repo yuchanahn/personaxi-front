@@ -116,12 +116,16 @@
                         <Icon
                             icon={persona.visibility === "public"
                                 ? "ph:globe"
-                                : "ph:lock"}
+                                : persona.visibility === "link"
+                                  ? "ph:link"
+                                  : "ph:lock"}
                             width="14"
                         />
                         {persona.visibility === "public"
                             ? $t("edit3.review.public")
-                            : $t("edit3.review.private")}
+                            : persona.visibility === "link"
+                              ? $t("edit3.review.linkPublic")
+                              : $t("edit3.review.private")}
                     </span>
                 </div>
                 {#if persona.greeting}
