@@ -15,10 +15,12 @@
   import ChatImage from "./ChatImage.svelte";
   import VariableStatusPanel from "./VariableStatusPanel.svelte";
   import AstroChartInline from "./AstroChartInline.svelte";
+  import SajuChartInline from "./SajuChartInline.svelte";
   import { parseChat2DMessages } from "$lib/chat2d/parser";
   import {
     assembleRenderableAssistantContent,
     patchUnclosedDialogueForParse,
+    skipInteractiveHtmlTyping,
   } from "$lib/chat2d/stream-assembler";
   import { Chat2DScrollController } from "$lib/chat2d/scroll-controller";
   import type { Chat2DBlock } from "$lib/chat2d/types";
@@ -32,6 +34,7 @@
   export let showVariableStatus: boolean = false;
   export let showRatioOptions = false;
   export let SendMessage: (msg: string) => void = () => {};
+  export let typingCharsPerSecond: number | null = null;
 
   let chatWindowEl: HTMLElement;
   let scrollController: Chat2DScrollController | null = null;
@@ -46,9 +49,10 @@
   let isGeneratingImage = false;
   let throttleFrame = 0;
   let currentThrottleIndex = -1;
+  let currentThrottleKey = "";
   let currentThrottleCharIndex = 0;
   let typingDone = true;
-  let rebuildTimer = 0;
+  let rebuildFrame = 0;
   let lastAssembleInput = "";
   let lastAssembleResult = { content: "", hasPendingStyle: false };
   let loadedImageUrls: Record<string, true> = {};
@@ -86,6 +90,9 @@
   }
 
   function getTypingSpeed(content: string): number {
+    if (typingCharsPerSecond && typingCharsPerSecond > 0) {
+      return typingCharsPerSecond;
+    }
     const hangulCount = content.match(/[가-힣]/g)?.length ?? 0;
     const alphaCount = content.match(/[A-Za-z]/g)?.length ?? 0;
     return hangulCount >= alphaCount ? 58 : 74;
@@ -110,6 +117,7 @@
       pendingInteractiveRender = false;
       typingDone = true;
       currentThrottleIndex = -1;
+      currentThrottleKey = "";
       currentThrottleCharIndex = 0;
       cancelThrottle();
       return;
@@ -124,18 +132,22 @@
       pendingInteractiveRender = false;
       typingDone = true;
       currentThrottleIndex = -1;
+      currentThrottleKey = "";
       currentThrottleCharIndex = 0;
       cancelThrottle();
       return;
     }
 
     const assembled = cachedAssemble(last.content);
-    pendingInteractiveRender = assembled.hasPendingStyle;
+    pendingInteractiveRender = assembled.hasPendingStyle && last.done !== true;
     const previousVisible = visibleMessages[lastIndex]?.content ?? "";
-    const sameIndex = currentThrottleIndex === lastIndex;
+    const sameMessage =
+      currentThrottleIndex === lastIndex &&
+      currentThrottleKey !== "" &&
+      currentThrottleKey === (last.key || "");
 
     if (last.done === true) {
-      const nextContent = sameIndex
+      const nextContent = sameMessage
         ? previousVisible || assembled.content
         : assembled.content;
       clones[lastIndex] = { ...last, content: nextContent };
@@ -144,6 +156,7 @@
       if (nextContent.length < assembled.content.length) {
         typingDone = false;
         currentThrottleIndex = lastIndex;
+        currentThrottleKey = last.key || "";
         currentThrottleCharIndex = getCommonPrefixLength(
           assembled.content,
           nextContent,
@@ -152,13 +165,14 @@
       } else {
         typingDone = true;
         currentThrottleIndex = -1;
+        currentThrottleKey = "";
         currentThrottleCharIndex = 0;
         cancelThrottle();
       }
       return;
     }
 
-    const seedContent = sameIndex
+    const seedContent = sameMessage
       ? previousVisible
       : previousVisible && assembled.content.startsWith(previousVisible)
         ? previousVisible
@@ -168,6 +182,7 @@
     visibleMessages = clones;
     typingDone = false;
     currentThrottleIndex = lastIndex;
+    currentThrottleKey = last.key || "";
     currentThrottleCharIndex = Math.max(
       getCommonPrefixLength(assembled.content, seedContent),
       seedContent.length,
@@ -198,13 +213,14 @@
     updateBackground();
   }
 
-  // Throttled rebuild — prevents per-frame full re-parse during typing
+  // Coalesce rebuilds to the next animation frame so dialogue can still appear
+  // character-by-character without the old 80ms chunking effect.
   function scheduleRebuild() {
-    if (rebuildTimer) return;
-    rebuildTimer = window.setTimeout(() => {
-      rebuildTimer = 0;
+    if (rebuildFrame) return;
+    rebuildFrame = window.requestAnimationFrame(() => {
+      rebuildFrame = 0;
       rebuildChatBlocks(visibleMessages, persona, showVariableStatus);
-    }, 80);
+    });
   }
 
   function cachedAssemble(content: string) {
@@ -239,12 +255,14 @@
       if (sourceMessage?.role !== "assistant") {
         typingDone = true;
         currentThrottleIndex = -1;
+        currentThrottleKey = "";
         cancelThrottle();
         return;
       }
 
       const assembled = cachedAssemble(sourceMessage.content);
-      pendingInteractiveRender = assembled.hasPendingStyle;
+      pendingInteractiveRender =
+        assembled.hasPendingStyle && sourceMessage.done !== true;
       const targetContent = assembled.content;
       const currentContent =
         visibleMessages[currentThrottleIndex]?.content ?? "";
@@ -261,6 +279,7 @@
         if (sourceMessage.done === true) {
           typingDone = true;
           currentThrottleIndex = -1;
+          currentThrottleKey = "";
           currentThrottleCharIndex = 0;
           cancelThrottle();
           return;
@@ -270,12 +289,14 @@
           (getTypingSpeed(targetContent) * deltaTime) / 1000;
         let nextLength = Math.min(
           targetContent.length,
-          Math.max(
-            Math.floor(currentThrottleCharIndex),
-            currentContent.length + 1,
-          ),
+          Math.max(Math.floor(currentThrottleCharIndex), currentContent.length),
         );
         nextLength = skipMarkdownImageTyping(
+          targetContent,
+          currentContent.length,
+          nextLength,
+        );
+        nextLength = skipInteractiveHtmlTyping(
           targetContent,
           currentContent.length,
           nextLength,
@@ -483,6 +504,10 @@
 
     return () => {
       cancelThrottle();
+      if (rebuildFrame) {
+        cancelAnimationFrame(rebuildFrame);
+        rebuildFrame = 0;
+      }
       chatWindowEl?.removeEventListener("wheel", handleWheel);
       chatWindowEl?.removeEventListener("touchstart", handleTouchStart);
       chatWindowEl?.removeEventListener("scroll", handleScroll);
@@ -576,19 +601,6 @@
     </div>
   {/if}
 
-  {#if pendingInteractiveRender}
-    <div
-      class="interactive-render-placeholder"
-      role="status"
-      aria-live="polite"
-    >
-      <div class="interactive-render-dots" aria-hidden="true">
-        <span></span><span></span><span></span>
-      </div>
-      <span>{$t("chatWindow.interactiveRenderPending")}</span>
-    </div>
-  {/if}
-
   {#each chatBlocks as item, i (item.id)}
     {#if item.type === "user"}
       <div class="message user">{item.content}</div>
@@ -634,6 +646,10 @@
       <div class="astro-chart-wrapper">
         <AstroChartInline input={item.input as any} blockId={item.id} />
       </div>
+    {:else if item.type === "saju_chart"}
+      <div class="saju-chart-wrapper">
+        <SajuChartInline input={item.input as any} />
+      </div>
     {:else if item.type === "situation_trigger"}
       <div class="situation-trigger-wrapper">
         {#if showRatioOptions && !isGeneratingImage}
@@ -674,11 +690,23 @@
   {/each}
 
   {#if shouldShowAssistantLoadingBubble()}
-    <div class="message assistant">
-      <div class="speaker-name">{persona?.name}</div>
-      <div class="dialogue-bubble">
-        <div class="loading-dots">{persona?.name}가 메시지 작성중...</div>
+    <div class="typing-placeholder" role="status" aria-live="polite">
+      <div class="typing-dots" aria-hidden="true">
+        <span></span><span></span><span></span>
       </div>
+    </div>
+  {/if}
+
+  {#if pendingInteractiveRender}
+    <div
+      class="interactive-render-placeholder"
+      role="status"
+      aria-live="polite"
+    >
+      <div class="interactive-render-dots" aria-hidden="true">
+        <span></span><span></span><span></span>
+      </div>
+      <span>{$t("chatWindow.interactiveRenderPending")}</span>
     </div>
   {/if}
 
@@ -962,8 +990,44 @@
     }
   }
 
-  .loading-dots {
-    animation: loading-dots 1s infinite ease-in-out;
+  .typing-placeholder {
+    align-self: center;
+    position: relative;
+    z-index: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 56px;
+    min-height: 38px;
+    padding: 0.55rem 0.9rem;
+    border-radius: 999px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: color-mix(in oklab, var(--secondary) 84%, transparent);
+    backdrop-filter: blur(10px);
+  }
+
+  .typing-dots {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.28rem;
+    color: var(--muted-foreground);
+  }
+
+  .typing-dots span {
+    width: 0.38rem;
+    height: 0.38rem;
+    border-radius: 999px;
+    background: currentColor;
+    opacity: 0.28;
+    animation: typing-dot-pulse 1.05s infinite ease-in-out;
+  }
+
+  .typing-dots span:nth-child(2) {
+    animation-delay: 0.14s;
+  }
+
+  .typing-dots span:nth-child(3) {
+    animation-delay: 0.28s;
   }
 
   .jump-to-bottom-btn {
@@ -1000,13 +1064,16 @@
       inset 0 -10px 18px rgba(0, 0, 0, 0.12);
   }
 
-  @keyframes loading-dots {
+  @keyframes typing-dot-pulse {
     0%,
+    80%,
     100% {
-      opacity: 1;
+      opacity: 0.24;
+      transform: translateY(0);
     }
-    50% {
-      opacity: 0.5;
+    40% {
+      opacity: 0.92;
+      transform: translateY(-1px);
     }
   }
 

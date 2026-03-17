@@ -159,7 +159,9 @@ export async function deleteChatHistory(sessionId: string) {
 
 export async function sendPromptStream(cid: string, prompt: string, type?: string, onDone?: () => void, onEmotion?: (emotion: string) => void, onError?: (error: any) => void) {
     if (!prompt.trim()) return;
-    messages.update((m) => [...m, { role: 'user', content: prompt }]);
+    const userKey = `user-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+    const assistantKey = `assistant-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+    messages.update((m) => [...m, { role: 'user', content: prompt, key: userKey }]);
 
     let aiText = "";
 
@@ -196,8 +198,8 @@ export async function sendPromptStream(cid: string, prompt: string, type?: strin
         messages.update((m) => {
             const last = m.at(-1);
             return last?.role === "assistant"
-                ? [...m.slice(0, -1), { role: "assistant", content: aiText }]
-                : [...m, { role: "assistant", content: aiText }];
+                ? [...m.slice(0, -1), { ...last, content: aiText, key: last.key || assistantKey, done: false }]
+                : [...m, { role: "assistant", content: aiText, key: assistantKey, done: false }];
         });
     }, (cssid) => {
         if (cssid) {

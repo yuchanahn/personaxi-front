@@ -30,6 +30,7 @@ export type Chat2DBlock =
           max: number | null;
       }
     | { type: "astro_chart"; id: string; input: Record<string, unknown> }
+    | { type: "saju_chart"; id: string; input: Record<string, unknown> }
     | { type: "vars_status"; id: string; variables: Record<string, string> }
     | { type: "situation_trigger"; id: string };
 

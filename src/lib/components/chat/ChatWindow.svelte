@@ -11,6 +11,7 @@
   import { chatSessions } from "$lib/stores/chatSessions";
   import ChatRenderer from "./ChatRenderer.svelte";
   import AstroChartInline from "./AstroChartInline.svelte";
+  import SajuChartInline from "./SajuChartInline.svelte";
   import VariableStatusPanel from "./VariableStatusPanel.svelte";
   import { interactiveChat } from "$lib/actions/interactiveChat";
   import { type Message } from "$lib/stores/messages";
@@ -20,6 +21,10 @@
     extractAstrologyInputFromSystemInput,
     type AstroChartInput,
   } from "$lib/components/astrology/astrologyPrompt";
+  import {
+    extractSajuInputFromSystemInput,
+    type SajuChartInput,
+  } from "$lib/components/saju/sajuPrompt";
   import { fade, slide } from "svelte/transition";
   import { api } from "$lib/api";
   import { json } from "@sveltejs/kit";
@@ -104,6 +109,12 @@
     input: AstroChartInput;
   }
 
+  interface SajuChartBlock {
+    type: "saju_chart";
+    id: string;
+    input: SajuChartInput;
+  }
+
   const INTERACTIVE_RENDER_TAGS = [
     "div",
     "table",
@@ -143,7 +154,8 @@
     | SituationTriggerBlock
     | MarkdownImageBlock
     | VarsStatusBlock
-    | AstroChartBlock;
+    | AstroChartBlock
+    | SajuChartBlock;
 
   // Regex for stripping <vars> tags from AI output (they carry data, not display content)
   const VARS_TAG_REGEX = /(?:\s*)<vars\b[^>]*>[\s\S]*?<\/vars>(?:\s*)/gi;
@@ -868,6 +880,14 @@
                 input: astroInput,
               });
             }
+            const sajuInput = extractSajuInputFromSystemInput(msg.content);
+            if (sajuInput) {
+              blocks.push({
+                type: "saju_chart",
+                id: `${messageId}-saju`,
+                input: sajuInput,
+              });
+            }
           } else {
             blocks = [
               {
@@ -1113,6 +1133,10 @@
     {:else if item.type === "astro_chart"}
       <div class="astro-chart-wrapper">
         <AstroChartInline input={item.input} blockId={item.id} />
+      </div>
+    {:else if item.type === "saju_chart"}
+      <div class="saju-chart-wrapper">
+        <SajuChartInline input={item.input} />
       </div>
     {:else if item.type === "situation_trigger"}
       <div class="situation-trigger-wrapper">

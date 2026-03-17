@@ -119,15 +119,17 @@
                     on:click={() => (activeTab = tab.id)}
                 >
                     <Icon icon={tab.icon} width="18" />
-                    {#if tab.id === "style" && isAvatarPersona}
-                        {$t("editPage.tabs.advanced", {
-                            default: "고급 설정",
-                        })}
-                    {:else}
-                        {$t(tab.label, {
-                            default: tab.label.split(".").pop(),
-                        })}
-                    {/if}
+                    <span class="tab-label">
+                        {#if tab.id === "style" && isAvatarPersona}
+                            {$t("editPage.tabs.advanced", {
+                                default: "고급 설정",
+                            })}
+                        {:else}
+                            {$t(tab.label, {
+                                default: tab.label.split(".").pop(),
+                            })}
+                        {/if}
+                    </span>
                 </button>
             {/if}
         {/each}
@@ -634,6 +636,10 @@
         border-bottom-color: var(--primary);
     }
 
+    .tab-label {
+        display: inline;
+    }
+
     .tab-content {
         display: none;
         flex-direction: column;
@@ -754,6 +760,24 @@
         outline: none;
         border-color: var(--primary);
         box-shadow: 0 0 0 3px hsla(var(--primary-hsl, 0 0% 50%) / 0.12);
+    }
+
+    @media (max-width: 640px) {
+        .tabs {
+            gap: 0.25rem;
+            justify-content: space-between;
+        }
+
+        .tab-btn {
+            flex: 1 1 0;
+            justify-content: center;
+            gap: 0;
+            padding: 0.7rem 0.4rem;
+        }
+
+        .tab-label {
+            display: none;
+        }
     }
 
     .field-select {

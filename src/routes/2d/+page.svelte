@@ -1,7 +1,7 @@
 <script lang="ts">
   import { page } from "$app/stores";
   import { loadChatHistory, sendPromptStream } from "$lib/api/chat";
-  import ChatWindow2D from "$lib/components/chat/ChatWindow2D.svelte";
+  import ChatWindow2DNext from "$lib/components/chat/ChatWindow2DNext.svelte";
   import ChatInput from "$lib/components/chat/ChatInput.svelte";
   import { onMount } from "svelte";
   import SettingsButton from "$lib/components/common/SettingsButton.svelte";
@@ -31,8 +31,10 @@
 
     const baseCost = $pricingStore.costs.chat_2d || 10;
     const multiplier = $pricingStore.model_multipliers[effectiveType] || 1.0;
-    const outputTokenMultiplier =
-      Math.min(3, Math.max(1, session?.outputTokenMultiplier || 1));
+    const outputTokenMultiplier = Math.min(
+      3,
+      Math.max(1, session?.outputTokenMultiplier || 1),
+    );
     // Shows max possible cost for current output token setting.
     currentCost = Math.round(baseCost * multiplier * outputTokenMultiplier);
   }
@@ -124,7 +126,9 @@
 
   // Mounted guard prevents initial load from triggering settings.update cascade
   let mounted2d = false;
-  onMount(() => { mounted2d = true; });
+  onMount(() => {
+    mounted2d = true;
+  });
 
   // Sync back to persistent settings when local values change
   $: if (mounted2d) {
@@ -180,10 +184,8 @@
     {persona}
     isOpen={isSettingsModalOpen}
     {llmType}
-    outputTokenMultiplier={
-      $chatSessions.find((s) => s.id === persona?.id)?.outputTokenMultiplier ||
-      1
-    }
+    outputTokenMultiplier={$chatSessions.find((s) => s.id === persona?.id)
+      ?.outputTokenMultiplier || 1}
     mode="2d"
     bind:showImage
     bind:autoScroll
@@ -206,7 +208,7 @@
   </div>
 
   <div class="chat-container">
-    <ChatWindow2D
+    <ChatWindow2DNext
       {isLoading}
       {persona}
       {showImage}
@@ -214,6 +216,7 @@
       SendMessage={send}
       {showBackground}
       {showVariableStatus}
+      typingCharsPerSecond={80}
       bind:showRatioOptions
     />
     <ChatInput

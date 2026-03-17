@@ -10,6 +10,11 @@ type InteractiveChatParams = {
     resetKey?: string | number;
 };
 
+type InteractiveGroupElement = HTMLElement;
+
+const LEGACY_GROUP_ID = "__legacy__";
+const VALIDATION_CLASS = "game-validation-message";
+
 export function interactiveChat(
     node: HTMLElement,
     params: InteractiveChatParams | ((payload: string) => void),
@@ -19,31 +24,187 @@ export function interactiveChat(
     let resetKey =
         typeof params === "function" ? undefined : params.resetKey;
 
-    let queue: string[] = [];
+    let queueByGroup = new Map<string, string[]>();
+    let stateByGroup = new Map<string, Map<string, string>>();
 
     function resetInteractiveState() {
-        queue = [];
+        queueByGroup = new Map();
+        stateByGroup = new Map();
     }
 
-    function getLastActiveElement(selector: string): HTMLElement | null {
-        const allActiveElements = node.querySelectorAll(selector + ":not(.used)");
-        if (allActiveElements.length === 0) {
-            return null;
+    function getQueue(groupId: string) {
+        const existing = queueByGroup.get(groupId);
+        if (existing) return existing;
+        const next: string[] = [];
+        queueByGroup.set(groupId, next);
+        return next;
+    }
+
+    function clearQueue(groupId: string) {
+        queueByGroup.delete(groupId);
+    }
+
+    function getState(groupId: string) {
+        const existing = stateByGroup.get(groupId);
+        if (existing) return existing;
+        const next = new Map<string, string>();
+        stateByGroup.set(groupId, next);
+        return next;
+    }
+
+    function getGroupElement(source: HTMLElement | null): InteractiveGroupElement {
+        return (
+            source?.closest(".game-ui-group") as InteractiveGroupElement | null
+        ) ?? node;
+    }
+
+    function getGroupId(groupEl: InteractiveGroupElement) {
+        return groupEl.dataset.group || groupEl.dataset.groupId || LEGACY_GROUP_ID;
+    }
+
+    function getActiveElementWithinGroup<T extends HTMLElement>(
+        groupEl: InteractiveGroupElement,
+        selector: string,
+    ): T | null {
+        return groupEl.querySelector(`${selector}:not(.used)`) as T | null;
+    }
+
+    function getActiveElementsWithinGroup<T extends HTMLElement>(
+        groupEl: InteractiveGroupElement,
+        selector: string,
+    ): NodeListOf<T> {
+        return groupEl.querySelectorAll(`${selector}:not(.used)`) as NodeListOf<T>;
+    }
+
+    function getAllElementsWithinGroup<T extends HTMLElement>(
+        groupEl: InteractiveGroupElement,
+        selector: string,
+    ): NodeListOf<T> {
+        return groupEl.querySelectorAll(selector) as NodeListOf<T>;
+    }
+
+    function clearValidationMessage(groupEl: InteractiveGroupElement) {
+        groupEl.querySelector(`.${VALIDATION_CLASS}`)?.remove();
+    }
+
+    function showValidationMessage(
+        groupEl: InteractiveGroupElement,
+        message: string,
+    ) {
+        let el = groupEl.querySelector(`.${VALIDATION_CLASS}`) as HTMLElement | null;
+        if (!el) {
+            el = document.createElement("div");
+            el.className = VALIDATION_CLASS;
+            groupEl.appendChild(el);
         }
-        return allActiveElements[allActiveElements.length - 1] as HTMLElement;
+        el.textContent = message;
     }
 
-    function getLastActiveElements(selector: string): NodeListOf<HTMLInputElement> | null {
-        const allActiveElements = node.querySelectorAll(selector + ":not(.used)") as NodeListOf<HTMLInputElement>;
-        if (allActiveElements.length === 0) {
-            return null;
+    function getButtonPayload(button: HTMLElement) {
+        const action = button.dataset.action;
+        const id = button.dataset.id;
+        const value = button.dataset.value;
+        const randomMin = button.dataset.randomMin;
+        const randomMax = button.dataset.randomMax;
+
+        if (action === "random") {
+            let min = 1;
+            let max = 100;
+            if (randomMin) min = parseInt(randomMin, 10);
+            if (randomMax) max = parseInt(randomMax, 10);
+            const randomValue = Math.floor(Math.random() * (max - min + 1)) + min;
+            return `[Button Clicked [ID: ${id}] : RAND = ${randomValue}]`;
         }
-        return allActiveElements;
+
+        if (action === "random2") {
+            let min = 1;
+            let max = 100;
+            if (randomMin) min = parseInt(randomMin, 10);
+            if (randomMax) max = parseInt(randomMax, 10);
+            const randomValue = Math.floor(Math.random() * (max - min + 1)) + min;
+            const finalValue = (Math.random() < 0.5 ? -1 : 1) * randomValue;
+            return `[Button Clicked [ID: ${id}] : RAND = ${finalValue}]`;
+        }
+
+        if (action === "select-option" && value) {
+            return `[Button Clicked [ID: ${id}] : ${value}]`;
+        }
+
+        return button.textContent?.trim() || "Button Clicked";
     }
 
-    const appendSpecialAnalysisPrompts = async (
+    function getRequiredInputMessage(field: HTMLInputElement) {
+        return field.dataset.requiredMessage || field.placeholder || "필수 입력값을 먼저 입력해주세요.";
+    }
+
+    function getRequiredChoiceMessage(button: HTMLElement) {
+        return button.dataset.requiredMessage || "필수 선택 항목을 먼저 선택해주세요.";
+    }
+
+    function validateGroup(groupEl: InteractiveGroupElement) {
+        const groupId = getGroupId(groupEl);
+        const state = getState(groupId);
+
+        const requiredInputs = Array.from(
+            getAllElementsWithinGroup<HTMLInputElement>(
+                groupEl,
+                ".game-input[data-required='true']",
+            ),
+        );
+        for (const field of requiredInputs) {
+            if (!field.value.trim()) {
+                return getRequiredInputMessage(field);
+            }
+        }
+
+        const requiredStateChoices = Array.from(
+            getAllElementsWithinGroup<HTMLElement>(
+                groupEl,
+                ".game-choice[data-role='state-choice'][data-required='true']",
+            ),
+        );
+        const requiredIds = new Set<string>();
+        for (const btn of requiredStateChoices) {
+            const id = btn.dataset.id;
+            if (id) requiredIds.add(id);
+        }
+
+        for (const id of requiredIds) {
+            if (!state.has(id)) {
+                const reference = groupEl.querySelector(
+                    `.game-choice[data-role='state-choice'][data-id='${id}']`,
+                ) as HTMLElement | null;
+                return reference
+                    ? getRequiredChoiceMessage(reference)
+                    : "필수 선택 항목을 먼저 선택해주세요.";
+            }
+        }
+
+        return null;
+    }
+
+    function markStateChoiceSelected(
+        groupEl: InteractiveGroupElement,
+        clickedButton: HTMLElement,
+    ) {
+        const choiceId = clickedButton.dataset.id;
+        if (!choiceId) return;
+
+        groupEl
+            .querySelectorAll(`.game-choice[data-role='state-choice'][data-id='${choiceId}']`)
+            .forEach((el) => {
+                el.classList.remove("selected");
+                el.setAttribute("aria-pressed", "false");
+            });
+
+        clickedButton.classList.add("selected");
+        clickedButton.setAttribute("aria-pressed", "true");
+    }
+
+    async function appendSpecialAnalysisPrompts(
+        queue: string[],
         allInputFields: NodeListOf<HTMLInputElement>,
-    ) => {
+    ) {
         let birthDate: Date | null = null;
         let birthHour: number | null = null;
         let birthMinute: number | null = null;
@@ -65,10 +226,20 @@ export function interactiveChat(
                 gender = parseGender(field.value);
             }
 
-            if (!sajuPushed && birthDate && birthHour !== null && birthMinute !== null) {
+            if (
+                !sajuPushed &&
+                birthDate &&
+                birthHour !== null &&
+                birthMinute !== null
+            ) {
                 let prompt = "";
                 try {
-                    prompt = generateSajuAnalysisPrompt(birthDate, birthHour, birthMinute, gender);
+                    prompt = generateSajuAnalysisPrompt(
+                        birthDate,
+                        birthHour,
+                        birthMinute,
+                        gender,
+                    );
                 } catch {
                     prompt = "함수실패";
                 }
@@ -87,83 +258,127 @@ export function interactiveChat(
         const astroInput = extractAstrologyInput(allInputFields);
         if (astroInput) {
             try {
-                const astroPrompt = await generateAstrologyAnalysisPrompt(astroInput);
+                const astroPrompt =
+                    await generateAstrologyAnalysisPrompt(astroInput);
                 queue.push("\n- 서양점성술\n" + astroPrompt);
             } catch {
                 queue.push("\n- 서양점성술\n함수실패");
             }
         }
-    };
+    }
+
+    function markGroupUsed(groupEl: InteractiveGroupElement) {
+        groupEl
+            .querySelectorAll(
+                ".game-choice:not(.used), .game-choice-counter:not(.used), .game-input:not(.used), .game-input-end:not(.used)",
+            )
+            .forEach((el) => el.classList.add("used"));
+        clearValidationMessage(groupEl);
+    }
+
+    async function submitGroup(
+        groupEl: InteractiveGroupElement,
+        options?: { submitPayload?: string },
+    ) {
+        const groupId = getGroupId(groupEl);
+        const state = getState(groupId);
+        const validationError = validateGroup(groupEl);
+        if (validationError) {
+            showValidationMessage(groupEl, validationError);
+            return;
+        }
+
+        clearValidationMessage(groupEl);
+
+        const payloadLines: string[] = [];
+        payloadLines.push(...state.values());
+        const allInputFields = getActiveElementsWithinGroup<HTMLInputElement>(
+            groupEl,
+            ".game-input",
+        );
+
+        allInputFields.forEach((field) => {
+            if (field.value.trim() !== "") {
+                const fieldId = field.dataset.id || "UNNAMED";
+                payloadLines.push(`inputField [ID: ${fieldId}]: ${field.value.trim()}`);
+            }
+        });
+
+        if (options?.submitPayload) {
+            payloadLines.push(options.submitPayload);
+        }
+
+        await appendSpecialAnalysisPrompts(payloadLines, allInputFields);
+        callback("<system-input>" + payloadLines.join("\n") + "</system-input>");
+        clearQueue(groupId);
+        stateByGroup.delete(groupId);
+        markGroupUsed(groupEl);
+    }
 
     const handleClick = async (event: MouseEvent) => {
         const target = event.target as HTMLElement;
+        const inputEnd = target.closest(".game-input-end:not(.used)") as
+            | HTMLElement
+            | null;
 
-        const choiceButton = target.closest(".game-choice:not(.used)") as HTMLElement;
-        const inputEnd = getLastActiveElement(".game-input-end") as HTMLElement;
-
-        if (inputEnd && target === inputEnd) {
-            const allInputFields = node.querySelectorAll(".game-input:not(.used)") as NodeListOf<HTMLInputElement>;
-
-            allInputFields.forEach((field) => {
-                if (field.value.trim() !== "") {
-                    const fieldId = field.dataset.id || "UNNAMED";
-                    queue.push(`inputField [ID: ${fieldId}]: ${field.value.trim()}`);
-                }
-            });
-            await appendSpecialAnalysisPrompts(allInputFields);
-            callback("<system-input>" + queue.join("\n") + "</system-input>");
-
-            queue = [];
-
-            const counter = getLastActiveElement(".game-choice-counter");
-            if (counter) counter.classList.add("used");
-
-            const input = getLastActiveElements(".game-input");
-            if (input) {
-                input.forEach((field) => {
-                    field.classList.add("used");
-                });
-            }
-
-
-            const endBtn = getLastActiveElement(".game-input-end");
-            if (endBtn) endBtn.classList.add("used");
-
-            const lastCounter = getLastActiveElement(".game-choice-counter");
-            if (lastCounter) {
-                const parent = lastCounter.closest("div, form, p");
-                if (parent) {
-                    parent.querySelectorAll(".game-choice:not(.used)").forEach(btn => {
-                        btn.classList.add("used");
-                    });
-                }
-            }
-
+        if (inputEnd) {
+            event.preventDefault();
+            await submitGroup(getGroupElement(inputEnd));
             return;
         }
+
+        const choiceButton = target.closest(".game-choice:not(.used)") as
+            | HTMLElement
+            | null;
 
         if (!choiceButton) {
             return;
         }
 
-        const choiceCounter = getLastActiveElement(".game-choice-counter") as HTMLElement;
+        event.preventDefault();
+
+        const groupEl = getGroupElement(choiceButton);
+        const groupId = getGroupId(groupEl);
+        const role = choiceButton.dataset.role || "";
+
+        if (role === "state-choice") {
+            const id = choiceButton.dataset.id;
+            if (!id) return;
+            const state = getState(groupId);
+            state.set(id, getButtonPayload(choiceButton));
+            markStateChoiceSelected(groupEl, choiceButton);
+            clearValidationMessage(groupEl);
+            return;
+        }
+
+        if (role === "submit-action") {
+            await submitGroup(groupEl, {
+                submitPayload: getButtonPayload(choiceButton),
+            });
+            return;
+        }
+
+        const queue = getQueue(groupId);
+        const choiceCounter = getActiveElementWithinGroup<HTMLElement>(
+            groupEl,
+            ".game-choice-counter",
+        );
 
         let currentPoints = 1;
 
         if (choiceCounter) {
             const textContent = choiceCounter.textContent || "0";
             const match = textContent.match(/\d+/);
-
-            let originalNumberString = "1"
-            if (match) {
-                originalNumberString = match[0];
-            }
+            const originalNumberString = match?.[0] || "1";
 
             currentPoints = parseInt(originalNumberString, 10);
 
             if (currentPoints >= 1) {
-                currentPoints--;
-                choiceCounter.textContent = textContent.replace(originalNumberString, currentPoints.toString());
+                currentPoints -= 1;
+                choiceCounter.textContent = textContent.replace(
+                    originalNumberString,
+                    currentPoints.toString(),
+                );
             } else {
                 console.log("포인트가 부족합니다.");
                 return;
@@ -172,85 +387,20 @@ export function interactiveChat(
             currentPoints = 0;
         }
 
-        event.preventDefault();
+        queue.push(getButtonPayload(choiceButton));
 
-        const action = choiceButton.dataset.action;
-        const id = choiceButton.dataset.id;
-        const value = choiceButton.dataset.value;
-        const randomMin = choiceButton.dataset.randomMin;
-        const randomMax = choiceButton.dataset.randomMax;
-
-        let payload = "";
-
-        if (action === "random") {
-            let min = 1;
-            let max = 100;
-            if (randomMin) {
-                min = parseInt(randomMin, 10);
-            }
-            if (randomMax) {
-                max = parseInt(randomMax, 10);
-            }
-            const randomValue = Math.floor(Math.random() * (max - min + 1)) + min;
-            payload = `[Button Clicked [ID: ${id}] : RAND = ${randomValue}]`;
-
-        } else if (action === "random2") {
-            let min = 1;
-            let max = 100;
-            if (randomMin) {
-                min = parseInt(randomMin, 10);
-            }
-            if (randomMax) {
-                max = parseInt(randomMax, 10);
-            }
-            const randomValue = Math.floor(Math.random() * (max - min + 1)) + min;
-            const finalValue = (Math.random() < 0.5 ? -1 : 1) * randomValue;
-            payload = `[Button Clicked [ID: ${id}] : RAND = ${finalValue}]`;
-        }
-        else if (action === "select-option" && value) {
-            payload = `[Button Clicked [ID: ${id}] : ${value}]`;
-        } else {
-            payload = choiceButton.textContent?.trim() || "Button Clicked";
-        }
-        queue.push(payload);
-
-        const anyActiveEndBtn = getLastActiveElement(".game-input-end");
-
-        if (currentPoints === 0) {
-            console.log("모든 선택 종료! : ", anyActiveEndBtn);
+        if (currentPoints !== 0) {
+            return;
         }
 
-        if (currentPoints === 0 && !anyActiveEndBtn) {
-            console.log("No Active End button found ANYWHERE & points are 0. Auto-firing!");
+        const activeEndBtn = getActiveElementWithinGroup<HTMLElement>(
+            groupEl,
+            ".game-input-end",
+        );
+        const submitMode = groupEl.dataset.submit || (activeEndBtn ? "manual" : "auto");
 
-            const allInputFields = node.querySelectorAll(".game-input:not(.used)") as NodeListOf<HTMLInputElement>;
-            allInputFields.forEach((field) => {
-                if (field.value.trim() !== "") {
-                    const fieldId = field.dataset.id || "UNNAMED";
-                    queue.push(`inputField [ID: ${fieldId}]: ${field.value.trim()}`);
-                }
-                field.classList.add("used");
-            });
-            await appendSpecialAnalysisPrompts(allInputFields);
-
-            callback("<system-input>" + queue.join("\n") + "</system-input>");
-            queue = [];
-
-
-            if (choiceCounter) {
-                choiceCounter.classList.add("used");
-            }
-
-            const referenceNode = choiceCounter || choiceButton;
-            const counterParent = referenceNode.closest("div, p");
-
-            if (counterParent) {
-                counterParent.querySelectorAll(".game-choice:not(.used)").forEach(btn => {
-                    btn.classList.add("used");
-                });
-                const parentInput = counterParent.parentElement?.querySelector(".game-input:not(.used)");
-                if (parentInput) parentInput.classList.add("used");
-            }
+        if (submitMode !== "manual" && !activeEndBtn) {
+            await submitGroup(groupEl);
         }
     };
 

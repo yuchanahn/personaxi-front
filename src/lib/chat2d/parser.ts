@@ -6,6 +6,10 @@ import {
     extractAstrologyInputFromSystemInput,
     type AstroChartInput,
 } from "$lib/components/astrology/astrologyPrompt";
+import {
+    extractSajuInputFromSystemInput,
+    type SajuChartInput,
+} from "$lib/components/saju/sajuPrompt";
 import type { Chat2DBlock, Chat2DParseContext } from "./types";
 import { INCOMPLETE_DIALOGUE_SENTINEL } from "./stream-assembler";
 
@@ -44,6 +48,17 @@ export function parseChat2DMessages(
                         type: "astro_chart",
                         id: `${messageId}-astro`,
                         input: astroInput as AstroChartInput as Record<
+                            string,
+                            unknown
+                        >,
+                    });
+                }
+                const sajuInput = extractSajuInputFromSystemInput(msg.content);
+                if (sajuInput) {
+                    blocks.push({
+                        type: "saju_chart",
+                        id: `${messageId}-saju`,
+                        input: sajuInput as SajuChartInput as Record<
                             string,
                             unknown
                         >,
@@ -181,7 +196,7 @@ function parseAssistantContent(
                     if (
                         !cleanedDialogueContent ||
                         (isIncompleteDialogue &&
-                            cleanedDialogueContent.length < 3)
+                            cleanedDialogueContent.length < 1)
                     ) {
                         lastIndex = match.index + fullMatch.length;
                         continue;
