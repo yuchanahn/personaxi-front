@@ -2,9 +2,11 @@
     import { t } from "svelte-i18n";
     import Icon from "@iconify/svelte";
     import { tick } from "svelte";
+    import "$lib/styles/chat2d-shared-block-defaults.css";
     import FirstSceneBuilder from "$lib/components/FirstSceneBuilder.svelte";
     import VariableEditor from "$lib/components/edit3/VariableEditor.svelte";
     import LoreLinker from "$lib/components/lore/LoreLinker.svelte";
+    import ChatRenderer from "$lib/components/chat/ChatRenderer.svelte";
     import type { Persona } from "$lib/types";
     import { parseChat2DMessages } from "$lib/chat2d/parser";
     import type { Chat2DBlock } from "$lib/chat2d/types";
@@ -530,7 +532,7 @@
                     </div>
                 {/if}
 
-                <div class="style-preview-chat">
+                <div class="style-preview-chat chat2d-surface">
                     {#each stylePreviewBlocks as block (block.id)}
                         {#if block.type === "narration"}
                             {#if containsPreviewHtml(block.content)}
@@ -538,12 +540,18 @@
                                     {@html block.content}
                                 </div>
                             {:else}
-                                <div class="preview-narration">{block.content}</div>
+                                <ChatRenderer content={block.content} wrapperClass="px-narration" />
                             {/if}
                         {:else if block.type === "dialogue"}
                             <div class="preview-dialogue-wrap">
-                                <div class="preview-speaker">{block.speaker}</div>
-                                <div class="preview-dialogue">{block.content}</div>
+                                <div class="speaker-name">{block.speaker}</div>
+                                <div class="preview-dialogue px-dialogue">
+                                    <ChatRenderer
+                                        content={block.content}
+                                        isMessage={true}
+                                        wrapperClass="px-dialogue__content"
+                                    />
+                                </div>
                             </div>
                         {:else if block.type === "image"}
                             <figure class="preview-image-card">
@@ -917,12 +925,6 @@
         gap: 0.95rem;
     }
 
-    .preview-narration {
-        color: var(--muted-foreground);
-        line-height: 1.72;
-        white-space: pre-wrap;
-    }
-
     .preview-html-block {
         color: var(--foreground);
     }
@@ -934,20 +936,8 @@
         align-items: flex-start;
     }
 
-    .preview-speaker {
-        font-size: 0.82rem;
-        font-weight: 800;
-        color: var(--foreground);
-    }
-
     .preview-dialogue {
         max-width: min(560px, 100%);
-        padding: 0.85rem 1rem;
-        border-radius: 18px;
-        background: color-mix(in srgb, var(--muted) 88%, transparent);
-        color: var(--foreground);
-        white-space: pre-wrap;
-        line-height: 1.65;
     }
 
     .preview-image-card {

@@ -1,0 +1,57 @@
+.chat2d-surface .speaker-name {
+  font-size: 0.9em;
+  font-weight: bold;
+  color: var(--secondary-foreground);
+  margin-left: 0.5rem;
+}
+
+.chat2d-surface .dialogue-bubble.px-dialogue,
+.chat2d-surface .preview-dialogue.px-dialogue {
+  background-color: var(--secondary);
+  color: var(--secondary-foreground);
+  border: 1px solid var(--border);
+  padding: 0.75rem 1rem;
+  border-radius: 16px;
+}
+
+.chat2d-surface .dialogue-bubble.px-dialogue .message.px-dialogue__content,
+.chat2d-surface .preview-dialogue.px-dialogue .message.px-dialogue__content {
+  display: block;
+  width: auto;
+  max-width: none;
+  margin: 0;
+  padding: 0;
+  background: transparent;
+  color: inherit;
+  line-height: 1.65;
+  word-break: break-word;
+}
+
+.chat2d-surface .dialogue-bubble.px-dialogue .message.px-dialogue__content p,
+.chat2d-surface .preview-dialogue.px-dialogue .message.px-dialogue__content p {
+  margin: 0;
+}
+
+.chat2d-surface .dialogue-bubble.px-dialogue .message.px-dialogue__content p+p,
+.chat2d-surface .preview-dialogue.px-dialogue .message.px-dialogue__content p+p {
+  margin-top: 0.55rem;
+}
+
+.chat2d-surface .narration-block.px-narration {
+  align-self: stretch;
+  margin: 0.15rem 0 0.45rem;
+  padding: 0.15rem 0.2rem 0.15rem 0.95rem;
+  color: color-mix(in oklab, var(--foreground) 82%, var(--muted-foreground));
+  font-size: 0.95rem;
+  line-height: 1.85;
+  letter-spacing: -0.01em;
+  font-style: italic;
+}
+
+.chat2d-surface .narration-block.px-narration p {
+  margin: 0;
+}
+
+.chat2d-surface .narration-block.px-narration p+p {
+  margin-top: 0.7rem;
+}

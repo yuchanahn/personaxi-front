@@ -1,5 +1,6 @@
 <script lang="ts">
   import "$lib/styles/custom-markdown.css";
+  import "$lib/styles/chat2d-shared-block-defaults.css";
   import { get, writable } from "svelte/store";
   import { onDestroy, onMount, tick } from "svelte";
   import type { Persona, ImageMetadata } from "$lib/types";
@@ -375,7 +376,7 @@
 </script>
 
 <div
-  class="chat-window"
+  class="chat-window chat2d-surface"
   class:background-mode={!!activeBackgroundImage}
   bind:this={chatWindowEl}
   style:opacity={showChat ? "0.9" : "0"}
@@ -411,14 +412,16 @@
     {:else if item.type === "user-interaction"}
       <div class="user-interaction">{item.content}</div>
     {:else if item.type === "narration"}
-      <div class="narration-block">
-        <ChatRenderer content={item.content} />
-      </div>
+      <ChatRenderer content={item.content} wrapperClass="px-narration" />
     {:else if item.type === "dialogue"}
       <div class="message assistant">
         <div class="speaker-name">{item.speaker}</div>
-        <div class="dialogue-bubble">
-          <ChatRenderer content={item.content} isMessage={true} />
+        <div class="dialogue-bubble px-dialogue">
+          <ChatRenderer
+            content={item.content}
+            isMessage={true}
+            wrapperClass="px-dialogue__content"
+          />
         </div>
       </div>
     {:else if item.type === "image" && showImage && !showBackground}
@@ -550,7 +553,6 @@
   }
 
   .message,
-  .narration-block,
   .image-block,
   .code-block,
   .situation-trigger-wrapper {
@@ -578,43 +580,6 @@
     align-self: flex-start;
     flex-direction: column;
     gap: 0.25rem;
-  }
-
-  .speaker-name {
-    font-size: 0.9em;
-    font-weight: bold;
-    color: var(--secondary-foreground);
-    margin-left: 0.5rem;
-  }
-
-  .dialogue-bubble {
-    background-color: var(--secondary);
-    color: var(--secondary-foreground);
-    border: 1px solid var(--border);
-    padding: 0.75rem 1rem;
-    border-radius: 16px;
-  }
-
-  .narration-block {
-    align-self: stretch;
-    max-width: min(100%, 720px);
-    margin: 0.15rem 0 0.45rem;
-    padding: 0.15rem 0.2rem 0.15rem 0.95rem;
-    color: color-mix(in oklab, var(--foreground) 82%, var(--muted-foreground));
-    font-size: 0.98rem;
-    line-height: 1.85;
-    letter-spacing: -0.01em;
-    font-style: italic;
-    border-left: 2px solid color-mix(in oklab, var(--border) 68%, transparent);
-    opacity: 0.92;
-  }
-
-  .narration-block :global(p) {
-    margin: 0;
-  }
-
-  .narration-block :global(p + p) {
-    margin-top: 0.7rem;
   }
 
   .user-interaction {

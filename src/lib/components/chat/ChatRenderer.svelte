@@ -5,6 +5,7 @@
 
     export let content: string;
     export let isMessage: boolean = false;
+    export let wrapperClass: string = "";
 
     let prevContent = "";
     let htmlContent = "";
@@ -73,6 +74,10 @@
     });
 </script>
 
-<div class={isMessage ? "message" : "narration-block markdown-body"}>
+<div
+    class={isMessage
+        ? `message ${wrapperClass}`.trim()
+        : `narration-block markdown-body ${wrapperClass}`.trim()}
+>
     {@html htmlContent}
 </div>

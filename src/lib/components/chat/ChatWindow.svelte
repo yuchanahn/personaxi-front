@@ -1088,12 +1088,16 @@
         {item.content}
       </div>
     {:else if item.type === "narration"}
-      <ChatRenderer content={item.content} />
+      <ChatRenderer content={item.content} wrapperClass="px-narration" />
     {:else if item.type === "dialogue"}
       <div class="message assistant">
         <div class="speaker-name">{item.speaker}</div>
-        <div class="dialogue-bubble">
-          <ChatRenderer content={item.content} isMessage={true} />
+        <div class="dialogue-bubble px-dialogue">
+          <ChatRenderer
+            content={item.content}
+            isMessage={true}
+            wrapperClass="px-dialogue__content"
+          />
         </div>
       </div>
     {:else if item.type === "image" && showImage && !showBackground}
