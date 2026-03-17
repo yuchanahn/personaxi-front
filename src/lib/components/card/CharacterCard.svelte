@@ -155,6 +155,21 @@
         }
     }
 
+    @media (hover: none), (pointer: coarse) {
+        .tile {
+            transition: none;
+        }
+
+        .media-wrapper {
+            transition: none;
+            transform: none !important;
+        }
+
+        .creator-tag {
+            transition: none;
+        }
+    }
+
     .creator-tag {
         position: absolute;
         top: 0.5rem;

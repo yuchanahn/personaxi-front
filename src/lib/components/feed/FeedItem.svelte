@@ -18,9 +18,6 @@
     const dispatch = createEventDispatcher();
     let liking = false;
     let isMobileFeed = false;
-    let mediaReady = false;
-    let showOverlay = true;
-    let overlayRenderKey = 0;
 
     // -- Image Cycling --
     let currentImageIndex = 0;
@@ -93,41 +90,8 @@
         // Reset text? Maybe not, keeps it smooth if scrolling back
     }
 
-    function shouldDelayOverlay() {
-        return isMobileFeed && isFirstItem;
-    }
-
-    function resetOverlayState() {
-        mediaReady = false;
-        showOverlay = !shouldDelayOverlay();
-    }
-
-    async function revealOverlayAfterMediaReady() {
-        if (!shouldDelayOverlay() || !browser) {
-            showOverlay = true;
-            return;
-        }
-
-        showOverlay = false;
-        await new Promise((resolve) => requestAnimationFrame(resolve));
-        await new Promise((resolve) => requestAnimationFrame(resolve));
-        overlayRenderKey += 1;
-        showOverlay = true;
-    }
-
     function handleMediaLoad() {
-        mediaReady = true;
-        void revealOverlayAfterMediaReady();
-    }
-
-    $: if (persona?.id && currentImageIndex >= 0) {
-        resetOverlayState();
-    }
-
-    $: if (!shouldDelayOverlay()) {
-        showOverlay = true;
-    } else if (mediaReady) {
-        void revealOverlayAfterMediaReady();
+        // noop: keep hook so AssetPreview lifecycle stays the same
     }
 
     onMount(() => {
@@ -138,7 +102,6 @@
 
         const apply = () => {
             isMobileFeed = media.matches;
-            resetOverlayState();
         };
 
         apply();
@@ -234,9 +197,7 @@
         <div class="gradient-overlay"></div>
     </div>
 
-    {#key overlayRenderKey}
-        {#if showOverlay}
-            <div class="info-layer">
+    <div class="info-layer">
                 <div class="header">
                     <div class="creator-badge" on:click={handleCreatorClick}>
                         <Icon icon="ph:user-circle-duotone" />
@@ -309,8 +270,6 @@
                     <Icon icon="ph:info" width="24" />
                 </button>
             </div>
-        {/if}
-    {/key}
 </div>
 
 <style>

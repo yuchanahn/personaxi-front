@@ -76,11 +76,38 @@
     return user?.data?.nickname?.trim() || "User";
   }
 
-  function getTypingSpeed() {
+  function inferTypingSpeedFromText(text: string) {
+    const hangulCount = (text.match(/[가-힣]/g) || []).length;
+    const latinCount = (text.match(/[A-Za-z]/g) || []).length;
+    const letterCount = hangulCount + latinCount;
+
+    if (letterCount === 0) return 100;
+
+    const hangulRatio = hangulCount / letterCount;
+    const latinRatio = latinCount / letterCount;
+
+    if (hangulRatio >= 0.3) return 80;
+    if (latinRatio >= 0.8 && hangulCount === 0) return 140;
+    return 110;
+  }
+
+  function getTypingSpeed(activePlayer?: RenderBlockPlayer) {
     if (typingCharsPerSecond && typingCharsPerSecond > 0) {
       return typingCharsPerSecond;
     }
-    return 12;
+
+    const block = activePlayer?.block;
+    if (!block) return 100;
+
+    if (
+      block.type === "dialogue" ||
+      block.type === "narration" ||
+      block.type === "code"
+    ) {
+      return inferTypingSpeedFromText(block.content || "");
+    }
+
+    return 100;
   }
 
   function getMessageStreamId(msg: Message, index: number) {
@@ -247,7 +274,7 @@
     let changed = false;
     const activePlayer = players.find((player) => player.started && !player.completed);
     if (activePlayer) {
-      changed = activePlayer.tick(deltaMs, getTypingSpeed()) || changed;
+      changed = activePlayer.tick(deltaMs, getTypingSpeed(activePlayer)) || changed;
       if (activePlayer.completed) {
         startEligiblePlayers();
         changed = true;

@@ -49,9 +49,9 @@ body {
     --popover-foreground: var(--foreground);
 
     /* Primary Colors - Modern violet-pink, less "candy" */
-    --primary: hsl(270 85% 52%);
-    --primary-gradient: linear-gradient(135deg, #8b5cf6, #a855f7, #ec4899);
-    --primary-hover: hsl(270 85% 56%);
+    --primary: hsl(270 66% 55%);
+    --primary-gradient: linear-gradient(135deg, #8f6ae8, #9d68e7, #bf79da);
+    --primary-hover: hsl(270 66% 58%);
     --primary-foreground: hsl(0 0% 100%);
 
     /* Accent & Secondary - subtle surfaces */
@@ -59,7 +59,7 @@ body {
     --secondary: hsl(220 16% 94%);
     --accent-foreground: hsl(222 16% 18%);
     --accent-hover: hsl(220 18% 91%);
-    --ring: hsl(270 90% 60%);
+    --ring: hsl(270 72% 62%);
     --secondary-foreground: hsl(222 14% 28%);
     --secondary-hover: hsl(220 16% 93%);
 
@@ -140,7 +140,7 @@ body {
     --scrollbar-track: hsl(220 18% 96%);
 
     /* Selection Colors (NO yellow) */
-    --selection-bg: hsla(270, 85%, 52%, 0.16);
+    --selection-bg: hsla(270, 66%, 55%, 0.16);
     --selection-text: var(--foreground);
 
     /* Legacy compatibility */
@@ -166,7 +166,7 @@ body {
     --shadow-mini-inset: inset 0 1px 0 hsla(0, 0%, 100%, 0.6);
     --shadow-kbd: 0 1px 0 hsla(222, 16%, 10%, 0.12);
     --shadow-btn: 0 8px 18px -14px hsla(222, 16%, 10%, 0.30);
-    --shadow-date-field-focus: 0 0 0 4px hsla(270, 90%, 60%, 0.20);
+    --shadow-date-field-focus: 0 0 0 4px hsla(270, 72%, 62%, 0.20);
 }
 
 /* Auto-hiding scrollbar (Chrome/Safari/Edge) */

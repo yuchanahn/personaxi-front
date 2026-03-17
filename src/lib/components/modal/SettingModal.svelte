@@ -63,8 +63,45 @@
     let showSessionImages = false;
     let sessionImages: string[] = [];
     let selectedImage: string | null = null; // Full Screen Viewer State
+    let openQuickSettings = true;
+    let openDisplaySettings = true;
+    let openSessionReference = false;
+    let openSessionManagement = false;
 
     $: isLiked = persona?.is_liked || false;
+    $: selectedUserPersonaLabel =
+        userPersonas.find((p) => p.id === selectedUserPersonaId)?.name ||
+        $t("settingModal.userPersonaNoItems");
+    $: quickSettingsSummary =
+        mode === "2d"
+            ? `${selectedLLM?.name || "-"} · ${selectedOutputTokenMultiplier}x · ${selectedUserPersonaLabel || "-"}`
+            : "";
+    $: displaySettingsSummary =
+        mode === "2d"
+            ? [
+                  autoScroll ? $t("settingModal.autoScroll") : null,
+                  showBackground ? $t("settingModal.showBackground") : null,
+                  showImage
+                      ? $t("settingModal.showGeneratedImages")
+                      : $t("settingModal.hideGeneratedImages"),
+                  showVariableStatus
+                      ? $t("settingModal.showVariableStatus")
+                      : $t("settingModal.hideVariableStatus"),
+              ]
+                  .filter(Boolean)
+                  .join(" · ")
+            : "";
+    $: sessionReferenceSummary =
+        mode === "2d"
+            ? `${userNote?.trim() ? "메모 있음" : "메모 없음"} · 이미지 ${sessionImages.length}장`
+            : "";
+
+    function toggleSection(section: "quick" | "display" | "reference" | "management") {
+        if (section === "quick") openQuickSettings = !openQuickSettings;
+        if (section === "display") openDisplaySettings = !openDisplaySettings;
+        if (section === "reference") openSessionReference = !openSessionReference;
+        if (section === "management") openSessionManagement = !openSessionManagement;
+    }
 
     // --- Session Images Logic ---
     $: {
@@ -401,6 +438,25 @@
             </div>
 
             <div class="scroll-container">
+                {#if mode === "2d"}
+                    <div class="settings-section">
+                        <button
+                            class="section-toggle"
+                            class:open={openQuickSettings}
+                            on:click={() => toggleSection("quick")}
+                        >
+                            <div class="section-toggle-copy">
+                                <span class="section-toggle-title">빠른 설정</span>
+                                <span class="section-toggle-summary">{quickSettingsSummary}</span>
+                            </div>
+                            <Icon
+                                icon={openQuickSettings
+                                    ? "ph:caret-up-bold"
+                                    : "ph:caret-down-bold"}
+                            />
+                        </button>
+                        {#if openQuickSettings}
+                            <div class="section-panel" transition:slide={{ duration: 180 }}>
                 <!-- 1. LLM Model Selection -->
                 {#if mode === "2d"}
                     <div class="settings-card">
@@ -507,6 +563,28 @@
                         </p>
                     </div>
                 {/if}
+                            </div>
+                        {/if}
+                    </div>
+
+                    <div class="settings-section">
+                        <button
+                            class="section-toggle"
+                            class:open={openSessionReference}
+                            on:click={() => toggleSection("reference")}
+                        >
+                            <div class="section-toggle-copy">
+                                <span class="section-toggle-title">세션 메모 · 참고</span>
+                                <span class="section-toggle-summary">{sessionReferenceSummary}</span>
+                            </div>
+                            <Icon
+                                icon={openSessionReference
+                                    ? "ph:caret-up-bold"
+                                    : "ph:caret-down-bold"}
+                            />
+                        </button>
+                        {#if openSessionReference}
+                            <div class="section-panel" transition:slide={{ duration: 180 }}>
 
                 <!-- 2. User Note -->
                 {#if mode === "2d"}
@@ -621,6 +699,204 @@
                         {/if}
                     </div>
                 {/if}
+                            </div>
+                        {/if}
+                    </div>
+
+                    <div class="settings-section">
+                        <button
+                            class="section-toggle"
+                            class:open={openDisplaySettings}
+                            on:click={() => toggleSection("display")}
+                        >
+                            <div class="section-toggle-copy">
+                                <span class="section-toggle-title">표시 설정</span>
+                                <span class="section-toggle-summary">{displaySettingsSummary}</span>
+                            </div>
+                            <Icon
+                                icon={openDisplaySettings
+                                    ? "ph:caret-up-bold"
+                                    : "ph:caret-down-bold"}
+                            />
+                        </button>
+                        {#if openDisplaySettings}
+                            <div class="section-panel" transition:slide={{ duration: 180 }}>
+                                <div class="settings-card">
+                                    <div class="card-header">
+                                        <Icon icon="ph:paint-brush-household-duotone" />
+                                        <span>채팅 화면</span>
+                                    </div>
+                                    <div class="actions-list">
+                                        <button
+                                            class="action-item"
+                                            on:click={() => (
+                                                (autoScroll = !autoScroll),
+                                                console.log(autoScroll)
+                                            )}
+                                        >
+                                            <div class="action-left">
+                                                <Icon icon="ph:check-bold" />
+                                                <span>{$t("settingModal.autoScroll")}</span>
+                                            </div>
+                                            <span class="toggle" class:on={autoScroll}
+                                                ><span class="knob"></span></span
+                                            >
+                                        </button>
+
+                                        <button
+                                            class="action-item"
+                                            on:click={() => {
+                                                showBackground = !showBackground;
+                                                console.log(
+                                                    "Modal toggled bg:",
+                                                    showBackground,
+                                                );
+                                            }}
+                                            disabled={isLoading}
+                                        >
+                                            <div class="action-left">
+                                                <Icon
+                                                    icon={showBackground
+                                                        ? "ph:monitor-play-bold"
+                                                        : "ph:monitor-bold"}
+                                                />
+                                                <span>{$t("settingModal.showBackground")}</span>
+                                            </div>
+                                            <span class="toggle" class:on={showBackground}
+                                                ><span class="knob"></span></span
+                                            >
+                                        </button>
+
+                                        <button
+                                            class="action-item"
+                                            on:click={() => (showImage = !showImage)}
+                                            disabled={isLoading || showBackground}
+                                        >
+                                            <div class="action-left">
+                                                <Icon
+                                                    icon={showImage
+                                                        ? "ph:image-square-bold"
+                                                        : "ph:image-bold"}
+                                                />
+                                                <span
+                                                    >{showImage
+                                                        ? $t(
+                                                              "settingModal.hideGeneratedImages",
+                                                          )
+                                                        : $t(
+                                                              "settingModal.showGeneratedImages",
+                                                          )}</span
+                                                >
+                                            </div>
+                                            <span class="toggle" class:on={showImage}
+                                                ><span class="knob"></span></span
+                                            >
+                                        </button>
+
+                                        <button
+                                            class="action-item"
+                                            on:click={() =>
+                                                (showVariableStatus = !showVariableStatus)}
+                                            disabled={isLoading}
+                                        >
+                                            <div class="action-left">
+                                                <Icon
+                                                    icon={showVariableStatus
+                                                        ? "ph:code-bold"
+                                                        : "ph:code-slash-bold"}
+                                                />
+                                                <span
+                                                    >{showVariableStatus
+                                                        ? $t(
+                                                              "settingModal.hideVariableStatus",
+                                                          )
+                                                        : $t(
+                                                              "settingModal.showVariableStatus",
+                                                          )}
+                                                </span>
+                                            </div>
+                                            <span class="toggle" class:on={showVariableStatus}
+                                                ><span class="knob"></span></span
+                                            >
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        {/if}
+                    </div>
+
+                    <div class="settings-section">
+                        <button
+                            class="section-toggle"
+                            class:open={openSessionManagement}
+                            on:click={() => toggleSection("management")}
+                        >
+                            <div class="section-toggle-copy">
+                                <span class="section-toggle-title">세션 관리</span>
+                                <span class="section-toggle-summary">초기화 · 삭제</span>
+                            </div>
+                            <Icon
+                                icon={openSessionManagement
+                                    ? "ph:caret-up-bold"
+                                    : "ph:caret-down-bold"}
+                            />
+                        </button>
+                        {#if openSessionManagement}
+                            <div class="section-panel" transition:slide={{ duration: 180 }}>
+                                <div class="settings-card">
+                                    <div class="card-header">
+                                        <Icon icon="ph:warning-circle-duotone" />
+                                        <span>{$t("settingModal.chatManagement")}</span>
+                                    </div>
+                                    <div class="actions-list">
+                                        <button
+                                            class="action-item"
+                                            on:click={handleResetChat}
+                                            disabled={isLoading}
+                                        >
+                                            <div class="action-left">
+                                                <Icon icon="ph:arrow-counter-clockwise-bold" />
+                                                <span>{$t("settingModal.resetChat")}</span>
+                                            </div>
+                                            <Icon
+                                                icon="ph:caret-right-bold"
+                                                class="action-arrow"
+                                            />
+                                        </button>
+
+                                        {#if !isConfirmingDelete}
+                                            <button
+                                                class="action-item destructive"
+                                                on:click={() => (isConfirmingDelete = true)}
+                                                disabled={isLoading}
+                                            >
+                                                <div class="action-left">
+                                                    <Icon icon="ph:trash-bold" />
+                                                    <span>{$t("settingModal.deleteChat")}</span>
+                                                </div>
+                                                <Icon
+                                                    icon="ph:caret-right-bold"
+                                                    class="action-arrow"
+                                                />
+                                            </button>
+                                        {:else}
+                                            <button
+                                                class="action-item destructive confirm"
+                                                on:click={handleDeleteChat}
+                                                disabled={isLoading}
+                                            >
+                                                <div class="action-left">
+                                                    <Icon icon="ph:warning-bold" />
+                                                    <span>{$t("settingModal.confirmDelete")}</span>
+                                                </div>
+                                            </button>
+                                        {/if}
+                                    </div>
+                                </div>
+                            </div>
+                        {/if}
+                    </div>
+                {/if}
 
                 <!-- Autonomy Settings -->
                 {#if mode === "live2d"}
@@ -671,6 +947,7 @@
 
                 <!-- 5. Chat Settings -->
 
+                {#if mode !== "2d"}
                 <div class="settings-card">
                     <div class="card-header">
                         <Icon icon="ph:gear-duotone" />
@@ -838,93 +1115,6 @@
                     </div>
 
                     <div class="actions-list">
-                        {#if mode === "2d"}
-                            <button
-                                class="action-item"
-                                on:click={() => {
-                                    showBackground = !showBackground;
-                                    console.log(
-                                        "Modal toggled bg:",
-                                        showBackground,
-                                    );
-                                }}
-                                disabled={isLoading}
-                            >
-                                <div class="action-left">
-                                    <Icon
-                                        icon={showBackground
-                                            ? "ph:monitor-play-bold"
-                                            : "ph:monitor-bold"}
-                                    />
-                                    <span
-                                        >{$t(
-                                            "settingModal.showBackground",
-                                        )}</span
-                                    >
-                                </div>
-                                <span class="toggle" class:on={showBackground}
-                                    ><span class="knob"></span></span
-                                >
-                            </button>
-
-                            <button
-                                class="action-item"
-                                on:click={() => (showImage = !showImage)}
-                                disabled={isLoading || showBackground}
-                            >
-                                <div class="action-left">
-                                    <Icon
-                                        icon={showImage
-                                            ? "ph:image-square-bold"
-                                            : "ph:image-bold"}
-                                    />
-                                    <span
-                                        >{showImage
-                                            ? $t(
-                                                  "settingModal.hideGeneratedImages",
-                                              )
-                                            : $t(
-                                                  "settingModal.showGeneratedImages",
-                                              )}</span
-                                    >
-                                </div>
-                                <span class="toggle" class:on={showImage}
-                                    ><span class="knob"></span></span
-                                >
-                            </button>
-                        {/if}
-
-                        {#if mode === "2d"}
-                            <button
-                                class="action-item"
-                                on:click={() =>
-                                    (showVariableStatus = !showVariableStatus)}
-                                disabled={isLoading}
-                            >
-                                <div class="action-left">
-                                    <Icon
-                                        icon={showVariableStatus
-                                            ? "ph:code-bold"
-                                            : "ph:code-slash-bold"}
-                                    />
-                                    <span
-                                        >{showVariableStatus
-                                            ? $t(
-                                                  "settingModal.hideVariableStatus",
-                                              )
-                                            : $t(
-                                                  "settingModal.showVariableStatus",
-                                              )}
-                                    </span>
-                                </div>
-                                <span
-                                    class="toggle"
-                                    class:on={showVariableStatus}
-                                    ><span class="knob"></span></span
-                                >
-                            </button>
-                        {/if}
-
                         <button
                             class="action-item"
                             on:click={handleResetChat}
@@ -973,6 +1163,7 @@
                         {/if}
                     </div>
                 </div>
+                {/if}
             </div>
 
             <div class="modal-footer">
@@ -1078,6 +1269,67 @@
         display: flex;
         flex-direction: column;
         gap: 16px;
+    }
+
+    .settings-section {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .section-toggle {
+        width: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 12px 14px;
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        background: var(--card);
+        color: var(--foreground);
+        cursor: pointer;
+        transition:
+            border-color 0.2s ease,
+            background 0.2s ease;
+    }
+
+    .section-toggle:hover {
+        border-color: var(--primary);
+    }
+
+    .section-toggle.open {
+        border-color: color-mix(in srgb, var(--primary) 35%, var(--border));
+        background: color-mix(in srgb, var(--card) 92%, var(--primary) 8%);
+    }
+
+    .section-toggle-copy {
+        min-width: 0;
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 4px;
+    }
+
+    .section-toggle-title {
+        font-size: 14px;
+        font-weight: 700;
+        color: var(--foreground);
+    }
+
+    .section-toggle-summary {
+        max-width: 100%;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        font-size: 12px;
+        color: var(--muted-foreground);
+    }
+
+    .section-panel {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
     }
 
     .settings-card {
@@ -1295,6 +1547,17 @@
         background: var(--destructive);
         color: var(--destructive-foreground);
         justify-content: center;
+    }
+
+    @media (max-width: 640px) {
+        .section-toggle {
+            padding: 11px 12px;
+        }
+
+        .section-toggle-summary {
+            white-space: normal;
+            line-height: 1.45;
+        }
     }
 
     /* Toggle */
