@@ -39,6 +39,8 @@
   export let scrollTarget: HTMLElement | null = null;
 
   let chatWindowEl: HTMLElement;
+  let scrollContainer: HTMLElement | null = null;
+
   let players: RenderBlockPlayer[] = [];
   let renderBlocks = writable<TestRenderableBlock[]>([]);
   let activeBackgroundImage: string | null = null;
@@ -54,9 +56,10 @@
   let scrollCleanup: (() => void) | null = null;
   let lastScrollContainer: HTMLElement | null = null;
   let showAssistantLoadingBubble = false;
+  let scrollResizeObserver: ResizeObserver | null = null;
 
   function getScrollContainer() {
-    return scrollTarget ?? chatWindowEl ?? null;
+    return scrollContainer;
   }
 
   function isNearBottom(container: HTMLElement) {
@@ -88,6 +91,8 @@
 
     scrollCleanup?.();
     scrollCleanup = null;
+    scrollResizeObserver?.disconnect();
+    scrollResizeObserver = null;
     lastScrollContainer = container;
 
     if (!container) {
@@ -102,10 +107,12 @@
       scrollController?.suspendByUserIntent();
       syncJumpToBottomButton();
     };
+
     const handleTouchStart = () => {
       scrollController?.suspendByUserIntent();
       syncJumpToBottomButton();
     };
+
     const handleScroll = () => {
       scrollController?.handleScroll();
       syncJumpToBottomButton();
@@ -122,6 +129,11 @@
       container.removeEventListener("touchstart", handleTouchStart);
       container.removeEventListener("scroll", handleScroll);
     };
+
+    scrollResizeObserver = new ResizeObserver(() => {
+      syncJumpToBottomButton();
+    });
+    scrollResizeObserver.observe(container);
 
     tick().then(() => {
       scrollController?.scrollToBottom(true);
@@ -360,9 +372,11 @@
     const activePlayer = players.find(
       (player) => player.started && !player.completed,
     );
+
     if (activePlayer) {
       changed =
         activePlayer.tick(deltaMs, getTypingSpeed(activePlayer)) || changed;
+
       if (activePlayer.completed) {
         startEligiblePlayers();
         changed = true;
@@ -372,6 +386,7 @@
     if (changed) {
       publishBlocks();
       updateBackground();
+
       if (autoScroll && scrollController?.canAutoFollow()) {
         tick().then(() => {
           const container = getScrollContainer();
@@ -418,6 +433,7 @@
     if (isGeneratingImage || !persona) return;
     isGeneratingImage = true;
     showRatioOptions = false;
+
     try {
       const response = await api.post("/api/chat/2d/generate-image", {
         personaId: persona.id,
@@ -454,30 +470,43 @@
     }
   }
 
+  $: scrollContainer = scrollTarget ?? chatWindowEl ?? null;
+
   $: sharedChatStyleCSS = normalizeSharedChatStyleCSS(persona?.chat_style_css);
+
   $: {
     const source = $messages;
     const last = source[source.length - 1];
     showAssistantLoadingBubble = !!last && isLoading && last.role === "user";
   }
+
   $: syncPlayers(buildParsedBlocks($messages));
+
   $: if (persona || showVariableStatus !== undefined) {
     syncPlayers(buildParsedBlocks($messages));
   }
-  $: if (getScrollContainer() && autoScroll) {
+
+  $: if (scrollContainer) {
+    setupScrollController();
+  }
+
+  $: if (scrollContainer && autoScroll) {
     const source = $messages;
     const last = source[source.length - 1];
+
     if (source.length !== lastAutoScrollMessageCount) {
       lastAutoScrollMessageCount = source.length;
+
       tick().then(() => {
-        const container = getScrollContainer();
-        if (!container || !scrollController) return;
+        if (!scrollContainer || !scrollController) return;
+
         if (last?.role === "user" || scrollController.canAutoFollow()) {
-          container.scrollTo({
-            top: container.scrollHeight,
+          scrollContainer.scrollTo({
+            top: scrollContainer.scrollHeight,
             behavior: "auto",
           });
         }
+
         syncJumpToBottomButton();
       });
     }
@@ -503,17 +532,18 @@
     });
   }
 
-  $: if (getScrollContainer()) {
-    setupScrollController();
-  }
-
   onMount(() => {
     rafId = requestAnimationFrame(tickPlayers);
+
+    tick().then(() => {
+      syncJumpToBottomButton();
+    });
   });
 
   onDestroy(() => {
     if (rafId) cancelAnimationFrame(rafId);
     scrollCleanup?.();
+    scrollResizeObserver?.disconnect();
   });
 </script>
 
@@ -623,6 +653,7 @@
             >
           </div>
         {/if}
+
         {#if isGeneratingImage}
           <div class="generating-indicator">
             <span class="spinner-sm"></span>

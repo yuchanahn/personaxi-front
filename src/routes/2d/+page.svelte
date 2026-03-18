@@ -221,19 +221,19 @@
       scrollTarget={chatScrollContainer}
       bind:showRatioOptions
     />
-    <div class="chat-input-dock">
-      <ChatInput
-        onSend={send}
-        {isDisabled}
-        placeholderName={persona?.name}
-        mode="2d"
-        neededNeurons={currentCost}
-        hasStaticImage={!!persona?.static_portrait_url}
-        onImageClick={() => {
-          showRatioOptions = !showRatioOptions;
-        }}
-      />
-    </div>
+  </div>
+  <div class="chat-input-dock">
+    <ChatInput
+      onSend={send}
+      {isDisabled}
+      placeholderName={persona?.name}
+      mode="2d"
+      neededNeurons={currentCost}
+      hasStaticImage={!!persona?.static_portrait_url}
+      onImageClick={() => {
+        showRatioOptions = !showRatioOptions;
+      }}
+    />
   </div>
 </main>
 
@@ -263,7 +263,6 @@
 
   .chat-container {
     flex: 1; /* 남은 공간 모두 차지 */
-    height: 100vh; /* 화면 높이의 40% 차지 (조절 가능) */
     height: 100dvh;
     display: flex;
     flex-direction: column;
@@ -274,23 +273,23 @@
     overflow-y: auto;
     overflow-x: hidden;
     overscroll-behavior-y: contain;
-    padding-bottom: env(safe-area-inset-bottom, 0px);
+    padding-bottom: calc(112px + env(safe-area-inset-bottom, 0px));
   }
 
   .chat-input-dock {
-    position: sticky;
+    position: fixed;
+    left: 0;
+    right: 0;
     bottom: 0;
     z-index: 20;
     width: 100%;
-    padding: 0 1rem;
-    margin-top: auto;
-    background:
-      linear-gradient(
-        180deg,
-        rgba(var(--background-rgb), 0) 0%,
-        rgba(var(--background-rgb), 0.82) 26%,
-        rgba(var(--background-rgb), 0.96) 100%
-      );
+    padding: 0 1rem calc(env(safe-area-inset-bottom, 0px) + 0.75rem);
+    background: linear-gradient(
+      180deg,
+      rgba(var(--background-rgb), 0) 0%,
+      rgba(var(--background-rgb), 0.82) 26%,
+      rgba(var(--background-rgb), 0.96) 100%
+    );
     backdrop-filter: blur(10px);
   }
 
