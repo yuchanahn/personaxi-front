@@ -177,6 +177,7 @@
   };
 
   let showRatioOptions = false;
+  let chatScrollContainer: HTMLElement | null = null;
 </script>
 
 {#if isSettingsModalOpen && persona}
@@ -207,7 +208,7 @@
     <SettingsButton onClick={() => (isSettingsModalOpen = true)} />
   </div>
 
-  <div class="chat-container">
+  <div class="chat-container" bind:this={chatScrollContainer}>
     <ChatWindow2DNext
       {isLoading}
       {persona}
@@ -217,19 +218,22 @@
       {showBackground}
       {showVariableStatus}
       typingCharsPerSecond={80}
+      scrollTarget={chatScrollContainer}
       bind:showRatioOptions
     />
-    <ChatInput
-      onSend={send}
-      {isDisabled}
-      placeholderName={persona?.name}
-      mode="2d"
-      neededNeurons={currentCost}
-      hasStaticImage={!!persona?.static_portrait_url}
-      onImageClick={() => {
-        showRatioOptions = !showRatioOptions;
-      }}
-    />
+    <div class="chat-input-dock">
+      <ChatInput
+        onSend={send}
+        {isDisabled}
+        placeholderName={persona?.name}
+        mode="2d"
+        neededNeurons={currentCost}
+        hasStaticImage={!!persona?.static_portrait_url}
+        onImageClick={() => {
+          showRatioOptions = !showRatioOptions;
+        }}
+      />
+    </div>
   </div>
 </main>
 
@@ -267,14 +271,27 @@
     position: relative; /* z-index 적용을 위해 */
     z-index: 1; /* 배경 위에 표시 */
     background: transparent; /* 배경 투명 */
+    overflow-y: auto;
+    overflow-x: hidden;
+    overscroll-behavior-y: contain;
     padding-bottom: env(safe-area-inset-bottom, 0px);
   }
 
-  :global(.chat-window) {
-    flex: 1;
-    overflow-y: auto;
-    padding: 1rem;
-    min-height: 0;
+  .chat-input-dock {
+    position: sticky;
+    bottom: 0;
+    z-index: 20;
+    width: 100%;
+    padding: 0 1rem;
+    margin-top: auto;
+    background:
+      linear-gradient(
+        180deg,
+        rgba(var(--background-rgb), 0) 0%,
+        rgba(var(--background-rgb), 0.82) 26%,
+        rgba(var(--background-rgb), 0.96) 100%
+      );
+    backdrop-filter: blur(10px);
   }
 
   /* PC 화면 (768px 이상) */

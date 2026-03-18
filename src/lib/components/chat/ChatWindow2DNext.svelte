@@ -3,6 +3,7 @@
   import "$lib/styles/chat2d-shared-block-defaults.css";
   import { get, writable } from "svelte/store";
   import { onDestroy, onMount, tick } from "svelte";
+  import Icon from "@iconify/svelte";
   import type { Persona, ImageMetadata } from "$lib/types";
   import { messages, type Message } from "$lib/stores/messages";
   import { st_user } from "$lib/stores/user";
@@ -15,6 +16,7 @@
   import VariableStatusPanel from "./VariableStatusPanel.svelte";
   import AstroChartInline from "./AstroChartInline.svelte";
   import SajuChartInline from "./SajuChartInline.svelte";
+  import { Chat2DScrollController } from "$lib/chat2d/scroll-controller";
   import { parseChat2DMessages } from "$lib/chat2d/parser";
   import { assembleRenderableAssistantContent } from "$lib/chat2d/stream-assembler";
   import type { Chat2DBlock } from "$lib/chat2d/types";
@@ -34,6 +36,7 @@
   export let showRatioOptions = false;
   export let SendMessage: (msg: string) => void = () => {};
   export let typingCharsPerSecond: number | null = null;
+  export let scrollTarget: HTMLElement | null = null;
 
   let chatWindowEl: HTMLElement;
   let players: RenderBlockPlayer[] = [];
@@ -46,6 +49,74 @@
   let isGeneratingImage = false;
   let lastAutoScrollMessageCount = 0;
   const streamedAssistantIds = new Set<string>();
+  let scrollController: Chat2DScrollController | null = null;
+  let showJumpToBottom = false;
+  let scrollCleanup: (() => void) | null = null;
+
+  function getScrollContainer() {
+    return scrollTarget ?? chatWindowEl ?? null;
+  }
+
+  function syncJumpToBottomButton() {
+    if (!autoScroll || !scrollController) {
+      showJumpToBottom = false;
+      return;
+    }
+
+    showJumpToBottom =
+      !scrollController.canAutoFollow() && !scrollController.isNearBottom();
+  }
+
+  function jumpToBottomAndResume() {
+    if (!scrollController) return;
+    scrollController.resumeAutoFollow();
+    showJumpToBottom = false;
+    tick().then(() => scrollController?.scrollToBottom(true));
+  }
+
+  function setupScrollController() {
+    scrollCleanup?.();
+    scrollCleanup = null;
+
+    const container = getScrollContainer();
+    if (!container) {
+      scrollController = null;
+      showJumpToBottom = false;
+      return;
+    }
+
+    scrollController = new Chat2DScrollController(container);
+
+    const handleWheel = () => {
+      scrollController?.suspendByUserIntent();
+      syncJumpToBottomButton();
+    };
+    const handleTouchStart = () => {
+      scrollController?.suspendByUserIntent();
+      syncJumpToBottomButton();
+    };
+    const handleScroll = () => {
+      scrollController?.handleScroll();
+      syncJumpToBottomButton();
+    };
+
+    container.addEventListener("wheel", handleWheel, { passive: true });
+    container.addEventListener("touchstart", handleTouchStart, {
+      passive: true,
+    });
+    container.addEventListener("scroll", handleScroll, { passive: true });
+
+    scrollCleanup = () => {
+      container.removeEventListener("wheel", handleWheel);
+      container.removeEventListener("touchstart", handleTouchStart);
+      container.removeEventListener("scroll", handleScroll);
+    };
+
+    tick().then(() => {
+      scrollController?.scrollToBottom(true);
+      syncJumpToBottomButton();
+    });
+  }
 
   function normalizeSharedChatStyleCSS(raw: string | undefined) {
     if (!raw) return "";
@@ -138,7 +209,8 @@
       {
         showVariableStatus,
         revealVariableStatus:
-          normalizedMessages[normalizedMessages.length - 1]?.role === "assistant" &&
+          normalizedMessages[normalizedMessages.length - 1]?.role ===
+            "assistant" &&
           normalizedMessages[normalizedMessages.length - 1]?.done === true,
       },
     );
@@ -146,7 +218,9 @@
     const lastAssistant = [...normalizedMessages]
       .reverse()
       .find((msg) => msg.role === "assistant");
-    const lastAssistantBaseId = lastAssistant?.key ? `msg-${lastAssistant.key}` : "";
+    const lastAssistantBaseId = lastAssistant?.key
+      ? `msg-${lastAssistant.key}`
+      : "";
 
     let trailingPendingId = "";
     if (lastAssistant && lastAssistant.done !== true && lastAssistantBaseId) {
@@ -272,9 +346,12 @@
     lastFrame = timestamp;
 
     let changed = false;
-    const activePlayer = players.find((player) => player.started && !player.completed);
+    const activePlayer = players.find(
+      (player) => player.started && !player.completed,
+    );
     if (activePlayer) {
-      changed = activePlayer.tick(deltaMs, getTypingSpeed(activePlayer)) || changed;
+      changed =
+        activePlayer.tick(deltaMs, getTypingSpeed(activePlayer)) || changed;
       if (activePlayer.completed) {
         startEligiblePlayers();
         changed = true;
@@ -284,12 +361,14 @@
     if (changed) {
       publishBlocks();
       updateBackground();
-      if (autoScroll) {
+      if (autoScroll && scrollController?.canAutoFollow()) {
         tick().then(() => {
-          chatWindowEl?.scrollTo({
-            top: chatWindowEl.scrollHeight,
+          const container = getScrollContainer();
+          container?.scrollTo({
+            top: container.scrollHeight,
             behavior: "auto",
           });
+          syncJumpToBottomButton();
         });
       }
     }
@@ -307,17 +386,21 @@
   }
 
   function handleVariablePanelRendered() {
-    if (!autoScroll) return;
-    tick().then(() =>
-      chatWindowEl?.scrollTo({ top: chatWindowEl.scrollHeight, behavior: "auto" }),
-    );
+    if (!autoScroll || !scrollController?.canAutoFollow()) return;
+    tick().then(() => {
+      const container = getScrollContainer();
+      container?.scrollTo({ top: container.scrollHeight, behavior: "auto" });
+      syncJumpToBottomButton();
+    });
   }
 
   function handleImageLoad() {
-    if (!autoScroll) return;
-    tick().then(() =>
-      chatWindowEl?.scrollTo({ top: chatWindowEl.scrollHeight, behavior: "auto" }),
-    );
+    if (!autoScroll || !scrollController?.canAutoFollow()) return;
+    tick().then(() => {
+      const container = getScrollContainer();
+      container?.scrollTo({ top: container.scrollHeight, behavior: "auto" });
+      syncJumpToBottomButton();
+    });
   }
 
   async function generateSituationImage(ratio: string) {
@@ -380,17 +463,34 @@
   $: if (persona || showVariableStatus !== undefined) {
     syncPlayers(buildParsedBlocks($messages));
   }
-  $: if (chatWindowEl && autoScroll) {
+  $: if (getScrollContainer() && autoScroll) {
     const source = $messages;
+    const last = source[source.length - 1];
     if (source.length !== lastAutoScrollMessageCount) {
       lastAutoScrollMessageCount = source.length;
-      tick().then(() =>
-        chatWindowEl?.scrollTo({
-          top: chatWindowEl.scrollHeight,
-          behavior: "auto",
-        }),
-      );
+      tick().then(() => {
+        const container = getScrollContainer();
+        if (!container || !scrollController) return;
+        if (last?.role === "user" || scrollController.canAutoFollow()) {
+          container.scrollTo({
+            top: container.scrollHeight,
+            behavior: "auto",
+          });
+        }
+        syncJumpToBottomButton();
+      });
     }
+  }
+
+  $: if (showRatioOptions && autoScroll && scrollController?.canAutoFollow()) {
+    tick().then(() => {
+      scrollController?.scrollToBottom();
+      syncJumpToBottomButton();
+    });
+  }
+
+  $: if (getScrollContainer()) {
+    setupScrollController();
   }
 
   onMount(() => {
@@ -399,6 +499,7 @@
 
   onDestroy(() => {
     if (rafId) cancelAnimationFrame(rafId);
+    scrollCleanup?.();
   });
 </script>
 
@@ -462,7 +563,12 @@
       </div>
     {:else if item.type === "markdown_image" && showImage && !showBackground}
       <div class="image-block situation-image">
-        <img src={item.url} alt={item.alt} loading="lazy" on:load={handleImageLoad} />
+        <img
+          src={item.url}
+          alt={item.alt}
+          loading="lazy"
+          on:load={handleImageLoad}
+        />
       </div>
     {:else if item.type === "vars_status" && showVariableStatus}
       <div class="vars-status-inline">
@@ -485,17 +591,21 @@
       <div class="situation-trigger-wrapper">
         {#if showRatioOptions && !isGeneratingImage}
           <div class="ratio-group">
-            <button class="ratio-btn" on:click={() => generateSituationImage("16:9")}
-              >16:9</button
+            <button
+              class="ratio-btn"
+              on:click={() => generateSituationImage("16:9")}>16:9</button
             >
-            <button class="ratio-btn" on:click={() => generateSituationImage("1:1")}
-              >1:1</button
+            <button
+              class="ratio-btn"
+              on:click={() => generateSituationImage("1:1")}>1:1</button
             >
-            <button class="ratio-btn" on:click={() => generateSituationImage("3:4")}
-              >3:4</button
+            <button
+              class="ratio-btn"
+              on:click={() => generateSituationImage("3:4")}>3:4</button
             >
-            <button class="ratio-cancel-btn" on:click={() => (showRatioOptions = false)}
-              >X</button
+            <button
+              class="ratio-cancel-btn"
+              on:click={() => (showRatioOptions = false)}>X</button
             >
           </div>
         {/if}
@@ -523,6 +633,17 @@
       </div>
     </div>
   {/if}
+
+  {#if showJumpToBottom}
+    <button
+      class="jump-to-bottom-btn"
+      type="button"
+      aria-label="맨 아래로 이동"
+      on:click={jumpToBottomAndResume}
+    >
+      <Icon icon="ph:arrow-down-bold" width="18" height="18" />
+    </button>
+  {/if}
 </div>
 
 <style>
@@ -536,8 +657,6 @@
     display: flex;
     flex-direction: column;
     gap: 1rem;
-    overflow-y: auto;
-    overflow-x: hidden;
     position: relative;
     isolation: isolate;
   }
@@ -741,5 +860,32 @@
       opacity: 0.92;
       transform: translateY(-1px);
     }
+  }
+
+  .jump-to-bottom-btn {
+    position: fixed;
+    left: 50%;
+    bottom: calc(92px + env(safe-area-inset-bottom, 0px));
+    transform: translateX(-50%);
+    z-index: 40;
+    width: 32px;
+    height: 32px;
+    min-width: 32px;
+    min-height: 32px;
+    aspect-ratio: 1 / 1;
+    padding: 0;
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    border-radius: 999px;
+    background: rgba(0, 0, 0, 1);
+    color: rgba(255, 255, 255, 0.94);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow:
+      0 10px 30px rgba(0, 0, 0, 0.28),
+      0 2px 8px rgba(0, 0, 0, 0.18),
+      inset 0 1px 0 rgba(255, 255, 255, 0.12);
+    flex-shrink: 0;
+    cursor: pointer;
   }
 </style>

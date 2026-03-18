@@ -164,17 +164,19 @@
             const originalFile = input.files[0];
             portraitFile = originalFile;
 
+            const videoMaxDuration = 7;
+
             // Check if video
             if (originalFile.type.startsWith("video/")) {
                 // 1. Duration Check (Max 6s)
                 const { valid, duration } = await checkVideoDuration(
                     originalFile,
-                    6,
+                    videoMaxDuration,
                 );
                 if (!valid) {
-                    if (duration > 6) {
+                    if (duration > videoMaxDuration) {
                         toast.error(
-                            `Video is too long (${duration.toFixed(1)}s). Max 6 seconds allowed.`,
+                            `Video is too long (${duration.toFixed(1)}s). Max ${videoMaxDuration} seconds allowed.`,
                         );
                     } else {
                         toast.error("Failed to load video metadata.");
@@ -651,7 +653,10 @@
                     {$t("editPage.modelRights.description")}
                 </p>
                 <label class="rights-check-item">
-                    <input type="checkbox" bind:checked={modelRightsConfirmed} />
+                    <input
+                        type="checkbox"
+                        bind:checked={modelRightsConfirmed}
+                    />
                     <span>
                         {$t("editPage.modelRights.confirmOwnership")}
                     </span>
@@ -695,7 +700,8 @@
                         class="file-input-hidden"
                     />
                     {#if modelBackgroundFile}
-                        <span class="file-name">{modelBackgroundFile.name}</span>
+                        <span class="file-name">{modelBackgroundFile.name}</span
+                        >
                     {/if}
                     {#if modelBackgroundProgress > 0}
                         <span class="file-name"
