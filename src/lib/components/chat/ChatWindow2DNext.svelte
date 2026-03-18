@@ -52,19 +52,27 @@
   let scrollController: Chat2DScrollController | null = null;
   let showJumpToBottom = false;
   let scrollCleanup: (() => void) | null = null;
+  let lastScrollContainer: HTMLElement | null = null;
+  let showAssistantLoadingBubble = false;
 
   function getScrollContainer() {
     return scrollTarget ?? chatWindowEl ?? null;
   }
 
+  function isNearBottom(container: HTMLElement) {
+    const distance =
+      container.scrollHeight - container.scrollTop - container.clientHeight;
+    return distance <= 48;
+  }
+
   function syncJumpToBottomButton() {
-    if (!autoScroll || !scrollController) {
+    const container = getScrollContainer();
+    if (!container) {
       showJumpToBottom = false;
       return;
     }
 
-    showJumpToBottom =
-      !scrollController.canAutoFollow() && !scrollController.isNearBottom();
+    showJumpToBottom = !isNearBottom(container);
   }
 
   function jumpToBottomAndResume() {
@@ -75,10 +83,13 @@
   }
 
   function setupScrollController() {
+    const container = getScrollContainer();
+    if (container === lastScrollContainer) return;
+
     scrollCleanup?.();
     scrollCleanup = null;
+    lastScrollContainer = container;
 
-    const container = getScrollContainer();
     if (!container) {
       scrollController = null;
       showJumpToBottom = false;
@@ -443,22 +454,12 @@
     }
   }
 
-  function shouldShowAssistantLoadingBubble() {
-    if (!isLoading) return false;
-    const hasPendingAssistantBlock = players.some((player) => {
-      if (player.completed) return false;
-      const type = player.block.type;
-      return type !== "user" && type !== "user-interaction";
-    });
-    if (hasPendingAssistantBlock) return false;
-    const blocks = get(renderBlocks);
-    const last = blocks[blocks.length - 1];
-    if (!last) return true;
-    if (last.type === "user" || last.type === "user-interaction") return true;
-    return false;
-  }
-
   $: sharedChatStyleCSS = normalizeSharedChatStyleCSS(persona?.chat_style_css);
+  $: {
+    const source = $messages;
+    const last = source[source.length - 1];
+    showAssistantLoadingBubble = !!last && isLoading && last.role === "user";
+  }
   $: syncPlayers(buildParsedBlocks($messages));
   $: if (persona || showVariableStatus !== undefined) {
     syncPlayers(buildParsedBlocks($messages));
@@ -485,6 +486,19 @@
   $: if (showRatioOptions && autoScroll && scrollController?.canAutoFollow()) {
     tick().then(() => {
       scrollController?.scrollToBottom();
+      syncJumpToBottomButton();
+    });
+  }
+
+  $: if (showAssistantLoadingBubble) {
+    const loadingBlockCount = $renderBlocks.length;
+    tick().then(() => {
+      const container = getScrollContainer();
+      void loadingBlockCount;
+      container?.scrollTo({
+        top: container.scrollHeight,
+        behavior: "auto",
+      });
       syncJumpToBottomButton();
     });
   }
@@ -626,7 +640,7 @@
     {/if}
   {/each}
 
-  {#if shouldShowAssistantLoadingBubble()}
+  {#if showAssistantLoadingBubble}
     <div class="typing-placeholder" role="status" aria-live="polite">
       <div class="typing-dots" aria-hidden="true">
         <span></span><span></span><span></span>
@@ -701,9 +715,18 @@
   .message,
   .image-block,
   .code-block,
-  .situation-trigger-wrapper {
+  .situation-trigger-wrapper,
+  .astro-chart-wrapper,
+  .saju-chart-wrapper {
     position: relative;
     z-index: 1;
+  }
+
+  .astro-chart-wrapper,
+  .saju-chart-wrapper {
+    width: 100%;
+    display: flex;
+    justify-content: center;
   }
 
   .message {
@@ -823,6 +846,8 @@
     background: color-mix(in oklab, var(--secondary) 84%, transparent);
     backdrop-filter: blur(10px);
     margin-left: 0.25rem;
+    margin-top: 0.35rem;
+    margin-bottom: 1.25rem;
   }
 
   .typing-dots {
