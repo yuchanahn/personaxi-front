@@ -281,6 +281,7 @@ export function interactiveChat(
         options?: { submitPayload?: string },
     ) {
         const groupId = getGroupId(groupEl);
+        const queue = getQueue(groupId);
         const state = getState(groupId);
         const validationError = validateGroup(groupEl);
         if (validationError) {
@@ -291,6 +292,7 @@ export function interactiveChat(
         clearValidationMessage(groupEl);
 
         const payloadLines: string[] = [];
+        payloadLines.push(...queue);
         payloadLines.push(...state.values());
         const allInputFields = getActiveElementsWithinGroup<HTMLInputElement>(
             groupEl,
