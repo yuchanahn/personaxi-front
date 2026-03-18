@@ -263,7 +263,6 @@
 
   .chat-container {
     flex: 1; /* 남은 공간 모두 차지 */
-    height: 100dvh;
     display: flex;
     flex-direction: column;
     min-height: 0;
@@ -273,7 +272,7 @@
     overflow-y: auto;
     overflow-x: hidden;
     overscroll-behavior-y: contain;
-    padding-bottom: calc(112px + env(safe-area-inset-bottom, 0px));
+    padding-bottom: calc(120px + env(safe-area-inset-bottom, 0px));
   }
 
   .chat-input-dock {
@@ -291,6 +290,11 @@
       rgba(var(--background-rgb), 0.96) 100%
     );
     backdrop-filter: blur(10px);
+    pointer-events: none;
+  }
+
+  .chat-input-dock :global(.chat-input-wrapper) {
+    pointer-events: auto;
   }
 
   /* PC 화면 (768px 이상) */

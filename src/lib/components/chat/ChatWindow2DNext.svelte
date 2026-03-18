@@ -698,7 +698,7 @@
     margin: 0 auto;
     padding: 1rem;
     padding-top: 50px;
-    padding-bottom: calc(24px + env(safe-area-inset-bottom, 0px));
+    padding-bottom: 24px;
     display: flex;
     flex-direction: column;
     gap: 1rem;
