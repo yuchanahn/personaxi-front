@@ -15,9 +15,6 @@
     const styleId = `chat-dynamic-style-${Math.random().toString(36).slice(2, 9)}`;
 
     const styleRegex = /<style>([\s\S]*?)<\/style>/g;
-    const rawHtmlRegex =
-        /<(div|table|thead|tbody|tr|td|th|p|span|section|article|header|footer|main|aside|blockquote|ul|ol|li|h[1-6]|br)\b/i;
-
     // Only re-parse when content actually changes — prevents redundant marked+DOMPurify during typing
     $: if (content !== prevContent) {
         prevContent = content;
@@ -29,22 +26,14 @@
             return "";
         });
 
-        const shouldBypassMarkdown = rawHtmlRegex.test(cleanContent);
+        const parsed = marked.parse(cleanContent, {
+            breaks: true,
+            gfm: true,
+        }) as string;
 
-        if (shouldBypassMarkdown) {
-            htmlContent = DOMPurify.sanitize(cleanContent, {
-                USE_PROFILES: { html: true },
-            });
-        } else {
-            const parsed = marked.parse(cleanContent, {
-                breaks: true,
-                gfm: true,
-            }) as string;
-
-            htmlContent = DOMPurify.sanitize(parsed, {
-                USE_PROFILES: { html: true },
-            });
-        }
+        htmlContent = DOMPurify.sanitize(parsed, {
+            USE_PROFILES: { html: true },
+        });
 
         styleContent = styles;
     }

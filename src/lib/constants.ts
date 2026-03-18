@@ -27,6 +27,15 @@ export const allCategories = [
     { id: 12, nameKey: "tags.tsundere" },
     { id: 13, nameKey: "tags.yandere" },
     { id: 14, nameKey: "tags.simulation" },
+    { id: 15, nameKey: "tags.fortune" },
+    { id: 16, nameKey: "tags.counseling" },
+    { id: 17, nameKey: "tags.mystery" },
+    { id: 18, nameKey: "tags.detective" },
+    { id: 19, nameKey: "tags.history" },
+    { id: 20, nameKey: "tags.murim" },
+    { id: 21, nameKey: "tags.adventure" },
+    { id: 22, nameKey: "tags.interactive" },
+    { id: 23, nameKey: "tags.game" },
 
     // ---------------------------------
 
