@@ -18,6 +18,8 @@ const ALL_TAGS_REGEX =
     /<((?:say|dialogue)) speaker="([^"]+)">([\s\S]*?)<\/(?:say|dialogue)>|<(img) (\d+)>|<(Action) type="([^"]+)" question="([^"]+)" variable="([^"]+)"(?: max="(\d+)")? \/>|!\[(.*?)\]\((.*?)\)/g;
 const FIRST_SCENE_TAG_REGEX = /<first_scene>/g;
 const VARS_TAG_REGEX = /(?:\s*)<vars\b[^>]*>[\s\S]*?<\/vars>(?:\s*)/gi;
+const RAW_HTML_IMG_REGEX = /<img\b[^>]*>/i;
+const GAME_UI_GROUP_OPEN_REGEX = /<div\b[^>]*class=(["'])[^"']*\bgame-ui-group\b[^"']*\1[^>]*>/i;
 
 export function parseChat2DMessages(
     messages: Message[],
@@ -164,11 +166,12 @@ function parseAssistantContent(
                 .trim();
 
             if (narrationContent) {
-                blocks.push({
-                    type: "narration",
-                    content: replacePlaceholders(narrationContent, context),
-                    id: `${partId}-n-${subPartIndex++}`,
-                });
+                pushNarrationSegments(
+                    blocks,
+                    replacePlaceholders(narrationContent, context),
+                    `${partId}-n`,
+                    () => subPartIndex++,
+                );
             }
 
             const [fullMatch] = match;
@@ -257,17 +260,139 @@ function parseAssistantContent(
 
         const remainingNarration = textPart.substring(lastIndex).trim();
         if (remainingNarration) {
-            blocks.push({
-                type: "narration",
-                content: replacePlaceholders(remainingNarration, context),
-                id: `${partId}-n-${subPartIndex++}`,
-            });
+            pushNarrationSegments(
+                blocks,
+                replacePlaceholders(remainingNarration, context),
+                `${partId}-n`,
+                () => subPartIndex++,
+            );
         }
 
         partIndex += 1;
     });
 
     return blocks;
+}
+
+function pushNarrationSegments(
+    blocks: Chat2DBlock[],
+    content: string,
+    idPrefix: string,
+    nextIndex: () => number,
+) {
+    const segments = splitNarrationHtmlSegments(content);
+
+    for (const segment of segments) {
+        const trimmed =
+            segment.type === "text" ? segment.content.trim() : segment.content.trim();
+        if (!trimmed) continue;
+
+        blocks.push({
+            type: "narration",
+            content: trimmed,
+            id: `${idPrefix}-${nextIndex()}`,
+        });
+    }
+}
+
+function splitNarrationHtmlSegments(content: string) {
+    const segments: { type: "text" | "html"; content: string }[] = [];
+    let cursor = 0;
+
+    while (cursor < content.length) {
+        const nextImageIndex = findNextMatchIndex(RAW_HTML_IMG_REGEX, content, cursor);
+        const nextGameUiIndex = findNextMatchIndex(
+            GAME_UI_GROUP_OPEN_REGEX,
+            content,
+            cursor,
+        );
+
+        const candidates = [nextImageIndex, nextGameUiIndex].filter(
+            (value): value is number => value >= 0,
+        );
+
+        if (!candidates.length) {
+            segments.push({ type: "text", content: content.slice(cursor) });
+            break;
+        }
+
+        const nextIndex = Math.min(...candidates);
+        if (nextIndex > cursor) {
+            segments.push({ type: "text", content: content.slice(cursor, nextIndex) });
+        }
+
+        if (nextIndex === nextImageIndex) {
+            const imageMatch = execFrom(RAW_HTML_IMG_REGEX, content, nextIndex);
+            if (!imageMatch) break;
+            const html = imageMatch[0];
+            segments.push({ type: "html", content: html });
+            cursor = nextIndex + html.length;
+            continue;
+        }
+
+        if (nextIndex === nextGameUiIndex) {
+            const extracted = extractBalancedDiv(content, nextIndex);
+            if (!extracted) {
+                segments.push({ type: "text", content: content.slice(nextIndex) });
+                break;
+            }
+            segments.push({ type: "html", content: extracted.html });
+            cursor = extracted.endIndex;
+            continue;
+        }
+    }
+
+    return segments;
+}
+
+function findNextMatchIndex(regex: RegExp, content: string, from: number) {
+    const match = execFrom(regex, content, from);
+    return match ? match.index : -1;
+}
+
+function execFrom(regex: RegExp, content: string, from: number) {
+    const sliced = content.slice(from);
+    const match = regex.exec(sliced);
+    if (!match || match.index == null) return null;
+    return {
+        ...match,
+        index: from + match.index,
+    };
+}
+
+function extractBalancedDiv(content: string, startIndex: number) {
+    let depth = 0;
+    let cursor = startIndex;
+
+    while (cursor < content.length) {
+        const nextOpen = content.slice(cursor).match(/<div\b[^>]*>/i);
+        const nextClose = content.slice(cursor).match(/<\/div>/i);
+
+        const openIndex =
+            nextOpen && nextOpen.index != null ? cursor + nextOpen.index : -1;
+        const closeIndex =
+            nextClose && nextClose.index != null ? cursor + nextClose.index : -1;
+
+        if (openIndex === -1 && closeIndex === -1) return null;
+
+        if (openIndex !== -1 && (closeIndex === -1 || openIndex < closeIndex)) {
+            depth += 1;
+            cursor = openIndex + nextOpen![0].length;
+            continue;
+        }
+
+        depth -= 1;
+        cursor = closeIndex + nextClose![0].length;
+
+        if (depth === 0) {
+            return {
+                html: content.slice(startIndex, cursor),
+                endIndex: cursor,
+            };
+        }
+    }
+
+    return null;
 }
 
 function replacePlaceholders(

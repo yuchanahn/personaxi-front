@@ -3,6 +3,7 @@ import type { Chat2DBlock } from "$lib/chat2d/types";
 const STYLE_TAG_RE = /<style\b/i;
 const ANY_HTML_RE = /<[a-z][^>]*>/i;
 const HTML_INTERACTIVE_ATTR_RE = /\s(data-action|data-role|data-id|data-value|data-required)\s*=/i;
+const GAME_UI_GROUP_RE = /<div\b[^>]*class=(["'])[^"']*\bgame-ui-group\b[^"']*\1/i;
 const ATOMIC_HTML_RE =
   /<(table|thead|tbody|tr|td|th|button|label|select|option|textarea|form|input|img)\b/i;
 const SIMPLE_HTML_TEXT_RE =
@@ -254,12 +255,116 @@ export class HtmlTextBlockPlayer extends RenderBlockPlayer {
   }
 }
 
+export class MixedInteractiveSuffixBlockPlayer extends RenderBlockPlayer {
+  private visibleChars = 0;
+
+  protected onForceComplete() {
+    this.visibleChars = this.getPrefixPlainText().length;
+  }
+
+  protected onUpdate() {
+    const targetLength = this.getPrefixPlainText().length;
+    if (this.visibleChars > targetLength) {
+      this.visibleChars = targetLength;
+    }
+    this.completed = this.started && this.sealed && this.visibleChars >= targetLength;
+  }
+
+  tick(deltaMs: number, charsPerSecond: number): boolean {
+    if (!this.started || this.completed) return false;
+
+    const targetLength = this.getPrefixPlainText().length;
+    if (targetLength === 0) {
+      if (this.sealed) this.completed = true;
+      return false;
+    }
+
+    const nextVisibleChars = Math.min(
+      targetLength,
+      this.visibleChars + (charsPerSecond * deltaMs) / 1000,
+    );
+    const changed = Math.floor(nextVisibleChars) !== Math.floor(this.visibleChars);
+    this.visibleChars = nextVisibleChars;
+
+    if (this.sealed && this.visibleChars >= targetLength) {
+      this.completed = true;
+    }
+
+    return changed || this.completed;
+  }
+
+  getRenderableBlock(): TestRenderableBlock | null {
+    if (!this.started) return null;
+
+    const typedPrefix = this.getTypedPrefixContent();
+    const suffixReady = this.sealed && this.visibleChars >= this.getPrefixPlainText().length;
+    const content = suffixReady ? typedPrefix + this.getHtmlSuffix() : typedPrefix;
+
+    if (this.block.type === "dialogue") {
+      return {
+        type: "dialogue",
+        id: this.block.id,
+        speaker: this.block.speaker,
+        content,
+      };
+    }
+
+    if (this.block.type === "narration") {
+      return {
+        type: "narration",
+        id: this.block.id,
+        content,
+      };
+    }
+
+    return null;
+  }
+
+  private getContent() {
+    if (this.block.type === "dialogue") return this.block.content;
+    if (this.block.type === "narration") return this.block.content;
+    return "";
+  }
+
+  private getSplitParts() {
+    return splitInteractiveSuffix(this.getContent());
+  }
+
+  private getPrefixContent() {
+    return this.getSplitParts()?.prefix ?? this.getContent();
+  }
+
+  private getHtmlSuffix() {
+    return this.getSplitParts()?.suffix ?? "";
+  }
+
+  private getPrefixPlainText() {
+    return stripTags(this.getPrefixContent());
+  }
+
+  private getTypedPrefixContent() {
+    const prefix = this.getPrefixContent();
+    const visibleChars = Math.floor(this.visibleChars);
+
+    if (ANY_HTML_RE.test(prefix) && SIMPLE_HTML_TEXT_RE.test(prefix)) {
+      return buildProgressiveHtml(prefix, visibleChars);
+    }
+
+    return this.getPrefixPlainText().slice(0, visibleChars);
+  }
+}
+
 export function createRenderBlockPlayer(
   block: Chat2DBlock,
   sealed: boolean,
 ): RenderBlockPlayer {
   if (block.type === "dialogue" || block.type === "narration") {
     const content = block.content;
+    const splitInteractive = splitInteractiveSuffix(content);
+
+    if (splitInteractive) {
+      return new MixedInteractiveSuffixBlockPlayer(block, sealed);
+    }
 
     if (
       STYLE_TAG_RE.test(content) ||
@@ -347,4 +452,23 @@ function sanitizeTextToken(token: string) {
 function getTrailingIncompleteFragment(html: string) {
   const match = html.match(INCOMPLETE_TAG_FRAGMENT_RE);
   return match ? match[0] : "";
+}
+
+function splitInteractiveSuffix(content: string) {
+  const groupMatch = GAME_UI_GROUP_RE.exec(content);
+  const attrMatch = HTML_INTERACTIVE_ATTR_RE.exec(content);
+
+  const candidates = [groupMatch?.index, attrMatch?.index].filter(
+    (value): value is number => typeof value === "number" && value >= 0,
+  );
+
+  if (!candidates.length) return null;
+
+  const startIndex = Math.min(...candidates);
+  const prefix = content.slice(0, startIndex).trimEnd();
+  const suffix = content.slice(startIndex).trimStart();
+
+  if (!prefix || !suffix) return null;
+
+  return { prefix, suffix };
 }
