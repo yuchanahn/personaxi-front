@@ -6,6 +6,7 @@
         loadContentWithName,
         loadFollowedContent,
         loadLikedContent,
+        loadHubSections,
     } from "$lib/api/content";
     import type { PersonaDTO } from "$lib/types";
     import { onDestroy, onMount, tick } from "svelte";
@@ -28,6 +29,21 @@
     import { requestIdentityVerification } from "$lib/services/verification";
     import { updateBirthDate, updateSafetyFilter } from "$lib/api/user";
     import HubBanner from "./HubBanner.svelte";
+
+    type HubHomeSection = {
+        id: string;
+        sectionKey: string;
+        title: string;
+        contentType: string;
+        queryMode: string;
+        queryTags: string[];
+        excludeTags: string[];
+        limit: number;
+        contents: PersonaDTO[];
+        isLoading: boolean;
+        hasMore: boolean;
+        page: number;
+    };
 
     let isAgeVerificationModalOpen = false;
     let safetyModalMode: "kr_verification" | "overseas_birthdate" = "overseas_birthdate";
@@ -319,16 +335,9 @@
 
     // --- 상태 관리 ---
     let contents = writable<PersonaDTO[]>([]);
-    let newContents = writable<PersonaDTO[]>([]);
-    let popularContents = writable<PersonaDTO[]>([]);
-    let live2dContents = writable<PersonaDTO[]>([]);
-    let vrmContents = writable<PersonaDTO[]>([]);
+    let homeSections = writable<HubHomeSection[]>([]);
 
     let isLoading = writable(true);
-    let isNewLoading = writable(true);
-    let isPopularLoading = writable(true);
-    let isLive2dLoading = writable(true);
-    let isVrmLoading = writable(true);
 
     let isPWA = false;
 
@@ -339,20 +348,11 @@
     let selectedCategory: string | null = null;
     let currentSort = "latest";
     let page = 1;
-    let newPage = 1;
-    let popularPage = 1;
-    let live2dPage = 1;
-    let vrmPage = 1;
     const limit = 20;
 
-    let hasMoreNew = true;
-    let hasMorePopular = true;
-    let hasMoreLive2d = true;
-    let hasMoreVrm = true;
     let hasMoreMain = true;
     let hubContainerEl: HTMLDivElement;
     let hubScrollTarget: HTMLElement | Window | null = null;
-    let popularSortMode: "realtime" | "popular" = "realtime";
 
     let isCategoryExpanded = false;
 
@@ -638,212 +638,142 @@
         }
     }
 
-    // --- State for Home Dashboard ---
-    let fantasyContents = writable<PersonaDTO[]>([]);
-    let isFantasyLoading = writable(true);
-    let romanceContents = writable<PersonaDTO[]>([]);
-    let isRomanceLoading = writable(true);
-    let scifiContents = writable<PersonaDTO[]>([]);
-    let isScifiLoading = writable(true);
-    let sliceOfLifeContents = writable<PersonaDTO[]>([]);
-    let isSliceOfLifeLoading = writable(true);
-    let horrorContents = writable<PersonaDTO[]>([]);
-    let isHorrorLoading = writable(true);
-
-    // ... other states (new, popular etc) ...
-
-    async function loadGenreSection(
-        target: typeof fantasyContents,
-        loading: typeof isFantasyLoading,
-        tag: string,
+    async function loadHubSectionItems(
+        section: Pick<
+            HubHomeSection,
+            "queryMode" | "queryTags" | "excludeTags" | "limit" | "contentType"
+        >,
+        pageNum: number,
     ) {
-        loading.set(true);
-        try {
-            const data = await loadContent(1, 10, "popular", "all", [tag], excludedTags);
-            target.set(data);
-        } finally {
-            loading.set(false);
+        const limitValue = section.limit > 0 ? section.limit : 10;
+        const combinedExcludedTags = [
+            ...excludedTags,
+            ...(section.excludeTags ?? []),
+        ];
+
+        switch (section.queryMode) {
+            case "tags":
+                return await loadContentWithTags(
+                    section.queryTags ?? [],
+                    pageNum,
+                    limitValue,
+                    "popular",
+                    section.contentType || "character",
+                    combinedExcludedTags,
+                );
+            case "popular":
+                return await loadContent(
+                    pageNum,
+                    limitValue,
+                    "popular",
+                    section.contentType || "character",
+                    section.queryTags ?? [],
+                    combinedExcludedTags,
+                );
+            case "realtime":
+                return await loadContent(
+                    pageNum,
+                    limitValue,
+                    "realtime",
+                    section.contentType || "character",
+                    section.queryTags ?? [],
+                    combinedExcludedTags,
+                );
+            case "latest":
+                return await loadContent(
+                    pageNum,
+                    limitValue,
+                    "latest",
+                    section.contentType || "character",
+                    section.queryTags ?? [],
+                    combinedExcludedTags,
+                );
+            case "latest_daily":
+                return await loadContent(
+                    pageNum,
+                    limitValue,
+                    "latest_daily",
+                    section.contentType || "character",
+                    section.queryTags ?? [],
+                    combinedExcludedTags,
+                );
+            default:
+                return await loadContent(
+                    pageNum,
+                    limitValue,
+                    section.queryMode || "latest",
+                    section.contentType || "character",
+                    section.queryTags ?? [],
+                    combinedExcludedTags,
+                );
         }
-    }
-
-    async function loadPopularSectionPage(pageNum: number) {
-        if (pageNum === 1) {
-            const realtimeData = await loadContent(
-                1,
-                10,
-                "realtime",
-                "all",
-                [],
-                excludedTags,
-            );
-
-            if (realtimeData.length > 0) {
-                popularSortMode = "realtime";
-                return realtimeData;
-            }
-
-            popularSortMode = "popular";
-            return await loadContent(1, 10, "popular", "all", [], excludedTags);
-        }
-
-        return await loadContent(
-            pageNum,
-            10,
-            popularSortMode,
-            "all",
-            [],
-            excludedTags,
-        );
     }
 
     async function loadFeaturedSections() {
         const requestId = ++featuredRequestId;
-
-        newPage = 1;
-        popularPage = 1;
-        live2dPage = 1;
-        vrmPage = 1;
-        popularSortMode = "realtime";
-        hasMoreNew = true;
-        hasMorePopular = true;
-        hasMoreLive2d = true;
-        hasMoreVrm = true;
-
-        isNewLoading.set(true);
-        isPopularLoading.set(true);
-        isLive2dLoading.set(true);
-        isVrmLoading.set(true);
-        isRomanceLoading.set(true);
-        isScifiLoading.set(true);
-        isFantasyLoading.set(true);
-        isSliceOfLifeLoading.set(true);
-        isHorrorLoading.set(true);
+        homeSections.set([]);
 
         try {
-            const [
-                newData,
-                popularData,
-                romanceData,
-                scifiData,
-                fantasyData,
-                sliceOfLifeData,
-                horrorData,
-                live2dData,
-                vrmData,
-            ] = await Promise.all([
-                loadContent(newPage, 10, "latest_daily", "all", [], excludedTags),
-                loadPopularSectionPage(popularPage),
-                loadContent(1, 10, "popular", "all", ["tags.romance"], excludedTags),
-                loadContent(1, 10, "popular", "all", ["tags.scifi"], excludedTags),
-                loadContent(1, 10, "popular", "all", ["tags.fantasy"], excludedTags),
-                loadContent(1, 10, "popular", "all", ["tags.sliceOfLife"], excludedTags),
-                loadContent(1, 10, "popular", "all", ["tags.horror"], excludedTags),
-                loadContent(live2dPage, 10, "popular", "all", ["tags.live2d"], excludedTags),
-                loadContent(vrmPage, 10, "popular", "all", ["tags.vrm"], excludedTags),
-            ]);
+            const sectionConfigs = await loadHubSections();
+            const sectionViews: HubHomeSection[] = sectionConfigs.map((section) => ({
+                id: section.id,
+                sectionKey: section.section_key,
+                title: section.title,
+                contentType: section.content_type || "character",
+                queryMode: section.query_mode || "latest",
+                queryTags: section.query_tags ?? [],
+                excludeTags: section.exclude_tags ?? [],
+                limit: section.limit || 10,
+                contents: section.items ?? [],
+                isLoading: false,
+                hasMore: (section.items?.length ?? 0) >= (section.limit || 10),
+                page: 1,
+            }));
 
             if (requestId !== featuredRequestId) return;
-
-            newContents.set(newData);
-            popularContents.set(popularData);
-            romanceContents.set(romanceData);
-            scifiContents.set(scifiData);
-            fantasyContents.set(fantasyData);
-            sliceOfLifeContents.set(sliceOfLifeData);
-            horrorContents.set(horrorData);
-            live2dContents.set(live2dData);
-            vrmContents.set(vrmData);
-
-            hasMoreNew = newData.length >= 10;
-            hasMorePopular = popularData.length >= 10;
-            hasMoreLive2d = live2dData.length >= 10;
-            hasMoreVrm = vrmData.length >= 10;
-        } finally {
+            homeSections.set(sectionViews);
+        } catch (error) {
+            console.error("Failed to load hub sections:", error);
             if (requestId !== featuredRequestId) return;
-            isNewLoading.set(false);
-            isPopularLoading.set(false);
-            isRomanceLoading.set(false);
-            isScifiLoading.set(false);
-            isFantasyLoading.set(false);
-            isSliceOfLifeLoading.set(false);
-            isHorrorLoading.set(false);
-            isLive2dLoading.set(false);
-            isVrmLoading.set(false);
+            homeSections.set([]);
         }
     }
 
-    async function handleLoadMore(type: "new" | "popular" | "live2d" | "vrm") {
-        if (type === "new") {
-            if ($isNewLoading || !hasMoreNew) return;
-            isNewLoading.set(true);
-            newPage++;
-            const data = await loadContent(
-                newPage,
-                10,
-                "latest_daily",
-                "all",
-                [],
-                excludedTags,
+    async function handleLoadMore(sectionKey: string) {
+        const section = $homeSections.find((item) => item.sectionKey === sectionKey);
+        if (!section || section.isLoading || !section.hasMore) return;
+
+        homeSections.update((items) =>
+            items.map((item) =>
+                item.sectionKey === sectionKey ? { ...item, isLoading: true } : item
+            ),
+        );
+
+        try {
+            const nextPage = section.page + 1;
+            const data = await loadHubSectionItems(section, nextPage);
+
+            homeSections.update((items) =>
+                items.map((item) => {
+                    if (item.sectionKey !== sectionKey) return item;
+                    return {
+                        ...item,
+                        page: nextPage,
+                        contents: [...item.contents, ...data],
+                        hasMore: data.length >= item.limit,
+                        isLoading: false,
+                    };
+                }),
             );
-            if (data.length > 0) {
-                newContents.update((c) => [...c, ...data]);
-                if (data.length < 10) hasMoreNew = false;
-            } else {
-                hasMoreNew = false;
-            }
-            isNewLoading.set(false);
-        } else if (type === "popular") {
-            if ($isPopularLoading || !hasMorePopular) return;
-            isPopularLoading.set(true);
-            popularPage++;
-            const data = await loadContent(
-                popularPage,
-                10,
-                popularSortMode,
-                "all",
-                [],
-                excludedTags,
+        } catch (error) {
+            console.error("Failed to load more hub section:", error);
+            homeSections.update((items) =>
+                items.map((item) =>
+                    item.sectionKey === sectionKey
+                        ? { ...item, isLoading: false }
+                        : item
+                ),
             );
-            if (data.length > 0) {
-                popularContents.update((c) => [...c, ...data]);
-                if (data.length < 10) hasMorePopular = false;
-            } else {
-                hasMorePopular = false;
-            }
-            isPopularLoading.set(false);
-        } else if (type === "live2d") {
-            if ($isLive2dLoading || !hasMoreLive2d) return;
-            isLive2dLoading.set(true);
-            live2dPage++;
-            const data = await loadContent(
-                live2dPage,
-                10,
-                "popular",
-                "all",
-                ["tags.live2d"],
-                excludedTags,
-            );
-            if (data.length > 0) {
-                live2dContents.update((c) => [...c, ...data]);
-                if (data.length < 10) hasMoreLive2d = false;
-            } else {
-                hasMoreLive2d = false;
-            }
-            isLive2dLoading.set(false);
-        } else if (type === "vrm") {
-            if ($isVrmLoading || !hasMoreVrm) return;
-            isVrmLoading.set(true);
-            vrmPage++;
-            const data = await loadContent(vrmPage, 10, "popular", "all", [
-                "tags.vrm",
-            ]);
-            if (data.length > 0) {
-                vrmContents.update((c) => [...c, ...data]);
-                if (data.length < 10) hasMoreVrm = false;
-            } else {
-                hasMoreVrm = false;
-            }
-            isVrmLoading.set(false);
         }
     }
 
@@ -1268,106 +1198,18 @@
             <!-- HOME DASHBOARD VIEW -->
             <!-- If we are in home tab AND NOT searching/filtering, show dashboard -->
             {#if activeTab === "home" && !selectedCategory}
-                {#if $isPopularLoading || $popularContents.length > 0}
-                    <ContentCarousel
-                        title={$t("content.popularPicks")}
-                        contents={$popularContents}
-                        isLoading={$isPopularLoading}
-                        hasMore={hasMorePopular}
-                        on:select={(e) => handleCardClick(e.detail)}
-                        on:loadMore={() => handleLoadMore("popular")}
-                    />
-                {/if}
-
-                {#if $isNewLoading || $newContents.length > 0}
-                    <ContentCarousel
-                        title={$t("content.newVoices")}
-                        contents={$newContents}
-                        isLoading={$isNewLoading}
-                        hasMore={hasMoreNew}
-                        on:select={(e) => handleCardClick(e.detail)}
-                        on:loadMore={() => handleLoadMore("new")}
-                    />
-                {/if}
-
-                {#if $isRomanceLoading || $romanceContents.length > 0}
-                    <ContentCarousel
-                        title={$t("content.romanceSpotlight")}
-                        contents={$romanceContents}
-                        isLoading={$isRomanceLoading}
-                        hasMore={false}
-                        on:select={(e) => handleCardClick(e.detail)}
-                        on:loadMore={() => {}}
-                    />
-                {/if}
-
-                {#if $isScifiLoading || $scifiContents.length > 0}
-                    <ContentCarousel
-                        title={$t("content.scifiSignal")}
-                        contents={$scifiContents}
-                        isLoading={$isScifiLoading}
-                        hasMore={false}
-                        on:select={(e) => handleCardClick(e.detail)}
-                        on:loadMore={() => {}}
-                    />
-                {/if}
-
-                {#if $isFantasyLoading || $fantasyContents.length > 0}
-                    <ContentCarousel
-                        title={$t("content.fantasyGate")}
-                        contents={$fantasyContents}
-                        isLoading={$isFantasyLoading}
-                        hasMore={false}
-                        on:select={(e) => handleCardClick(e.detail)}
-                        on:loadMore={() => {}}
-                    />
-                {/if}
-
-                {#if $isSliceOfLifeLoading || $sliceOfLifeContents.length > 0}
-                    <ContentCarousel
-                        title={$t("content.sliceOfLifeBreak")}
-                        contents={$sliceOfLifeContents}
-                        isLoading={$isSliceOfLifeLoading}
-                        hasMore={false}
-                        on:select={(e) => handleCardClick(e.detail)}
-                        on:loadMore={() => {}}
-                    />
-                {/if}
-
-                {#if $isHorrorLoading || $horrorContents.length > 0}
-                    <ContentCarousel
-                        title={$t("content.horrorAfterDark")}
-                        contents={$horrorContents}
-                        isLoading={$isHorrorLoading}
-                        hasMore={false}
-                        on:select={(e) => handleCardClick(e.detail)}
-                        on:loadMore={() => {}}
-                    />
-                {/if}
-
-                {#if $isLive2dLoading || $live2dContents.length > 0}
-                    <ContentCarousel
-                        title={$t("content.live2dSpotlight")}
-                        contents={$live2dContents}
-                        isLoading={$isLive2dLoading}
-                        hasMore={hasMoreLive2d}
-                        emptyMessage="No Live2D models found."
-                        on:select={(e) => handleCardClick(e.detail)}
-                        on:loadMore={() => handleLoadMore("live2d")}
-                    />
-                {/if}
-
-                {#if $isVrmLoading || $vrmContents.length > 0}
-                    <ContentCarousel
-                        title={$t("content.vrmSpotlight")}
-                        contents={$vrmContents}
-                        isLoading={$isVrmLoading}
-                        hasMore={hasMoreVrm}
-                        emptyMessage="No VRM models found."
-                        on:select={(e) => handleCardClick(e.detail)}
-                        on:loadMore={() => handleLoadMore("vrm")}
-                    />
-                {/if}
+                {#each $homeSections as section (section.id)}
+                    {#if section.isLoading || section.contents.length > 0}
+                        <ContentCarousel
+                            title={section.title}
+                            contents={section.contents}
+                            isLoading={section.isLoading}
+                            hasMore={section.hasMore}
+                            on:select={(e) => handleCardClick(e.detail)}
+                            on:loadMore={() => handleLoadMore(section.sectionKey)}
+                        />
+                    {/if}
+                {/each}
             {:else}
                 <!-- LIST VIEW (Character / Story / Filtered) -->
                 <section class="hub-section full-height">

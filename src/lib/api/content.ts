@@ -1,9 +1,22 @@
 import { api } from "$lib/api";
 import { allCategories } from "$lib/constants";
 import { settings } from "$lib/stores/settings";
-import type { Persona } from '$lib/types';
+import type { Persona, PersonaDTO } from '$lib/types';
 import { get } from "svelte/store";
 
+export type HubSectionConfig = {
+    id: string;
+    section_key: string;
+    section_type: string;
+    sort_order: number;
+    content_type: string;
+    query_mode: string;
+    query_tags: string[];
+    exclude_tags: string[];
+    limit: number;
+    title: string;
+    items?: PersonaDTO[];
+};
 
 export async function loadContent(page: number, limit: number, sort: string = 'latest', contentType: string = 'character', tags: string[] = [], excludedTags: string[] = []) {
     const offset = (page - 1) * limit;
@@ -175,6 +188,18 @@ export async function loadLikedContent() {
     }
 
     const res = await api.get(`/api/contents/liked?locale=${get(settings).language}`);
+    if (res.ok) {
+        const data = await res.json();
+        if (data === null) {
+            return [];
+        }
+        return data;
+    }
+    return [];
+}
+
+export async function loadHubSections(): Promise<HubSectionConfig[]> {
+    const res = await api.get2(`/api/hub/sections?locale=${get(settings).language}`);
     if (res.ok) {
         const data = await res.json();
         if (data === null) {
