@@ -10,11 +10,18 @@
     let prevContent = "";
     let htmlContent = "";
     let styleContent = "";
+    let containsStructuralHtml = false;
+    let containsMarkdownSyntax = false;
+    let shouldPreferRawHtml = false;
 
     // Unique style ID per component instance to avoid collisions
     const styleId = `chat-dynamic-style-${Math.random().toString(36).slice(2, 9)}`;
 
     const styleRegex = /<style>([\s\S]*?)<\/style>/g;
+    const structuralHtmlRegex =
+        /<(div|section|article|header|footer|main|aside|table|thead|tbody|tr|td|th|ul|ol|li|form|button|input|select|textarea|figure|figcaption|details|summary|blockquote|h[1-6])\b/i;
+    const markdownSyntaxRegex =
+        /(\*\*|__|`{1,3}|!\[[^\]]*?\]\([^)]+?\)|\[[^\]]+?\]\([^)]+?\)|^\s*[-*+]\s+|^\s*\d+\.\s+|^>\s+)/m;
     // Only re-parse when content actually changes — prevents redundant marked+DOMPurify during typing
     $: if (content !== prevContent) {
         prevContent = content;
@@ -26,14 +33,24 @@
             return "";
         });
 
-        const parsed = marked.parse(cleanContent, {
-            breaks: true,
-            gfm: true,
-        }) as string;
+        containsStructuralHtml = structuralHtmlRegex.test(cleanContent);
+        containsMarkdownSyntax = markdownSyntaxRegex.test(cleanContent);
+        shouldPreferRawHtml = containsStructuralHtml && !containsMarkdownSyntax;
 
-        htmlContent = DOMPurify.sanitize(parsed, {
-            USE_PROFILES: { html: true },
-        });
+        if (shouldPreferRawHtml) {
+            htmlContent = DOMPurify.sanitize(cleanContent, {
+                USE_PROFILES: { html: true },
+            });
+        } else {
+            const parsed = marked.parse(cleanContent, {
+                breaks: true,
+                gfm: true,
+            }) as string;
+
+            htmlContent = DOMPurify.sanitize(parsed, {
+                USE_PROFILES: { html: true },
+            });
+        }
 
         styleContent = styles;
     }
@@ -61,12 +78,19 @@
             if (el) el.remove();
         }
     });
+
+    $: effectiveWrapperClass = [
+        wrapperClass,
+        !isMessage && containsStructuralHtml ? "px-narration--html" : "",
+    ]
+        .filter(Boolean)
+        .join(" ");
 </script>
 
 <div
     class={isMessage
-        ? `message ${wrapperClass}`.trim()
-        : `narration-block markdown-body ${wrapperClass}`.trim()}
+        ? `message ${effectiveWrapperClass}`.trim()
+        : `narration-block markdown-body ${effectiveWrapperClass}`.trim()}
 >
     {@html htmlContent}
 </div>

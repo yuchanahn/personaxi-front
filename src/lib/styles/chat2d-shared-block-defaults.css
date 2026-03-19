@@ -55,3 +55,20 @@
 .chat2d-surface .narration-block.px-narration p+p {
   margin-top: 0.7rem;
 }
+
+.chat2d-surface .narration-block.px-narration.px-narration--html {
+  padding: 0;
+  color: inherit;
+  font-size: inherit;
+  line-height: inherit;
+  letter-spacing: normal;
+  font-style: normal;
+}
+
+.chat2d-surface .narration-block.px-narration.px-narration--html p {
+  margin: 1em 0;
+}
+
+.chat2d-surface .narration-block.px-narration.px-narration--html p+p {
+  margin-top: 1em;
+}
