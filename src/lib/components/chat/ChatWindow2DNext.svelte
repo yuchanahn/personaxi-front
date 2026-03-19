@@ -235,6 +235,7 @@
           normalizedMessages[normalizedMessages.length - 1]?.role ===
             "assistant" &&
           normalizedMessages[normalizedMessages.length - 1]?.done === true,
+        varSourceMessages: sourceMessages,
       },
     );
 

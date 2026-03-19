@@ -27,6 +27,7 @@ export function parseChat2DMessages(
     options?: {
         showVariableStatus?: boolean;
         revealVariableStatus?: boolean;
+        varSourceMessages?: Message[];
     },
 ): Chat2DBlock[] {
     const blocks: Chat2DBlock[] = [];
@@ -88,7 +89,11 @@ export function parseChat2DMessages(
             blocks.push({
                 type: "vars_status",
                 id: `${messageId}-vars`,
-                variables: extractVarsUpToIndex(messages, i, context.persona),
+                variables: extractVarsUpToIndex(
+                    options?.varSourceMessages ?? messages,
+                    i,
+                    context.persona,
+                ),
             });
         }
 
