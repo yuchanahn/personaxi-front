@@ -1163,12 +1163,16 @@
         border-radius: 999px;
         border: 1px solid var(--border);
         white-space: nowrap;
+        min-height: 38px;
     }
     .toggle-switch.small {
         width: 28px;
         height: 16px;
         position: relative;
         display: inline-block;
+        margin: 0;
+        flex: 0 0 auto;
+        vertical-align: middle;
     }
     .toggle-switch.small input {
         opacity: 0;
@@ -1204,17 +1208,23 @@
         transform: translateX(12px);
     }
     .secret-label {
+        display: inline-flex;
+        align-items: center;
+        line-height: 1;
         font-size: 0.8rem;
         font-weight: 600;
         color: var(--secondary-foreground);
     }
     .tooltip-icon.small {
-        margin-left: 0.1rem;
+        margin-left: 0;
         font-size: 0.85rem;
         position: relative;
         display: inline-flex;
         align-items: center;
         justify-content: center;
+        width: 18px;
+        height: 18px;
+        flex: 0 0 auto;
         cursor: help;
         color: var(--muted-foreground);
     }
