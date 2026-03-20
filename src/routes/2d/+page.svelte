@@ -3,6 +3,7 @@
   import { loadChatHistory, sendPromptStream } from "$lib/api/chat";
   import ChatWindow2DNext from "$lib/components/chat/ChatWindow2DNext.svelte";
   import ChatInput from "$lib/components/chat/ChatInput.svelte";
+  import "$lib/styles/chat-input-position.css";
   import { onMount } from "svelte";
   import SettingsButton from "$lib/components/common/SettingsButton.svelte";
   import { fetchAndSetAssetTypes, loadPersona } from "$lib/api/edit_persona";
@@ -309,7 +310,9 @@
     overflow-y: auto;
     overflow-x: hidden;
     overscroll-behavior-y: contain;
-    padding-bottom: calc(120px + env(safe-area-inset-bottom, 0px));
+    padding-bottom: calc(
+      var(--px-chat-input-reserved-space) + env(safe-area-inset-bottom, 0px)
+    );
   }
 
   .chat-input-dock {
@@ -319,7 +322,12 @@
     bottom: 0;
     z-index: 20;
     width: 100%;
-    padding: 0 1rem calc(env(safe-area-inset-bottom, 0px) + 0.75rem);
+    padding:
+      0
+      var(--px-chat-input-dock-padding-x)
+      calc(
+        env(safe-area-inset-bottom, 0px) + var(--px-chat-input-bottom-gap)
+      );
     background: linear-gradient(
       180deg,
       rgba(var(--background-rgb), 0) 0%,

@@ -2,6 +2,7 @@
   import { getViewer, unload, test as viewVrmInCanvas } from "$lib/vrm/test";
   import ChatWindow from "../chat/ChatWindow.svelte";
   import ChatInput from "../chat/ChatInput.svelte";
+  import "$lib/styles/chat-input-position.css";
   import { handleSendToCharacter } from "$lib/services/chat";
   import type { Model } from "$lib/vrm/core/model";
   import type { Persona } from "$lib/types";
@@ -701,7 +702,7 @@
   }
   .chat-content :global(.chat-input-wrapper) {
     position: sticky;
-    bottom: 0;
+    bottom: var(--px-chat-input-bottom-gap);
     background: var(--color-accent);
     z-index: 10;
 

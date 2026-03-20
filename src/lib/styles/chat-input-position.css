@@ -1,0 +1,6 @@
+:root {
+  --px-chat-input-bottom-gap: 0.75rem;
+  --px-chat-input-dock-padding-x: 1rem;
+  --px-chat-input-reserved-space: 120px;
+  --px-chat-jump-to-bottom-base-offset: 92px;
+}

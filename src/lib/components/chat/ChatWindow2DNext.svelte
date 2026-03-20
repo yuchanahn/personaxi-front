@@ -1,6 +1,7 @@
 <script lang="ts">
   import "$lib/styles/custom-markdown.css";
   import "$lib/styles/chat2d-shared-block-defaults.css";
+  import "$lib/styles/chat-input-position.css";
   import { get, writable } from "svelte/store";
   import { onDestroy, onMount, tick } from "svelte";
   import Icon from "@iconify/svelte";
@@ -922,7 +923,11 @@
   .jump-to-bottom-btn {
     position: fixed;
     left: 50%;
-    bottom: calc(92px + env(safe-area-inset-bottom, 0px));
+    bottom: calc(
+      var(--px-chat-jump-to-bottom-base-offset) +
+        env(safe-area-inset-bottom, 0px) +
+        var(--px-chat-input-bottom-gap)
+    );
     transform: translateX(-50%);
     z-index: 40;
     width: 32px;

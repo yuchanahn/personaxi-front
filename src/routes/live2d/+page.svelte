@@ -3,6 +3,7 @@
     import ChatControls3D from "$lib/components/chat3D/ChatControls3D.svelte";
     import ChatWindow from "$lib/components/chat/ChatWindow.svelte";
     import ChatInput from "$lib/components/chat/ChatInput.svelte";
+    import "$lib/styles/chat-input-position.css";
     import { onDestroy, onMount } from "svelte";
     import { page } from "$app/stores";
     import { loadChatHistory, sendPromptStream } from "$lib/api/chat";
@@ -1005,7 +1006,7 @@
 
     .chat-content :global(.chat-input-wrapper) {
         position: sticky;
-        bottom: 0;
+        bottom: var(--px-chat-input-bottom-gap);
         z-index: 10;
         background-color: rgba(255, 255, 255, 0);
         pointer-events: auto; /* Capture clicks on input */
