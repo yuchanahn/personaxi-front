@@ -38,11 +38,15 @@
                     disabled={!persona.id}
                     on:click={openAdvancedLive2DEditor}
                 >
-                    {$t("Live2D 고급 편집", { default: "Live2D 고급 편집" })}
+                    {$t("edit3.media.live2dAdvancedEdit", {
+                        default: "Live2D 고급 편집",
+                    })}
                 </button>
                 {#if !persona.id}
                     <p class="hint">
-                        먼저 저장 후 사용
+                        {$t("edit3.media.saveFirstHint", {
+                            default: "먼저 저장 후 사용",
+                        })}
                     </p>
                 {/if}
             </div>

@@ -231,6 +231,13 @@ export let enableVideoPlayback: boolean = true;
         pointer-events: none;
         opacity: 0;
         transition: opacity 0.15s ease;
+        position: absolute;
+        inset: 0;
+        z-index: 2;
+        transform: translateZ(0);
+        -webkit-transform: translateZ(0);
+        backface-visibility: hidden;
+        -webkit-backface-visibility: hidden;
     }
 
     .gif-like-video.video-visible {
@@ -241,6 +248,10 @@ export let enableVideoPlayback: boolean = true;
         position: relative;
         width: 100%;
         height: 100%;
+        overflow: hidden;
+        isolation: isolate;
+        transform: translateZ(0);
+        -webkit-transform: translateZ(0);
     }
 
     .video-poster-layer {
@@ -410,7 +421,8 @@ export let enableVideoPlayback: boolean = true;
     }
 
     .video-container video {
-        position: relative;
+        position: absolute;
+        inset: 0;
         z-index: 2;
     }
 

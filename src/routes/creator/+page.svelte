@@ -83,7 +83,7 @@
 
     async function toggleFollow() {
         if (!$st_user) {
-            toast.warning($t("common.loginRequired"));
+            toast.warning($t("loginRequired"));
             return;
         }
 

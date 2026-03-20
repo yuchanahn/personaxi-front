@@ -99,6 +99,13 @@
     "cost": "10 Neurons",
     "selectRatio": "Select Ratio"
   },
+  "chat": {
+    "secretImage": {
+      "loading": "Unlocking Secret Image...",
+      "error": "🔒 Unlock Failed",
+      "locked": "🔒 Secret Image"
+    }
+  },
   "broadcastChatInput": {
     "placeholder": "Type your chat...",
     "sendButton": "Send"
@@ -114,7 +121,8 @@
     "privacy": "Privacy Policy",
     "title": "Welcome Back",
     "slogan": "Log in to access all features.",
-    "loginWith": "Log in with {provider}"
+    "loginWith": "Log in with {provider}",
+    "resetDescription": "Enter your email to receive a password reset link."
   },
   "auction": {
     "fetchListFailed": "Failed to fetch auction list"
@@ -250,6 +258,7 @@
     "searchNamePlaceholder": "Enter a persona's name...",
     "searchTagsPlaceholder": "Enter tags, separated by commas...",
     "following": "Following",
+    "liked": "Liked",
     "likes": "Liked",
     "categories": "Categories",
     "toggleCategories": "Toggle Categories",
@@ -475,7 +484,9 @@
     "totalImages": "Total {count}",
     "hiddenImages": "Hidden {count}",
     "defaultDescription": "Chat with {name}",
-    "live2dRightsNotice": "The usage scope of this Live2D character's assets is governed first by the original author/distributor license terms. Unauthorized extraction or redistribution may be prohibited."
+    "live2dRightsNotice": "The usage scope of this Live2D character's assets is governed first by the original author/distributor license terms. Unauthorized extraction or redistribution may be prohibited.",
+    "secretAssetLabel": "Secret",
+    "goToCreatorProfile": "Go to {creatorName}'s creator profile"
   },
   "auctionModal": {
     "createFailed": "Auction creation failed"
@@ -543,6 +554,7 @@
     "showGeneratedImages": "Show Generated Images",
     "autoScroll": "Auto Scroll",
     "hideGeneratedImages": "Hide Generated Images",
+    "share": "Share",
     "report": "Report",
     "showChatWindow": "Show Chat Window",
     "ttsConnected": "Voice Connected",
@@ -612,9 +624,11 @@
     "adult": "Adult",
     "adultDesc": "Contains adult-rated content.",
     "public": "Public",
+    "publicDesc": "Visible to everyone.",
     "linkPublic": "Link-only",
     "linkPublicDesc": "Hidden from lists, accessible by direct link.",
     "private": "Private",
+    "privateDesc": "Only you can access it.",
     "mediaFiles": "Media Files",
     "profileImageLabel": "Profile Image",
     "fileSelect": "Select File",
@@ -901,6 +915,8 @@
   },
   "common": {
     "back": "Back",
+    "prev": "Previous",
+    "next": "Next",
     "hide": "Hide",
     "show": "Show",
     "cancel": "Cancel",
@@ -1176,7 +1192,9 @@
     },
     "media": {
       "title": "Media & Assets",
-      "desc": "Upload profile images, assets, and model files."
+      "desc": "Upload profile images, assets, and model files.",
+      "live2dAdvancedEdit": "Advanced Live2D Edit",
+      "saveFirstHint": "Save first to use this."
     },
     "prompt": {
       "firstSceneHint": "Write the first scene when the conversation starts. E.g. <img 0>.",

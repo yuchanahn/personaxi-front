@@ -67,8 +67,8 @@
         <h2>{$t('bidModal.title')}</h2>
 
         <div class="bid-info">
-            <p><strong>{$t('bidModal.currentHighestBid')}:</strong> {currentHighestBid} {$t('bidModal.credits')}</p>
-            <p><strong>{$t('bidModal.minBidIncrement')}:</strong> {minBidIncrement} {$t('bidModal.credits')}</p>
+            <p><strong>{$t('bidModal.currentHighestBid')}:</strong> {currentHighestBid} {$t('bidModal.creditsUnit')}</p>
+            <p><strong>{$t('bidModal.minBidIncrement')}:</strong> {minBidIncrement} {$t('bidModal.creditsUnit')}</p>
         </div>
 
         <div class="input-group">

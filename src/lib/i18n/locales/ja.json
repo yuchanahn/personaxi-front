@@ -142,6 +142,13 @@
     "cost": "10ニューロン",
     "selectRatio": "比率選択"
   },
+  "chat": {
+    "secretImage": {
+      "loading": "シークレット画像を解放中...",
+      "error": "🔒 解放に失敗しました",
+      "locked": "🔒 シークレット画像"
+    }
+  },
   "broadcastChatInput": {
     "placeholder": "チャットを入力してください...",
     "sendButton": "送信"
@@ -157,7 +164,8 @@
     "loginWith": "{provider}でログイン",
     "title": "おかえりなさい",
     "welcomeBack": "おかえりなさい！",
-    "slogan": "あなただけのAIペルソナを作りましょう。"
+    "slogan": "あなただけのAIペルソナを作りましょう。",
+    "resetDescription": "パスワード再設定リンクを受け取るメールアドレスを入力してください。"
   },
   "auctionModal": {
     "createFailed": "オークション作成失敗"
@@ -310,6 +318,7 @@
     "outputLength": "出力長",
     "outputLengthShort": "短め",
     "outputLengthLong": "長め",
+    "share": "共有",
     "report": "通報",
     "resetChat": "会話リセット",
     "deleteChat": "会話削除",
@@ -343,6 +352,7 @@
     "searchNamePlaceholder": "ペルソナの名前を入力してください...",
     "searchTagsPlaceholder": "タグをカンマ(,)で区切って入力...",
     "following": "フォロー中",
+    "liked": "いいね",
     "likes": "いいね",
     "auctionInProgress": "オークション中",
     "categories": "カテゴリー",
@@ -620,7 +630,9 @@
     "linkCopied": "リンクがコピーされました！",
     "linkCopyFailed": "リンクのコピーに失敗しました。",
     "defaultDescription": "{name}と会話しましょう",
-    "live2dRightsNotice": "このLive2Dキャラクターのアセット利用範囲は、原著作者/配布元のライセンス条件が優先されます。無断抽出・再配布は禁止される場合があります。"
+    "live2dRightsNotice": "このLive2Dキャラクターのアセット利用範囲は、原著作者/配布元のライセンス条件が優先されます。無断抽出・再配布は禁止される場合があります。",
+    "secretAssetLabel": "シークレット",
+    "goToCreatorProfile": "{creatorName}のクリエイタープロフィールへ移動"
   },
   "editPage": {
     "title": "ペルソナ編集",
@@ -660,9 +672,11 @@
     "adult": "成人",
     "adultDesc": "成人向けコンテンツ",
     "public": "公開",
+    "publicDesc": "誰でも見ることができます。",
     "linkPublic": "リンク公開",
     "linkPublicDesc": "一覧には表示されず、リンクからのみ開けます。",
     "private": "非公開",
+    "privateDesc": "作成者の自分だけがアクセスできます。",
     "mediaFiles": "メディアファイル",
     "profileImageLabel": "プロフィール画像",
     "fileSelect": "ファイル選択",
@@ -941,6 +955,8 @@
   },
   "common": {
     "back": "戻る",
+    "prev": "前へ",
+    "next": "次へ",
     "hide": "隠す",
     "show": "表示",
     "cancel": "キャンセル",
@@ -1176,7 +1192,9 @@
     },
     "media": {
       "title": "メディア＆アセット",
-      "desc": "キャラクターのプロフィール画像、アセット、モデルファイルをアップロードしてください。"
+      "desc": "キャラクターのプロフィール画像、アセット、モデルファイルをアップロードしてください。",
+      "live2dAdvancedEdit": "Live2D 高度編集",
+      "saveFirstHint": "先に保存してから使用"
     },
     "prompt": {
       "firstSceneHint": "会話が始まる時の最初のシーンを作成してください。アセット画像を本文に入れるには <img 0> のようなタグを挿入してください。",

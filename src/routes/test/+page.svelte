@@ -22,6 +22,10 @@
         <a href="/test/chat2d">/test/chat2d</a>
         <span>2D 채팅 렌더 샌드박스</span>
     </p>
+    <p class="links">
+        <a href="/test/pip">/test/pip</a>
+        <span>브라우저 밖에 뜨는 Document PiP 미니 바 데모</span>
+    </p>
 
     <hr />
 

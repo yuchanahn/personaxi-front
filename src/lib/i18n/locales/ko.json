@@ -27,7 +27,8 @@
   "chatPage": {
     "title": "채팅",
     "noChats": "아직 대화가 없습니다",
-    "startNewChat": "새로운 페르소나와 대화를 시작해보세요."
+    "startNewChat": "새로운 페르소나와 대화를 시작해보세요.",
+    "goExplore": "탐색하러 가기"
   },
   "settingPage": {
     "title": "마이페이지",
@@ -137,6 +138,13 @@
     "cost": "10뉴런",
     "selectRatio": "비율 선택"
   },
+  "chat": {
+    "secretImage": {
+      "loading": "비밀 이미지를 해제하는 중...",
+      "error": "🔒 해제 실패",
+      "locked": "🔒 비밀 이미지"
+    }
+  },
   "broadcastChatInput": {
     "placeholder": "채팅을 입력하세요...",
     "sendButton": "보내기"
@@ -151,7 +159,8 @@
     "serviceLogoAlt": "서비스 로고",
     "loginWith": "{provider}로 로그인",
     "welcomeBack": "환영합니다!",
-    "slogan": "당신만의 AI 페르소나를 만드세요."
+    "slogan": "당신만의 AI 페르소나를 만드세요.",
+    "resetDescription": "비밀번호 재설정 링크를 받을 이메일을 입력해주세요."
   },
   "auctionModal": {
     "createFailed": "경매 생성 실패"
@@ -287,6 +296,8 @@
     "hideGeneratedImages": "생성된 이미지 숨기기",
     "showVariableStatus": "변수 상태 표시",
     "hideVariableStatus": "변수 상태 숨기기",
+    "share": "공유",
+    "report": "신고",
     "resetChat": "대화 초기화",
     "deleteChat": "대화 삭제",
     "confirmDelete": "정말 삭제하시겠습니까?",
@@ -319,6 +330,7 @@
     "searchNamePlaceholder": "페르소나의 이름을 입력하세요...",
     "searchTagsPlaceholder": "태그를 쉼표(,)로 구분하여 입력...",
     "following": "팔로잉",
+    "liked": "좋아요",
     "likes": "좋아요",
     "auctionInProgress": "경매 중",
     "categories": "카테고리",
@@ -564,7 +576,9 @@
     "linkCopied": "링크가 복사되었습니다!",
     "linkCopyFailed": "링크 복사에 실패했습니다.",
     "defaultDescription": "{name}과 대화하세요",
-    "live2dRightsNotice": "본 Live2D 캐릭터의 에셋 사용 범위는 원저작자/배포처 라이선스가 우선 적용됩니다. 무단 추출·재배포는 금지될 수 있습니다."
+    "live2dRightsNotice": "본 Live2D 캐릭터의 에셋 사용 범위는 원저작자/배포처 라이선스가 우선 적용됩니다. 무단 추출·재배포는 금지될 수 있습니다.",
+    "secretAssetLabel": "시크릿",
+    "goToCreatorProfile": "{creatorName} 제작자 프로필로 이동"
   },
   "editPage": {
     "title": "페르소나 편집",
@@ -604,9 +618,11 @@
     "adult": "성인등급콘텐츠",
     "adultDesc": "청소년 이용불가 등급 콘텐츠",
     "public": "공개",
+    "publicDesc": "모두가 볼 수 있어요",
     "linkPublic": "링크공개",
     "linkPublicDesc": "목록에는 숨겨지고 링크로만 열립니다.",
     "private": "비공개",
+    "privateDesc": "제작자인 나만 접근할 수 있어요",
     "mediaFiles": "미디어 파일",
     "profileImageLabel": "프로필 이미지",
     "fileSelect": "파일 선택",
@@ -883,6 +899,8 @@
   },
   "common": {
     "back": "뒤로가기",
+    "prev": "이전",
+    "next": "다음",
     "hide": "숨기기",
     "show": "보기",
     "cancel": "취소",
@@ -1003,7 +1021,9 @@
     "benefit": "앱 설치 혜택: 전체화면 몰입감, 더 빠른 로딩",
     "notice": "📢 아직 공식 스토어에는 출시되지 않았습니다.<br>이 웹 앱(PWA)을 설치하면 <strong>스토어 수수료 없이</strong> 더 합리적인 가격으로 서비스를 이용하실 수 있습니다!",
     "promptTitle": "앱으로 더 쾌적하게!",
-    "promptDesc": "전체화면으로 몰입감 있게 즐겨보세요."
+    "promptDesc": "전체화면으로 몰입감 있게 즐겨보세요.",
+    "scanTitle": "모바일로 스캔",
+    "scanDesc": "카메라로 QR 코드를 스캔하세요."
   },
   "models": {
     "title": "응답 모드",
@@ -1115,7 +1135,9 @@
     },
     "media": {
       "title": "미디어 & 에셋",
-      "desc": "캐릭터의 프로필 이미지, 에셋, 모델 파일을 업로드하세요."
+      "desc": "캐릭터의 프로필 이미지, 에셋, 모델 파일을 업로드하세요.",
+      "live2dAdvancedEdit": "Live2D 고급 편집",
+      "saveFirstHint": "먼저 저장 후 사용"
     },
     "prompt": {
       "firstSceneHint": "대화가 시작될 때의 첫 장면을 작성하세요. 에셋 이미지를 본문에 넣으려면 <img 0>, <img 1> 형태의 태그를 삽입하세요.",

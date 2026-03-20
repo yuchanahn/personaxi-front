@@ -282,6 +282,9 @@
         border-radius: 24px;
         scroll-snap-align: start;
         flex-shrink: 0;
+        isolation: isolate;
+        transform: translateZ(0);
+        -webkit-transform: translateZ(0);
     }
 
     .image-layer {
@@ -291,6 +294,8 @@
         width: 100%;
         height: 100%;
         z-index: 1;
+        transform: translateZ(0);
+        -webkit-transform: translateZ(0);
     }
 
     .fade-in {
@@ -334,6 +339,19 @@
         flex-direction: column;
         gap: 12px;
         color: white;
+        isolation: isolate;
+        transform: translateZ(0);
+        -webkit-transform: translateZ(0);
+        will-change: transform;
+    }
+
+    .content-area {
+        position: relative;
+        z-index: 11;
+        transform: translateZ(0);
+        -webkit-transform: translateZ(0);
+        backface-visibility: hidden;
+        -webkit-backface-visibility: hidden;
     }
 
     .header {
@@ -385,10 +403,14 @@
         line-height: 1.1;
         margin: 0;
         text-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+        position: relative;
+        z-index: 1;
     }
 
     .one-liner-container {
         min-height: 3rem; /* Reserve space */
+        position: relative;
+        z-index: 1;
     }
 
     .one-liner {
