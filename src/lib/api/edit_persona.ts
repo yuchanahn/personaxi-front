@@ -5,6 +5,7 @@ import { settings } from "$lib/stores/settings";
 import { accessToken } from "$lib/stores/auth";
 import { get } from "svelte/store";
 import { xorEncryptDecrypt } from "$lib/utils/crypto";
+import { FFmpegManager } from "$lib/utils/ffmpeg";
 
 export class PersonaLoadError extends Error {
     status: number;
@@ -124,6 +125,197 @@ export async function loadPersona(id: string): Promise<Persona> {
         throw new PersonaLoadError(response.status, message);
     }
     return (await response.json()) as Persona;
+}
+
+const PERSONAXI_ASSET_PUBLIC_URL =
+    "https://uohepkqmwbstbmnkoqju.supabase.co/storage/v1/object/public/personaxi-assets/";
+
+async function blobToImage(blob: Blob): Promise<HTMLImageElement> {
+    const objectUrl = URL.createObjectURL(blob);
+
+    try {
+        const image = new Image();
+        image.decoding = "async";
+
+        await new Promise<void>((resolve, reject) => {
+            image.onload = () => resolve();
+            image.onerror = () => reject(new Error("Failed to decode image"));
+            image.src = objectUrl;
+        });
+
+        return image;
+    } finally {
+        URL.revokeObjectURL(objectUrl);
+    }
+}
+
+async function createBlurredPreviewBlob(source: Blob): Promise<Blob> {
+    const image = await blobToImage(source);
+    const maxDimension = 640;
+    const longestSide = Math.max(image.naturalWidth, image.naturalHeight) || 1;
+    const scale = Math.min(1, maxDimension / longestSide);
+    const width = Math.max(1, Math.round(image.naturalWidth * scale));
+    const height = Math.max(1, Math.round(image.naturalHeight * scale));
+
+    const tinyCanvas = document.createElement("canvas");
+    const tinyCtx = tinyCanvas.getContext("2d");
+    const mainCanvas = document.createElement("canvas");
+    const mainCtx = mainCanvas.getContext("2d");
+    const blurCanvas = document.createElement("canvas");
+    const blurCtx = blurCanvas.getContext("2d");
+
+    if (!tinyCtx || !mainCtx || !blurCtx) {
+        throw new Error("Canvas 2D context is unavailable");
+    }
+
+    const tinyWidth = Math.max(16, Math.round(width / 18));
+    const tinyHeight = Math.max(16, Math.round(height / 18));
+
+    tinyCanvas.width = tinyWidth;
+    tinyCanvas.height = tinyHeight;
+    mainCanvas.width = width;
+    mainCanvas.height = height;
+    blurCanvas.width = width;
+    blurCanvas.height = height;
+
+    tinyCtx.imageSmoothingEnabled = true;
+    tinyCtx.drawImage(image, 0, 0, tinyWidth, tinyHeight);
+
+    mainCtx.imageSmoothingEnabled = false;
+    mainCtx.drawImage(tinyCanvas, 0, 0, width, height);
+    mainCtx.fillStyle = "rgba(0, 0, 0, 0.08)";
+    mainCtx.fillRect(0, 0, width, height);
+
+    try {
+        blurCtx.filter = "blur(14px) saturate(0.9)";
+    } catch {
+        // Some browsers may not support canvas filter. Pixelation alone is still acceptable.
+    }
+    blurCtx.drawImage(mainCanvas, 0, 0, width, height);
+    blurCtx.fillStyle = "rgba(255, 255, 255, 0.04)";
+    blurCtx.fillRect(0, 0, width, height);
+
+    const outputBlob = await new Promise<Blob | null>((resolve) => {
+        blurCanvas.toBlob(resolve, "image/jpeg", 0.78);
+    });
+
+    if (!outputBlob) {
+        throw new Error("Failed to encode blurred preview");
+    }
+
+    return outputBlob;
+}
+
+async function resolveSecretPreviewSourceBlob(asset: ImageMetadata): Promise<Blob> {
+    if (!asset.url) {
+        throw new Error("Missing asset URL");
+    }
+
+    const response = await fetch(asset.url);
+    if (!response.ok) {
+        throw new Error(`Failed to fetch asset source: ${response.status}`);
+    }
+
+    return await response.blob();
+}
+
+async function createSecretPreviewUploadFile(
+    asset: ImageMetadata,
+    sourceBlob: Blob,
+): Promise<File | Blob> {
+    const isVideoSource =
+        asset.type === "video" || sourceBlob.type.startsWith("video/");
+
+    if (isVideoSource) {
+        const extension =
+            sourceBlob.type.split("/")[1]?.split(";")[0]?.trim() || "mp4";
+        const sourceFile = new File([sourceBlob], `secret-preview.${extension}`, {
+            type: sourceBlob.type || "video/mp4",
+            lastModified: Date.now(),
+        });
+
+        return await FFmpegManager.getInstance().createBlurredVideo(sourceFile);
+    }
+
+    return await createBlurredPreviewBlob(sourceBlob);
+}
+
+async function secretPreviewNeedsRefresh(
+    asset: ImageMetadata,
+    blurUrl: string,
+): Promise<boolean> {
+    if (!blurUrl) {
+        return true;
+    }
+
+    if (blurUrl.includes("/temp_asset/")) {
+        return true;
+    }
+
+    if (asset.type !== "video") {
+        return false;
+    }
+
+    try {
+        const response = await fetch(blurUrl, { method: "HEAD" });
+        if (!response.ok) {
+            return true;
+        }
+
+        const contentType = response.headers.get("Content-Type") || "";
+        return !contentType.startsWith("video/");
+    } catch {
+        return true;
+    }
+}
+
+export async function ensureSecretAssetBlurVariants(
+    persona: Persona,
+    originalPersona?: Persona | null,
+): Promise<void> {
+    if (typeof window === "undefined" || !persona.image_metadatas?.length) {
+        return;
+    }
+
+    for (let index = 0; index < persona.image_metadatas.length; index += 1) {
+        const asset = persona.image_metadatas[index];
+        if (!asset?.is_secret) {
+            asset.blur_url = "";
+            continue;
+        }
+        if (!asset.url) continue;
+
+        const originalAsset = originalPersona?.image_metadatas?.[index];
+        const currentUrl = asset.url.trim();
+        const existingBlurUrl = asset.blur_url?.trim() || "";
+        const sourceChanged = currentUrl !== (originalAsset?.url?.trim() || "");
+        const wasSecret = !!originalAsset?.is_secret;
+        const blurVariantNeedsRefresh = await secretPreviewNeedsRefresh(
+            asset,
+            existingBlurUrl,
+        );
+        const needsBlurVariant =
+            !existingBlurUrl ||
+            sourceChanged ||
+            !wasSecret ||
+            blurVariantNeedsRefresh;
+
+        if (!needsBlurVariant) continue;
+
+        const sourceBlob = await resolveSecretPreviewSourceBlob(asset);
+        const blurredPreviewFile = await createSecretPreviewUploadFile(asset, sourceBlob);
+
+        const previousBlurUrl =
+            existingBlurUrl && !existingBlurUrl.startsWith("blob:")
+                ? existingBlurUrl
+                : undefined;
+
+        const uploadResponse = await getUploadUrl("asset", previousBlurUrl);
+        const { signedURL, fileName } = await uploadResponse.json();
+
+        await uploadFileWithProgress(signedURL, blurredPreviewFile, () => {});
+        asset.blur_url = `${PERSONAXI_ASSET_PUBLIC_URL}${fileName}`;
+    }
 }
 
 export async function loadPersonaOriginal(id: string): Promise<Persona> {
@@ -548,6 +740,10 @@ export async function fetchAndSetAssetTypes(
     const promises = metadatas.map(
         async (metadata: ImageMetadata): Promise<ImageMetadata> => {
             try {
+                if (!metadata.url) {
+                    return metadata;
+                }
+
                 // Skip blob URLs (local previews) to avoid NetworkError
                 if (metadata.url.startsWith("blob:")) {
                     return metadata;

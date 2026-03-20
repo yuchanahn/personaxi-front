@@ -130,7 +130,18 @@
             });
 
             if (persona.image_metadatas && persona.image_metadatas.length > 0) {
-                images = [...images, ...persona.image_metadatas];
+                const galleryAssets = persona.image_metadatas.map((asset) => {
+                    if (asset.is_secret && asset.blur_url) {
+                        return {
+                            ...asset,
+                            url: asset.blur_url,
+                        };
+                    }
+
+                    return asset;
+                });
+
+                images = [...images, ...galleryAssets];
             }
             galleryImages = images;
 

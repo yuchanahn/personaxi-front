@@ -7,6 +7,7 @@
 export let asset: ImageMetadata;
 export let showVideoPosterFallback: boolean = false;
 export let enableVideoPlayback: boolean = true;
+export let useSimpleVideoLayout: boolean = false;
 
     const dispatch = createEventDispatcher();
 
@@ -21,10 +22,19 @@ export let enableVideoPlayback: boolean = true;
     });
 
     const getCachedType = (url: string): string | null => {
-        return localStorage.getItem(CACHE_PREFIX + url);
+        const cached = localStorage.getItem(CACHE_PREFIX + url);
+        if (cached === "unknown") {
+            localStorage.removeItem(CACHE_PREFIX + url);
+            return null;
+        }
+        return cached;
     };
 
     const setCachedType = (url: string, type: string) => {
+        if (type === "unknown") {
+            localStorage.removeItem(CACHE_PREFIX + url);
+            return;
+        }
         localStorage.setItem(CACHE_PREFIX + url, type);
     };
 
@@ -107,64 +117,7 @@ export let enableVideoPlayback: boolean = true;
         on:error={() => dispatch("error", { url: asset.url })}
     />
 {:else if asset.type === "video"}
-    <div class="video-container">
-        {#if !enableVideoPlayback}
-            {#if asset.static_url}
-                <img
-                    src={asset.static_url}
-                    alt="preview"
-                    class="asset-preview-media"
-                    on:load={() => dispatch("load", { url: asset.static_url })}
-                    on:error={() => dispatch("error", { url: asset.static_url })}
-                />
-            {:else}
-                <div class="brand-loading-card video-loading-layer" aria-hidden="true">
-                    <div class="brand-grid-layer"></div>
-                    <div class="brand-vignette"></div>
-                    <div class="brand-scan-bar"></div>
-                    <div class="brand-corner tl"></div>
-                    <div class="brand-corner tr"></div>
-                    <div class="brand-corner bl"></div>
-                    <div class="brand-corner br"></div>
-                    <div class="brand-loading-inner">
-                        <img class="brand-loading-logo flicker" src="/logo.png" alt="PersonaXi" />
-                        <div class="brand-loading-ring"></div>
-                        <div class="brand-loading-title">LOADING</div>
-                        <div class="brand-loading-subtitle">Syncing visual layer</div>
-                        <div class="brand-loading-bar-wrap">
-                            <div class="brand-loading-bar-fill"></div>
-                        </div>
-                    </div>
-                </div>
-            {/if}
-        {:else if !videoReady}
-            {#if showVideoPosterFallback && asset.static_url}
-                <img
-                    src={asset.static_url}
-                    alt="preview"
-                    class="asset-preview-media video-poster-layer"
-                />
-            {:else}
-                <div class="brand-loading-card video-loading-layer" aria-hidden="true">
-                    <div class="brand-grid-layer"></div>
-                    <div class="brand-vignette"></div>
-                    <div class="brand-scan-bar"></div>
-                    <div class="brand-corner tl"></div>
-                    <div class="brand-corner tr"></div>
-                    <div class="brand-corner bl"></div>
-                    <div class="brand-corner br"></div>
-                    <div class="brand-loading-inner">
-                        <img class="brand-loading-logo flicker" src="/logo.png" alt="PersonaXi" />
-                        <div class="brand-loading-ring"></div>
-                        <div class="brand-loading-title">LOADING</div>
-                        <div class="brand-loading-subtitle">Syncing visual layer</div>
-                        <div class="brand-loading-bar-wrap">
-                            <div class="brand-loading-bar-fill"></div>
-                        </div>
-                    </div>
-                </div>
-            {/if}
-        {/if}
+    {#if useSimpleVideoLayout}
         <video
             src={asset.url}
             poster={asset.static_url || undefined}
@@ -172,18 +125,92 @@ export let enableVideoPlayback: boolean = true;
             loop
             muted
             playsinline
-            class="asset-preview-media gif-like-video"
-            class:video-visible={videoReady}
+            class="asset-preview-media gif-like-video gif-like-video--inline"
             bind:this={videoEl}
-            on:playing={() => {
-                videoReady = true;
-            }}
             on:loadeddata={() => dispatch("load", { url: asset.url })}
             on:error={() => dispatch("error", { url: asset.url })}
         >
             Your browser does not support the video tag.
         </video>
-    </div>
+    {:else}
+        <div class="video-container">
+            {#if !enableVideoPlayback}
+                {#if asset.static_url}
+                    <img
+                        src={asset.static_url}
+                        alt="preview"
+                        class="asset-preview-media"
+                        on:load={() => dispatch("load", { url: asset.static_url })}
+                        on:error={() => dispatch("error", { url: asset.static_url })}
+                    />
+                {:else}
+                    <div class="brand-loading-card video-loading-layer" aria-hidden="true">
+                        <div class="brand-grid-layer"></div>
+                        <div class="brand-vignette"></div>
+                        <div class="brand-scan-bar"></div>
+                        <div class="brand-corner tl"></div>
+                        <div class="brand-corner tr"></div>
+                        <div class="brand-corner bl"></div>
+                        <div class="brand-corner br"></div>
+                        <div class="brand-loading-inner">
+                            <img class="brand-loading-logo flicker" src="/logo.png" alt="PersonaXi" />
+                            <div class="brand-loading-ring"></div>
+                            <div class="brand-loading-title">LOADING</div>
+                            <div class="brand-loading-subtitle">Syncing visual layer</div>
+                            <div class="brand-loading-bar-wrap">
+                                <div class="brand-loading-bar-fill"></div>
+                            </div>
+                        </div>
+                    </div>
+                {/if}
+            {:else if !videoReady}
+                {#if showVideoPosterFallback && asset.static_url}
+                    <img
+                        src={asset.static_url}
+                        alt="preview"
+                        class="asset-preview-media video-poster-layer"
+                    />
+                {:else}
+                    <div class="brand-loading-card video-loading-layer" aria-hidden="true">
+                        <div class="brand-grid-layer"></div>
+                        <div class="brand-vignette"></div>
+                        <div class="brand-scan-bar"></div>
+                        <div class="brand-corner tl"></div>
+                        <div class="brand-corner tr"></div>
+                        <div class="brand-corner bl"></div>
+                        <div class="brand-corner br"></div>
+                        <div class="brand-loading-inner">
+                            <img class="brand-loading-logo flicker" src="/logo.png" alt="PersonaXi" />
+                            <div class="brand-loading-ring"></div>
+                            <div class="brand-loading-title">LOADING</div>
+                            <div class="brand-loading-subtitle">Syncing visual layer</div>
+                            <div class="brand-loading-bar-wrap">
+                                <div class="brand-loading-bar-fill"></div>
+                            </div>
+                        </div>
+                    </div>
+                {/if}
+            {/if}
+            <video
+                src={asset.url}
+                poster={asset.static_url || undefined}
+                autoplay
+                loop
+                muted
+                playsinline
+                class="asset-preview-media gif-like-video"
+                class:video-visible={videoReady}
+                bind:this={videoEl}
+                on:playing={() => {
+                    videoReady = true;
+                }}
+                on:loadeddata={() => dispatch("load", { url: asset.url })}
+                on:error={() => dispatch("error", { url: asset.url })}
+            >
+                Your browser does not support the video tag.
+            </video>
+        </div>
+    {/if}
 {:else if asset.type === "unknown"}
     <div class="fallback">
         <Icon icon="ph:file-duotone" width="48" height="48" />
@@ -242,6 +269,13 @@ export let enableVideoPlayback: boolean = true;
 
     .gif-like-video.video-visible {
         opacity: 1;
+    }
+
+    .gif-like-video--inline {
+        opacity: 1;
+        position: static;
+        inset: auto;
+        transition: none;
     }
 
     .video-container {

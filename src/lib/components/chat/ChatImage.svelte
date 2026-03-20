@@ -46,8 +46,15 @@
             if (res.ok) {
                 const data = await res.json();
                 if (data.url) {
-                    currentMetadata = { ...currentMetadata, url: data.url };
-                    currentMetadata.type = data.type;
+                    const nextMetadata: ImageMetadata = {
+                        ...currentMetadata,
+                        url: data.url,
+                        ...(data.type ? { type: data.type } : {}),
+                    };
+                    if (!data.type && nextMetadata.type === "unknown") {
+                        nextMetadata.type = undefined;
+                    }
+                    currentMetadata = nextMetadata;
                     console.log("Asset unlocked:", currentMetadata);
                 }
             } else {
@@ -84,6 +91,7 @@
     {#if currentMetadata.url}
         <AssetPreview
             asset={currentMetadata}
+            useSimpleVideoLayout
             on:load={(e) => dispatch("load", e.detail)}
         />
     {:else if isLoading}

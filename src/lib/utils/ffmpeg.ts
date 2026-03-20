@@ -94,4 +94,53 @@ export class FFmpegManager {
             throw e;
         }
     }
+
+    public async createBlurredVideo(
+        file: File,
+        onProgress?: (progress: number) => void
+    ): Promise<File> {
+        if (!this.loaded) {
+            await this.load();
+        }
+
+        const { ffmpeg } = this;
+        const inputName = "secret_input.mp4";
+        const outputName = "secret_blurred.mp4";
+
+        try {
+            await ffmpeg.writeFile(inputName, await fetchFile(file));
+
+            if (onProgress) {
+                ffmpeg.on("progress", ({ progress }) => {
+                    onProgress(Math.round(progress * 100));
+                });
+            }
+
+            await ffmpeg.exec([
+                "-i", inputName,
+                "-vf", "boxblur=20:3",
+                "-an",
+                "-c:v", "libx264",
+                "-pix_fmt", "yuv420p",
+                "-crf", "30",
+                "-preset", "veryfast",
+                "-movflags", "+faststart",
+                outputName,
+            ]);
+
+            const data = await ffmpeg.readFile(outputName);
+
+            await ffmpeg.deleteFile(inputName);
+            await ffmpeg.deleteFile(outputName);
+
+            const fileBaseName = file.name.replace(/\.[^/.]+$/, "") || "secret-preview";
+            return new File([data as any], `${fileBaseName}-blurred.mp4`, {
+                type: "video/mp4",
+                lastModified: Date.now(),
+            });
+        } catch (e) {
+            console.error("Blurred video generation failed:", e);
+            throw e;
+        }
+    }
 }

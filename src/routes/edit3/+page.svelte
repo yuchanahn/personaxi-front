@@ -13,6 +13,7 @@
         loadPersonaOriginal,
         savePersona,
         fetchAndSetAssetTypes,
+        ensureSecretAssetBlurVariants,
     } from "$lib/api/edit_persona";
     import { loreApi } from "$lib/api/lore";
     import type { Persona } from "$lib/types";
@@ -674,6 +675,7 @@
         loading = true;
 
         try {
+            await ensureSecretAssetBlurVariants(persona, originalPersona);
             const id: string | null = await savePersona(persona);
             if (id) {
                 if (persona.id) {

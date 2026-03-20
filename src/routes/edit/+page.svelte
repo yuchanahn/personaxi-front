@@ -13,6 +13,7 @@
         loadPersonaOriginal,
         savePersona,
         fetchAndSetAssetTypes,
+        ensureSecretAssetBlurVariants,
     } from "$lib/api/edit_persona";
     import type { Persona } from "$lib/types";
 
@@ -352,6 +353,7 @@
         uploadProgress = 0;
 
         try {
+            await ensureSecretAssetBlurVariants(persona, originalPersona);
             const id: string | null = await savePersona(persona);
             if (id) {
                 showSuccess = true;

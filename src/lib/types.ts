@@ -4,6 +4,7 @@ export interface PersonaFeedback {
 
 export interface ImageMetadata {
     url: string;
+    blur_url?: string;
     static_url?: string;
     description: string;
     type?: 'image' | 'video' | 'unknown'; // 타입을 저장할 속성
