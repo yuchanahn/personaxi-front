@@ -23,8 +23,10 @@ const defaultPolicy: PricingPolicy = {
         image_generation: 10
     },
     model_multipliers: {
+        "gemini-flash": 1.5,
         "gemini-flash-lite": 1.0,
-        "gemini-pro": 2.0
+        "gemini-pro": 2.0,
+        "antigravity": 2.0
     },
     purchase_options: []
 };

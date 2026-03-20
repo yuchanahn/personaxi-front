@@ -41,6 +41,20 @@
     export let impl_changeCamera: () => void | Promise<void> = () => {};
 
     const dispatch = createEventDispatcher();
+    const normalizeVisibleLLMType = (value: string) => {
+        switch (value) {
+            case "antigravity":
+                return "gemini-pro";
+            case "gemini-flash-lite":
+            case "gemini-flash":
+            case "gemini-pro":
+                return value;
+            default:
+                return "gemini-flash-lite";
+        }
+    };
+    const currentSessionId = () =>
+        get(page).url.searchParams.get("c") || persona?.id || "";
 
     let isLoading = false;
     let isSavingNote = false;
@@ -147,11 +161,11 @@
         cost: Math.round((baseCost || 10) * llm.multiplier),
     }));
 
-    let selectedLLM_id = llmType;
+    let selectedLLM_id: string = normalizeVisibleLLMType(llmType);
     let prevLLMType = llmType;
 
     $: if (llmType && llmType !== prevLLMType) {
-        selectedLLM_id = llmType;
+        selectedLLM_id = normalizeVisibleLLMType(llmType);
         prevLLMType = llmType;
     }
 
@@ -166,10 +180,11 @@
         selectedLLM.cost * selectedOutputTokenMultiplier;
 
     function changeLLMType(newType: string) {
+        const cssid = currentSessionId();
         selectedLLM_id = newType;
         chatSessions.update((sessions) =>
             sessions.map((session) => {
-                if (session.id === persona.id)
+                if (session.id === cssid)
                     return { ...session, llmType: newType };
                 return session;
             }),
@@ -233,12 +248,13 @@
     }
 
     async function handleLLMChange() {
-        if (!persona?.id) return;
+        const cssid = currentSessionId();
+        if (!cssid) return;
         isLoading = true;
         await showStatus("Saving...", 0);
         try {
             const res = await api.post(`/api/chat/char/sessions/edit`, {
-                cssid: persona.id,
+                cssid,
                 llmType: selectedLLM.id,
                 outputTokenMultiplier: selectedOutputTokenMultiplier,
                 userPersonaId: selectedUserPersonaId || "",
@@ -247,7 +263,7 @@
             await res.json();
             chatSessions.update((sessions) => {
                 const existingIndex = sessions.findIndex(
-                    (s) => s.id === persona.id,
+                    (s) => s.id === cssid,
                 );
                 if (existingIndex !== -1) {
                     sessions[existingIndex].llmType = selectedLLM.id;
@@ -260,7 +276,7 @@
                     return [
                         ...sessions,
                         {
-                            id: persona.id,
+                            id: cssid,
                             name: persona.name,
                             createdAt: new Date().toISOString(),
                             type: persona.personaType || "2D",

@@ -242,6 +242,9 @@ export async function impl_sendPromptStream(
         prompt,
         CSSID: currentSessionId,
         type: type ?? "chat",
+        llmType:
+            get(chatSessions).find((s) => s.id === currentSessionId)?.llmType ||
+            undefined,
         usePromptkit: shouldUsePromptkitPreviewRoute(),
         outputTokenMultiplier:
             get(chatSessions).find((s) => s.id === currentSessionId)

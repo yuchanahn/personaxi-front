@@ -10,7 +10,7 @@
   import SettingsModal from "$lib/components/modal/SettingModal.svelte";
   import { pricingStore } from "$lib/stores/pricing";
   import { st_user } from "$lib/stores/user";
-  import { chatSessions } from "$lib/stores/chatSessions";
+  import { ChatSessionType, chatSessions } from "$lib/stores/chatSessions";
   import { get } from "svelte/store";
 
   import ModelSelector from "$lib/components/chat/ModelSelector.svelte";
@@ -19,6 +19,19 @@
 
   let lastSessionId: string | null = null;
   let persona: Persona | null = null;
+  const normalizeVisibleLLMType = (value: string) => {
+    switch (value) {
+      case "antigravity":
+        return "gemini-pro";
+      case "gemini-flash-lite":
+      case "gemini-flash":
+      case "gemini-pro":
+        return value;
+      default:
+        return "gemini-flash-lite";
+    }
+  };
+  const currentSessionId = () => lastSessionId || persona?.id || "";
 
   $: llmType = $page.url.searchParams.get("llmType") || "Error";
 
@@ -27,10 +40,19 @@
     // For 2D, we trust the URL param or fallback just like finding session
     // But ideally we should find session to be safe, like live2d
     const session = $chatSessions.find((s) => s.id === lastSessionId);
-    const effectiveType = session?.llmType || llmType || "gemini-flash-lite";
+    const effectiveType = normalizeVisibleLLMType(
+      session?.llmType || llmType || "gemini-flash-lite",
+    );
 
     const baseCost = $pricingStore.costs.chat_2d || 10;
-    const multiplier = $pricingStore.model_multipliers[effectiveType] || 1.0;
+    const fallbackMultiplier =
+      effectiveType === "gemini-flash"
+        ? 1.5
+        : effectiveType === "gemini-pro"
+          ? 2.0
+          : 1.0;
+    const multiplier =
+      $pricingStore.model_multipliers[effectiveType] || fallbackMultiplier;
     const outputTokenMultiplier = Math.min(
       3,
       Math.max(1, session?.outputTokenMultiplier || 1),
@@ -143,28 +165,43 @@
 
   const handleModelConfirm = async (e: CustomEvent<string>) => {
     const selected = e.detail;
+    const cssid = currentSessionId();
     const newUrl = new URL(window.location.href);
     newUrl.searchParams.set("llmType", selected);
     window.history.replaceState({}, "", newUrl);
 
-    const s = $chatSessions.find((s) => s.id === lastSessionId);
+    const s = $chatSessions.find((s) => s.id === cssid);
     if (s) {
       s.llmType = selected;
       chatSessions.update((sess) =>
         sess.map((x) =>
-          x.id === lastSessionId ? { ...x, llmType: selected } : x,
+          x.id === cssid ? { ...x, llmType: selected } : x,
         ),
       );
+    } else if (cssid && persona) {
+      const selectedPersona = persona;
+      chatSessions.update((sess) => [
+        ...sess,
+        {
+          id: cssid,
+          name: selectedPersona.name,
+          createdAt: new Date().toISOString(),
+          type: ChatSessionType.CHARACTER,
+          avatar: selectedPersona.portrait_url,
+          llmType: selected,
+          outputTokenMultiplier: 1,
+        },
+      ]);
     }
     llmType = selected;
 
-    if (persona?.id) {
+    if (cssid) {
       try {
         await api.post(`/api/chat/char/sessions/edit`, {
-          cssid: persona.id,
+          cssid,
           llmType: selected,
           outputTokenMultiplier:
-            $chatSessions.find((s) => s.id === persona?.id)
+            $chatSessions.find((s) => s.id === cssid)
               ?.outputTokenMultiplier || 1,
         });
         console.log("Saved LLM preference:", selected);
@@ -198,7 +235,7 @@
 
 <ModelSelector
   isOpen={showModelSelector}
-  selectedModel={llmType}
+  selectedModel={normalizeVisibleLLMType(llmType)}
   on:close={() => (showModelSelector = false)}
   on:confirm={handleModelConfirm}
 />

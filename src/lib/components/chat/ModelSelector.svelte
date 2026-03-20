@@ -1,6 +1,6 @@
 <script lang="ts">
     import { t } from "svelte-i18n";
-    import { createEventDispatcher, onMount } from "svelte";
+    import { createEventDispatcher } from "svelte";
     import Icon from "@iconify/svelte";
     import { fade, fly } from "svelte/transition";
     import { pricingStore } from "$lib/stores/pricing";
@@ -9,11 +9,20 @@
     export let isOpen = false;
     export let selectedModel = "gemini-flash-lite";
 
-    const dispatch = createEventDispatcher();
+    const normalizeVisibleLLMType = (value: string) => {
+        switch (value) {
+            case "antigravity":
+                return "gemini-pro";
+            case "gemini-flash-lite":
+            case "gemini-flash":
+            case "gemini-pro":
+                return value;
+            default:
+                return "gemini-flash-lite";
+        }
+    };
 
-    onMount(() => {
-        dispatch("confirm", selectedModel);
-    });
+    const dispatch = createEventDispatcher();
 
     // Available models (matching SettingModal.svelte) with renamed "Modes"
     $: models = [
@@ -40,6 +49,8 @@
         },
     ];
 
+    $: selectedModel = normalizeVisibleLLMType(selectedModel);
+
     function selectModel(id: string) {
         selectedModel = id;
         dispatch("select", id);
@@ -60,8 +71,15 @@
 
     // Get cost display
     $: getCost = (id: string) => {
+        id = normalizeVisibleLLMType(id);
         const base = $pricingStore.costs.chat_2d || 5;
-        const mult = $pricingStore.model_multipliers[id] || 1.0;
+        const fallbackMultiplier =
+            id === "gemini-flash"
+                ? 1.5
+                : id === "gemini-pro"
+                  ? 2.0
+                  : 1.0;
+        const mult = $pricingStore.model_multipliers[id] || fallbackMultiplier;
         return Math.round(base * mult);
     };
 </script>
