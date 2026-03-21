@@ -691,6 +691,7 @@
   @media (display-mode: standalone) {
     .chat-container {
       height: 100dvh;
+      padding-bottom: env(safe-area-inset-bottom, 0px);
     }
   }
   .chat-content {
