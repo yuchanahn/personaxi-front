@@ -82,11 +82,12 @@ export async function loadFeedRecommended(limit: number, offset: number, exclude
 }
 
 export async function loadlikesdata() {
-    if (!(await api.isLoggedIn())) {
+    const res = await api.get(`/api/contents/likesdata`, {
+        requireAuth: false,
+    });
+    if (res.status === 401) {
         return [];
     }
-
-    const res = await api.get(`/api/contents/likesdata`);
     if (res.ok) {
         const data = await res.json();
         if (data === null) {

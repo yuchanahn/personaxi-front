@@ -16,6 +16,7 @@
     import { get } from "svelte/store";
     import { chatSessions } from "$lib/stores/chatSessions";
     import { getCurrentUser } from "$lib/api/auth";
+    import { st_user } from "$lib/stores/user";
     import { toast } from "$lib/stores/toast";
     import { confirmStore } from "$lib/stores/confirm";
     import { pricingStore } from "$lib/stores/pricing";
@@ -81,6 +82,7 @@
     let openDisplaySettings = true;
     let openSessionReference = false;
     let openSessionManagement = false;
+    let modalLoadKey = "";
 
     $: isLiked = persona?.is_liked || false;
     $: selectedUserPersonaLabel =
@@ -202,13 +204,6 @@
     }
 
     onMount(async () => {
-        try {
-            const likes: string[] = await loadlikesdata();
-            if (persona) persona.is_liked = likes.includes(persona.id);
-        } catch (e) {
-            console.error("Failed to load likes:", e);
-        }
-
         console.log("mode:", mode);
     });
 
@@ -234,6 +229,18 @@
             const data = await res.json();
             userPersonas = Array.isArray(data?.personas) ? data.personas : [];
 
+            st_user.update((current) =>
+                current
+                    ? {
+                          ...current,
+                          data: {
+                              ...current.data,
+                              userPersonas,
+                          },
+                      }
+                    : current,
+            );
+
             if (!selectedUserPersonaId && userPersonas.length > 0) {
                 selectedUserPersonaId =
                     userPersonas.find((p) => p.isDefault)?.id ||
@@ -244,6 +251,34 @@
             userPersonas = [];
         } finally {
             isLoadingUserPersonas = false;
+        }
+    }
+
+    async function initializeModalData() {
+        user = get(st_user);
+
+        if (!user) {
+            try {
+                user = await getCurrentUser();
+            } catch (e) {
+                console.error("Failed to load user:", e);
+            }
+        }
+
+        const storedUserPersonas = user?.data?.userPersonas;
+        userPersonas = Array.isArray(storedUserPersonas) ? storedUserPersonas : [];
+
+        if (mode === "2d" && userPersonas.length === 0) {
+            await loadUserPersonas();
+        }
+
+        if (persona && persona.is_liked === undefined && user) {
+            try {
+                const likes: string[] = await loadlikesdata();
+                persona.is_liked = likes.includes(persona.id);
+            } catch (e) {
+                console.error("Failed to load likes:", e);
+            }
         }
     }
 
@@ -399,17 +434,11 @@
         isConfirmingDelete = false;
         statusMessage = "";
         user = null;
+        userPersonas = [];
         showSessionImages = false;
         selectedImage = null;
+        modalLoadKey = "";
     } else {
-        (async () => {
-            try {
-                user = await getCurrentUser();
-            } catch (e) {
-                console.error("Failed to load user:", e);
-            }
-        })();
-
         const session = $chatSessions.find((s) => s.id === persona.id);
         userNote = session?.userNote || "";
         selectedUserPersonaId = session?.userPersonaId || "";
@@ -420,7 +449,14 @@
                 session?.outputTokenMultiplier || outputTokenMultiplier || 1,
             ),
         );
-        loadUserPersonas();
+    }
+
+    $: {
+        const nextModalLoadKey = isOpen ? `${mode}:${persona?.id || ""}` : "";
+        if (nextModalLoadKey && nextModalLoadKey !== modalLoadKey) {
+            modalLoadKey = nextModalLoadKey;
+            void initializeModalData();
+        }
     }
 </script>
 
