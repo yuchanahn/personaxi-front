@@ -175,9 +175,7 @@
     if (s) {
       s.llmType = selected;
       chatSessions.update((sess) =>
-        sess.map((x) =>
-          x.id === cssid ? { ...x, llmType: selected } : x,
-        ),
+        sess.map((x) => (x.id === cssid ? { ...x, llmType: selected } : x)),
       );
     } else if (cssid && persona) {
       const selectedPersona = persona;
@@ -202,8 +200,8 @@
           cssid,
           llmType: selected,
           outputTokenMultiplier:
-            $chatSessions.find((s) => s.id === cssid)
-              ?.outputTokenMultiplier || 1,
+            $chatSessions.find((s) => s.id === cssid)?.outputTokenMultiplier ||
+            1,
         });
         console.log("Saved LLM preference:", selected);
       } catch (e) {
@@ -281,7 +279,6 @@
     top: 0;
     left: 0;
     display: flex;
-    height: 100vh;
     height: 100dvh;
     width: 100vw;
     overflow: hidden;
@@ -322,12 +319,8 @@
     bottom: 0;
     z-index: 20;
     width: 100%;
-    padding:
-      0
-      var(--px-chat-input-dock-padding-x)
-      calc(
-        env(safe-area-inset-bottom, 0px) + var(--px-chat-input-bottom-gap)
-      );
+    padding: 0 var(--px-chat-input-dock-padding-x)
+      calc(env(safe-area-inset-bottom, 0px) + var(--px-chat-input-bottom-gap));
     background: linear-gradient(
       180deg,
       rgba(var(--background-rgb), 0) 0%,

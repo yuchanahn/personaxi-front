@@ -156,7 +156,10 @@
       if (persona)
         viewVrmInCanvas(canvas, persona, (phase, progress) => {
           loadingPhase = phase;
-          loadingProgress = Math.max(0, Math.min(100, Math.round(progress * 100)));
+          loadingProgress = Math.max(
+            0,
+            Math.min(100, Math.round(progress * 100)),
+          );
         })
           .then((m) => {
             model = m;
@@ -687,7 +690,7 @@
 
   @media (display-mode: standalone) {
     .chat-container {
-      height: 100vh;
+      height: 100dvh;
     }
   }
   .chat-content {

@@ -482,10 +482,12 @@
     "spoilerWarning": "Spoiler Alert! View first scene?",
     "characterIntel": "Character Info",
     "totalImages": "Total {count}",
+    "publicImages": "Visible {count}",
     "hiddenImages": "Hidden {count}",
     "defaultDescription": "Chat with {name}",
     "live2dRightsNotice": "The usage scope of this Live2D character's assets is governed first by the original author/distributor license terms. Unauthorized extraction or redistribution may be prohibited.",
     "secretAssetLabel": "Secret",
+    "jumpToCommentsButton": "Read comments",
     "goToCreatorProfile": "Go to {creatorName}'s creator profile"
   },
   "auctionModal": {

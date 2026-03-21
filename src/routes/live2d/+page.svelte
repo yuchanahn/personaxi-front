@@ -181,8 +181,7 @@
                             typeof cfg.editor_config === "object"
                                 ? cfg.editor_config
                                 : cfg?.live2d_editor_config &&
-                                    typeof cfg.live2d_editor_config ===
-                                        "object"
+                                    typeof cfg.live2d_editor_config === "object"
                                   ? cfg.live2d_editor_config
                                   : null;
 
@@ -326,25 +325,35 @@
                         }
 
                         const motionByAliasOrFile: Record<string, string> = {};
-                        if (cfgEditor?.motions && typeof cfgEditor.motions === "object") {
-                            Object.values(cfgEditor.motions).forEach((m: any) => {
-                                if (!m || typeof m !== "object") return;
-                                const file =
-                                    typeof m.file === "string" ? m.file.trim() : "";
-                                const alias =
-                                    typeof m.alias === "string"
-                                        ? m.alias.trim()
-                                        : "";
-                                if (!file) return;
-                                if (alias) motionByAliasOrFile[alias] = file;
-                                motionByAliasOrFile[file] = file;
-                                motionByAliasOrFile[file.split("/").pop() || file] =
-                                    file;
-                            });
+                        if (
+                            cfgEditor?.motions &&
+                            typeof cfgEditor.motions === "object"
+                        ) {
+                            Object.values(cfgEditor.motions).forEach(
+                                (m: any) => {
+                                    if (!m || typeof m !== "object") return;
+                                    const file =
+                                        typeof m.file === "string"
+                                            ? m.file.trim()
+                                            : "";
+                                    const alias =
+                                        typeof m.alias === "string"
+                                            ? m.alias.trim()
+                                            : "";
+                                    if (!file) return;
+                                    if (alias)
+                                        motionByAliasOrFile[alias] = file;
+                                    motionByAliasOrFile[file] = file;
+                                    motionByAliasOrFile[
+                                        file.split("/").pop() || file
+                                    ] = file;
+                                },
+                            );
                         }
 
                         const registerMotion = (name: string, file: string) => {
-                            const key = typeof name === "string" ? name.trim() : "";
+                            const key =
+                                typeof name === "string" ? name.trim() : "";
                             const resolvedFile =
                                 typeof file === "string" ? file.trim() : "";
                             if (!key || !resolvedFile) return;
@@ -366,23 +375,33 @@
                         }
 
                         // Fallback: if motion_list is empty/missing, use editor motion aliases directly.
-                        if (Object.keys(motionMap).length === 0 && cfgEditor?.motions) {
-                            Object.values(cfgEditor.motions).forEach((m: any) => {
-                                if (!m || typeof m !== "object") return;
-                                const file =
-                                    typeof m.file === "string" ? m.file.trim() : "";
-                                if (!file) return;
-                                const alias =
-                                    typeof m.alias === "string"
-                                        ? m.alias.trim()
-                                        : "";
-                                const base = file.split("/").pop() || file;
-                                const stem = base.replace(/\.motion3\.json$/i, "");
+                        if (
+                            Object.keys(motionMap).length === 0 &&
+                            cfgEditor?.motions
+                        ) {
+                            Object.values(cfgEditor.motions).forEach(
+                                (m: any) => {
+                                    if (!m || typeof m !== "object") return;
+                                    const file =
+                                        typeof m.file === "string"
+                                            ? m.file.trim()
+                                            : "";
+                                    if (!file) return;
+                                    const alias =
+                                        typeof m.alias === "string"
+                                            ? m.alias.trim()
+                                            : "";
+                                    const base = file.split("/").pop() || file;
+                                    const stem = base.replace(
+                                        /\.motion3\.json$/i,
+                                        "",
+                                    );
 
-                                if (alias) registerMotion(alias, file);
-                                registerMotion(base, file);
-                                registerMotion(stem, file);
-                            });
+                                    if (alias) registerMotion(alias, file);
+                                    registerMotion(base, file);
+                                    registerMotion(stem, file);
+                                },
+                            );
                         }
 
                         if (cfgExpressionMap) {
@@ -397,7 +416,11 @@
                             const nextMap: Record<string, string> = {};
                             Object.entries(cfgEditor.expressions).forEach(
                                 ([name, file]: [string, any]) => {
-                                    if (typeof file !== "string" || !file.trim()) return;
+                                    if (
+                                        typeof file !== "string" ||
+                                        !file.trim()
+                                    )
+                                        return;
                                     const alias =
                                         typeof aliases[name] === "string"
                                             ? aliases[name].trim()
@@ -426,7 +449,8 @@
                                             typeof resolved === "string" &&
                                             motionByAliasOrFile[resolved]
                                         ) {
-                                            resolved = motionByAliasOrFile[resolved];
+                                            resolved =
+                                                motionByAliasOrFile[resolved];
                                         }
                                         motionMap[m.name] = resolved;
                                     }
@@ -827,9 +851,8 @@
                     bind:closeupScale
                     bind:closeupOffset
                     bind:isCloseup
-                    backgroundImage={
-                        persona.model_background_url?.trim() || "/chat_bg.png"
-                    }
+                    backgroundImage={persona.model_background_url?.trim() ||
+                        "/chat_bg.png"}
                     scale={modelScale}
                     x={modelX}
                     y={modelY}
@@ -916,17 +939,16 @@
         top: 0;
         left: 0;
         width: 100vw;
-        height: 100vh; /* Fallback */
         height: 100dvh;
         overflow: hidden;
     }
 
     @media (display-mode: standalone) {
         main {
-            height: 100vh;
+            height: 100dvh;
         }
         .chat-overlay {
-            height: 100vh;
+            height: 100dvh;
         }
     }
 
@@ -971,7 +993,6 @@
         position: absolute;
         bottom: 0;
         width: 100%;
-        height: 100vh; /* Fallback */
         height: 100dvh;
         padding-bottom: env(safe-area-inset-bottom, 0px);
         background-color: rgba(255, 255, 255, 0);
@@ -1026,7 +1047,7 @@
         right: 20px;
         z-index: 9999;
         pointer-events: auto;
-        max-height: calc(100vh - 100px);
+        max-height: calc(100dvh - 100px);
         overflow: visible;
     }
 

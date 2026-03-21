@@ -626,12 +626,14 @@
     "spoilerWarning": "ネタバレ注意！最初のシーンを見ますか？",
     "characterIntel": "キャラクター情報",
     "totalImages": "全{count}枚",
+    "publicImages": "公開 {count}枚",
     "hiddenImages": "非表示 {count}枚",
     "linkCopied": "リンクがコピーされました！",
     "linkCopyFailed": "リンクのコピーに失敗しました。",
     "defaultDescription": "{name}と会話しましょう",
     "live2dRightsNotice": "このLive2Dキャラクターのアセット利用範囲は、原著作者/配布元のライセンス条件が優先されます。無断抽出・再配布は禁止される場合があります。",
     "secretAssetLabel": "シークレット",
+    "jumpToCommentsButton": "コメントを見る",
     "goToCreatorProfile": "{creatorName}のクリエイタープロフィールへ移動"
   },
   "editPage": {
