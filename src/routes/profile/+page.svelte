@@ -635,6 +635,7 @@
                             {#if galleryImages.length > 0}
                                 <AssetPreview
                                     asset={galleryImages[currentImageIndex]}
+                                    showVideoPosterFallback={true}
                                 />
                                 {#if galleryImages[currentImageIndex].is_secret && galleryImages[currentImageIndex].url}
                                     <div class="secret-indicator">
@@ -702,6 +703,7 @@
                                         <div class="thumb-content">
                                             <AssetPreview
                                                 asset={img}
+                                                showVideoPosterFallback={true}
                                                 on:load={(event) =>
                                                     handleThumbnailLoad(
                                                         i,

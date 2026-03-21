@@ -1,3 +1,7 @@
+<script context="module" lang="ts">
+    const warmedVideoUrls = new Set<string>();
+</script>
+
 <script lang="ts">
     import {
         getCachedAssetType,
@@ -66,6 +70,9 @@ export let useSimpleVideoLayout: boolean = false;
         resolvedType?: ImageMetadata["type"],
     ) {
         const target = event.currentTarget as HTMLVideoElement | null;
+        if (url) {
+            warmedVideoUrls.add(url);
+        }
         dispatchAssetLoad(
             url,
             target?.videoWidth,
@@ -115,7 +122,7 @@ export let useSimpleVideoLayout: boolean = false;
         // Only reset video state when URL actually changes
         if (asset?.url && asset.url !== lastAssetUrl) {
             lastAssetUrl = asset.url;
-            videoReady = false;
+            videoReady = warmedVideoUrls.has(asset.url);
             unknownPreviewMode = "image";
         }
 
@@ -177,6 +184,11 @@ export let useSimpleVideoLayout: boolean = false;
             playsinline
             class="asset-preview-media gif-like-video gif-like-video--inline"
             bind:this={videoEl}
+            on:playing={() => {
+                if (asset.url) {
+                    warmedVideoUrls.add(asset.url);
+                }
+            }}
             on:loadeddata={(event) => handleVideoLoad(event, asset.url, "video")}
             on:error={() => dispatch("error", { url: asset.url })}
         >
@@ -253,6 +265,9 @@ export let useSimpleVideoLayout: boolean = false;
                 class:video-visible={videoReady}
                 bind:this={videoEl}
                 on:playing={() => {
+                    if (asset.url) {
+                        warmedVideoUrls.add(asset.url);
+                    }
                     videoReady = true;
                 }}
                 on:loadeddata={(event) => handleVideoLoad(event, asset.url)}
@@ -293,6 +308,9 @@ export let useSimpleVideoLayout: boolean = false;
                 class:video-visible={videoReady}
                 bind:this={videoEl}
                 on:playing={() => {
+                    if (asset.url) {
+                        warmedVideoUrls.add(asset.url);
+                    }
                     videoReady = true;
                 }}
                 on:loadeddata={handleUnknownVideoLoad}
