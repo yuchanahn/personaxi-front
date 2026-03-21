@@ -6,7 +6,7 @@
   import "$lib/styles/chat-input-position.css";
   import { onMount } from "svelte";
   import SettingsButton from "$lib/components/common/SettingsButton.svelte";
-  import { fetchAndSetAssetTypes, loadPersona } from "$lib/api/edit_persona";
+  import { loadPersona } from "$lib/api/edit_persona";
   import type { Persona } from "$lib/types";
   import SettingsModal from "$lib/components/modal/SettingModal.svelte";
   import { pricingStore } from "$lib/stores/pricing";
@@ -63,10 +63,12 @@
   }
 
   let showModelSelector = false;
+  let loadSequence = 0;
 
   const loadChatData = async () => {
     const sessionId = $page.url.searchParams.get("c");
     lastSessionId = sessionId;
+    const currentLoad = ++loadSequence;
 
     if (sessionId) {
       // 1. Clear previous state immediately (Fixes race condition & ghosting)
@@ -75,15 +77,22 @@
       showModelSelector = false;
 
       try {
-        // Load persona and history in parallel to reduce first paint delay.
-        const [p] = await Promise.all([
-          loadPersona(sessionId),
-          loadChatHistory(sessionId ?? ""),
-        ]);
-        const metadatas = p.image_metadatas ?? [];
-        const assets = await fetchAndSetAssetTypes(metadatas);
-        p.image_metadatas = assets;
+        const historyPromise = loadChatHistory(sessionId ?? "").catch((error) => {
+          console.error("Failed to load chat history:", error);
+        });
+        const p = await loadPersona(sessionId);
+
+        if (currentLoad !== loadSequence || lastSessionId !== sessionId) {
+          return;
+        }
+
         persona = p;
+
+        await historyPromise;
+
+        if (currentLoad !== loadSequence || lastSessionId !== sessionId) {
+          return;
+        }
 
         // 4. Check for New Session state
         if ($messages.length <= 1) {

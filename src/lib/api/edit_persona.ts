@@ -734,51 +734,105 @@ export async function uploadLive2DZip(
 }
 
 
+const ASSET_TYPE_RETRY_TIMEOUTS_MS = [1000, 2000, 3000];
+const ASSET_TYPE_STAGGER_MS = 120;
+
+function sleep(ms: number): Promise<void> {
+    return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+function inferAssetTypeFromContentType(
+    contentType: string | null,
+): "image" | "video" | "unknown" {
+    if (contentType?.startsWith("image/")) {
+        return "image";
+    }
+    if (contentType?.startsWith("video/")) {
+        return "video";
+    }
+    return "unknown";
+}
+
+async function fetchAssetTypeAttempt(
+    metadata: ImageMetadata,
+    timeoutMs: number,
+): Promise<ImageMetadata> {
+    if (!metadata.url) {
+        return metadata;
+    }
+
+    if (metadata.url.startsWith("blob:")) {
+        return metadata;
+    }
+
+    const controller =
+        typeof AbortController !== "undefined" ? new AbortController() : null;
+    const timeoutId = controller
+        ? setTimeout(() => controller.abort(), timeoutMs)
+        : null;
+
+    try {
+        const response = await fetch(metadata.url, {
+            method: "HEAD",
+            signal: controller?.signal,
+        });
+
+        if (!response.ok) {
+            throw new Error(`HEAD ${response.status}`);
+        }
+
+        return {
+            ...metadata,
+            type: inferAssetTypeFromContentType(
+                response.headers.get("Content-Type"),
+            ),
+        };
+    } finally {
+        if (timeoutId) {
+            clearTimeout(timeoutId);
+        }
+    }
+}
+
+export async function resolveAssetType(
+    metadata: ImageMetadata,
+): Promise<ImageMetadata> {
+    if (!metadata.url || metadata.url.startsWith("blob:")) {
+        return metadata;
+    }
+
+    if (metadata.type && metadata.type !== "unknown") {
+        return metadata;
+    }
+
+    for (const timeoutMs of ASSET_TYPE_RETRY_TIMEOUTS_MS) {
+        try {
+            return await fetchAssetTypeAttempt(metadata, timeoutMs);
+        } catch (error) {
+            console.warn(
+                `Asset type HEAD failed (${timeoutMs}ms):`,
+                metadata.url,
+                error,
+            );
+        }
+    }
+
+    return { ...metadata, type: "unknown" };
+}
+
 export async function fetchAndSetAssetTypes(
     metadatas: ImageMetadata[],
 ): Promise<ImageMetadata[]> {
-    const promises = metadatas.map(
-        async (metadata: ImageMetadata): Promise<ImageMetadata> => {
-            try {
-                if (!metadata.url) {
-                    return metadata;
-                }
+    const resolved: ImageMetadata[] = [];
 
-                // Skip blob URLs (local previews) to avoid NetworkError
-                if (metadata.url.startsWith("blob:")) {
-                    return metadata;
-                }
+    for (let index = 0; index < metadatas.length; index += 1) {
+        if (index > 0) {
+            await sleep(ASSET_TYPE_STAGGER_MS);
+        }
+        resolved.push(await resolveAssetType(metadatas[index]));
+    }
 
-                const response = await fetch(metadata.url, {
-                    method: "HEAD",
-                });
-
-                if (!response.ok) {
-                    return { ...metadata, type: "unknown" };
-                }
-
-                const contentType = response.headers.get("Content-Type");
-                let type: "image" | "video" | "unknown" = "unknown";
-
-                if (contentType?.startsWith("image/")) {
-                    type = "image";
-                } else if (contentType?.startsWith("video/")) {
-                    type = "video";
-                }
-
-                return { ...metadata, type: type };
-            } catch (error) {
-                console.error(
-                    "Error fetching metadata for:",
-                    metadata.url,
-                    error,
-                );
-                return { ...metadata, type: "unknown" };
-            }
-        },
-    );
-
-    return await Promise.all(promises);
+    return resolved;
 }
 
 /**

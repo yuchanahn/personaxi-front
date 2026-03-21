@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { fetchAndSetAssetTypes } from "$lib/api/edit_persona";
+    import { resolveAssetType } from "$lib/api/edit_persona";
     import type { ImageMetadata } from "$lib/types";
     import Icon from "@iconify/svelte";
     import { createEventDispatcher, onDestroy, onMount } from "svelte";
@@ -41,6 +41,7 @@ export let useSimpleVideoLayout: boolean = false;
     let videoEl: HTMLVideoElement | null = null;
     let videoReady = false;
     let lastAssetUrl = "";
+    let unknownPreviewMode: "image" | "video" | "fallback" = "image";
 
     function dispatchAssetLoad(url: string, width?: number, height?: number) {
         const safeWidth = width && width > 0 ? width : undefined;
@@ -65,6 +66,27 @@ export let useSimpleVideoLayout: boolean = false;
         dispatchAssetLoad(url, target?.videoWidth, target?.videoHeight);
     }
 
+    function handleUnknownImageLoad(event: Event) {
+        if (asset.static_url && asset.static_url === asset.url) {
+            asset = { ...asset, type: "image" };
+        }
+        handleImageLoad(event, asset.static_url || asset.url);
+    }
+
+    function handleUnknownImageError() {
+        unknownPreviewMode = asset.url ? "video" : "fallback";
+    }
+
+    function handleUnknownVideoLoad(event: Event) {
+        asset = { ...asset, type: "video" };
+        handleVideoLoad(event, asset.url);
+    }
+
+    function handleUnknownVideoError() {
+        unknownPreviewMode = "fallback";
+        dispatch("error", { url: asset.url });
+    }
+
     $: if (asset.type === "video" && videoEl && asset.url) {
         // Do NOT call videoEl.load() or videoEl.play() here.
         // On iOS, load() resets autoplay, and play() outside user gesture is blocked.
@@ -82,6 +104,7 @@ export let useSimpleVideoLayout: boolean = false;
         if (asset?.url && asset.url !== lastAssetUrl) {
             lastAssetUrl = asset.url;
             videoReady = false;
+            unknownPreviewMode = "image";
         }
 
         if (shouldFetchType && asset.url) {
@@ -95,14 +118,12 @@ export let useSimpleVideoLayout: boolean = false;
 
                 (async () => {
                     try {
-                        const assetsWithType = await fetchAndSetAssetTypes([
-                            asset,
-                        ]);
+                        const resolvedAsset = await resolveAssetType(asset);
 
                         if (fetchAborted) return;
 
-                        if (assetsWithType[0]?.type) {
-                            const newType = assetsWithType[0].type;
+                        if (resolvedAsset?.type) {
+                            const newType = resolvedAsset.type;
 
                             // 성공 시 LocalStorage에 영구 저장
                             if (asset.url) {
@@ -236,10 +257,48 @@ export let useSimpleVideoLayout: boolean = false;
         </div>
     {/if}
 {:else if asset.type === "unknown"}
-    <div class="fallback">
-        <Icon icon="ph:file-duotone" width="48" height="48" />
-        <p>Unknown file type</p>
-    </div>
+    {#if unknownPreviewMode === "image" && (asset.static_url || asset.url)}
+        <img
+            src={asset.static_url || asset.url}
+            alt="asset preview"
+            class="asset-preview-media"
+            on:load={handleUnknownImageLoad}
+            on:error={handleUnknownImageError}
+        />
+    {:else if unknownPreviewMode === "video" && asset.url}
+        <div class="video-container">
+            {#if asset.static_url}
+                <img
+                    src={asset.static_url}
+                    alt="preview"
+                    class="asset-preview-media video-poster-layer"
+                />
+            {/if}
+            <video
+                src={asset.url}
+                poster={asset.static_url || undefined}
+                autoplay
+                loop
+                muted
+                playsinline
+                class="asset-preview-media gif-like-video"
+                class:video-visible={videoReady}
+                bind:this={videoEl}
+                on:playing={() => {
+                    videoReady = true;
+                }}
+                on:loadeddata={handleUnknownVideoLoad}
+                on:error={handleUnknownVideoError}
+            >
+                Your browser does not support the video tag.
+            </video>
+        </div>
+    {:else}
+        <div class="fallback">
+            <Icon icon="ph:file-duotone" width="48" height="48" />
+            <p>Unknown file type</p>
+        </div>
+    {/if}
 {:else}
     <div class="fallback">
         {#if asset.static_url}

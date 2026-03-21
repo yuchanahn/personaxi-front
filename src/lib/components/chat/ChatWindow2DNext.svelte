@@ -11,6 +11,7 @@
   import { chatSessions } from "$lib/stores/chatSessions";
   import { interactiveChat } from "$lib/actions/interactiveChat";
   import { api } from "$lib/api";
+  import { resolveAssetType } from "$lib/api/edit_persona";
   import { toastError } from "$lib/utils/errorMapper";
   import ChatRenderer from "./ChatRenderer.svelte";
   import ChatImage from "./ChatImage.svelte";
@@ -58,6 +59,8 @@
   let lastScrollContainer: HTMLElement | null = null;
   let showAssistantLoadingBubble = false;
   let scrollResizeObserver: ResizeObserver | null = null;
+  let lastBackgroundResolvedUrl = "";
+  let backgroundResolveRequestId = 0;
 
   function getScrollContainer() {
     return scrollContainer;
@@ -411,6 +414,39 @@
 
   function hasVideoBackground(meta: ImageMetadata) {
     return meta.type === "video" && !!meta.url;
+  }
+
+  $: {
+    const needsBackgroundTypeResolution =
+      showBackground &&
+      !!backgroundMeta.url &&
+      (!backgroundMeta.type || backgroundMeta.type === "unknown") &&
+      backgroundMeta.url !== lastBackgroundResolvedUrl;
+
+    if (needsBackgroundTypeResolution) {
+      const targetUrl = backgroundMeta.url;
+      const requestId = ++backgroundResolveRequestId;
+      lastBackgroundResolvedUrl = targetUrl;
+
+      void resolveAssetType(backgroundMeta)
+        .then((resolved) => {
+          if (
+            requestId !== backgroundResolveRequestId ||
+            backgroundMeta.url !== targetUrl
+          ) {
+            return;
+          }
+
+          backgroundMeta = resolved;
+        })
+        .catch((error) => {
+          console.error("Failed to resolve background asset type:", error);
+        });
+    }
+
+    if (!showBackground || !backgroundMeta.url) {
+      lastBackgroundResolvedUrl = "";
+    }
   }
 
   function handleVariablePanelRendered() {
