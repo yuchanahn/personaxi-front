@@ -42,6 +42,29 @@ export let useSimpleVideoLayout: boolean = false;
     let videoReady = false;
     let lastAssetUrl = "";
 
+    function dispatchAssetLoad(url: string, width?: number, height?: number) {
+        const safeWidth = width && width > 0 ? width : undefined;
+        const safeHeight = height && height > 0 ? height : undefined;
+
+        dispatch("load", {
+            url,
+            width: safeWidth,
+            height: safeHeight,
+            aspectRatio:
+                safeWidth && safeHeight ? safeWidth / safeHeight : undefined,
+        });
+    }
+
+    function handleImageLoad(event: Event, url: string) {
+        const target = event.currentTarget as HTMLImageElement | null;
+        dispatchAssetLoad(url, target?.naturalWidth, target?.naturalHeight);
+    }
+
+    function handleVideoLoad(event: Event, url: string) {
+        const target = event.currentTarget as HTMLVideoElement | null;
+        dispatchAssetLoad(url, target?.videoWidth, target?.videoHeight);
+    }
+
     $: if (asset.type === "video" && videoEl && asset.url) {
         // Do NOT call videoEl.load() or videoEl.play() here.
         // On iOS, load() resets autoplay, and play() outside user gesture is blocked.
@@ -113,7 +136,7 @@ export let useSimpleVideoLayout: boolean = false;
         src={asset.url}
         alt="asset"
         class="asset-preview-media"
-        on:load={() => dispatch("load", { url: asset.url })}
+        on:load={(event) => handleImageLoad(event, asset.url)}
         on:error={() => dispatch("error", { url: asset.url })}
     />
 {:else if asset.type === "video"}
@@ -127,7 +150,7 @@ export let useSimpleVideoLayout: boolean = false;
             playsinline
             class="asset-preview-media gif-like-video gif-like-video--inline"
             bind:this={videoEl}
-            on:loadeddata={() => dispatch("load", { url: asset.url })}
+            on:loadeddata={(event) => handleVideoLoad(event, asset.url)}
             on:error={() => dispatch("error", { url: asset.url })}
         >
             Your browser does not support the video tag.
@@ -140,7 +163,8 @@ export let useSimpleVideoLayout: boolean = false;
                         src={asset.static_url}
                         alt="preview"
                         class="asset-preview-media"
-                        on:load={() => dispatch("load", { url: asset.static_url })}
+                        on:load={(event) =>
+                            handleImageLoad(event, asset.static_url!)}
                         on:error={() => dispatch("error", { url: asset.static_url })}
                     />
                 {:else}
@@ -204,7 +228,7 @@ export let useSimpleVideoLayout: boolean = false;
                 on:playing={() => {
                     videoReady = true;
                 }}
-                on:loadeddata={() => dispatch("load", { url: asset.url })}
+                on:loadeddata={(event) => handleVideoLoad(event, asset.url)}
                 on:error={() => dispatch("error", { url: asset.url })}
             >
                 Your browser does not support the video tag.
@@ -223,6 +247,7 @@ export let useSimpleVideoLayout: boolean = false;
                 src={asset.static_url}
                 alt="asset preview"
                 class="asset-preview-media"
+                on:load={(event) => handleImageLoad(event, asset.static_url!)}
             />
         {:else}
             <div class="brand-loading-card">

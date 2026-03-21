@@ -8,11 +8,12 @@
         PersonaLoadError,
     } from "$lib/api/edit_persona";
     import type { Persona, ImageMetadata, Comment } from "$lib/types";
-    import { allCategories } from "$lib/constants";
+    import { PORTRAIT_URL, allCategories } from "$lib/constants";
     import Icon from "@iconify/svelte";
-    import { loadlikesdata } from "$lib/api/content";
+    import { LikeBtn, loadlikesdata } from "$lib/api/content";
     import { t } from "svelte-i18n";
     import { api } from "$lib/api";
+    import { settings } from "$lib/stores/settings";
     import { get } from "svelte/store";
     import { chatSessions } from "$lib/stores/chatSessions";
     import AssetPreview from "$lib/components/AssetPreview.svelte";
@@ -31,7 +32,6 @@
     let galleryImages: ImageMetadata[] = [];
     let currentImageIndex = 0;
     let firstSceneFrame: HTMLIFrameElement | null = null;
-    let commentsSectionEl: HTMLElement | null = null;
 
     async function loadComments(personaId: string): Promise<Comment[]> {
         const response = await api.get2(`/api/comments?personaId=${personaId}`);
@@ -230,7 +230,7 @@
     async function handleShare() {
         if (!persona || !persona.id || persona.visibility === "private") return;
 
-        const shareUrl = `${window.location.origin}/profile2?c=${persona.id}`;
+        const shareUrl = `${window.location.origin}/profile?c=${persona.id}`;
 
         try {
             await navigator.clipboard.writeText(shareUrl);
@@ -255,13 +255,6 @@
     }
     function goToImage(index: number) {
         currentImageIndex = index;
-    }
-
-    function scrollToComments() {
-        commentsSectionEl?.scrollIntoView({
-            behavior: "smooth",
-            block: "start",
-        });
     }
 
     function replaceNicknameInText(text: string): string {
@@ -477,13 +470,6 @@
         persona?.tags?.filter((t: string) => parseInt(t) < 1000) || [];
     $: regularTags =
         persona?.tags?.filter((t: string) => parseInt(t) >= 1000) || [];
-    $: visibleImageCount =
-        (persona ? 1 : 0) +
-        (persona?.image_metadatas?.filter((asset) => !asset.is_secret).length ??
-            0);
-    $: hiddenImageCount =
-        persona?.image_metadatas?.filter((asset) => asset.is_secret).length ?? 0;
-    $: totalImageCount = visibleImageCount + hiddenImageCount;
 </script>
 
 <svelte:head>
@@ -513,7 +499,7 @@
         />
         <meta
             property="og:url"
-            content="https://personaxi.com/profile2?c={persona.id}"
+            content="https://personaxi.com/profile?c={persona.id}"
         />
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:title" content="{persona.name} - PersonaXi" />
@@ -591,20 +577,6 @@
                                 {/each}
                             </div>
                         {/if}
-                        <div class="gallery-ledger">
-                            <div class="ledger-item">
-                                <span>{$t("profilePage.totalImages", { values: { count: totalImageCount } })}</span>
-                                <strong>{totalImageCount}</strong>
-                            </div>
-                            <div class="ledger-item">
-                                <span>{$t("profilePage.publicImages", { values: { count: visibleImageCount } })}</span>
-                                <strong>{visibleImageCount}</strong>
-                            </div>
-                            <div class="ledger-item">
-                                <span>{$t("profilePage.hiddenImages", { values: { count: hiddenImageCount } })}</span>
-                                <strong>{hiddenImageCount}</strong>
-                            </div>
-                        </div>
                     </div>
 
                     <!-- Hero Info -->
@@ -711,24 +683,10 @@
                                 <Icon icon="ph:chat-circle-dots-bold" />
                                 <span>{persona.chat_count}</span>
                             </div>
-                            {#if totalImageCount > 0}
-                                <div class="stat-chip stat-chip-wide">
+                            {#if galleryImages.length > 1}
+                                <div class="stat-chip">
                                     <Icon icon="ph:image-square-bold" />
-                                    <span
-                                        >{$t("profilePage.publicImages", {
-                                            values: { count: visibleImageCount },
-                                        })}</span
-                                    >
-                                </div>
-                            {/if}
-                            {#if hiddenImageCount > 0}
-                                <div class="stat-chip stat-chip-wide is-secret">
-                                    <Icon icon="ph:lock-key-bold" />
-                                    <span
-                                        >{$t("profilePage.hiddenImages", {
-                                            values: { count: hiddenImageCount },
-                                        })}</span
-                                    >
+                                    <span>{galleryImages.length}</span>
                                 </div>
                             {/if}
                         </div>
@@ -746,26 +704,9 @@
                                 <span>{$t("profilePage.startChatButton")}</span>
                             </button>
                             <div class="action-buttons">
-                                <button
-                                    class="action-btn action-btn-text"
-                                    on:click={scrollToComments}
-                                    title={$t(
-                                        "profilePage.jumpToCommentsButton",
-                                    )}
-                                >
-                                    <Icon
-                                        icon="ph:chat-teardrop-text-bold"
-                                        width="20"
-                                    />
-                                    <span
-                                        >{$t(
-                                            "profilePage.jumpToCommentsButton",
-                                        )}</span
-                                    >
-                                </button>
                                 {#if persona.visibility !== "private"}
                                     <button
-                                        class="action-btn action-btn-text"
+                                        class="action-btn"
                                         on:click={handleShare}
                                         title={$t("settingModal.share") ||
                                             "Share"}
@@ -774,23 +715,15 @@
                                             icon="ph:share-network-bold"
                                             width="20"
                                         />
-                                        <span
-                                            >{$t("settingModal.share") ||
-                                                "Share"}</span
-                                        >
                                     </button>
                                 {/if}
                                 <button
-                                    class="action-btn action-btn-text destructive"
+                                    class="action-btn destructive"
                                     on:click={() => (showReportModal = true)}
                                     title={$t("settingModal.report") ||
                                         "Report"}
                                 >
                                     <Icon icon="ph:flag-bold" width="20" />
-                                    <span
-                                        >{$t("settingModal.report") ||
-                                            "Report"}</span
-                                    >
                                 </button>
                             </div>
                         </div>
@@ -928,7 +861,7 @@
                     {/if}
 
                     <!-- Comments -->
-                    <div class="comments-section" bind:this={commentsSectionEl}>
+                    <div class="comments-section">
                         <h2 class="comments-title">
                             {$t("profilePage.commentsTitle", {
                                 values: { count: comments.length },
@@ -1128,6 +1061,37 @@
     }
     .nav-arrow.right {
         right: 12px;
+    }
+
+    .indicator-dots {
+        position: absolute;
+        bottom: 12px;
+        left: 50%;
+        transform: translateX(-50%);
+        display: flex;
+        gap: 6px;
+        z-index: 10;
+        padding: 4px 8px;
+        background: rgba(0, 0, 0, 0.3);
+        border-radius: 10px;
+        backdrop-filter: blur(2px);
+    }
+    .dot {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background-color: rgba(255, 255, 255, 0.4);
+        border: none;
+        padding: 0;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+    .dot:hover {
+        background-color: rgba(255, 255, 255, 0.8);
+    }
+    .dot.active {
+        background-color: white;
+        transform: scale(1.2);
     }
 
     /* Thumbnail Strip */
@@ -1705,439 +1669,6 @@
         }
         .comments-section {
             padding: 1rem;
-        }
-    }
-    .scroll-container {
-        background:
-            radial-gradient(circle at 0% 0%, rgba(239, 123, 69, 0.14), transparent 26%),
-            radial-gradient(circle at 100% 0%, rgba(31, 108, 119, 0.12), transparent 20%),
-            var(--background);
-    }
-
-    .profile-page-wrapper {
-        position: relative;
-        padding: 2.1rem 1.35rem 4rem;
-        overflow-y: auto;
-        background: transparent;
-    }
-
-    .profile-container {
-        max-width: 1220px;
-        gap: 1.5rem;
-    }
-
-    .hero-section {
-        grid-template-columns: minmax(320px, 420px) minmax(0, 1fr);
-        gap: 1.35rem;
-        align-items: stretch;
-    }
-
-    .hero-gallery {
-        position: sticky;
-        top: 1rem;
-        gap: 0.85rem;
-    }
-
-    .image-gallery-wrapper,
-    .hero-info,
-    .first-scene-container,
-    .comments-section {
-        border-radius: 28px;
-        border: 1px solid rgba(118, 127, 156, 0.18);
-        background:
-            linear-gradient(180deg, rgba(255, 255, 255, 0.07), rgba(255, 255, 255, 0.02)),
-            var(--card);
-        box-shadow: 0 24px 60px rgba(15, 23, 42, 0.08);
-        backdrop-filter: blur(10px);
-    }
-
-    .image-gallery-wrapper {
-        aspect-ratio: 4 / 5;
-        border-radius: 30px;
-    }
-
-    .image-gallery-wrapper :global(.asset-preview-media),
-    .image-gallery-wrapper :global(.video-container),
-    .image-gallery-wrapper :global(.fallback),
-    .thumb-content :global(.asset-preview-media),
-    .thumb-content :global(.video-container),
-    .thumb-content :global(.fallback) {
-        width: 100%;
-        height: 100%;
-    }
-
-    .image-counter {
-        top: 1rem;
-        right: 1rem;
-        padding: 0.5rem 0.8rem;
-        border-radius: 999px;
-        background: rgba(17, 24, 39, 0.62);
-    }
-
-    .secret-indicator {
-        top: 1rem;
-        left: 1rem;
-        padding: 0.55rem 0.85rem;
-        background: rgba(17, 24, 39, 0.7);
-    }
-
-    .nav-arrow {
-        opacity: 0.82;
-        width: 44px;
-        height: 44px;
-        background: rgba(17, 24, 39, 0.56);
-    }
-
-    .image-gallery-wrapper:hover .nav-arrow,
-    .nav-arrow:focus-visible {
-        opacity: 1;
-    }
-
-    .thumbnail-strip {
-        gap: 0.65rem;
-        padding: 0.15rem 0;
-    }
-
-    .thumb {
-        width: 72px;
-        height: 72px;
-        border-radius: 18px;
-        border-width: 1px;
-        background: rgba(17, 24, 39, 0.08);
-    }
-
-    .thumb.active {
-        border-color: rgba(239, 123, 69, 0.42);
-        box-shadow: 0 16px 28px rgba(239, 123, 69, 0.16);
-    }
-
-    .gallery-ledger {
-        display: grid;
-        grid-template-columns: repeat(3, minmax(0, 1fr));
-        gap: 0.7rem;
-    }
-
-    .ledger-item {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 0.75rem;
-        padding: 0.95rem 1rem;
-        border-radius: 22px;
-        border: 1px solid rgba(118, 127, 156, 0.16);
-        background: rgba(17, 24, 39, 0.05);
-        color: var(--muted-foreground);
-        font-size: 0.92rem;
-        font-weight: 600;
-    }
-
-    .ledger-item strong {
-        color: var(--foreground);
-        font-size: 1.02rem;
-    }
-
-    .hero-info {
-        padding: 1.35rem;
-        justify-content: flex-start;
-        align-items: stretch;
-        text-align: left;
-    }
-
-    .type-badge {
-        padding: 0.45rem 0.85rem;
-        border-radius: 999px;
-        color: #1f6c77;
-        background: rgba(31, 108, 119, 0.08);
-        border-color: rgba(31, 108, 119, 0.18);
-        align-self: flex-start;
-    }
-
-    .character-name {
-        font-family: "Cal Sans", "Pretendard", sans-serif;
-        font-size: clamp(2.3rem, 4.4vw, 4.4rem);
-        line-height: 0.96;
-        letter-spacing: -0.04em;
-        margin-bottom: 0.75rem;
-    }
-
-    .one-liner {
-        font-size: 1.14rem;
-        line-height: 1.5;
-        margin-bottom: 1rem;
-    }
-
-    .creator-chip {
-        color: #1f6c77;
-        font-weight: 700;
-        margin-bottom: 1rem;
-        align-self: flex-start;
-    }
-
-    .character-description {
-        margin-bottom: 1.25rem;
-        padding: 1.1rem 1.15rem;
-        border-radius: 24px;
-        background:
-            linear-gradient(135deg, rgba(239, 123, 69, 0.12), rgba(31, 108, 119, 0.08)),
-            rgba(255, 255, 255, 0.04);
-        border: 1px solid rgba(118, 127, 156, 0.16);
-        color: var(--foreground);
-        line-height: 1.72;
-    }
-
-    .live2d-rights-notice {
-        margin-bottom: 1rem;
-        padding: 0.95rem 1rem;
-        border-radius: 20px;
-        background: rgba(17, 24, 39, 0.05);
-    }
-
-    .tags-container {
-        gap: 0.55rem;
-        margin-bottom: 1.4rem;
-        justify-content: flex-start;
-    }
-
-    .tag {
-        padding: 0.45rem 0.85rem;
-        font-weight: 700;
-        border-radius: 999px;
-    }
-
-    .tag-category {
-        color: #dc5e28;
-        background: rgba(239, 123, 69, 0.1);
-        border-color: rgba(239, 123, 69, 0.18);
-    }
-
-    .tag-regular {
-        background: rgba(17, 24, 39, 0.05);
-    }
-
-    .stats-row {
-        flex-wrap: wrap;
-        gap: 0.7rem;
-        margin-bottom: 1.4rem;
-        justify-content: flex-start;
-    }
-
-    .stat-chip {
-        padding: 0.78rem 0.95rem;
-        border-radius: 18px;
-        background: rgba(17, 24, 39, 0.05);
-        border-color: rgba(118, 127, 156, 0.16);
-    }
-
-    .stat-chip-wide {
-        padding-right: 1.1rem;
-    }
-
-    .stat-chip.is-secret {
-        color: #a16207;
-        background: rgba(245, 158, 11, 0.08);
-        border-color: rgba(245, 158, 11, 0.18);
-    }
-
-    .cta-row {
-        align-items: stretch;
-    }
-
-    .chat-start-button {
-        max-width: none;
-        border-radius: 22px;
-        padding: 1rem 1.4rem;
-        background: linear-gradient(135deg, #ef7b45 0%, #dc5e28 100%);
-        box-shadow: 0 18px 30px rgba(220, 94, 40, 0.24);
-        animation: none;
-    }
-
-    .action-buttons {
-        flex: 1;
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-        gap: 0.65rem;
-    }
-
-    .action-btn {
-        width: 100%;
-        height: auto;
-        min-height: 56px;
-        padding: 0.9rem 1rem;
-        border-radius: 18px;
-        justify-content: center;
-        gap: 0.55rem;
-        background: rgba(17, 24, 39, 0.05);
-        border-color: rgba(118, 127, 156, 0.16);
-        white-space: nowrap;
-    }
-
-    .action-btn-text span {
-        font-size: 0.92rem;
-        font-weight: 700;
-        line-height: 1.2;
-    }
-
-    .detail-section {
-        display: grid;
-        grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
-        gap: 1.35rem;
-        align-items: start;
-    }
-
-    .detail-section > *:only-child {
-        grid-column: 1 / -1;
-    }
-
-    .first-scene-container {
-        border-radius: 28px;
-    }
-
-    .scene-toggle {
-        padding: 1.15rem 1.25rem;
-        background: transparent;
-    }
-
-    .scene-body {
-        padding: 1.25rem;
-        border-top-color: rgba(118, 127, 156, 0.14);
-    }
-
-    .scene-html-preview,
-    .threed-narrative {
-        border-radius: 22px;
-        border: 1px solid rgba(118, 127, 156, 0.14);
-        background: rgba(17, 24, 39, 0.04);
-    }
-
-    .data-chip {
-        border-radius: 18px;
-        background: rgba(17, 24, 39, 0.04);
-        border-color: rgba(118, 127, 156, 0.14);
-    }
-
-    .comments-section {
-        padding: 1.35rem;
-    }
-
-    .comments-title {
-        margin-bottom: 1rem;
-    }
-
-    .comments-list {
-        gap: 0.95rem;
-        margin-bottom: 1.4rem;
-    }
-
-    .comment-card {
-        padding: 1rem;
-        border-radius: 22px;
-        background: rgba(17, 24, 39, 0.05);
-        border-color: rgba(118, 127, 156, 0.14);
-    }
-
-    .comment-input-box {
-        border-radius: 20px;
-        padding: 0.75rem;
-        background: rgba(17, 24, 39, 0.05);
-        border-color: rgba(118, 127, 156, 0.16);
-    }
-
-    .comment-input-box:focus-within {
-        border-color: rgba(239, 123, 69, 0.3);
-        box-shadow: 0 0 0 3px rgba(239, 123, 69, 0.08);
-    }
-
-    .comment-input-box .icon-button {
-        border-radius: 16px;
-        background: linear-gradient(135deg, #ef7b45 0%, #dc5e28 100%);
-        box-shadow: 0 12px 22px rgba(220, 94, 40, 0.2);
-    }
-
-    @media (max-width: 1100px) {
-        .hero-section,
-        .detail-section {
-            grid-template-columns: 1fr;
-        }
-
-        .hero-gallery {
-            position: static;
-            max-width: 560px;
-        }
-    }
-
-    @media (max-width: 760px) {
-        .profile-page-wrapper {
-            padding: 1rem 0.85rem 2.4rem;
-            margin-top: 0;
-        }
-
-        .hero-info,
-        .comments-section {
-            padding: 1rem;
-        }
-
-        .gallery-ledger {
-            grid-template-columns: 1fr;
-        }
-
-        .cta-row {
-            flex-direction: column;
-            align-items: stretch;
-        }
-
-        .chat-start-button {
-            width: 100%;
-        }
-
-        .action-buttons {
-            grid-template-columns: 1fr;
-        }
-    }
-
-    @media (max-width: 640px) {
-        .profile-container {
-            gap: 1.25rem;
-        }
-
-        .image-gallery-wrapper {
-            aspect-ratio: 1 / 1.1;
-            border-radius: 24px;
-        }
-
-        .nav-arrow {
-            opacity: 1;
-            width: 40px;
-            height: 40px;
-            background: rgba(17, 24, 39, 0.72);
-        }
-
-        .thumbnail-strip {
-            gap: 0.5rem;
-        }
-
-        .thumb {
-            width: 64px;
-            height: 64px;
-            border-radius: 16px;
-        }
-
-        .hero-info {
-            text-align: left;
-        }
-
-        .type-badge,
-        .creator-chip {
-            align-self: flex-start;
-        }
-
-        .character-name {
-            font-size: clamp(2rem, 10vw, 3rem);
-        }
-
-        .comment-header {
-            flex-direction: column;
-            align-items: flex-start;
-            gap: 0.2rem;
         }
     }
 </style>
