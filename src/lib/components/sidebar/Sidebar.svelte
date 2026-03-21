@@ -53,9 +53,9 @@
         class="control-button"
     >
         <Icon
-            icon={showSidebar ? "ci:bar-left" : "ci:bar-right"}
-            width="24"
-            height="24"
+            icon={showSidebar ? "ph:sidebar-simple-fill" : "ph:sidebar-simple"}
+            width="20"
+            height="20"
         />
     </button>
     <!-- <button
@@ -247,27 +247,52 @@
         top: 0.75rem;
         left: 10px;
         z-index: 30;
-        display: flex;
-        gap: 8px;
-        background-color: rgba(151, 151, 151, 0.5);
-        padding: 6px;
-        border-radius: 8px;
         transition: left var(--sidebar-transition-duration) ease;
     }
     .controls-wrapper.sidebar-open {
         left: calc(var(--sidebar-width) + 10px);
     }
     .control-button {
-        background: transparent;
-        border: none;
+        width: 42px;
+        height: 42px;
+        background: color-mix(in srgb, var(--card) 88%, transparent);
+        border: 1px solid color-mix(in srgb, var(--border) 88%, transparent);
         cursor: pointer;
-        color: #fff;
-        padding: 4px;
+        color: var(--foreground);
+        padding: 0;
         display: flex;
         align-items: center;
         justify-content: center;
-        border-radius: 6px;
-        transition: background-color 0.2s ease;
+        border-radius: 14px;
+        box-shadow:
+            0 10px 24px rgba(0, 0, 0, 0.16),
+            0 1px 0 rgba(255, 255, 255, 0.05) inset;
+        backdrop-filter: blur(14px);
+        -webkit-backdrop-filter: blur(14px);
+        transition:
+            transform 0.18s ease,
+            background-color 0.18s ease,
+            border-color 0.18s ease,
+            color 0.18s ease,
+            box-shadow 0.18s ease;
+    }
+
+    .control-button:hover {
+        transform: translateY(-1px);
+        background: color-mix(in srgb, var(--accent) 90%, transparent);
+        border-color: color-mix(in srgb, var(--border-hover) 88%, transparent);
+        color: var(--foreground);
+        box-shadow:
+            0 14px 30px rgba(0, 0, 0, 0.2),
+            0 1px 0 rgba(255, 255, 255, 0.07) inset;
+    }
+
+    .control-button:active {
+        transform: translateY(0);
+    }
+
+    .control-button :global(svg) {
+        opacity: 0.9;
     }
 
     /* 모바일 오버레이 스타일 (기존과 동일) */
@@ -286,8 +311,17 @@
         .sidebar {
             width: 100%;
         }
+        .controls-wrapper {
+            top: max(0.75rem, env(safe-area-inset-top, 0px) + 0.35rem);
+            left: 0.85rem;
+        }
         .controls-wrapper.sidebar-open {
             left: calc(100% - 88px);
+        }
+        .control-button {
+            width: 40px;
+            height: 40px;
+            border-radius: 13px;
         }
     }
 </style>
