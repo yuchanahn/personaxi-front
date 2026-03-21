@@ -1,5 +1,8 @@
 <script lang="ts">
-    import { resolveAssetType } from "$lib/api/edit_persona";
+    import {
+        getCachedAssetType,
+        resolveAssetType,
+    } from "$lib/api/edit_persona";
     import type { ImageMetadata } from "$lib/types";
     import Icon from "@iconify/svelte";
     import { createEventDispatcher, onDestroy, onMount } from "svelte";
@@ -14,63 +17,72 @@ export let useSimpleVideoLayout: boolean = false;
     let isFetching = false;
     let fetchAborted = false;
 
-    // 캐시 키 접두사 (충돌 방지)
-    const CACHE_PREFIX = "asset_type_cache:";
-
     onDestroy(() => {
         fetchAborted = true;
     });
-
-    const getCachedType = (url: string): string | null => {
-        const cached = localStorage.getItem(CACHE_PREFIX + url);
-        if (cached === "unknown") {
-            localStorage.removeItem(CACHE_PREFIX + url);
-            return null;
-        }
-        return cached;
-    };
-
-    const setCachedType = (url: string, type: string) => {
-        if (type === "unknown") {
-            localStorage.removeItem(CACHE_PREFIX + url);
-            return;
-        }
-        localStorage.setItem(CACHE_PREFIX + url, type);
-    };
 
     let videoEl: HTMLVideoElement | null = null;
     let videoReady = false;
     let lastAssetUrl = "";
     let unknownPreviewMode: "image" | "video" | "fallback" = "image";
 
-    function dispatchAssetLoad(url: string, width?: number, height?: number) {
+    function dispatchAssetLoad(
+        loadedUrl: string,
+        width?: number,
+        height?: number,
+        resolvedType?: ImageMetadata["type"],
+    ) {
         const safeWidth = width && width > 0 ? width : undefined;
         const safeHeight = height && height > 0 ? height : undefined;
 
         dispatch("load", {
-            url,
+            url: loadedUrl,
+            assetUrl: asset.url,
             width: safeWidth,
             height: safeHeight,
+            type: resolvedType,
             aspectRatio:
                 safeWidth && safeHeight ? safeWidth / safeHeight : undefined,
         });
     }
 
-    function handleImageLoad(event: Event, url: string) {
+    function handleImageLoad(
+        event: Event,
+        url: string,
+        resolvedType?: ImageMetadata["type"],
+    ) {
         const target = event.currentTarget as HTMLImageElement | null;
-        dispatchAssetLoad(url, target?.naturalWidth, target?.naturalHeight);
+        dispatchAssetLoad(
+            url,
+            target?.naturalWidth,
+            target?.naturalHeight,
+            resolvedType,
+        );
     }
 
-    function handleVideoLoad(event: Event, url: string) {
+    function handleVideoLoad(
+        event: Event,
+        url: string,
+        resolvedType?: ImageMetadata["type"],
+    ) {
         const target = event.currentTarget as HTMLVideoElement | null;
-        dispatchAssetLoad(url, target?.videoWidth, target?.videoHeight);
+        dispatchAssetLoad(
+            url,
+            target?.videoWidth,
+            target?.videoHeight,
+            resolvedType,
+        );
     }
 
     function handleUnknownImageLoad(event: Event) {
         if (asset.static_url && asset.static_url === asset.url) {
             asset = { ...asset, type: "image" };
         }
-        handleImageLoad(event, asset.static_url || asset.url);
+        handleImageLoad(
+            event,
+            asset.static_url || asset.url,
+            asset.static_url === asset.url ? "image" : undefined,
+        );
     }
 
     function handleUnknownImageError() {
@@ -79,7 +91,7 @@ export let useSimpleVideoLayout: boolean = false;
 
     function handleUnknownVideoLoad(event: Event) {
         asset = { ...asset, type: "video" };
-        handleVideoLoad(event, asset.url);
+        handleVideoLoad(event, asset.url, "video");
     }
 
     function handleUnknownVideoError() {
@@ -108,10 +120,10 @@ export let useSimpleVideoLayout: boolean = false;
         }
 
         if (shouldFetchType && asset.url) {
-            const cachedType = getCachedType(asset.url);
+            const cachedType = getCachedAssetType(asset.url);
 
             if (cachedType) {
-                asset = { ...asset, type: cachedType as any };
+                asset = { ...asset, type: cachedType };
             } else {
                 isFetching = true;
                 fetchAborted = false;
@@ -123,13 +135,7 @@ export let useSimpleVideoLayout: boolean = false;
                         if (fetchAborted) return;
 
                         if (resolvedAsset?.type) {
-                            const newType = resolvedAsset.type;
-
-                            // 성공 시 LocalStorage에 영구 저장
-                            if (asset.url) {
-                                setCachedType(asset.url, newType);
-                            }
-                            asset = { ...asset, type: newType };
+                            asset = { ...asset, type: resolvedAsset.type };
                         } else {
                             asset = { ...asset, type: "unknown" };
                         }
@@ -157,7 +163,7 @@ export let useSimpleVideoLayout: boolean = false;
         src={asset.url}
         alt="asset"
         class="asset-preview-media"
-        on:load={(event) => handleImageLoad(event, asset.url)}
+        on:load={(event) => handleImageLoad(event, asset.url, "image")}
         on:error={() => dispatch("error", { url: asset.url })}
     />
 {:else if asset.type === "video"}
@@ -171,7 +177,7 @@ export let useSimpleVideoLayout: boolean = false;
             playsinline
             class="asset-preview-media gif-like-video gif-like-video--inline"
             bind:this={videoEl}
-            on:loadeddata={(event) => handleVideoLoad(event, asset.url)}
+            on:loadeddata={(event) => handleVideoLoad(event, asset.url, "video")}
             on:error={() => dispatch("error", { url: asset.url })}
         >
             Your browser does not support the video tag.
@@ -185,7 +191,7 @@ export let useSimpleVideoLayout: boolean = false;
                         alt="preview"
                         class="asset-preview-media"
                         on:load={(event) =>
-                            handleImageLoad(event, asset.static_url!)}
+                            handleImageLoad(event, asset.static_url!, "video")}
                         on:error={() => dispatch("error", { url: asset.static_url })}
                     />
                 {:else}
@@ -272,6 +278,8 @@ export let useSimpleVideoLayout: boolean = false;
                     src={asset.static_url}
                     alt="preview"
                     class="asset-preview-media video-poster-layer"
+                    on:load={(event) =>
+                        handleImageLoad(event, asset.static_url!, "video")}
                 />
             {/if}
             <video

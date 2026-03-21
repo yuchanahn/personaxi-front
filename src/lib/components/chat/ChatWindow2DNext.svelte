@@ -11,7 +11,7 @@
   import { chatSessions } from "$lib/stores/chatSessions";
   import { interactiveChat } from "$lib/actions/interactiveChat";
   import { api } from "$lib/api";
-  import { resolveAssetType } from "$lib/api/edit_persona";
+  import { getCachedAssetType } from "$lib/api/edit_persona";
   import { toastError } from "$lib/utils/errorMapper";
   import ChatRenderer from "./ChatRenderer.svelte";
   import ChatImage from "./ChatImage.svelte";
@@ -47,6 +47,8 @@
   let renderBlocks = writable<TestRenderableBlock[]>([]);
   let activeBackgroundImage: string | null = null;
   let backgroundMeta: ImageMetadata = { url: "", description: "" };
+  let backgroundCandidateMeta: ImageMetadata = { url: "", description: "" };
+  let backgroundVideoReady = false;
   let sharedChatStyleCSS = "";
   let lastFrame = 0;
   let rafId = 0;
@@ -59,8 +61,13 @@
   let lastScrollContainer: HTMLElement | null = null;
   let showAssistantLoadingBubble = false;
   let scrollResizeObserver: ResizeObserver | null = null;
-  let lastBackgroundResolvedUrl = "";
-  let backgroundResolveRequestId = 0;
+  let backgroundImageIndex: number | null = null;
+  let backgroundCandidateIndex: number | null = null;
+  let lastBackgroundUnlockKey = "";
+  let backgroundPrepareRequestId = 0;
+  let lastPreparedBackgroundKey = "";
+  const loadedBackgroundImageUrls = new Set<string>();
+  const loadedBackgroundVideoUrls = new Set<string>();
 
   function getScrollContainer() {
     return scrollContainer;
@@ -337,10 +344,30 @@
     );
   }
 
+  function resetBackgroundState() {
+    activeBackgroundImage = null;
+    backgroundMeta = { url: "", description: "" };
+    backgroundCandidateMeta = { url: "", description: "" };
+    backgroundVideoReady = false;
+    backgroundImageIndex = null;
+    backgroundCandidateIndex = null;
+  }
+
+  function commitBackground(
+    meta: ImageMetadata,
+    index: number | null,
+    options?: { videoReady?: boolean },
+  ) {
+    backgroundMeta = meta;
+    backgroundImageIndex = index;
+    activeBackgroundImage = getBackgroundPreviewImage(meta);
+    backgroundVideoReady =
+      options?.videoReady ?? (hasVideoBackground(meta) ? false : true);
+  }
+
   function updateBackground() {
     if (!showBackground) {
-      activeBackgroundImage = null;
-      backgroundMeta = { url: "", description: "" };
+      resetBackgroundState();
       return;
     }
 
@@ -349,20 +376,20 @@
       .find((item) => item.type === "image" || item.type === "markdown_image");
 
     if (!lastImage) {
-      activeBackgroundImage = null;
-      backgroundMeta = { url: "", description: "" };
+      resetBackgroundState();
       return;
     }
 
     if (lastImage.type === "image") {
-      activeBackgroundImage =
-        lastImage.metadata.static_url || lastImage.url || null;
-      backgroundMeta = lastImage.metadata;
+      const nextIndex =
+        typeof lastImage.index === "number" ? lastImage.index : null;
+      backgroundCandidateIndex = nextIndex;
+      backgroundCandidateMeta = lastImage.metadata;
       return;
     }
 
-    activeBackgroundImage = lastImage.url;
-    backgroundMeta = {
+    backgroundCandidateIndex = null;
+    backgroundCandidateMeta = {
       url: lastImage.url,
       description: lastImage.alt,
       type: "image",
@@ -412,40 +439,318 @@
     return `url("${url.replace(/"/g, '\\"')}")`;
   }
 
+  function inferMediaTypeFromUrl(url: string | undefined) {
+    if (!url) return "unknown";
+
+    const normalized = url.split("?")[0].toLowerCase();
+
+    if (/\.(mp4|webm|mov|m4v|ogv|ogg)$/i.test(normalized)) {
+      return "video";
+    }
+
+    if (/\.(png|jpe?g|webp|gif|avif|bmp|svg)$/i.test(normalized)) {
+      return "image";
+    }
+
+    return "unknown";
+  }
+
+  function getBackgroundPreviewImage(meta: ImageMetadata) {
+    const resolvedType =
+      meta.type && meta.type !== "unknown"
+        ? meta.type
+        : inferMediaTypeFromUrl(meta.url);
+
+    if (resolvedType === "video") {
+      return meta.static_url || null;
+    }
+
+    if (resolvedType === "image") {
+      return meta.static_url || meta.url || null;
+    }
+
+    return meta.static_url || null;
+  }
+
+  function getBackgroundResolvedType(meta: ImageMetadata) {
+    if (meta.type && meta.type !== "unknown") {
+      return meta.type;
+    }
+
+    const cachedType = getCachedAssetType(meta.url);
+    if (cachedType) {
+      return cachedType;
+    }
+
+    return inferMediaTypeFromUrl(meta.url);
+  }
+
+  function getBackgroundCandidateKey(meta: ImageMetadata, index: number | null) {
+    if (!showBackground) return "";
+    if (!meta.url && !meta.static_url && index === null) return "";
+
+    return `${index ?? "md"}|${meta.url || ""}|${meta.static_url || ""}|${
+      meta.type || ""
+    }`;
+  }
+
+  function isSameBackground(
+    nextMeta: ImageMetadata,
+    nextIndex: number | null,
+    currentMeta: ImageMetadata,
+    currentIndex: number | null,
+  ) {
+    return (
+      nextIndex === currentIndex &&
+      (nextMeta.url || "") === (currentMeta.url || "") &&
+      (nextMeta.static_url || "") === (currentMeta.static_url || "") &&
+      getBackgroundResolvedType(nextMeta) === getBackgroundResolvedType(currentMeta)
+    );
+  }
+
+  function isSameBackgroundTarget(
+    nextMeta: ImageMetadata,
+    nextIndex: number | null,
+    currentMeta: ImageMetadata,
+    currentIndex: number | null,
+  ) {
+    return (
+      nextIndex === currentIndex &&
+      (nextMeta.url || "") === (currentMeta.url || "") &&
+      (nextMeta.static_url || "") === (currentMeta.static_url || "")
+    );
+  }
+
+  function markBackgroundImageLoaded(url: string | undefined) {
+    if (url) {
+      loadedBackgroundImageUrls.add(url);
+    }
+  }
+
+  function markBackgroundVideoLoaded(url: string | undefined) {
+    if (url) {
+      loadedBackgroundVideoUrls.add(url);
+    }
+  }
+
+  function preloadImageUrl(url: string) {
+    if (!url) return Promise.resolve(false);
+    if (loadedBackgroundImageUrls.has(url)) return Promise.resolve(true);
+
+    return new Promise<boolean>((resolve) => {
+      const image = new Image();
+      const cleanup = () => {
+        image.onload = null;
+        image.onerror = null;
+      };
+
+      image.onload = () => {
+        markBackgroundImageLoaded(url);
+        cleanup();
+        resolve(true);
+      };
+
+      image.onerror = () => {
+        cleanup();
+        resolve(false);
+      };
+
+      image.src = url;
+    });
+  }
+
+  function preloadVideoUrl(url: string) {
+    if (!url) return Promise.resolve(false);
+    if (loadedBackgroundVideoUrls.has(url)) return Promise.resolve(true);
+
+    return new Promise<boolean>((resolve) => {
+      const video = document.createElement("video");
+      let settled = false;
+
+      const cleanup = () => {
+        video.removeAttribute("src");
+        video.load();
+        video.onloadeddata = null;
+        video.onerror = null;
+      };
+
+      const finalize = (ok: boolean) => {
+        if (settled) return;
+        settled = true;
+        if (ok) {
+          markBackgroundVideoLoaded(url);
+        }
+        cleanup();
+        resolve(ok);
+      };
+
+      video.preload = "auto";
+      video.muted = true;
+      video.playsInline = true;
+      video.onloadeddata = () => finalize(true);
+      video.onerror = () => finalize(false);
+      video.src = url;
+      video.load();
+    });
+  }
+
+  async function detectBackgroundTypeByPreload(meta: ImageMetadata) {
+    if (!meta.url) return meta;
+
+    const imageLoaded = await preloadImageUrl(meta.url);
+    if (imageLoaded) {
+      return { ...meta, type: "image" as const };
+    }
+
+    const videoLoaded = await preloadVideoUrl(meta.url);
+    if (videoLoaded) {
+      return { ...meta, type: "video" as const };
+    }
+
+    return { ...meta, type: "unknown" as const };
+  }
+
+  async function prepareBackgroundCandidate(
+    sourceMeta: ImageMetadata,
+    sourceIndex: number | null,
+    requestId: number,
+  ) {
+    let nextMeta = { ...sourceMeta };
+
+    if (sourceIndex !== null && !nextMeta.url && persona?.id) {
+      const personaId = persona.id;
+      const unlockKey = `${personaId}:${sourceIndex}`;
+      lastBackgroundUnlockKey = unlockKey;
+
+      const res = await api.get(
+        `/api/persona/asset?id=${personaId}&index=${sourceIndex}`,
+      );
+      if (!res.ok) {
+        throw new Error(`Failed to unlock background asset: ${res.status}`);
+      }
+
+      const data = await res.json();
+
+      if (
+        requestId !== backgroundPrepareRequestId ||
+        !showBackground ||
+        backgroundCandidateIndex !== sourceIndex ||
+        persona?.id !== personaId
+      ) {
+        return;
+      }
+
+      nextMeta = {
+        ...nextMeta,
+        ...(persona?.image_metadatas?.[sourceIndex] || {}),
+        ...data,
+        url: data.url || nextMeta.url,
+        type:
+          data.type ||
+          persona?.image_metadatas?.[sourceIndex]?.type ||
+          nextMeta.type,
+      };
+    }
+
+    if (requestId !== backgroundPrepareRequestId || !showBackground) {
+      return;
+    }
+
+    let resolvedType = getBackgroundResolvedType(nextMeta);
+    if (resolvedType === "unknown" && nextMeta.url) {
+      nextMeta = await detectBackgroundTypeByPreload(nextMeta);
+      resolvedType = getBackgroundResolvedType(nextMeta);
+    }
+
+    if (requestId !== backgroundPrepareRequestId || !showBackground) {
+      return;
+    }
+
+    let videoReady = false;
+
+    if (resolvedType === "image") {
+      const previewUrl = nextMeta.static_url || nextMeta.url;
+      if (!previewUrl) return;
+
+      const ready = await preloadImageUrl(previewUrl);
+      if (!ready) return;
+      nextMeta = { ...nextMeta, type: "image" };
+    } else if (resolvedType === "video") {
+      nextMeta = { ...nextMeta, type: "video" };
+
+      if (nextMeta.static_url) {
+        const posterReady = await preloadImageUrl(nextMeta.static_url);
+        if (!posterReady) return;
+      } else if (nextMeta.url) {
+        const videoLoaded = await preloadVideoUrl(nextMeta.url);
+        if (!videoLoaded) return;
+        videoReady = true;
+      }
+
+      if (nextMeta.url && loadedBackgroundVideoUrls.has(nextMeta.url)) {
+        videoReady = true;
+      }
+    } else {
+      return;
+    }
+
+    if (
+      requestId !== backgroundPrepareRequestId ||
+      !showBackground ||
+      !isSameBackgroundTarget(
+        nextMeta,
+        sourceIndex,
+        backgroundCandidateMeta,
+        backgroundCandidateIndex,
+      )
+    ) {
+      return;
+    }
+
+    backgroundCandidateMeta = nextMeta;
+
+    if (sourceIndex !== null && persona?.image_metadatas?.[sourceIndex]) {
+      persona.image_metadatas[sourceIndex] = nextMeta;
+    }
+
+    commitBackground(nextMeta, sourceIndex, {
+      videoReady,
+    });
+  }
+
   function hasVideoBackground(meta: ImageMetadata) {
-    return meta.type === "video" && !!meta.url;
+    return getBackgroundResolvedType(meta) === "video" && !!meta.url;
   }
 
   $: {
-    const needsBackgroundTypeResolution =
-      showBackground &&
-      !!backgroundMeta.url &&
-      (!backgroundMeta.type || backgroundMeta.type === "unknown") &&
-      backgroundMeta.url !== lastBackgroundResolvedUrl;
+    const candidateKey = getBackgroundCandidateKey(
+      backgroundCandidateMeta,
+      backgroundCandidateIndex,
+    );
 
-    if (needsBackgroundTypeResolution) {
-      const targetUrl = backgroundMeta.url;
-      const requestId = ++backgroundResolveRequestId;
-      lastBackgroundResolvedUrl = targetUrl;
+    if (!candidateKey) {
+      lastBackgroundUnlockKey = "";
+      lastPreparedBackgroundKey = "";
+      backgroundPrepareRequestId += 1;
+    } else if (
+      candidateKey !== lastPreparedBackgroundKey &&
+      !isSameBackground(
+        backgroundCandidateMeta,
+        backgroundCandidateIndex,
+        backgroundMeta,
+        backgroundImageIndex,
+      )
+    ) {
+      lastPreparedBackgroundKey = candidateKey;
+      const requestId = ++backgroundPrepareRequestId;
+      const candidateMeta = { ...backgroundCandidateMeta };
+      const candidateIndex = backgroundCandidateIndex;
 
-      void resolveAssetType(backgroundMeta)
-        .then((resolved) => {
-          if (
-            requestId !== backgroundResolveRequestId ||
-            backgroundMeta.url !== targetUrl
-          ) {
-            return;
-          }
-
-          backgroundMeta = resolved;
-        })
-        .catch((error) => {
-          console.error("Failed to resolve background asset type:", error);
-        });
-    }
-
-    if (!showBackground || !backgroundMeta.url) {
-      lastBackgroundResolvedUrl = "";
+      void prepareBackgroundCandidate(candidateMeta, candidateIndex, requestId).catch(
+        (error) => {
+          console.error("Failed to prepare background asset:", error);
+        },
+      );
     }
   }
 
@@ -458,7 +763,50 @@
     });
   }
 
-  function handleImageLoad() {
+  function handleImageLoad(event?: Event) {
+    const detail = (event as CustomEvent<any> | undefined)?.detail;
+    const resolvedType = detail?.type as ImageMetadata["type"] | undefined;
+    const metadataIndex =
+      typeof detail?.index === "number" ? detail.index : undefined;
+    const assetUrl = detail?.assetUrl as string | undefined;
+    const loadedUrl = detail?.url as string | undefined;
+
+    if (resolvedType === "video") {
+      markBackgroundVideoLoaded(assetUrl || loadedUrl);
+      markBackgroundImageLoaded(loadedUrl && loadedUrl !== assetUrl ? loadedUrl : undefined);
+    } else {
+      markBackgroundImageLoaded(loadedUrl || assetUrl);
+    }
+
+    if (
+      resolvedType &&
+      metadataIndex !== undefined &&
+      persona?.image_metadatas?.[metadataIndex]
+    ) {
+      persona.image_metadatas[metadataIndex].type = resolvedType;
+    }
+
+    if (
+      resolvedType &&
+      metadataIndex !== undefined &&
+      backgroundCandidateIndex === metadataIndex
+    ) {
+      backgroundCandidateMeta = { ...backgroundCandidateMeta, type: resolvedType };
+    }
+
+    if (
+      resolvedType &&
+      assetUrl &&
+      backgroundMeta.url &&
+      backgroundMeta.url === assetUrl
+    ) {
+      backgroundMeta = { ...backgroundMeta, type: resolvedType };
+      activeBackgroundImage = getBackgroundPreviewImage(backgroundMeta);
+      if (resolvedType === "video") {
+        backgroundVideoReady = true;
+      }
+    }
+
     if (!autoScroll || !scrollController?.canAutoFollow()) return;
     tick().then(() => {
       const container = getScrollContainer();
@@ -516,6 +864,12 @@
     const source = $messages;
     const last = source[source.length - 1];
     showAssistantLoadingBubble = !!last && isLoading && last.role === "user";
+  }
+
+  $: {
+    void $renderBlocks;
+    void showBackground;
+    updateBackground();
   }
 
   $: syncPlayers(buildParsedBlocks($messages));
@@ -587,7 +941,8 @@
 
 <div
   class="chat-window chat2d-surface"
-  class:background-mode={!!activeBackgroundImage}
+  class:background-mode={showBackground &&
+    (!!activeBackgroundImage || hasVideoBackground(backgroundMeta))}
   bind:this={chatWindowEl}
   style:opacity={showChat ? "0.9" : "0"}
   style:visibility={showChat ? "visible" : "hidden"}
@@ -606,12 +961,19 @@
     <div class="chat-background-video-layer" aria-hidden="true">
       <video
         class="chat-background-video"
+        class:ready={backgroundVideoReady}
         src={backgroundMeta.url}
         poster={backgroundMeta.static_url || activeBackgroundImage || undefined}
         autoplay
         muted
         loop
         playsinline
+        on:loadeddata={() => {
+          if (backgroundMeta.url) {
+            markBackgroundVideoLoaded(backgroundMeta.url);
+          }
+          backgroundVideoReady = true;
+        }}
       ></video>
     </div>
   {/if}
@@ -778,6 +1140,11 @@
     width: 100%;
     height: 100%;
     object-fit: cover;
+    opacity: 0;
+    transition: opacity 160ms ease;
+  }
+
+  .chat-background-video.ready {
     opacity: 0.42;
   }
 

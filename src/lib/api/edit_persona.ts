@@ -736,6 +736,7 @@ export async function uploadLive2DZip(
 
 const ASSET_TYPE_RETRY_TIMEOUTS_MS = [1000, 2000, 3000];
 const ASSET_TYPE_STAGGER_MS = 120;
+const ASSET_TYPE_CACHE_PREFIX = "asset_type_cache:";
 
 function sleep(ms: number): Promise<void> {
     return new Promise((resolve) => setTimeout(resolve, ms));
@@ -751,6 +752,45 @@ function inferAssetTypeFromContentType(
         return "video";
     }
     return "unknown";
+}
+
+function canUseAssetTypeCache(): boolean {
+    return typeof localStorage !== "undefined";
+}
+
+export function getCachedAssetType(
+    url: string | undefined,
+): ImageMetadata["type"] | null {
+    if (!url || !canUseAssetTypeCache()) {
+        return null;
+    }
+
+    const cached = localStorage.getItem(ASSET_TYPE_CACHE_PREFIX + url);
+    if (cached === "image" || cached === "video") {
+        return cached;
+    }
+
+    if (cached === "unknown") {
+        localStorage.removeItem(ASSET_TYPE_CACHE_PREFIX + url);
+    }
+
+    return null;
+}
+
+export function setCachedAssetType(
+    url: string | undefined,
+    type: ImageMetadata["type"] | undefined,
+) {
+    if (!url || !canUseAssetTypeCache()) {
+        return;
+    }
+
+    if (type === "image" || type === "video") {
+        localStorage.setItem(ASSET_TYPE_CACHE_PREFIX + url, type);
+        return;
+    }
+
+    localStorage.removeItem(ASSET_TYPE_CACHE_PREFIX + url);
 }
 
 async function fetchAssetTypeAttempt(
@@ -802,12 +842,20 @@ export async function resolveAssetType(
     }
 
     if (metadata.type && metadata.type !== "unknown") {
+        setCachedAssetType(metadata.url, metadata.type);
         return metadata;
+    }
+
+    const cachedType = getCachedAssetType(metadata.url);
+    if (cachedType) {
+        return { ...metadata, type: cachedType };
     }
 
     for (const timeoutMs of ASSET_TYPE_RETRY_TIMEOUTS_MS) {
         try {
-            return await fetchAssetTypeAttempt(metadata, timeoutMs);
+            const resolved = await fetchAssetTypeAttempt(metadata, timeoutMs);
+            setCachedAssetType(resolved.url, resolved.type);
+            return resolved;
         } catch (error) {
             console.warn(
                 `Asset type HEAD failed (${timeoutMs}ms):`,
@@ -817,6 +865,7 @@ export async function resolveAssetType(
         }
     }
 
+    setCachedAssetType(metadata.url, "unknown");
     return { ...metadata, type: "unknown" };
 }
 

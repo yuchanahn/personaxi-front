@@ -85,6 +85,18 @@
     $: if (metadata?.static_url !== currentMetadata.static_url || metadata?.type !== currentMetadata.type) {
         updatePlaceholderAspectRatio(currentMetadata);
     }
+
+    function forwardLoad(detail: Record<string, unknown>) {
+        const resolvedType = detail.type as ImageMetadata["type"] | undefined;
+        if (resolvedType && currentMetadata.type !== resolvedType) {
+            currentMetadata = { ...currentMetadata, type: resolvedType };
+        }
+
+        dispatch("load", {
+            ...detail,
+            index,
+        });
+    }
 </script>
 
 <div class="chat-image-wrapper" style={`--chat-asset-ratio: ${placeholderAspectRatio};`}>
@@ -92,7 +104,7 @@
         <AssetPreview
             asset={currentMetadata}
             useSimpleVideoLayout
-            on:load={(e) => dispatch("load", e.detail)}
+            on:load={(e) => forwardLoad(e.detail)}
         />
     {:else if isLoading}
         <div class="placeholder-shell">
