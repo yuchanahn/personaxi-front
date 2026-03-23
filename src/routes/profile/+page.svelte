@@ -736,7 +736,7 @@
                 "https://personaxi.com/og-image.png"}
         />
     {:else}
-        <title>페르소나 - PersonaXi</title>
+        <title>{$t("profilePage.pageTitle")}</title>
     {/if}
 </svelte:head>
 
@@ -1067,11 +1067,14 @@
                                         <div class="threed-chips">
                                             {#if threeDSceneData.current_emotion}
                                                 <div class="data-chip emotion">
-                                                    <span class="chip-label"
-                                                        ><Icon
-                                                            icon="ph:smiley-duotone"
-                                                        /> 감정</span
-                                                    >
+                                                        <span class="chip-label"
+                                                            ><Icon
+                                                                icon="ph:smiley-duotone"
+                                                        />
+                                                            {$t(
+                                                                "profilePage.emotion",
+                                                            )}</span
+                                                        >
                                                     <span class="chip-value"
                                                         >{threeDSceneData.current_emotion}</span
                                                     >
@@ -1079,11 +1082,14 @@
                                             {/if}
                                             {#if threeDSceneData.core_desire}
                                                 <div class="data-chip desire">
-                                                    <span class="chip-label"
-                                                        ><Icon
-                                                            icon="ph:target-duotone"
-                                                        /> 욕구</span
-                                                    >
+                                                        <span class="chip-label"
+                                                            ><Icon
+                                                                icon="ph:target-duotone"
+                                                        />
+                                                            {$t(
+                                                                "profilePage.desire",
+                                                            )}</span
+                                                        >
                                                     <span class="chip-value"
                                                         >{threeDSceneData.core_desire}</span
                                                     >
@@ -1096,7 +1102,10 @@
                                                     <span class="chip-label"
                                                         ><Icon
                                                             icon="ph:fingerprint-duotone"
-                                                        /> 성격</span
+                                                        />
+                                                        {$t(
+                                                            "profilePage.personality",
+                                                        )}</span
                                                     >
                                                     <span class="chip-value"
                                                         >{threeDSceneData.personality}</span

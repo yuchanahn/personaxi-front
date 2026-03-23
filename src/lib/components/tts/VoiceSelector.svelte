@@ -1,5 +1,6 @@
 <script lang="ts">
     import Icon from "@iconify/svelte";
+    import { t } from "svelte-i18n";
 
     export let voices: any[] = [];
     export let onSelect: (voiceId: string) => void = () => {};
@@ -69,7 +70,8 @@
             <div class="voice-actions">
                 <button
                     class="action-button"
-                    title="미리듣기"
+                    title={$t("common.preview")}
+                    aria-label={$t("common.preview")}
                     on:click={() =>
                         togglePreview(
                             selectedVoice.voice_id,

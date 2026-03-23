@@ -21,8 +21,8 @@
         <label for="e3-name" class="field-label">
             <Icon icon="ph:text-aa-duotone" width="18" />
             {persona.contentType === "story"
-                ? $t("editPage.storyNameLabel", { default: "스토리 이름" })
-                : $t("editPage.nameLabel", { default: "캐릭터 이름" })}
+                ? $t("editPage.storyNameLabel")
+                : $t("editPage.nameLabel")}
             <span class="required">*</span>
         </label>
         <input
@@ -32,12 +32,8 @@
             bind:value={persona.name}
             required
             placeholder={persona.contentType === "story"
-                ? $t("editPage.storyNamePlaceholder", {
-                      default: "스토리의 이름을 입력하세요",
-                  })
-                : $t("editPage.namePlaceholder", {
-                      default: "캐릭터의 이름을 입력하세요",
-                  })}
+                ? $t("editPage.storyNamePlaceholder")
+                : $t("editPage.namePlaceholder")}
             maxlength="50"
         />
     </div>
@@ -47,10 +43,8 @@
         <label for="e3-oneliner" class="field-label">
             <Icon icon="ph:quotes-duotone" width="18" />
             {persona.contentType === "story"
-                ? $t("editPage.storyOneLinerLabel", {
-                      default: "스토리 한줄 소개",
-                  })
-                : $t("editPage.oneLinerLabel", { default: "한줄 소개" })}
+                ? $t("editPage.storyOneLinerLabel")
+                : $t("editPage.oneLinerLabel")}
         </label>
         <p class="field-hint">
             {$t("edit3.basicInfo.oneLinerHint")}
@@ -60,9 +54,7 @@
             type="text"
             class="field-input"
             bind:value={persona.one_liner}
-            placeholder={$t("editPage.oneLinerPlaceholder", {
-                default: "예: 당신만을 위한 수호천사",
-            })}
+            placeholder={$t("editPage.oneLinerPlaceholder")}
             maxlength="60"
         />
         <div
@@ -78,7 +70,7 @@
     <div class="field-group">
         <label for="e3-greeting" class="field-label">
             <Icon icon="ph:hand-waving-duotone" width="18" />
-            {$t("editPage.greetingLabel", { default: "인사말" })}
+            {$t("editPage.greetingLabel")}
             <span class="required">*</span>
         </label>
         <p class="field-hint">{$t("edit3.basicInfo.greetingHint")}</p>
@@ -86,9 +78,7 @@
             id="e3-greeting"
             class="field-textarea"
             bind:value={persona.greeting}
-            placeholder={$t("editPage.greetingPlaceholder", {
-                default: "안녕! 오늘도 만나서 반가워~",
-            })}
+            placeholder={$t("editPage.greetingPlaceholder")}
             maxlength="200"
             rows="3"
         ></textarea>
@@ -105,7 +95,7 @@
     <div class="field-group">
         <label class="field-label">
             <Icon icon="ph:eye-duotone" width="18" />
-            {$t("editPage.visibilityLabel", { default: "공개 설정" })}
+            {$t("editPage.visibilityLabel")}
         </label>
         <div class="visibility-toggle">
             <button
@@ -115,14 +105,8 @@
             >
                 <Icon icon="ph:globe-duotone" width="20" />
                 <div class="vis-text">
-                    <span class="vis-label"
-                        >{$t("editPage.public", { default: "공개" })}</span
-                    >
-                    <span class="vis-desc"
-                        >{$t("editPage.publicDesc", {
-                            default: "모두가 볼 수 있어요",
-                        })}</span
-                    >
+                    <span class="vis-label">{$t("editPage.public")}</span>
+                    <span class="vis-desc">{$t("editPage.publicDesc")}</span>
                 </div>
             </button>
             <button
@@ -132,16 +116,8 @@
             >
                 <Icon icon="ph:link-duotone" width="20" />
                 <div class="vis-text">
-                    <span class="vis-label"
-                        >{$t("editPage.linkPublic", {
-                            default: "링크공개",
-                        })}</span
-                    >
-                    <span class="vis-desc"
-                        >{$t("editPage.linkPublicDesc", {
-                            default: "목록에는 숨겨지고 링크로만 열려요",
-                        })}</span
-                    >
+                    <span class="vis-label">{$t("editPage.linkPublic")}</span>
+                    <span class="vis-desc">{$t("editPage.linkPublicDesc")}</span>
                 </div>
             </button>
             <button
@@ -151,14 +127,8 @@
             >
                 <Icon icon="ph:lock-duotone" width="20" />
                 <div class="vis-text">
-                    <span class="vis-label"
-                        >{$t("editPage.private", { default: "비공개" })}</span
-                    >
-                    <span class="vis-desc"
-                        >{$t("editPage.privateDesc", {
-                            default: "제작자인 나만 접근할 수 있어요",
-                        })}</span
-                    >
+                    <span class="vis-label">{$t("editPage.private")}</span>
+                    <span class="vis-desc">{$t("editPage.privateDesc")}</span>
                 </div>
             </button>
         </div>
@@ -169,13 +139,10 @@
         <div class="field-group">
             <label class="field-label">
                 <Icon icon="ph:warning-octagon-duotone" width="18" />
-                {$t("editPage.adultContentLabel", { default: "연령 등급" })}
+                {$t("editPage.adultContentLabel")}
             </label>
             <p class="field-hint">
-                {$t("editPage.adultContentDesc", {
-                    default:
-                        "성적인 묘사나 폭력성이 포함된 경우 연령 제한을 설정합니다.",
-                })}
+                {$t("editPage.adultContentDesc")}
             </p>
             <div class="visibility-toggle">
                 <button
@@ -189,11 +156,7 @@
                 >
                     <Icon icon="ph:baby-duotone" width="20" />
                     <div class="vis-text">
-                        <span class="vis-label"
-                            >{$t("editPage.allAges", {
-                                default: "전체이용가",
-                            })}</span
-                        >
+                        <span class="vis-label">{$t("editPage.allAges")}</span>
                         <span class="vis-desc"
                             >{$t("editPage.allAgesDesc")}</span
                         >

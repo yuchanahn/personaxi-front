@@ -7,11 +7,11 @@
     // --- 컴포넌트 내부에서 모든 상태를 관리 ---
     let isModalOpen = false;
 
-    const ttsTooltip: Record<TTSState, string> = {
-        connecting: "TTS 연결 중...",
-        connected: "TTS 연결 완료: 캐릭터 음성이 출력됩니다.",
-        disconnected: "TTS 연결 끊김",
-    };
+    $: ttsTooltip = {
+        connecting: $t("tts.tooltipConnecting"),
+        connected: $t("tts.tooltipConnected"),
+        disconnected: $t("tts.tooltipDisconnected"),
+    } satisfies Record<TTSState, string>;
 
     function toggleModal() {
         isModalOpen = !isModalOpen;

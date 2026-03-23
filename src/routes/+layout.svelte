@@ -71,6 +71,29 @@
     let bootstrappedUserToken: string | null = null;
     let bootstrappedUserPromise: Promise<User | null> | null = null;
     let initializedNotificationUserId = "";
+    let authResolved = false;
+
+    function isPublicPath(pathname: string) {
+        const publicRoutes = [
+            "/login",
+            "/signup",
+            "/",
+            "/test",
+            "/suspended",
+            "/install",
+            "/terms",
+            "/policy",
+            "/privacy",
+            "/licenses",
+            "/profile",
+            "/hub",
+            "/creator",
+        ];
+
+        return (
+            publicRoutes.includes(pathname) || pathname.startsWith("/test/")
+        );
+    }
 
     function syncUserLanguage(user: User) {
         if (user.data.language === "") {
@@ -132,7 +155,9 @@
         const handleChatError = (e: CustomEvent) => {
             toast.error(
                 e.detail?.message ||
-                    "일시적인 오류가 발생했어요. 다시 시도해주세요.",
+                    get(t)("common.tryAgainError", {
+                        default: "Something went wrong. Please try again.",
+                    }),
             );
         };
         window.addEventListener("chat-error", handleChatError as EventListener);
@@ -144,6 +169,7 @@
             .getSession()
             .then(({ data: { session } }) => {
                 accessToken.set(session?.access_token ?? null);
+                authResolved = true;
             });
 
         // 2. Auth 상태 변경 감지
@@ -152,32 +178,11 @@
         } = supabase.auth.onAuthStateChange((_event, session) => {
             if (session) {
                 accessToken.set(session.access_token);
+                authResolved = true;
             } else {
                 resetAuthenticatedBootstrap();
                 accessToken.set(null);
-                // 로그아웃 상태에서 보호된 라우트 접근 시 로그인 페이지로 이동
-                const publicRoutes = [
-                    "/login",
-                    "/signup",
-                    "/",
-                    "/test",
-                    "/suspended",
-                    "/install",
-                    "/terms",
-                    "/policy",
-                    "/privacy",
-                    "/licenses",
-                    "/profile",
-                    "/hub",
-                    "/creator",
-                ];
-                const isPublic =
-                    publicRoutes.includes($page.url.pathname) ||
-                    $page.url.pathname.startsWith("/test/");
-
-                if (!isPublic) {
-                    goto("/login");
-                }
+                authResolved = true;
             }
         });
 
@@ -314,6 +319,10 @@
     $: isChatPage = ["/2d", "/character", "/live2d", "/feed"].includes(
         $page.url.pathname,
     );
+    $: routeRequiresAuth = !isPublicPath($page.url.pathname);
+    $: if (browser && authResolved && routeRequiresAuth && $accessToken === null) {
+        goto("/login", { replaceState: true });
+    }
 </script>
 
 <!-- ────────────── 레이아웃 ────────────── -->
@@ -323,7 +332,11 @@
     {/if}
 
     <main class:no-padding-bottom={isChatPage} class="no-scrollbar">
-        <slot />
+        {#if routeRequiresAuth && !authResolved}
+            <div class="route-auth-loading">{$t("common.loading")}</div>
+        {:else}
+            <slot />
+        {/if}
 
         <CheatConsole
             isVisible={showCheatConsole}
@@ -409,6 +422,14 @@
     main:global(.no-padding-bottom) {
         padding-bottom: env(safe-area-inset-bottom, 0px);
         /* padding-bottom: 0; */
+    }
+
+    .route-auth-loading {
+        display: grid;
+        place-items: center;
+        min-height: 100%;
+        color: var(--muted-foreground);
+        font-size: 0.95rem;
     }
 
     .back-btn {

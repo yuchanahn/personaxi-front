@@ -43,7 +43,11 @@
     transition:fade={{ duration: 200 }}
 >
     <div class="modal-container" on:click|stopPropagation>
-        <button class="close-button" on:click={closeModal} aria-label="닫기">
+        <button
+            class="close-button"
+            on:click={closeModal}
+            aria-label={$t("common.close")}
+        >
             <Icon icon="ph:x-bold" />
         </button>
         <div class="modal-content">
@@ -101,7 +105,11 @@
     transition:fade={{ duration: 200 }}
 >
     <div class="modal-container" on:click|stopPropagation>
-        <button class="close-button" on:click={closeModal} aria-label="닫기">
+        <button
+            class="close-button"
+            on:click={closeModal}
+            aria-label={$t("common.close")}
+        >
             <Icon icon="ph:x-bold" />
         </button>
 

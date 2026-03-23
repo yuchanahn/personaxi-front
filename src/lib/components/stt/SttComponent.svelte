@@ -3,6 +3,7 @@
     import { SpeechToText } from "$lib/stores/sttStore.svelte";
     import Icon from "@iconify/svelte";
     import { fade } from "svelte/transition";
+    import { t } from "svelte-i18n";
 
     const stt: SpeechToText = new SpeechToText(handleSpeechComplete);
     const isSupported = SpeechToText.isSupported();
@@ -62,7 +63,9 @@
         onclick={toggleListen}
         disabled={!isSupported}
         aria-disabled={!isSupported}
-        aria-label={isListening ? "음성 인식 중지" : "음성 인식 시작"}
+        aria-label={isListening
+            ? $t("common.stopVoiceInput")
+            : $t("common.startVoiceInput")}
     >
         <Icon icon="mdi:microphone" width="32" height="32" />
     </button>

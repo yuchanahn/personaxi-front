@@ -21,11 +21,7 @@
             if (categoryTagsCount < 3) {
                 persona.tags = [...persona.tags, tagId];
             } else {
-                toast.warning(
-                    $t("editPage.validation.maxTags", {
-                        default: "최대 3개의 태그만 선택 가능합니다.",
-                    }),
-                );
+                toast.warning($t("editPage.validation.maxTags"));
             }
         }
     }

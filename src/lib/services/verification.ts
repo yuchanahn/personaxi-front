@@ -4,6 +4,8 @@ import { st_user } from "$lib/stores/user";
 import { toast } from "$lib/stores/toast";
 import { toastError } from "$lib/utils/errorMapper";
 import type { User } from "$lib/types";
+import { t } from "svelte-i18n";
+import { get } from "svelte/store";
 
 export interface VerificationOptions {
     onSuccess?: () => void;
@@ -82,7 +84,7 @@ export async function requestIdentityVerification(options?: VerificationOptions)
         cleanup();
 
         if (event.data.status === "success") {
-            toast.success("본인인증이 완료되었습니다!");
+            toast.success(get(t)("errors.verificationSuccess"));
             const userRes = await getCurrentUser();
             if (userRes) {
                 st_user.set(userRes as User);
@@ -104,7 +106,9 @@ export async function requestIdentityVerification(options?: VerificationOptions)
     window.addEventListener("message", handleMessage);
 
     try {
-        popup.document.write("<!doctype html><html lang=\"ko\"><body style=\"font-family:sans-serif;padding:24px;\">본인인증 창을 준비하는 중입니다...</body></html>");
+        popup.document.write(
+            `<!doctype html><html lang="ko"><body style="font-family:sans-serif;padding:24px;">${get(t)("errors.verificationPreparing")}</body></html>`,
+        );
         popup.document.close();
 
         const response = await api.post("/api/identity-verifications/inicis/start", {});

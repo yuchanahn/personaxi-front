@@ -564,7 +564,7 @@
   style:pointer-events={showChat ? "auto" : "none"}
   style:--chat-background-image={getBackgroundImageStyle(activeBackgroundImage)}
   role="log"
-  aria-label="채팅 메시지"
+  aria-label={$t("chatWindow.messages")}
   use:interactiveChat={{
     callback: (payload) => SendMessage(payload),
     resetKey:
@@ -718,7 +718,7 @@
     <button
       class="jump-to-bottom-btn"
       type="button"
-      aria-label={$t("chatWindow.jumpToBottom") || "맨 아래로 이동"}
+      aria-label={$t("chatWindow.jumpToBottom")}
       on:click={jumpToBottomAndResume}
     >
       <Icon icon="ph:arrow-down-bold" width="18" height="18" />

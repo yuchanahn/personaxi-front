@@ -69,11 +69,10 @@
             </div>
             <div class="text-group">
                 <span class="title"
-                    >{$t("install.promptTitle") || "앱으로 더 편하게!"}</span
+                    >{$t("install.promptTitle")}</span
                 >
                 <span class="desc"
-                    >{$t("install.promptDesc") ||
-                        "광고 없이 전체화면으로 즐기세요."}</span
+                    >{$t("install.promptDesc")}</span
                 >
             </div>
         </div>

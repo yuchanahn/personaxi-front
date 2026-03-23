@@ -4,6 +4,8 @@ import {
     extractAstrologyInput,
     generateAstrologyAnalysisPrompt,
 } from "$lib/components/astrology/astrologyPrompt";
+import { t } from "svelte-i18n";
+import { get } from "svelte/store";
 
 type InteractiveChatParams = {
     callback: (payload: string) => void;
@@ -134,11 +136,18 @@ export function interactiveChat(
     }
 
     function getRequiredInputMessage(field: HTMLInputElement) {
-        return field.dataset.requiredMessage || field.placeholder || "필수 입력값을 먼저 입력해주세요.";
+        return (
+            field.dataset.requiredMessage ||
+            field.placeholder ||
+            get(t)("interactiveChat.requiredInput")
+        );
     }
 
     function getRequiredChoiceMessage(button: HTMLElement) {
-        return button.dataset.requiredMessage || "필수 선택 항목을 먼저 선택해주세요.";
+        return (
+            button.dataset.requiredMessage ||
+            get(t)("interactiveChat.requiredChoice")
+        );
     }
 
     function validateGroup(groupEl: InteractiveGroupElement) {
@@ -176,7 +185,7 @@ export function interactiveChat(
                 ) as HTMLElement | null;
                 return reference
                     ? getRequiredChoiceMessage(reference)
-                    : "필수 선택 항목을 먼저 선택해주세요.";
+                    : get(t)("interactiveChat.requiredChoice");
             }
         }
 

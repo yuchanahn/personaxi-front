@@ -137,7 +137,7 @@
           <textarea
             class="chat-input focus-override"
             placeholder={$t("chatInput.placeholder", {
-              values: { name: placeholderName || "친구" },
+              values: { name: placeholderName || $t("chatInput.defaultName") },
             })}
             bind:value={prompt}
             rows="1"
@@ -156,7 +156,7 @@
           disabled={isDisabled}
           use:autoResize={180}
           placeholder={$t("chatInput.placeholder", {
-            values: { name: placeholderName || "친구" },
+            values: { name: placeholderName || $t("chatInput.defaultName") },
           })}
           class="real-input focus-override"
           oninput={() => onChangeInput(prompt)}
@@ -170,7 +170,7 @@
         <textarea
           bind:value={prompt}
           placeholder={$t("chatInput.placeholder", {
-            values: { name: placeholderName || "친구" },
+            values: { name: placeholderName || $t("chatInput.defaultName") },
           })}
           class="chat-input focus-override"
           class:over-limit={isOverLimit}
@@ -189,7 +189,11 @@
       {/if}
     {/if}
     {#if prompt.trim() === ""}
-      <div class="chat-send-button" title="음성 입력" aria-label="음성 입력">
+      <div
+        class="chat-send-button"
+        title={$t("chatInput.voiceInput")}
+        aria-label={$t("chatInput.voiceInput")}
+      >
         <SttComponent
           bind:isListening
           onSpeechComplete={(text) => {
@@ -203,8 +207,8 @@
       {#if hasStaticImage}
         <button
           class="chat-image-button"
-          title="이미지 생성"
-          aria-label="이미지 생성"
+          title={$t("chatInput.imageGeneration")}
+          aria-label={$t("chatInput.imageGeneration")}
           onclick={onImageClick}
         >
           <Icon icon="ci:image" width="24" height="24" />

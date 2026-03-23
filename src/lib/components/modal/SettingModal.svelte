@@ -78,8 +78,8 @@
     let showSessionImages = false;
     let sessionImages: string[] = [];
     let selectedImage: string | null = null; // Full Screen Viewer State
-    let openQuickSettings = true;
-    let openDisplaySettings = true;
+    let openQuickSettings = false;
+    let openDisplaySettings = false;
     let openSessionReference = false;
     let openSessionManagement = false;
     let modalLoadKey = "";
@@ -109,7 +109,16 @@
             : "";
     $: sessionReferenceSummary =
         mode === "2d"
-            ? `${userNote?.trim() ? "메모 있음" : "메모 없음"} · 이미지 ${sessionImages.length}장`
+            ? $t("settingModal.sessionReferenceSummary", {
+                  values: {
+                      note: $t(
+                          userNote?.trim()
+                              ? "settingModal.noteExists"
+                              : "settingModal.noteEmpty",
+                      ),
+                      count: sessionImages.length,
+                  },
+              })
             : "";
 
     function toggleSection(section: "quick" | "display" | "reference" | "management") {
@@ -498,7 +507,11 @@
                             on:click={() => toggleSection("quick")}
                         >
                             <div class="section-toggle-copy">
-                                <span class="section-toggle-title">빠른 설정</span>
+                                <span class="section-toggle-title"
+                                    >{$t(
+                                        "settingModal.quickSettingsSectionTitle",
+                                    )}</span
+                                >
                                 <span class="section-toggle-summary">{quickSettingsSummary}</span>
                             </div>
                             <Icon
@@ -626,7 +639,11 @@
                             on:click={() => toggleSection("reference")}
                         >
                             <div class="section-toggle-copy">
-                                <span class="section-toggle-title">세션 메모 · 참고</span>
+                                <span class="section-toggle-title"
+                                    >{$t(
+                                        "settingModal.sessionReferenceSectionTitle",
+                                    )}</span
+                                >
                                 <span class="section-toggle-summary">{sessionReferenceSummary}</span>
                             </div>
                             <Icon
@@ -762,7 +779,11 @@
                             on:click={() => toggleSection("display")}
                         >
                             <div class="section-toggle-copy">
-                                <span class="section-toggle-title">표시 설정</span>
+                                <span class="section-toggle-title"
+                                    >{$t(
+                                        "settingModal.displaySettingsSectionTitle",
+                                    )}</span
+                                >
                                 <span class="section-toggle-summary">{displaySettingsSummary}</span>
                             </div>
                             <Icon
@@ -776,7 +797,7 @@
                                 <div class="settings-card">
                                     <div class="card-header">
                                         <Icon icon="ph:paint-brush-household-duotone" />
-                                        <span>채팅 화면</span>
+                                        <span>{$t("settingModal.chatViewTitle")}</span>
                                     </div>
                                     <div class="actions-list">
                                         <button
@@ -884,8 +905,16 @@
                             on:click={() => toggleSection("management")}
                         >
                             <div class="section-toggle-copy">
-                                <span class="section-toggle-title">세션 관리</span>
-                                <span class="section-toggle-summary">초기화 · 삭제</span>
+                                <span class="section-toggle-title"
+                                    >{$t(
+                                        "settingModal.sessionManagementSectionTitle",
+                                    )}</span
+                                >
+                                <span class="section-toggle-summary"
+                                    >{$t(
+                                        "settingModal.sessionManagementSectionSummary",
+                                    )}</span
+                                >
                             </div>
                             <Icon
                                 icon={openSessionManagement

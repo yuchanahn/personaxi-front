@@ -4,6 +4,7 @@
   import "$lib/styles/chat-input-position.css";
   import { get, writable } from "svelte/store";
   import { onDestroy, onMount, tick } from "svelte";
+  import { t } from "svelte-i18n";
   import Icon from "@iconify/svelte";
   import type { Persona, ImageMetadata } from "$lib/types";
   import { messages, type Message } from "$lib/stores/messages";
@@ -1057,7 +1058,7 @@
         {#if isGeneratingImage}
           <div class="generating-indicator">
             <span class="spinner-sm"></span>
-            이미지 생성 중...
+            {$t("chatInput.generatingImage")}
           </div>
         {/if}
       </div>
@@ -1083,7 +1084,7 @@
     <button
       class="jump-to-bottom-btn"
       type="button"
-      aria-label="맨 아래로 이동"
+      aria-label={$t("chatWindow.jumpToBottom")}
       on:click={jumpToBottomAndResume}
     >
       <Icon icon="ph:arrow-down-bold" width="18" height="18" />

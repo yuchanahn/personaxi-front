@@ -29,6 +29,10 @@
     "following": "Following",
     "noLiked": "No liked personas yet.",
     "noFollowing": "No following creators yet.",
+    "logoutConfirm": "Do you want to log out?",
+    "verifyIdentityTitle": "Identity Verification (Adult Verification)",
+    "verifyIdentity": "Verify",
+    "verifying": "Verifying...",
     "languageSelect": "Select Language",
     "korean": "Korean",
     "profileAlt": "Profile",
@@ -68,7 +72,10 @@
     "disconnectedMessage": "TTS has been disconnected.",
     "disconnectButton": "Disconnect",
     "reconnectButton": "Reconnect",
-    "connectingMessage": "Connecting voice (TTS)..."
+    "connectingMessage": "Connecting voice (TTS)...",
+    "tooltipConnecting": "TTS connecting...",
+    "tooltipConnected": "TTS connected: character voice playback is active.",
+    "tooltipDisconnected": "TTS disconnected"
   },
   "feed": {
     "recommendedTab": "Recommended",
@@ -93,7 +100,10 @@
   },
   "chatInput": {
     "placeholder": "Talk to {name}...",
+    "defaultName": "friend",
     "sendButton": "Send",
+    "voiceInput": "Voice input",
+    "imageGeneration": "Image generation",
     "generateSituationImage": "✨ Generate Situation Image",
     "generatingImage": "Generating...",
     "cost": "10 Neurons",
@@ -115,6 +125,8 @@
     "signUp": "Sign Up",
     "githubSoon": "GitHub login is coming soon.",
     "emailSoon": "Email login is coming soon.",
+    "loginFailed": "Login failed.",
+    "loginFailedRetry": "Login failed. Please try again.",
     "serviceLogoAlt": "Service Logo",
     "welcomeBack": "Welcome back!",
     "terms": "Terms of Service",
@@ -296,6 +308,9 @@
     "fantasy": "Fantasy World"
   },
   "hub": {
+    "metaTitle": "Explore - PersonaXi",
+    "metaDescription": "Explore and chat with diverse AI personas. 2D, 3D, and Live2D characters are waiting for you.",
+    "metaOgDescription": "Explore and chat with diverse AI personas.",
     "feedbackButtonLabel": "Send Feedback",
     "feedbackButtonText": "Feedback"
   },
@@ -443,6 +458,7 @@
     "termsOfServiceContent": "Terms of Service content goes here..."
   },
   "profilePage": {
+    "pageTitle": "Persona - PersonaXi",
     "translating": "Translating content. You can see the results by refreshing the page shortly.",
     "commentPostFailed": "Failed to post comment. Please try again later.",
     "loadingPersona": "Loading character information...",
@@ -520,7 +536,13 @@
     "noConversation": "{name}, No conversation yet. Type a question to start.",
     "thinking": "Thinking",
     "selectionComplete": "Selection Complete",
-    "interactiveRenderPending": "Rendering interactive scene..."
+    "interactiveRenderPending": "Rendering interactive scene...",
+    "messages": "Chat messages",
+    "jumpToBottom": "Jump to bottom"
+  },
+  "interactiveChat": {
+    "requiredInput": "Please fill in the required field first.",
+    "requiredChoice": "Please choose the required option first."
   },
   "livePage": {
     "viewer1": "Viewer1",
@@ -555,6 +577,15 @@
     "outputTokenMultiplier2x": "up to 2x output",
     "outputTokenMultiplier3x": "up to 3x output",
     "outputTokenMultiplierRule": "Billing is step-based: over 1x => 2x cost, over 2x => 3x cost.",
+    "quickSettingsSectionTitle": "Quick Settings",
+    "sessionReferenceSectionTitle": "Session Notes & References",
+    "displaySettingsSectionTitle": "Display Settings",
+    "chatViewTitle": "Chat View",
+    "sessionManagementSectionTitle": "Session Management",
+    "sessionManagementSectionSummary": "Reset · Delete",
+    "noteExists": "Note saved",
+    "noteEmpty": "No note",
+    "sessionReferenceSummary": "{note} · {count} images",
     "neuronsConsumed": "Neurons",
     "chatManagement": "Chat Management",
     "resetChat": "Reset Chat",
@@ -747,6 +778,15 @@
       "values": "Values",
       "valuesHint": "Beliefs the character holds important.",
       "valuesPlaceholder": "e.g., Honesty, Friendship, Hard work",
+      "emptyField": "(Empty)",
+      "totalChars": "Total: {count} / {limit}",
+      "limitReached": "(limit reached)",
+      "toggleAdvancedShow": "Show advanced fields",
+      "toggleAdvancedHide": "Hide advanced fields",
+      "toggleMemListShow": "Show more memories",
+      "toggleMemListHide": "Collapse memory list",
+      "defaultShortTermMemory": "No notable short-term memory before the conversation starts.",
+      "defaultLastAtmosphere": "A calm opening atmosphere.",
       "memList": "Memory List",
       "memListHint": "List important past memories.",
       "memListPlaceholder": "- Childhood memories\n- Rivalry matches",
@@ -948,9 +988,13 @@
     "confirm": "Confirm",
     "delete": "Delete",
     "close": "Close",
+    "preview": "Preview",
+    "startVoiceInput": "Start voice recognition",
+    "stopVoiceInput": "Stop voice recognition",
     "save": "Save",
     "saving": "Saving...",
     "loading": "Loading...",
+    "tryAgainError": "Something went wrong. Please try again.",
     "default": "Default"
   },
   "creatorPage": {
@@ -1047,6 +1091,13 @@
   "install": {
     "title": "Install App",
     "description": "Install PersonaXi as a native app for fullscreen access and better performance.",
+    "shareAction": "Share button",
+    "addToHome": "Add to Home Screen",
+    "addAction": "Add",
+    "installNow": "Install app (tap)",
+    "installNowDesc": "Tap the button above to install right away.",
+    "browserMenu": "menu button",
+    "installLabel": "Install app",
     "ios": "iOS",
     "android": "Android",
     "iosSteps": {
@@ -1066,6 +1117,11 @@
     "scanTitle": "Scan with Mobile",
     "scanDesc": "Scan QR code with your camera.",
     "notice_benefit": "Installs instantly without App Store visits.<br />Supports automatic updates."
+  },
+  "maintenancePage": {
+    "title": "System Maintenance",
+    "message": "The server is currently under maintenance.<br />It will recover automatically in a moment.",
+    "reconnecting": "Reconnecting..."
   },
   "models": {
     "title": "Response Mode",
@@ -1222,6 +1278,8 @@
       "saveFirstHint": "Save first to use this."
     },
     "prompt": {
+      "advancedTabLabel": "Advanced settings",
+      "live2dAdvancedHint": "Edit Live2D expression/motion mapping on the `Advanced Live2D Edit` page.",
       "firstSceneHint": "Write the first scene when the conversation starts. E.g. <img 0>.",
       "firstScenePlaceholder": "e.g. A windy afternoon on the school rooftop. {char} is leaning.",
       "instructionHint": "Freely write about the character's personality, tone, etc.",
@@ -1239,7 +1297,8 @@
           "previewTitle": "Current style result",
           "previewDescription": "Preview the current first_scene with the shared chat style applied.",
           "previewEmpty": "first_scene is empty, so the preview is showing a default sample scene.",
-          "closePreview": "Close style preview"
+          "closePreview": "Close style preview",
+          "previewSample": "<say speaker=\"{{char}}\">This is a sample line for style preview.</say>\n\nUse this area to check how the shared style applies to the first scene."
         },
       "interactiveUi": {
         "label": "Interactive UI",
@@ -1309,6 +1368,8 @@
     "saveBeforeChat": "Save first to start chat.",
     "verificationLoading": "Loading verification module. Please try again soon.",
     "verificationFailed": "Verification Failed.",
+    "verificationSuccess": "Identity verification completed.",
+    "verificationPreparing": "Preparing the identity verification window...",
     "verificationSaveFailed": "Failed to save verification info.",
     "verificationError": "An error occurred during verification.",
     "audioBlocked": "Please touch the screen (Audio Blocked).",

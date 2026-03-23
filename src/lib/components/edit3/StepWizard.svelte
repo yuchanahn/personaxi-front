@@ -132,9 +132,7 @@
                                         class="spin"
                                     />
                                     <span
-                                        >{$t("editPage.saveButtonLoading", {
-                                            default: "저장 중...",
-                                        })}</span
+                                        >{$t("editPage.saveButtonLoading")}</span
                                     >
                                 {:else}
                                     <Icon
@@ -142,9 +140,7 @@
                                         width="18"
                                     />
                                     <span
-                                        >{$t("editPage.saveButton", {
-                                            default: "저장",
-                                        })}</span
+                                        >{$t("editPage.saveButton")}</span
                                     >
                                 {/if}
                             </button>
@@ -198,7 +194,7 @@
         {#if currentStep > 0}
             <button class="nav-btn secondary" on:click={prev}>
                 <Icon icon="ph:arrow-left-bold" width="18" />
-                <span>{$t("common.prev", { default: "이전" })}</span>
+                <span>{$t("common.prev")}</span>
             </button>
         {:else}
             <div></div>
@@ -210,7 +206,7 @@
                 on:click={next}
                 disabled={!canProceed}
             >
-                <span>{$t("common.next", { default: "다음" })}</span>
+                <span>{$t("common.next")}</span>
                 <Icon icon="ph:arrow-right-bold" width="18" />
             </button>
         {:else}
@@ -221,15 +217,10 @@
             >
                 {#if isSaving}
                     <Icon icon="ph:spinner" width="18" class="spin" />
-                    <span
-                        >{$t("editPage.saveButtonLoading", {
-                            default: "저장 중...",
-                        })}</span
-                    >
+                    <span>{$t("editPage.saveButtonLoading")}</span>
                 {:else}
                     <Icon icon="ph:floppy-disk-bold" width="18" />
-                    <span>{$t("editPage.saveButton", { default: "저장" })}</span
-                    >
+                    <span>{$t("editPage.saveButton")}</span>
                 {/if}
             </button>
         {/if}

@@ -382,7 +382,7 @@
 
     function handleStartChat() {
         if (!persona.id) {
-            toast.error("저장 후 대화할 수 있습니다.");
+            toast.error($t("errors.saveBeforeChat"));
             return;
         }
         let llmType = "gemini-flash-lite";

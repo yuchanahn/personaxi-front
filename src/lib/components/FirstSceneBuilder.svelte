@@ -1,6 +1,7 @@
 <script lang="ts">
     import { createEventDispatcher, onMount } from "svelte";
     import { t } from "svelte-i18n";
+    import { get } from "svelte/store";
     const dispatch = createEventDispatcher();
     export let initialData: string | null = null;
     export let onChange: (jsonStr: string) => void = () => {};
@@ -13,11 +14,18 @@
     export let showCoreFieldEditors = true;
     export let showAdvancedFieldEditors = true;
 
-    const DEFAULT_RUNTIME_STATE = {
-        shortTermMemory: "대화 시작 전, 특별한 단기 기억은 없음.",
-        lastAtmosphere: "차분한 시작 분위기.",
-        currentEmotion: "CALM",
-    };
+    function getDefaultRuntimeState() {
+        const translate = get(t);
+        return {
+            shortTermMemory: translate(
+                "editPage.characterSettings.defaultShortTermMemory",
+            ),
+            lastAtmosphere: translate(
+                "editPage.characterSettings.defaultLastAtmosphere",
+            ),
+            currentEmotion: "CALM",
+        };
+    }
     const DEFAULT_GESTURE_ANIM_LIST = `[NOD] : Nodding (Permission, Agreement)
 [SHAKE] : Shaking head (Denial, Refusal)
 [TILT] : Tilting head (Question, Doubt)
@@ -154,11 +162,13 @@
         return {
             short_term_memory:
                 short_term_memory.trim() ||
-                DEFAULT_RUNTIME_STATE.shortTermMemory,
+                getDefaultRuntimeState().shortTermMemory,
             last_atmosphere:
-                last_atmosphere.trim() || DEFAULT_RUNTIME_STATE.lastAtmosphere,
+                last_atmosphere.trim() ||
+                getDefaultRuntimeState().lastAtmosphere,
             current_emotion:
-                current_emotion.trim() || DEFAULT_RUNTIME_STATE.currentEmotion,
+                current_emotion.trim() ||
+                getDefaultRuntimeState().currentEmotion,
         };
     }
 
@@ -226,13 +236,13 @@
         mem_list = "";
         emotion_triggers = "";
         short_term_memory = hideRuntimeStateFields
-            ? DEFAULT_RUNTIME_STATE.shortTermMemory
+            ? getDefaultRuntimeState().shortTermMemory
             : "";
         last_atmosphere = hideRuntimeStateFields
-            ? DEFAULT_RUNTIME_STATE.lastAtmosphere
+            ? getDefaultRuntimeState().lastAtmosphere
             : "";
         current_emotion = hideRuntimeStateFields
-            ? DEFAULT_RUNTIME_STATE.currentEmotion
+            ? getDefaultRuntimeState().currentEmotion
             : "";
         internal_monologue = "";
 
@@ -306,13 +316,13 @@
                 if (hideRuntimeStateFields) {
                     short_term_memory =
                         short_term_memory.trim() ||
-                        DEFAULT_RUNTIME_STATE.shortTermMemory;
+                        getDefaultRuntimeState().shortTermMemory;
                     last_atmosphere =
                         last_atmosphere.trim() ||
-                        DEFAULT_RUNTIME_STATE.lastAtmosphere;
+                        getDefaultRuntimeState().lastAtmosphere;
                     current_emotion =
                         current_emotion.trim() ||
-                        DEFAULT_RUNTIME_STATE.currentEmotion;
+                        getDefaultRuntimeState().currentEmotion;
                 }
                 internal_monologue = data.internal_monologue ?? "";
 
@@ -474,13 +484,13 @@
                 if (hideRuntimeStateFields) {
                     short_term_memory =
                         short_term_memory.trim() ||
-                        DEFAULT_RUNTIME_STATE.shortTermMemory;
+                        getDefaultRuntimeState().shortTermMemory;
                     last_atmosphere =
                         last_atmosphere.trim() ||
-                        DEFAULT_RUNTIME_STATE.lastAtmosphere;
+                        getDefaultRuntimeState().lastAtmosphere;
                     current_emotion =
                         current_emotion.trim() ||
-                        DEFAULT_RUNTIME_STATE.currentEmotion;
+                        getDefaultRuntimeState().currentEmotion;
                 }
                 internal_monologue = extract("internal_monologue");
                 live2dExprAliases = {};
@@ -491,9 +501,9 @@
             live2dExprAliases = {};
             live2dMotionAliasesByFile = {};
             if (hideRuntimeStateFields) {
-                short_term_memory = DEFAULT_RUNTIME_STATE.shortTermMemory;
-                last_atmosphere = DEFAULT_RUNTIME_STATE.lastAtmosphere;
-                current_emotion = DEFAULT_RUNTIME_STATE.currentEmotion;
+                short_term_memory = getDefaultRuntimeState().shortTermMemory;
+                last_atmosphere = getDefaultRuntimeState().lastAtmosphere;
+                current_emotion = getDefaultRuntimeState().currentEmotion;
             }
             initialized = true;
         }
@@ -544,7 +554,7 @@
 
     function getFieldPreview(value: string): string {
         const singleLine = (value || "").replace(/\s+/g, " ").trim();
-        if (!singleLine) return "(비어 있음)";
+        if (!singleLine) return get(t)("editPage.characterSettings.emptyField");
         return singleLine.length > 42
             ? `${singleLine.slice(0, 42)}...`
             : singleLine;
@@ -629,9 +639,13 @@
         class:warning={totalFieldChars > 2300}
         class:error={totalFieldChars >= TOTAL_FIELD_CHAR_LIMIT}
     >
-        총합: {totalFieldChars} / {TOTAL_FIELD_CHAR_LIMIT}
+        {$t("editPage.characterSettings.totalChars", {
+            values: { count: totalFieldChars, limit: TOTAL_FIELD_CHAR_LIMIT },
+        })}
         {#if totalFieldChars >= TOTAL_FIELD_CHAR_LIMIT}
-            <span class="limit-msg"> (최대치 도달)</span>
+            <span class="limit-msg">
+                {$t("editPage.characterSettings.limitReached")}
+            </span>
         {/if}
     </div>
 
@@ -989,8 +1003,8 @@
                 class="btn-util"
                 on:click={toggleAdvancedFields}
                 >{showAdvancedFields
-                    ? "고급 항목 접기"
-                    : "고급 항목 펼치기"}</button
+                    ? $t("editPage.characterSettings.toggleAdvancedHide")
+                    : $t("editPage.characterSettings.toggleAdvancedShow")}</button
             >
         </div>
     {/if}
@@ -1027,8 +1041,8 @@
                         class="btn-util"
                         on:click={toggleMemListExpand}
                         >{expandMemList
-                            ? "기억 목록 접기"
-                            : "기억 목록 더보기"}</button
+                            ? $t("editPage.characterSettings.toggleMemListHide")
+                            : $t("editPage.characterSettings.toggleMemListShow")}</button
                     >
                 </div>
                 <div

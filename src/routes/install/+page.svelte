@@ -62,10 +62,9 @@
 <div class="install-page">
     <div class="content-wrapper">
         <div class="header-section">
-            <h1>{$t("install.title") || "앱 설치하기"}</h1>
+            <h1>{$t("install.title")}</h1>
             <p class="description">
-                {$t("install.description") ||
-                    "홈 화면에 추가하여 앱처럼 사용하세요."}
+                {$t("install.description")}
             </p>
         </div>
 
@@ -105,11 +104,7 @@
                         <div class="step-row">
                             <span class="step-num">1</span>
                             <div class="step-detail">
-                                <p>
-                                    브라우저 하단(또는 상단)의 <br /><strong
-                                        >공유 버튼</strong
-                                    >을 누르세요.
-                                </p>
+                                <p>{@html $t("install.iosSteps.1")}</p>
                                 <div class="mock-icon-box">
                                     <Icon
                                         icon="ion:share-outline"
@@ -131,13 +126,10 @@
                         <div class="step-row">
                             <span class="step-num">2</span>
                             <div class="step-detail">
-                                <p>
-                                    메뉴에서 <strong>'홈 화면에 추가'</strong>를
-                                    <br />찾아서 선택하세요.
-                                </p>
+                                <p>{@html $t("install.iosSteps.2")}</p>
                                 <div class="safari-menu-item">
                                     <div class="menu-row">
-                                        <span>홈 화면에 추가</span>
+                                        <span>{$t("install.addToHome")}</span>
                                         <Icon
                                             icon="fluent:add-square-24-regular"
                                             width="24"
@@ -158,10 +150,7 @@
                         <div class="step-row">
                             <span class="step-num">3</span>
                             <div class="step-detail">
-                                <p>
-                                    우측 상단의 <strong>'추가'</strong> 버튼을 누르면
-                                    설치가 완료됩니다.
-                                </p>
+                                <p>{@html $t("install.iosSteps.3")}</p>
                             </div>
                         </div>
                     </div>
@@ -177,10 +166,10 @@
                                     on:click={triggerInstall}
                                 >
                                     <Icon icon="mdi:google-play" width="24" />
-                                    <span>앱 설치하기 (클릭)</span>
+                                    <span>{$t("install.installNow")}</span>
                                 </button>
                                 <p class="sub-text">
-                                    위 버튼을 누르면 바로 설치됩니다.
+                                    {$t("install.installNowDesc")}
                                 </p>
                             </div>
                         {:else}
@@ -188,29 +177,19 @@
                                 <div class="step-row">
                                     <span class="step-num">1</span>
                                     <div class="step-detail">
-                                        <p>
-                                            브라우저 메뉴 버튼 <Icon
-                                                icon="mdi:dots-vertical"
-                                                inline
-                                                width="18"
-                                            /> 을 누르세요.
-                                        </p>
+                                        <p>{@html $t("install.androidSteps.1")}</p>
                                     </div>
                                 </div>
                                 <div class="step-row">
                                     <span class="step-num">2</span>
                                     <div class="step-detail">
-                                        <p>
-                                            <strong>'앱 설치'</strong> 또는
-                                            <strong>'홈 화면에 추가'</strong>를
-                                            선택하세요.
-                                        </p>
+                                        <p>{@html $t("install.androidSteps.2")}</p>
                                         <div class="android-menu-item">
                                             <Icon
                                                 icon="mdi:cellphone-arrow-down"
                                                 width="24"
                                             />
-                                            <span>앱 설치</span>
+                                            <span>{$t("install.installLabel")}</span>
                                         </div>
                                     </div>
                                 </div>
@@ -339,7 +318,7 @@
         line-height: 1.5;
         font-size: 0.95rem;
     }
-    .step-detail strong {
+    .step-detail :global(strong) {
         color: var(--primary);
     }
 

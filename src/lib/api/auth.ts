@@ -28,7 +28,7 @@ export async function ownloginWithEmailPass(email: string, password: string): Pr
     accessToken.set(data.access_token);
   } else {
     const errorResponse = await res.json();
-    throw new Error(errorResponse.error || "로그인에 실패했습니다.");
+    throw new Error(errorResponse.error || get($t)("login.loginFailed"));
   }
 }
 

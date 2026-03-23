@@ -5,7 +5,10 @@
     "disconnectedMessage": "TTS接続が解除されました。",
     "disconnectButton": "切断",
     "reconnectButton": "再接続",
-    "connectingMessage": "音声（TTS）接続中..."
+    "connectingMessage": "音声（TTS）接続中...",
+    "tooltipConnecting": "TTS 接続中...",
+    "tooltipConnected": "TTS 接続完了: キャラクターボイスを再生しています。",
+    "tooltipDisconnected": "TTS 接続解除"
   },
   "live": {
     "fetchListFailed": "配信一覧の取得に失敗しました",
@@ -60,6 +63,10 @@
     "following": "フォロー中",
     "noLiked": "まだいいねしたペルソナがありません。",
     "noFollowing": "まだフォローしたクリエイターがいません。",
+    "logoutConfirm": "ログアウトしますか？",
+    "verifyIdentityTitle": "本人確認（成人認証）",
+    "verifyIdentity": "認証する",
+    "verifying": "認証中...",
     "languageSelect": "言語選択",
     "korean": "韓国語",
     "profileAlt": "プロフィール",
@@ -123,7 +130,9 @@
     "noConversation": "{name}さんとの会話を始めましょう！",
     "thinking": "考え中",
     "selectionComplete": "選択完了",
-    "interactiveRenderPending": "インタラクティブシーンを描画中です..."
+    "interactiveRenderPending": "インタラクティブシーンを描画中です...",
+    "messages": "チャットメッセージ",
+    "jumpToBottom": "一番下へ移動"
   },
   "sidebar": {
     "hide": "サイドバーを隠す",
@@ -136,11 +145,18 @@
   },
   "chatInput": {
     "placeholder": "{name}に話しかけてみましょう...",
+    "defaultName": "友だち",
     "sendButton": "送信",
+    "voiceInput": "音声入力",
+    "imageGeneration": "画像生成",
     "generateSituationImage": "✨ シチュエーション画像生成",
     "generatingImage": "画像生成中...",
     "cost": "10ニューロン",
     "selectRatio": "比率選択"
+  },
+  "interactiveChat": {
+    "requiredInput": "必須入力項目を先に入力してください。",
+    "requiredChoice": "必須選択項目を先に選択してください。"
   },
   "chat": {
     "secretImage": {
@@ -156,6 +172,8 @@
   "login": {
     "githubSoon": "GitHub ログインは準備中です。",
     "emailSoon": "メールログインは準備中です。",
+    "loginFailed": "ログインに失敗しました。",
+    "loginFailedRetry": "ログインに失敗しました。もう一度お試しください。",
     "signIn": "ログイン",
     "signUp": "新規登録",
     "terms": "利用規約",
@@ -287,6 +305,15 @@
     "outputTokenMultiplier2x": "出力量 最大2倍",
     "outputTokenMultiplier3x": "出力量 最大3倍",
     "outputTokenMultiplierRule": "実際の出力が1倍を超えると2倍課金、2倍を超えると3倍課金されます。",
+    "quickSettingsSectionTitle": "クイック設定",
+    "sessionReferenceSectionTitle": "セッションメモ・参考",
+    "displaySettingsSectionTitle": "表示設定",
+    "chatViewTitle": "チャット画面",
+    "sessionManagementSectionTitle": "セッション管理",
+    "sessionManagementSectionSummary": "初期化・削除",
+    "noteExists": "メモあり",
+    "noteEmpty": "メモなし",
+    "sessionReferenceSummary": "{note} ・ 画像 {count}枚",
     "neuronsConsumed": "ニューロン",
     "sessionImages": "チャット画像",
     "hideImages": "閉じる",
@@ -494,6 +521,9 @@
     "unexpectedError": "An unexpected error occurred. Please try again."
   },
   "hub": {
+    "metaTitle": "探索 - PersonaXi",
+    "metaDescription": "さまざまなAIペルソナを探索して会話しましょう。2D、3D、Live2Dキャラクターたちが待っています。",
+    "metaOgDescription": "さまざまなAIペルソナを探索して会話しましょう。",
     "feedbackButtonLabel": "フィードバック送信",
     "feedbackButtonText": "フィードバック"
   },
@@ -589,6 +619,7 @@
     "confirm": "確認"
   },
   "profilePage": {
+    "pageTitle": "ペルソナ - PersonaXi",
     "translating": "コンテンツを翻訳中です。しばらくしてからリロードすると確認できます。",
     "loadingPersona": "キャラクター情報を読み込み中...",
     "restrictedOrMissing": "このキャラクターは読み込めませんでした。成人向けコンテンツか、アクセス権限のないリンクの可能性があります。",
@@ -795,6 +826,15 @@
       "values": "価値観",
       "valuesHint": "キャラクターが重要視する信念です。",
       "valuesPlaceholder": "例：正直さ、友情、努力",
+      "emptyField": "（空欄）",
+      "totalChars": "合計: {count} / {limit}",
+      "limitReached": "（上限到達）",
+      "toggleAdvancedShow": "詳細項目を表示",
+      "toggleAdvancedHide": "詳細項目を閉じる",
+      "toggleMemListShow": "記憶リストをもっと見る",
+      "toggleMemListHide": "記憶リストを閉じる",
+      "defaultShortTermMemory": "会話開始前の特別な短期記憶はありません。",
+      "defaultLastAtmosphere": "落ち着いた導入の雰囲気。",
       "memList": "記憶リスト",
       "memListHint": "重要な過去の記憶を一覧表示します。",
       "memListPlaceholder": "- 幼少期の思い出\n- ライバルとの対決",
@@ -988,9 +1028,13 @@
     "confirm": "確認",
     "delete": "削除",
     "close": "閉じる",
+    "preview": "試聴",
+    "startVoiceInput": "音声認識を開始",
+    "stopVoiceInput": "音声認識を停止",
     "save": "保存",
     "saving": "保存中...",
     "loading": "読み込み中...",
+    "tryAgainError": "一時的なエラーが発生しました。もう一度お試しください。",
     "default": "デフォルト"
   },
   "creatorPage": {
@@ -1087,6 +1131,13 @@
   "install": {
     "title": "アプリインストールガイド",
     "description": "専用アプリとしてインストールして、より快適にお楽しみください！ホーム画面から直接アクセスできます。",
+    "shareAction": "共有ボタン",
+    "addToHome": "ホーム画面に追加",
+    "addAction": "追加",
+    "installNow": "アプリをインストール (タップ)",
+    "installNowDesc": "上のボタンを押すとすぐにインストールされます。",
+    "browserMenu": "メニューボタン",
+    "installLabel": "アプリをインストール",
     "ios": "iOS（iPhone/iPad）",
     "android": "Android",
     "iosSteps": {
@@ -1106,6 +1157,11 @@
     "notice": "📢 まだ公式ストアには出ていません。<br>このウェブアプリ（PWA）をインストールすると、<strong>ストア手数料なし</strong>でより合理的な価格でサービスをご利用いただけます！",
     "promptTitle": "アプリでもっと快適に！",
     "promptDesc": "フルスクリーンで没入感のある体験をお楽しみください。"
+  },
+  "maintenancePage": {
+    "title": "System Maintenance",
+    "message": "現在サーバーメンテナンス中です。<br />しばらくすると自動的に復旧します。",
+    "reconnecting": "Reconnecting..."
   },
   "models": {
     "title": "応答モード",
@@ -1222,6 +1278,8 @@
       "saveFirstHint": "先に保存してから使用"
     },
     "prompt": {
+      "advancedTabLabel": "詳細設定",
+      "live2dAdvancedHint": "Live2D の表情・モーションマッピングは `Live2D 高度編集` ページで編集してください。",
       "firstSceneHint": "会話が始まる時の最初のシーンを作成してください。アセット画像を本文に入れるには <img 0> のようなタグを挿入してください。",
       "firstScenePlaceholder": "例：学校の屋上で風が吹く午後。{char}が手すりに寄りかかり空を眺めている。",
       "instructionHint": "キャラクターの性格、言葉遣い、行動ルールなどを自由に記述してください。",
@@ -1239,7 +1297,8 @@
           "previewTitle": "現在のスタイル適用結果",
           "previewDescription": "現在編集中の first_scene と共有チャットスタイルをそのまま確認します。",
           "previewEmpty": "first_scene が空のため、デフォルトのサンプルシーンを表示しています。",
-          "closePreview": "スタイルプレビューを閉じる"
+          "closePreview": "スタイルプレビューを閉じる",
+          "previewSample": "<say speaker=\"{{char}}\">スタイルプレビュー用のサンプル台詞です。</say>\n\nこの領域では、現在入力している共有スタイルが first_scene にどう適用されるかを確認できます。"
         },
       "interactiveUi": {
         "label": "インタラクティブUI",
@@ -1309,6 +1368,8 @@
     "saveBeforeChat": "保存後にチャットできます。",
     "verificationLoading": "認証モジュールを読み込み中です。しばらくしてから再試行してください。",
     "verificationFailed": "本人認証に失敗しました。",
+    "verificationSuccess": "本人認証が完了しました。",
+    "verificationPreparing": "本人認証ウィンドウを準備しています...",
     "verificationSaveFailed": "認証情報の保存に失敗しました。",
     "verificationError": "本人認証中にエラーが発生しました。",
     "audioBlocked": "画面をタッチしてください（音声ブロック）",

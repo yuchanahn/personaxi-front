@@ -26,9 +26,6 @@
     let isStoryPersona = false;
     let showStylePreview = false;
 
-    const jsonPlaceholder =
-        '{"greeting": "안녕하세요!", "expression": "happy", "motion": "idle"}';
-
     function insertDialogueTag() {
         if (!firstSceneTextarea) return;
         const target = toggleDialogueTag ? "{{user}}" : "{{char}}";
@@ -89,7 +86,7 @@
     function buildStylePreviewMessages(currentPersona: Persona): Message[] {
         const previewContent =
             currentPersona.first_scene?.trim() ||
-            `<say speaker="{{char}}">스타일 미리보기용 대사입니다.</say>\n\n이 영역에서 현재 입력한 공통 스타일이 실제 퍼스트씬에 어떻게 적용되는지 확인할 수 있습니다.`;
+            $t("edit3.prompt.sharedStyle.previewSample");
 
         return [
             {
@@ -121,11 +118,9 @@
                     on:click={() => (activeTab = tab.id)}
                 >
                     <Icon icon={tab.icon} width="18" />
-                    <span class="tab-label">
-                        {#if tab.id === "style" && isAvatarPersona}
-                            {$t("editPage.tabs.advanced", {
-                                default: "고급 설정",
-                            })}
+                        <span class="tab-label">
+                            {#if tab.id === "style" && isAvatarPersona}
+                            {$t("edit3.prompt.advancedTabLabel")}
                         {:else}
                             {$t(tab.label, {
                                 default: tab.label.split(".").pop(),
@@ -145,18 +140,15 @@
             <label for="e3-first-scene" class="field-label">
                 <Icon icon="ph:film-script-duotone" width="18" />
                 {persona.personaType === "3D" || persona.personaType === "2.5D"
-                    ? $t("editPage.characterSettings.title", {
-                          default: "캐릭터 설정",
-                      })
-                    : $t("editPage.firstSceneLabel", { default: "첫 장면" })}
+                    ? $t("editPage.characterSettings.title")
+                    : $t("editPage.firstSceneLabel")}
                 <span class="required">*</span>
             </label>
 
             {#if isAvatarPersona}
                 {#if persona.personaType === "2.5D"}
                     <p class="field-hint">
-                        Live2D 표정/모션 매핑은 `Live2D 고급 편집` 페이지에서
-                        편집하세요.
+                        {$t("edit3.prompt.live2dAdvancedHint")}
                     </p>
                 {/if}
                 <!-- FirstSceneBuilder for 3D & 2.5D -->
@@ -175,10 +167,7 @@
                 />
             {:else}
                 <p class="field-hint">
-                    {$t("editPage.firstSceneDescription", {
-                        default:
-                            "대화가 시작될 때의 첫 장면을 작성하세요. 에셋 이미지를 본문에 넣으려면 <img 0>, <img 1> 형태의 태그를 삽입하세요.",
-                    })}
+                    {$t("edit3.prompt.firstSceneHint")}
                 </p>
 
                 {#if persona.contentType !== "story"}
@@ -208,9 +197,7 @@
                             on:click={insertDialogueTag}
                         >
                             <Icon icon="ph:plus-bold" width="14" />
-                            {$t("editPage.aiSettings.addDialogueTag", {
-                                default: "대화 태그 삽입",
-                            })}
+                            {$t("editPage.aiSettings.addDialogueTag")}
                         </button>
                     </div>
                 {/if}
@@ -222,9 +209,8 @@
                     bind:value={persona.first_scene}
                     rows="8"
                     maxlength="2500"
-                    placeholder={$t("editPage.firstScenePlaceholder", {
-                        default:
-                            "예: 학교 옥상에서 바람이 불어오는 오후. {{char}}가 난간에 기대어 하늘을 바라보고 있다.",
+                    placeholder={$t("edit3.prompt.firstScenePlaceholder", {
+                        values: { char: "{{char}}" },
                     })}
                 ></textarea>
                 <div
@@ -241,15 +227,10 @@
             <div class="field-group">
                 <label class="field-label">
                     <Icon icon="ph:cursor-click-duotone" width="18" />
-                    {$t("edit3.prompt.interactiveUi.label", {
-                        default: "인터랙티브 UI",
-                    })}
+                    {$t("edit3.prompt.interactiveUi.label")}
                 </label>
                 <p class="field-hint">
-                    {$t("edit3.prompt.interactiveUi.description", {
-                        default:
-                            "버튼, 입력창 같은 인터랙티브 UI 출력을 허용합니다. 스토리형 콘텐츠에서만 사용하는 옵션입니다.",
-                    })}
+                    {$t("edit3.prompt.interactiveUi.description")}
                 </p>
                 <div class="visibility-toggle">
                     <button
@@ -261,14 +242,10 @@
                         <Icon icon="ph:textbox-duotone" width="20" />
                         <div class="vis-text">
                             <span class="vis-label">
-                                {$t("edit3.prompt.interactiveUi.offTitle", {
-                                    default: "기본 대화",
-                                })}
+                                {$t("edit3.prompt.interactiveUi.offTitle")}
                             </span>
                             <span class="vis-desc">
-                                {$t("edit3.prompt.interactiveUi.offDesc", {
-                                    default: "일반 텍스트 응답만 사용합니다.",
-                                })}
+                                {$t("edit3.prompt.interactiveUi.offDesc")}
                             </span>
                         </div>
                     </button>
@@ -281,15 +258,10 @@
                         <Icon icon="ph:app-window-duotone" width="20" />
                         <div class="vis-text">
                             <span class="vis-label">
-                                {$t("edit3.prompt.interactiveUi.onTitle", {
-                                    default: "기능 활성화",
-                                })}
+                                {$t("edit3.prompt.interactiveUi.onTitle")}
                             </span>
                             <span class="vis-desc">
-                                {$t("edit3.prompt.interactiveUi.onDesc", {
-                                    default:
-                                        "버튼, 입력창 등 상호작용 UI를 출력할 수 있습니다.",
-                                })}
+                                {$t("edit3.prompt.interactiveUi.onDesc")}
                             </span>
                         </div>
                     </button>
@@ -302,16 +274,11 @@
             <div class="field-group">
                 <label for="e3-instructions" class="field-label">
                     <Icon icon="ph:notepad-duotone" width="18" />
-                    {$t("editPage.instructionsLabel", {
-                        default: "지시사항 (Instructions)",
-                    })}
+                    {$t("editPage.instructionsLabel")}
                     <span class="required">*</span>
                 </label>
                 <p class="field-hint">
-                    {$t("editPage.instructionsDescription", {
-                        default:
-                            "캐릭터의 성격, 말투, 행동 규칙 등을 자유롭게 작성하세요.",
-                    })}
+                    {$t("editPage.instructionsDescription")}
                 </p>
                 <textarea
                     id="e3-instructions"
@@ -319,9 +286,7 @@
                     bind:value={singleInstruction}
                     rows="8"
                     maxlength="3000"
-                    placeholder={$t("editPage.instructionsPlaceholder", {
-                        default: "캐릭터의 성격과 말투를 설명하세요...",
-                    })}
+                    placeholder={$t("editPage.instructionsPlaceholder")}
                 ></textarea>
                 <div
                     class="char-counter"
@@ -351,15 +316,10 @@
             <div class="field-group">
                 <label class="field-label">
                     <Icon icon="ph:book-bookmark-duotone" width="18" />
-                    {$t("editPage.lorebookLabel", {
-                        default: "로어북 (Lorebook)",
-                    })}
+                    {$t("editPage.lorebookLabel")}
                 </label>
                 <p class="field-hint">
-                    {$t("editPage.lorebookDescription", {
-                        default:
-                            "특정 키워드가 등장할 때 AI에게 추가 정보를 제공합니다.",
-                    })}
+                    {$t("editPage.lorebookDescription")}
                 </p>
                 <LoreLinker personaId={persona.id} />
             </div>
@@ -372,9 +332,7 @@
                 <div class="field-group">
                     <label class="field-label">
                         <Icon icon="ph:sliders-horizontal-duotone" width="18" />
-                        {$t("editPage.tabs.advanced", {
-                            default: "고급 설정",
-                        })}
+                        {$t("edit3.prompt.advancedTabLabel")}
                     </label>
                     <p class="field-hint">
                         Live2D/VRM 캐릭터의 고급 설정을 관리합니다.
@@ -398,14 +356,10 @@
                 <div class="field-group prompt-advanced-group">
                     <div class="field-section-header">
                         <span class="section-kicker">
-                            {$t("edit3.prompt.sharedStyle.kicker", {
-                                default: "스타일 미리지정",
-                            })}
+                            {$t("edit3.prompt.sharedStyle.kicker")}
                         </span>
                         <h3 class="section-title">
-                            {$t("edit3.prompt.sharedStyle.sectionTitle", {
-                                default: "공통 채팅 스타일",
-                            })}
+                            {$t("edit3.prompt.sharedStyle.sectionTitle")}
                         </h3>
                     </div>
                     <label
@@ -413,21 +367,13 @@
                         class="field-label"
                     >
                         <Icon icon="ph:paint-brush-broad-duotone" width="18" />
-                        {$t("edit3.prompt.sharedStyle.label", {
-                            default: "프롬프트 고급 기능: 채팅 공통 스타일",
-                        })}
+                        {$t("edit3.prompt.sharedStyle.label")}
                     </label>
                     <p class="field-hint">
-                        {$t("edit3.prompt.sharedStyle.description", {
-                            default:
-                                "2D 채팅에서 공통으로 적용할 CSS를 미리 지정합니다. 퍼스트씬이나 응답마다 스타일 블록을 반복해서 넣지 말고, 여기서 클래스 스타일을 정의한 뒤 본문에서는 그 클래스를 재사용하세요.",
-                        })}
+                        {$t("edit3.prompt.sharedStyle.description")}
                     </p>
                     <p class="field-hint subtle">
-                        {$t("edit3.prompt.sharedStyle.note", {
-                            default:
-                                "style 태그 없이 CSS 본문만 넣으세요. 이 스타일은 2D 채팅 렌더에 공통 적용되고, 프롬프트에도 이미 로드된 스타일로 안내됩니다.",
-                        })}
+                        {$t("edit3.prompt.sharedStyle.note")}
                     </p>
                     <div class="style-preview-actions">
                         <button
@@ -436,9 +382,7 @@
                             on:click={() => (showStylePreview = true)}
                         >
                             <Icon icon="ph:eye-duotone" width="16" />
-                            {$t("edit3.prompt.sharedStyle.previewButton", {
-                                default: "스타일 미리보기",
-                            })}
+                            {$t("edit3.prompt.sharedStyle.previewButton")}
                         </button>
                     </div>
                     <textarea
@@ -447,10 +391,7 @@
                         bind:value={persona.chat_style_css}
                         rows="8"
                         maxlength="12000"
-                        placeholder={$t("edit3.prompt.sharedStyle.placeholder", {
-                            default:
-                                ".px-dialogue { ... }\n\n.px-narration { ... }",
-                        })}
+                        placeholder={$t("edit3.prompt.sharedStyle.placeholder")}
                     ></textarea>
                     <div
                         class="char-counter"
@@ -470,9 +411,7 @@
         class="style-preview-overlay"
         role="button"
         tabindex="0"
-        aria-label={$t("edit3.prompt.sharedStyle.closePreview", {
-            default: "스타일 미리보기 닫기",
-        })}
+        aria-label={$t("edit3.prompt.sharedStyle.closePreview")}
         on:click={() => (showStylePreview = false)}
         on:keydown={(e) => {
             if (e.key === "Escape" || e.key === "Enter" || e.key === " ") {
@@ -494,29 +433,20 @@
             <div class="style-preview-header">
                 <div>
                     <span class="style-preview-kicker">
-                        {$t("edit3.prompt.sharedStyle.previewKicker", {
-                            default: "퍼스트씬 실시간 미리보기",
-                        })}
+                        {$t("edit3.prompt.sharedStyle.previewKicker")}
                     </span>
                     <h3 id="style-preview-title" class="style-preview-title">
-                        {$t("edit3.prompt.sharedStyle.previewTitle", {
-                            default: "현재 스타일 적용 결과",
-                        })}
+                        {$t("edit3.prompt.sharedStyle.previewTitle")}
                     </h3>
                     <p class="style-preview-description">
-                        {$t("edit3.prompt.sharedStyle.previewDescription", {
-                            default:
-                                "현재 편집 중인 first_scene와 공통 채팅 스타일을 바로 확인합니다.",
-                        })}
+                        {$t("edit3.prompt.sharedStyle.previewDescription")}
                     </p>
                 </div>
                 <button
                     type="button"
                     class="style-preview-close"
                     on:click={() => (showStylePreview = false)}
-                    aria-label={$t("edit3.prompt.sharedStyle.closePreview", {
-                        default: "스타일 미리보기 닫기",
-                    })}
+                    aria-label={$t("edit3.prompt.sharedStyle.closePreview")}
                 >
                     <Icon icon="ph:x-bold" width="18" />
                 </button>
@@ -525,10 +455,7 @@
             <div class="style-preview-body">
                 {#if !persona.first_scene?.trim()}
                     <div class="style-preview-empty">
-                        {$t("edit3.prompt.sharedStyle.previewEmpty", {
-                            default:
-                                "first_scene가 비어 있어 기본 예시 장면으로 미리보기를 표시합니다.",
-                        })}
+                        {$t("edit3.prompt.sharedStyle.previewEmpty")}
                     </div>
                 {/if}
 

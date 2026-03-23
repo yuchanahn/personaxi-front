@@ -1,5 +1,6 @@
 <script lang="ts">
     import { onMount } from "svelte";
+    import { t } from "svelte-i18n";
     import Icon from "@iconify/svelte";
     import { api } from "$lib/api";
 
@@ -43,15 +44,14 @@
         <div class="icon-wrapper">
             <Icon icon="ph:warning-circle-duotone" width="80" height="80" />
         </div>
-        <h1>System Maintenance</h1>
+        <h1>{$t("maintenancePage.title")}</h1>
         <p class="message">
-            현재 서버 점검 중입니다.<br />
-            잠시 후 자동으로 정상화됩니다.
+            {@html $t("maintenancePage.message")}
         </p>
 
         <div class="status-indicator">
             <div class="spinner"></div>
-            <span>Reconnecting...</span>
+            <span>{$t("maintenancePage.reconnecting")}</span>
         </div>
     </div>
 </div>

@@ -5,7 +5,10 @@
     "disconnectedMessage": "TTS 연결이 해제되었습니다.",
     "disconnectButton": "연결 해제",
     "reconnectButton": "재연결",
-    "connectingMessage": "음성(TTS) 연결 중..."
+    "connectingMessage": "음성(TTS) 연결 중...",
+    "tooltipConnecting": "TTS 연결 중...",
+    "tooltipConnected": "TTS 연결 완료: 캐릭터 음성이 출력됩니다.",
+    "tooltipDisconnected": "TTS 연결 끊김"
   },
   "live": {
     "fetchListFailed": "방송 목록을 불러오는데 실패했습니다",
@@ -60,6 +63,10 @@
     "following": "팔로잉",
     "noLiked": "아직 좋아요한 페르소나가 없습니다.",
     "noFollowing": "아직 팔로우한 크리에이터가 없습니다.",
+    "logoutConfirm": "정말 로그아웃 하시겠습니까?",
+    "verifyIdentityTitle": "본인인증 (성인인증)",
+    "verifyIdentity": "인증하기",
+    "verifying": "인증 중...",
     "makePrivate": "캐릭터를 비공개로 전환",
     "makePublic": "캐릭터를 공개로 전환",
     "userPersona": {
@@ -119,7 +126,9 @@
     "noConversation": "{name}님과 대화를 시작해보세요!",
     "thinking": "생각 중",
     "selectionComplete": "선택 완료",
-    "interactiveRenderPending": "인터랙티브 장면을 렌더링하는 중입니다..."
+    "interactiveRenderPending": "인터랙티브 장면을 렌더링하는 중입니다...",
+    "messages": "채팅 메시지",
+    "jumpToBottom": "맨 아래로 이동"
   },
   "sidebar": {
     "hide": "사이드바 숨기기",
@@ -132,11 +141,18 @@
   },
   "chatInput": {
     "placeholder": "{name}에게 말을 걸어보세요...",
+    "defaultName": "친구",
     "sendButton": "보내기",
+    "voiceInput": "음성 입력",
+    "imageGeneration": "이미지 생성",
     "generateSituationImage": "✨ 상황 이미지 생성",
     "generatingImage": "이미지 생성 중...",
     "cost": "10뉴런",
     "selectRatio": "비율 선택"
+  },
+  "interactiveChat": {
+    "requiredInput": "필수 입력값을 먼저 입력해주세요.",
+    "requiredChoice": "필수 선택 항목을 먼저 선택해주세요."
   },
   "chat": {
     "secretImage": {
@@ -152,6 +168,8 @@
   "login": {
     "githubSoon": "깃허브 로그인은 아직 준비 중입니다.",
     "emailSoon": "이메일 로그인은 아직 준비 중입니다.",
+    "loginFailed": "로그인에 실패했습니다.",
+    "loginFailedRetry": "로그인에 실패했습니다. 다시 시도해 주세요.",
     "signIn": "로그인",
     "signUp": "회원가입",
     "terms": "이용약관",
@@ -272,6 +290,15 @@
     "outputTokenMultiplier2x": "출력량 최대 2배",
     "outputTokenMultiplier3x": "출력량 최대 3배",
     "outputTokenMultiplierRule": "실제 출력이 1배를 넘으면 2배 과금, 2배를 넘으면 3배 과금됩니다.",
+    "quickSettingsSectionTitle": "빠른 설정",
+    "sessionReferenceSectionTitle": "세션 메모 · 참고",
+    "displaySettingsSectionTitle": "표시 설정",
+    "chatViewTitle": "채팅 화면",
+    "sessionManagementSectionTitle": "세션 관리",
+    "sessionManagementSectionSummary": "초기화 · 삭제",
+    "noteExists": "메모 있음",
+    "noteEmpty": "메모 없음",
+    "sessionReferenceSummary": "{note} · 이미지 {count}장",
     "sessionImages": "대화 이미지",
     "hideImages": "접기",
     "viewAllImages": "모두 보기",
@@ -451,6 +478,9 @@
     "unexpectedError": "An unexpected error occurred. Please try again."
   },
   "hub": {
+    "metaTitle": "탐색 - PersonaXi",
+    "metaDescription": "다양한 AI 페르소나를 탐색하고 대화하세요. 2D, 3D, Live2D 캐릭터들이 기다립니다.",
+    "metaOgDescription": "다양한 AI 페르소나를 탐색하고 대화하세요.",
     "feedbackButtonLabel": "피드백 보내기",
     "feedbackButtonText": "피드백"
   },
@@ -535,6 +565,7 @@
     "confirm": "확인"
   },
   "profilePage": {
+    "pageTitle": "페르소나 - PersonaXi",
     "translating": "콘텐츠를 번역하고 있어요. 잠시 후 새로고침하면 확인하실 수 있습니다.",
     "loadingPersona": "캐릭터 정보를 불러오는 중...",
     "restrictedOrMissing": "해당 캐릭터를 불러올 수 없습니다. 성인 콘텐츠이거나 접근 권한이 없는 링크일 수 있습니다.",
@@ -741,6 +772,15 @@
       "values": "가치관",
       "valuesHint": "캐릭터가 중요하게 생각하는 신념입니다.",
       "valuesPlaceholder": "예: 정직, 우정, 노력",
+      "emptyField": "(비어 있음)",
+      "totalChars": "총합: {count} / {limit}",
+      "limitReached": "(최대치 도달)",
+      "toggleAdvancedShow": "고급 항목 펼치기",
+      "toggleAdvancedHide": "고급 항목 접기",
+      "toggleMemListShow": "기억 목록 더보기",
+      "toggleMemListHide": "기억 목록 접기",
+      "defaultShortTermMemory": "대화 시작 전, 특별한 단기 기억은 없음.",
+      "defaultLastAtmosphere": "차분한 시작 분위기.",
       "memList": "기억 목록",
       "memListHint": "중요한 과거 기억들을 나열합니다.",
       "memListPlaceholder": "- 어린 시절의 추억\n- 라이벌과의 대결",
@@ -932,9 +972,13 @@
     "confirm": "확인",
     "delete": "삭제",
     "close": "닫기",
+    "preview": "미리듣기",
+    "startVoiceInput": "음성 인식 시작",
+    "stopVoiceInput": "음성 인식 중지",
     "save": "저장",
     "saving": "저장 중...",
     "loading": "로딩 중...",
+    "tryAgainError": "일시적인 오류가 발생했어요. 다시 시도해주세요.",
     "default": "기본"
   },
   "creatorPage": {
@@ -1031,6 +1075,13 @@
   "install": {
     "title": "앱 설치 가이드",
     "description": "전용 앱으로 설치하여 더 빠르고 쾌적하게 즐겨보세요! 홈 화면에서 바로 접속할 수 있습니다.",
+    "shareAction": "공유 버튼",
+    "addToHome": "홈 화면에 추가",
+    "addAction": "추가",
+    "installNow": "앱 설치하기 (클릭)",
+    "installNowDesc": "위 버튼을 누르면 바로 설치됩니다.",
+    "browserMenu": "메뉴 버튼",
+    "installLabel": "앱 설치",
     "ios": "iOS (iPhone/iPad)",
     "android": "Android",
     "iosSteps": {
@@ -1049,6 +1100,11 @@
     "promptDesc": "전체화면으로 몰입감 있게 즐겨보세요.",
     "scanTitle": "모바일로 스캔",
     "scanDesc": "카메라로 QR 코드를 스캔하세요."
+  },
+  "maintenancePage": {
+    "title": "System Maintenance",
+    "message": "현재 서버 점검 중입니다.<br />잠시 후 자동으로 정상화됩니다.",
+    "reconnecting": "Reconnecting..."
   },
   "models": {
     "title": "응답 모드",
@@ -1165,6 +1221,8 @@
       "saveFirstHint": "먼저 저장 후 사용"
     },
     "prompt": {
+      "advancedTabLabel": "고급 설정",
+      "live2dAdvancedHint": "Live2D 표정/모션 매핑은 `Live2D 고급 편집` 페이지에서 편집하세요.",
       "firstSceneHint": "대화가 시작될 때의 첫 장면을 작성하세요. 에셋 이미지를 본문에 넣으려면 <img 0>, <img 1> 형태의 태그를 삽입하세요.",
       "firstScenePlaceholder": "예: 학교 옥상에서 바람이 불어오는 오후. {char}가 난간에 기대어 하늘을 바라보고 있다.",
       "instructionHint": "캐릭터의 성격, 말투, 행동 규칙 등을 자유롭게 작성하세요.",
@@ -1182,7 +1240,8 @@
           "previewTitle": "현재 스타일 적용 결과",
           "previewDescription": "현재 편집 중인 first_scene와 공통 채팅 스타일을 바로 확인합니다.",
           "previewEmpty": "first_scene가 비어 있어 기본 예시 장면으로 미리보기를 표시합니다.",
-          "closePreview": "스타일 미리보기 닫기"
+          "closePreview": "스타일 미리보기 닫기",
+          "previewSample": "<say speaker=\"{{char}}\">스타일 미리보기용 대사입니다.</say>\n\n이 영역에서 현재 입력한 공통 스타일이 실제 퍼스트씬에 어떻게 적용되는지 확인할 수 있습니다."
         },
       "interactiveUi": {
         "label": "인터랙티브 UI",
@@ -1252,6 +1311,8 @@
     "saveBeforeChat": "저장 후 대화할 수 있습니다.",
     "verificationLoading": "인증 모듈을 불러오는 중입니다. 잠시 후 다시 시도해주세요.",
     "verificationFailed": "본인인증 실패",
+    "verificationSuccess": "본인인증이 완료되었습니다!",
+    "verificationPreparing": "본인인증 창을 준비하는 중입니다...",
     "verificationSaveFailed": "인증 정보 저장에 실패했습니다.",
     "verificationError": "본인인증 중 오류가 발생했습니다.",
     "audioBlocked": "화면을 터치해주세요 (오디오 차단됨)",

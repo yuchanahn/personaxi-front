@@ -25,7 +25,7 @@ function isValidTheme(value: any): value is Theme {
     return value === 'light' || value === 'dark';
 }
 function isValidLanguage(value: any): value is Language {
-    return value === 'ko' || value === 'en';
+    return value === 'ko' || value === 'en' || value === 'ja';
 }
 function isValidFontSize(value: any): value is FontSize {
     return value === 'medium' || value === 'large';
@@ -54,7 +54,13 @@ function initializeSettings(): AppSettings {
 
     const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
     settings.theme = prefersDark ? 'dark' : 'light';
-    settings.language = navigator.language.startsWith('ko') ? 'ko' : 'en';
+    if (navigator.language.startsWith('ko')) {
+        settings.language = 'ko';
+    } else if (navigator.language.startsWith('ja')) {
+        settings.language = 'ja';
+    } else {
+        settings.language = 'en';
+    }
 
     const savedSettingsJSON = window.localStorage.getItem('app-settings');
     if (savedSettingsJSON) {

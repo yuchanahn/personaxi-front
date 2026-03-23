@@ -278,7 +278,7 @@
     }
 
     function logoutHandler() {
-        if (confirm("정말 로그아웃 하시겠습니까?")) {
+        if (confirm($t("settingPage.logoutConfirm"))) {
             logout();
         }
     }
@@ -742,7 +742,9 @@
                                                 class="verification-btn-small"
                                                 on:click={handleIdentityVerification}
                                                 disabled={isVerifying}
-                                                title="본인인증 (성인인증)"
+                                                title={$t(
+                                                    "settingPage.verifyIdentityTitle",
+                                                )}
                                             >
                                                 <Icon
                                                     icon="ph:shield-check-bold"
@@ -750,8 +752,12 @@
                                                 />
                                                 <span>
                                                     {isVerifying
-                                                        ? "인증 중..."
-                                                        : "인증하기"}
+                                                        ? $t(
+                                                              "settingPage.verifying",
+                                                          )
+                                                        : $t(
+                                                              "settingPage.verifyIdentity",
+                                                          )}
                                                 </span>
                                             </button>
                                         {/if}

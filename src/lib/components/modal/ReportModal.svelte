@@ -88,7 +88,11 @@
     <!-- svelte-ignore a11y-click-events-have-key-events -->
     <!-- svelte-ignore a11y-no-static-element-interactions -->
     <div class="modal-container" on:click|stopPropagation>
-        <button class="close-button" on:click={closeModal} aria-label="닫기">
+        <button
+            class="close-button"
+            on:click={closeModal}
+            aria-label={$t("common.close")}
+        >
             <Icon icon="ph:x-bold" />
         </button>
 

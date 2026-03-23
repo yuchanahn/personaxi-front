@@ -39,8 +39,7 @@ export function parseChat2DMessages(
             if (/<system-input>[\s\S]*?<\/system-input>/g.test(msg.content)) {
                 blocks.push({
                     type: "user-interaction",
-                    content:
-                        get(t)("chatWindow.selectionComplete") || "선택 완료",
+                    content: get(t)("chatWindow.selectionComplete"),
                     id: messageId,
                 });
                 const astroInput = extractAstrologyInputFromSystemInput(
