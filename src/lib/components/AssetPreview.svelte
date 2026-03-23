@@ -17,6 +17,10 @@ export let enableVideoPlayback: boolean = true;
 export let useSimpleVideoLayout: boolean = false;
 
     const dispatch = createEventDispatcher();
+    const EMPTY_ASSET: ImageMetadata = {
+        url: "",
+        description: "",
+    };
 
     let isFetching = false;
     let fetchAborted = false;
@@ -104,6 +108,10 @@ export let useSimpleVideoLayout: boolean = false;
     function handleUnknownVideoError() {
         unknownPreviewMode = "fallback";
         dispatch("error", { url: asset.url });
+    }
+
+    $: if (!asset) {
+        asset = EMPTY_ASSET;
     }
 
     $: if (asset.type === "video" && videoEl && asset.url) {

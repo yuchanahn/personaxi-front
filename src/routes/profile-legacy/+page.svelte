@@ -96,6 +96,36 @@
         });
     }
 
+    function isTranslationPending(value?: string) {
+        return value === "<tr>";
+    }
+
+    function getDisplayOneLiner() {
+        if (!persona?.one_liner) {
+            return "";
+        }
+
+        return isTranslationPending(persona.one_liner)
+            ? $t("profilePage.translating")
+            : persona.one_liner;
+    }
+
+    function getProfileMetaDescription() {
+        if (persona?.one_liner) {
+            return getDisplayOneLiner();
+        }
+
+        if (persona?.greeting) {
+            return isTranslationPending(persona.greeting)
+                ? $t("profilePage.translating")
+                : persona.greeting;
+        }
+
+        return $t("profilePage.defaultDescription", {
+            values: { name: persona?.name ?? "" },
+        });
+    }
+
     onMount(async () => {
         const personaId = $page.url.searchParams.get("c");
         if (!personaId) {
@@ -477,20 +507,12 @@
         <title>{persona.name} - PersonaXi</title>
         <meta
             name="description"
-            content={persona.one_liner ||
-                persona.greeting ||
-                $t("profilePage.defaultDescription", {
-                    values: { name: persona.name },
-                })}
+            content={getProfileMetaDescription()}
         />
         <meta property="og:title" content="{persona.name} - PersonaXi" />
         <meta
             property="og:description"
-            content={persona.one_liner ||
-                persona.greeting ||
-                $t("profilePage.defaultDescription", {
-                    values: { name: persona.name },
-                })}
+            content={getProfileMetaDescription()}
         />
         <meta
             property="og:image"
@@ -592,7 +614,7 @@
                         <h1 class="character-name">{persona.name}</h1>
 
                         {#if persona.one_liner}
-                            <p class="one-liner">{persona.one_liner}</p>
+                            <p class="one-liner">{getDisplayOneLiner()}</p>
                         {/if}
 
                         {#if persona.personaType === "2.5D"}

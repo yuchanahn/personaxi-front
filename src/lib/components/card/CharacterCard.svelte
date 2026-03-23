@@ -58,7 +58,11 @@
         return `${value}`;
     }
 
-    let meta: ImageMetadata;
+    let meta: ImageMetadata = {
+        url: "",
+        description: "",
+        type: "unknown",
+    };
 
     $: if (content && content.id) {
         const optimizedStaticUrl = content.static_portrait_url
