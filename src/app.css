@@ -179,6 +179,20 @@ body {
     --danger: var(--destructive);
     --danger-foreground: var(--destructive-foreground);
     --danger-hover: var(--destructive-hover);
+
+    /* Media card overlay tokens */
+    --media-card-shadow: none;
+    --media-card-hover-shadow: none;
+    --media-overlay-solid: hsla(0, 0%, 100%, 0.94);
+    --media-overlay-mid: hsla(0, 0%, 100%, 0.74);
+    --media-overlay-clear: hsla(0, 0%, 100%, 0);
+    --media-overlay-text: hsl(222 20% 10%);
+    --media-overlay-muted: hsl(222 12% 24%);
+    --media-overlay-text-shadow: none;
+    --media-pill-bg: hsla(0, 0%, 100%, 0.74);
+    --media-pill-border: hsla(222, 16%, 10%, 0.12);
+    --media-pill-text: hsl(222 20% 10%);
+    --media-pill-text-shadow: none;
 }
 
 /* Auto-hiding scrollbar (Chrome/Safari/Edge) */
@@ -408,6 +422,20 @@ body {
     --danger: var(--destructive);
     --danger-foreground: var(--destructive-foreground);
     --danger-hover: var(--destructive-hover);
+
+    /* Media card overlay tokens */
+    --media-card-shadow: none;
+    --media-card-hover-shadow: none;
+    --media-overlay-solid: rgba(0, 0, 0, 0.9);
+    --media-overlay-mid: rgba(0, 0, 0, 0.6);
+    --media-overlay-clear: rgba(0, 0, 0, 0);
+    --media-overlay-text: hsl(0 0% 100%);
+    --media-overlay-muted: rgba(255, 255, 255, 0.82);
+    --media-overlay-text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8);
+    --media-pill-bg: rgba(10, 10, 12, 0.48);
+    --media-pill-border: rgba(255, 255, 255, 0.16);
+    --media-pill-text: rgba(255, 255, 255, 0.92);
+    --media-pill-text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
 }
 
 [data-theme="dark"] ::-webkit-scrollbar {

@@ -161,7 +161,9 @@
     .carousel-container {
         width: 100%;
         overflow-x: auto;
+        padding-top: 0.45rem;
         padding-bottom: 1rem;
+        margin-top: -0.45rem;
         scrollbar-width: none; /* Firefox */
         min-height: 150px;
     }

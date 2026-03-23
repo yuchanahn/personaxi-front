@@ -6,7 +6,6 @@
     import { allCategories } from "$lib/constants";
     import { t } from "svelte-i18n";
     import AssetPreview from "$lib/components/AssetPreview.svelte";
-    import { settings } from "$lib/stores/settings";
     import { getOptimizedSupabaseImageUrl } from "$lib/utils/mediaTransform";
 
     export let content: PersonaDTO;
@@ -78,7 +77,11 @@
         </span>
 
         {#if is3D || isLive2D}
-            <div class:is-vrm={is3D} class:is-live2d={isLive2D} class="type-badge">
+            <div
+                class:is-vrm={is3D}
+                class:is-live2d={isLive2D}
+                class="type-badge"
+            >
                 <Icon
                     icon={is3D
                         ? "ph:cube-transparent-duotone"
@@ -117,12 +120,13 @@
         background: var(--card);
         color: var(--foreground);
         border-radius: var(--radius-card);
-        box-shadow: var(--shadow-card);
+        box-shadow: var(--media-card-shadow);
         cursor: pointer;
         transition:
             transform 0.2s ease-in-out,
-            box-shadow 0.2s ease-in-out;
-        border: 1px solid var(--border-card);
+            box-shadow 0.2s ease-in-out,
+            border-color 0.2s ease-in-out;
+        border: none;
         overflow: hidden;
         display: flex;
         flex-direction: column;
@@ -145,7 +149,7 @@
     @media (hover: hover) and (pointer: fine) {
         .tile:hover {
             transform: translateY(-5px);
-            box-shadow: var(--shadow-popover);
+            box-shadow: var(--media-card-hover-shadow);
         }
 
         .tile:hover .media-wrapper {
@@ -270,13 +274,13 @@
         max-width: 100%;
         padding: 0.28rem 0.58rem;
         border-radius: 999px;
-        border: 1px solid rgba(255, 255, 255, 0.16);
-        background: rgba(10, 10, 12, 0.48);
-        color: rgba(255, 255, 255, 0.9);
+        border: 1px solid var(--media-pill-border);
+        background: var(--media-pill-bg);
+        color: var(--media-pill-text);
         font-size: 0.7rem;
         font-weight: 600;
         line-height: 1;
-        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+        text-shadow: var(--media-pill-text-shadow);
         white-space: nowrap;
         backdrop-filter: blur(10px);
         -webkit-backdrop-filter: blur(10px);
@@ -303,12 +307,20 @@
     }
 
     .type-badge.is-vrm {
-        background: linear-gradient(135deg, rgba(99, 102, 241, 0.92), rgba(139, 92, 246, 0.88));
+        background: linear-gradient(
+            135deg,
+            rgba(99, 102, 241, 0.92),
+            rgba(139, 92, 246, 0.88)
+        );
         box-shadow: 0 6px 16px rgba(99, 102, 241, 0.22);
     }
 
     .type-badge.is-live2d {
-        background: linear-gradient(135deg, rgba(236, 72, 153, 0.92), rgba(244, 63, 94, 0.88));
+        background: linear-gradient(
+            135deg,
+            rgba(236, 72, 153, 0.92),
+            rgba(244, 63, 94, 0.88)
+        );
         box-shadow: 0 6px 16px rgba(236, 72, 153, 0.22);
     }
 
