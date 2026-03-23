@@ -1675,17 +1675,22 @@
         border-radius: 999px;
         transition: all 0.2s;
         margin-right: 0.25rem;
-        border: 1px solid transparent;
     }
 
     .safety-filter-btn:hover {
         background-color: var(--secondary);
-        border-color: var(--border);
+    }
+
+    .safety-filter-btn :global(svg) {
+        color: var(--muted-foreground);
+        transition: color 0.2s ease;
     }
 
     .safety-filter-btn.active {
-        background-color: hsla(140, 60%, 40%, 0.1);
-        border-color: hsl(140, 60%, 40%);
+        color: inherit;
+    }
+
+    .safety-filter-btn.active :global(svg) {
         color: hsl(140, 60%, 40%);
     }
 

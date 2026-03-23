@@ -38,6 +38,26 @@
         );
     }
 
+    function formatCompactCount(value: number) {
+        if (!Number.isFinite(value)) return "0";
+        if (value < 1000) return `${value}`;
+
+        const units = [
+            { value: 1_000_000_000, suffix: "b" },
+            { value: 1_000_000, suffix: "m" },
+            { value: 1_000, suffix: "k" },
+        ];
+
+        for (const unit of units) {
+            if (value >= unit.value) {
+                const compact = Math.floor((value / unit.value) * 10) / 10;
+                return `${compact.toString().replace(/\.0$/, "")}${unit.suffix}`;
+            }
+        }
+
+        return `${value}`;
+    }
+
     let meta: ImageMetadata;
 
     $: if (content && content.id) {
@@ -73,7 +93,7 @@
 
         <span class="chat-stat">
             <Icon icon="mdi:chat-outline" />
-            <strong>{content.chat_count}</strong>
+            <strong>{formatCompactCount(content.chat_count)}</strong>
         </span>
 
         {#if is3D || isLive2D}
