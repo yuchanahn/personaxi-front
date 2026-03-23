@@ -7,7 +7,7 @@
         loadPersona,
         PersonaLoadError,
     } from "$lib/api/edit_persona";
-    import type { Persona, ImageMetadata, Comment } from "$lib/types";
+    import type { Persona, PersonaDTO, ImageMetadata, Comment } from "$lib/types";
     import { allCategories } from "$lib/constants";
     import Icon from "@iconify/svelte";
     import { loadlikesdata } from "$lib/api/content";
@@ -40,6 +40,8 @@
     const MIN_THUMB_RATIO = 0.62;
     const MAX_THUMB_RATIO = 1.55;
     const PROFILE_META_TAG_IDS = [1001, 1002, 1003];
+    const PROFILE_PREVIEW_STORAGE_PREFIX = "personaxi:profile-preview:";
+    let galleryAssetTypeRequestId = 0;
 
     type PlayInfoChip = {
         icon: string;
@@ -58,6 +60,134 @@
 
     function parseTagId(tagId: string | number): number {
         return typeof tagId === "string" ? parseInt(tagId, 10) : tagId;
+    }
+
+    function getProfilePreviewStorageKey(personaId: string) {
+        return `${PROFILE_PREVIEW_STORAGE_PREFIX}${personaId}`;
+    }
+
+    function readCachedProfilePreview(personaId: string): PersonaDTO | null {
+        if (typeof sessionStorage === "undefined") return null;
+
+        try {
+            const raw = sessionStorage.getItem(
+                getProfilePreviewStorageKey(personaId),
+            );
+            if (!raw) return null;
+
+            const parsed = JSON.parse(raw) as PersonaDTO;
+            return parsed?.id === personaId ? parsed : null;
+        } catch (error) {
+            console.warn("Failed to read cached profile preview", error);
+            return null;
+        }
+    }
+
+    function createPreviewPersona(dto: PersonaDTO): Persona {
+        return {
+            id: dto.id,
+            owner_id: dto.owner_id ?? [],
+            name: dto.name,
+            personaType: dto.personaType ?? "",
+            contentType: dto.contentType ?? "character",
+            instructions: [],
+            promptExamples: [],
+            tags: dto.tags ?? [],
+            feedback: { view: 0 },
+            voice_id: "",
+            vrm_url: "",
+            live2d_model_url: "",
+            model_background_url: "",
+            portrait_url: dto.portrait_url,
+            static_portrait_url: dto.static_portrait_url,
+            image_metadatas: dto.image_metadatas ?? [],
+            image_count:
+                dto.image_count ?? dto.image_metadatas?.length ?? 0,
+            visibility: "public",
+            created_at: "",
+            updated_at: "",
+            creator_name: dto.creator_name ?? "",
+            one_liner: dto.one_liner ?? "",
+            first_scene: "",
+            greeting: "",
+            likes_count: dto.likes_count ?? 0,
+            dislikes_count: dto.dislikes_count ?? 0,
+            is_liked: false,
+            chat_count: dto.chat_count ?? 0,
+            start_voice_url: "",
+            variables: [],
+            status_template: "",
+            status_template_css: "",
+            chat_style_css: "",
+            interactiveUIEnabled: false,
+            commercialRightsConfirmed: dto.commercialRightsConfirmed,
+        };
+    }
+
+    function buildGalleryImages(source: {
+        portrait_url: string;
+        static_portrait_url?: string;
+        image_metadatas?: ImageMetadata[];
+    }): ImageMetadata[] {
+        let images: ImageMetadata[] = [
+            {
+                url: source.portrait_url,
+                static_url: source.static_portrait_url,
+                description: $t("profilePage.defaultProfile"),
+            },
+        ];
+
+        if (source.image_metadatas && source.image_metadatas.length > 0) {
+            const galleryAssets = source.image_metadatas.map((asset) => {
+                if (asset.is_secret && asset.blur_url) {
+                    return {
+                        ...asset,
+                        url: asset.blur_url,
+                    };
+                }
+
+                return asset;
+            });
+
+            images = [...images, ...galleryAssets];
+        }
+
+        return images;
+    }
+
+    function applyGalleryImages(source: {
+        portrait_url: string;
+        static_portrait_url?: string;
+        image_metadatas?: ImageMetadata[];
+    }) {
+        const images = buildGalleryImages(source);
+        currentImageIndex = 0;
+        galleryImages = images;
+        syncThumbnailAspectRatios(images);
+        return images;
+    }
+
+    function hydrateGalleryAssetTypes(images: ImageMetadata[]) {
+        const requestId = ++galleryAssetTypeRequestId;
+
+        void fetchAndSetAssetTypes(images)
+            .then((typedImages) => {
+                if (requestId !== galleryAssetTypeRequestId) return;
+                galleryImages = typedImages;
+                syncThumbnailAspectRatios(typedImages);
+            })
+            .catch((error) => {
+                console.warn("Failed to hydrate profile asset types", error);
+            });
+    }
+
+    function applyLikedState(likes: string[], personaId: string) {
+        if (!persona || persona.id !== personaId) return;
+
+        persona = {
+            ...persona,
+            is_liked: likes.includes(personaId),
+        };
     }
 
     function syncThumbnailAspectRatios(images: ImageMetadata[]) {
@@ -190,6 +320,8 @@
     }
 
     onMount(() => {
+        let isActive = true;
+
         const handleWindowPointerDown = (event: PointerEvent) => {
             if (
                 showMoreActions &&
@@ -218,57 +350,39 @@
             }
 
             try {
-                const [p, c, likes] = await Promise.all([
-                    loadPersona(personaId),
-                    loadComments(personaId),
-                    loadlikesdata(),
-                ]);
-                persona = p;
+                const preview = readCachedProfilePreview(personaId);
 
-                if (likes) {
-                    (likes as string[]).forEach((like) => {
-                        if (like === p.id) {
-                            p.is_liked = true;
-                        }
+                if (preview) {
+                    persona = createPreviewPersona(preview);
+                    const previewImages = applyGalleryImages(preview);
+                    hydrateGalleryAssetTypes(previewImages);
+                    isLoading = false;
+                }
+
+                void loadComments(personaId)
+                    .then((loadedComments) => {
+                        if (!isActive) return;
+                        comments = loadedComments;
+                    })
+                    .catch((error) => {
+                        console.error("Failed to load comments:", error);
                     });
-                }
 
-                comments = c;
+                void loadlikesdata()
+                    .then((likes) => {
+                        if (!isActive) return;
+                        applyLikedState((likes as string[]) ?? [], personaId);
+                    })
+                    .catch((error) => {
+                        console.error("Failed to load likes data:", error);
+                    });
 
-                if (persona === null) throw "persona === null";
+                const p = await loadPersona(personaId);
+                if (!isActive) return;
 
-                let images: ImageMetadata[] = [];
-                images.push({
-                    url: persona.portrait_url,
-                    description: $t("profilePage.defaultProfile"),
-                });
-
-                if (
-                    persona.image_metadatas &&
-                    persona.image_metadatas.length > 0
-                ) {
-                    const galleryAssets = persona.image_metadatas.map(
-                        (asset) => {
-                            if (asset.is_secret && asset.blur_url) {
-                                return {
-                                    ...asset,
-                                    url: asset.blur_url,
-                                };
-                            }
-
-                            return asset;
-                        },
-                    );
-
-                    images = [...images, ...galleryAssets];
-                }
-                galleryImages = images;
-                syncThumbnailAspectRatios(images);
-
-                fetchAndSetAssetTypes(images).then((imgs) => {
-                    galleryImages = imgs;
-                    syncThumbnailAspectRatios(imgs);
-                });
+                persona = p;
+                const images = applyGalleryImages(p);
+                hydrateGalleryAssetTypes(images);
             } catch (error) {
                 console.error("Failed to load persona data:", error);
                 if (error instanceof PersonaLoadError && error.status === 404) {
@@ -276,11 +390,16 @@
                     goto("/hub", { replaceState: true });
                 }
             } finally {
-                isLoading = false;
+                if (isActive && persona) {
+                    isLoading = false;
+                } else if (isActive && !persona) {
+                    isLoading = false;
+                }
             }
         })();
 
         return () => {
+            isActive = false;
             window.removeEventListener("pointerdown", handleWindowPointerDown);
             window.removeEventListener("keydown", handleWindowKeyDown);
         };

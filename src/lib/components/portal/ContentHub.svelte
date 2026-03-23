@@ -389,6 +389,20 @@
     let lastSafetyFilterValue: boolean | undefined = undefined;
     let lastHubLanguage = "";
     let featuredRequestId = 0;
+    const PROFILE_PREVIEW_STORAGE_PREFIX = "personaxi:profile-preview:";
+
+    function cacheProfilePreview(content: PersonaDTO) {
+        if (typeof sessionStorage === "undefined") return;
+
+        try {
+            sessionStorage.setItem(
+                `${PROFILE_PREVIEW_STORAGE_PREFIX}${content.id}`,
+                JSON.stringify(content),
+            );
+        } catch (error) {
+            console.warn("Failed to cache profile preview", error);
+        }
+    }
 
     function triggerSafetyFilterReload() {
         if (activeTab === "home") {
@@ -921,6 +935,7 @@
     }
 
     function handleCardClick(content: PersonaDTO) {
+        cacheProfilePreview(content);
         goto(`/profile?c=${content.id}`);
     }
 

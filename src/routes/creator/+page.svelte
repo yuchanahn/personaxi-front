@@ -26,6 +26,7 @@
     let sortOrder = writable<SortOption>("likes");
 
     let creatorId: string | null = null;
+    const PROFILE_PREVIEW_STORAGE_PREFIX = "personaxi:profile-preview:";
 
     $: creatorId = $page.url.searchParams.get("c");
 
@@ -45,16 +46,21 @@
             })
             .then((data: CreatorProfileDTO) => {
                 profile.set(data);
-                // Fetch follower count
-                return getFollowers(creatorId!);
-            })
-            .then((followers) => {
-                followerCount.set(followers.length);
+                isLoading.set(false);
+
+                void getFollowers(creatorId!)
+                    .then((followers) => {
+                        followerCount.set(followers.length);
+                    })
+                    .catch((followerError) => {
+                        console.error(
+                            "Failed to load follower count",
+                            followerError,
+                        );
+                    });
             })
             .catch((e) => {
                 error.set(e.message);
-            })
-            .finally(() => {
                 isLoading.set(false);
             });
     }
@@ -130,6 +136,16 @@
     })();
 
     function handleCardClick(content: PersonaDTO) {
+        if (typeof sessionStorage !== "undefined") {
+            try {
+                sessionStorage.setItem(
+                    `${PROFILE_PREVIEW_STORAGE_PREFIX}${content.id}`,
+                    JSON.stringify(content),
+                );
+            } catch (error) {
+                console.warn("Failed to cache creator card preview", error);
+            }
+        }
         goto(`/profile?c=${content.id}`);
     }
 </script>

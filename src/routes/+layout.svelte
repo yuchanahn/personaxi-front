@@ -28,7 +28,7 @@
     import { notificationStore } from "$lib/stores/notification";
 
     /* ────────────── SvelteKit 내장 ────────────── */
-    import { onMount, tick } from "svelte";
+    import { onMount } from "svelte";
     import { page } from "$app/stores";
     import { browser } from "$app/environment";
     import { goto } from "$app/navigation";
@@ -68,6 +68,61 @@
     let welcomeModal = false;
     let settingsSaveTimer: ReturnType<typeof setTimeout> | null = null;
     let lastSyncedSettingsPayload = "";
+    let bootstrappedUserToken: string | null = null;
+    let bootstrappedUserPromise: Promise<User | null> | null = null;
+    let initializedNotificationUserId = "";
+
+    function syncUserLanguage(user: User) {
+        if (user.data.language === "") {
+            settings.update((s) => {
+                s.language = (get(locale) as Language) || "en";
+                return { ...s };
+            });
+        } else if (user.data.language !== get(locale)) {
+            settings.update((s) => {
+                s.language = user.data.language as Language;
+                return { ...s };
+            });
+        }
+    }
+
+    function resetAuthenticatedBootstrap() {
+        bootstrappedUserToken = null;
+        bootstrappedUserPromise = null;
+        initializedNotificationUserId = "";
+    }
+
+    async function bootstrapCurrentUser(force = false) {
+        const token = get(accessToken);
+        if (!token) return null;
+
+        if (
+            !force &&
+            bootstrappedUserPromise &&
+            bootstrappedUserToken === token
+        ) {
+            return bootstrappedUserPromise;
+        }
+
+        bootstrappedUserToken = token;
+        bootstrappedUserPromise = (async () => {
+            const user = (await getCurrentUser()) as User | null;
+            if (user) {
+                if (user.state === "new") {
+                    consentModal = true;
+                }
+                syncUserLanguage(user);
+            }
+            return user;
+        })();
+
+        const user = await bootstrappedUserPromise;
+        if (!user) {
+            resetAuthenticatedBootstrap();
+        }
+
+        return user;
+    }
 
     /* ────────────── 인증 확인 ────────────── */
     onMount(() => {
@@ -85,14 +140,11 @@
         // pricingStore.fetchPricingPolicy() — called in accessToken.subscribe, no duplicate needed
 
         // 1. 초기 세션 로드
-        supabase.auth.getSession().then(({ data: { session } }) => {
-            if (session) {
-                accessToken.set(session.access_token);
-                getCurrentUser();
-            } else {
-                accessToken.set(null);
-            }
-        });
+        void supabase.auth
+            .getSession()
+            .then(({ data: { session } }) => {
+                accessToken.set(session?.access_token ?? null);
+            });
 
         // 2. Auth 상태 변경 감지
         const {
@@ -100,8 +152,8 @@
         } = supabase.auth.onAuthStateChange((_event, session) => {
             if (session) {
                 accessToken.set(session.access_token);
-                getCurrentUser();
             } else {
+                resetAuthenticatedBootstrap();
                 accessToken.set(null);
                 // 로그아웃 상태에서 보호된 라우트 접근 시 로그인 페이지로 이동
                 const publicRoutes = [
@@ -129,7 +181,13 @@
             }
         });
 
-        return () => subscription.unsubscribe();
+        return () => {
+            window.removeEventListener(
+                "chat-error",
+                handleChatError as EventListener,
+            );
+            subscription.unsubscribe();
+        };
     });
 
     // 3. Payment Redirect Handler (Mobile Support)
@@ -179,37 +237,26 @@
     });
 
     accessToken.subscribe(async (token) => {
-        tick();
         if (!token) {
+            resetAuthenticatedBootstrap();
             return;
         }
 
         // Fetch pricing policy as soon as we have a token
         pricingStore.fetchPricingPolicy();
 
-        let user = await getCurrentUser();
-        if (user) {
-            if (user.state === "new") {
-                consentModal = true;
-            }
-
-            if (user.data.language === "") {
-                settings.update((s) => {
-                    s.language = (get(locale) as Language) || "en";
-                    return { ...s };
-                });
-            } else if (user.data.language !== get(locale)) {
-                settings.update((s) => {
-                    s.language = user.data.language as Language;
-                    return { ...s };
-                });
-            }
+        const user = await bootstrapCurrentUser();
+        if (token !== get(accessToken)) {
+            return;
         }
+
         loadCharacterSessions();
 
-        // Initialize Notification Store
         if (user) {
-            notificationStore.init(user.ssid);
+            if (initializedNotificationUserId !== user.id) {
+                notificationStore.init(user.id);
+                initializedNotificationUserId = user.id;
+            }
         }
     });
 

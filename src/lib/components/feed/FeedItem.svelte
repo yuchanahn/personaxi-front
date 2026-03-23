@@ -16,6 +16,7 @@
     export let isFirstItem: boolean = false;
 
     const dispatch = createEventDispatcher();
+    const PROFILE_PREVIEW_STORAGE_PREFIX = "personaxi:profile-preview:";
     let liking = false;
     let isMobileFeed = false;
 
@@ -135,6 +136,21 @@
         } else {
             goto(`/live2d?c=${persona.id}`);
         }
+    }
+
+    function openProfile() {
+        if (typeof sessionStorage !== "undefined") {
+            try {
+                sessionStorage.setItem(
+                    `${PROFILE_PREVIEW_STORAGE_PREFIX}${persona.id}`,
+                    JSON.stringify(persona),
+                );
+            } catch (error) {
+                console.warn("Failed to cache feed profile preview", error);
+            }
+        }
+
+        goto(`/profile?c=${persona.id}`);
     }
 
     async function handleShare(e: MouseEvent) {
@@ -265,7 +281,7 @@
                 </button>
                 <button
                     class="action-btn info-btn"
-                    on:click={() => goto(`/profile?c=${persona.id}`)}
+                    on:click={openProfile}
                 >
                     <Icon icon="ph:info" width="24" />
                 </button>

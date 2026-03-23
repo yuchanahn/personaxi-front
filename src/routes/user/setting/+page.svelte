@@ -60,6 +60,7 @@
     let isEditingProfile = false;
     let originalUser: User | null = null;
     let isPWA = false;
+    let lastLoadedSocialUserId = "";
 
     function getMyPersonaStaticThumb(url?: string) {
         return url
@@ -76,6 +77,120 @@
         userPersonaDescription = persona?.description || "";
         userPersonaTone = persona?.tone || "";
         userPersonaTraits = (persona?.traits || []).join(", ");
+    }
+
+    function normalizeUser(nextUser: User): User {
+        const nextData = nextUser.data || ({} as User["data"]);
+
+        return {
+            ...nextUser,
+            data: {
+                ...nextData,
+                nickname: nextData.nickname || nextUser.name,
+                language: nextData.language || get(locale) || "",
+                lastLoginAt: nextData.lastLoginAt || "",
+                createdAt: nextData.createdAt || "",
+                hasReceivedFirstCreationReward:
+                    nextData.hasReceivedFirstCreationReward ?? false,
+                lastLoginIP: nextData.lastLoginIP || "",
+            },
+        };
+    }
+
+    function applyLoadedUser(nextUser: User) {
+        user = normalizeUser(JSON.parse(JSON.stringify(nextUser)));
+        st_user.set(user);
+
+        if (!nextUser.data || nextUser.data.language === "") {
+            settings.update((s) => {
+                s.language = (user.data.language as Language) || "en";
+                return { ...s };
+            });
+        }
+    }
+
+    async function loadOwnPersonas() {
+        try {
+            const personasRes = await api.get(`/api/persona/user`);
+            if (personasRes.ok) {
+                personas = await personasRes.json();
+                return;
+            }
+
+            console.error("Failed to load personas");
+        } catch (err) {
+            console.error("Error loading personas:", err);
+        }
+    }
+
+    async function loadLivePersonaIds() {
+        try {
+            liveIds = (await fetchLivePersonas()).map((id) => id);
+        } catch (err) {
+            console.error("Failed to load live personas:", err);
+        }
+    }
+
+    async function loadSocialCounts(userId: string) {
+        if (!userId || lastLoadedSocialUserId === userId) return;
+        lastLoadedSocialUserId = userId;
+
+        const [followersResult, followingResult] = await Promise.allSettled([
+            getFollowers(userId),
+            getFollowing(userId),
+        ]);
+
+        if (followersResult.status === "fulfilled") {
+            followerCount = followersResult.value.length;
+        }
+
+        if (followingResult.status === "fulfilled") {
+            followingCount = followingResult.value.length;
+        }
+    }
+
+    async function refreshCurrentUser() {
+        try {
+            const userRes = await getCurrentUser();
+            if (!userRes) {
+                error = "Failed to load user";
+                goto("/login");
+                return null;
+            }
+
+            applyLoadedUser(userRes as User);
+            error = "";
+            void loadSocialCounts((userRes as User).id);
+            return userRes as User;
+        } catch (err) {
+            error = "Error: " + err;
+            return null;
+        }
+    }
+
+    function detectPwaMode() {
+        if (typeof window === "undefined") return;
+
+        const isStandalone = window.matchMedia(
+            "(display-mode: standalone)",
+        ).matches;
+        // @ts-ignore
+        const isIOSStandalone = window.navigator.standalone === true;
+        isPWA = isStandalone || isIOSStandalone;
+    }
+
+    async function initializeSettingsPage() {
+        detectPwaMode();
+
+        const cachedUser = get(st_user);
+        if (cachedUser) {
+            void loadSocialCounts(cachedUser.id);
+        }
+
+        void loadOwnPersonas();
+        void loadUserPersonasFromServer();
+        void loadLivePersonaIds();
+        await refreshCurrentUser();
     }
 
     async function loadUserPersonasFromServer() {
@@ -183,8 +298,7 @@
                 // Refresh user data
                 const userRes = await getCurrentUser();
                 if (userRes) {
-                    user = userRes as User;
-                    st_user.set(user);
+                    applyLoadedUser(userRes as User);
                 }
                 isVerifying = false;
             },
@@ -207,55 +321,13 @@
         }
     });
 
-    onMount(async () => {
-        if (typeof window !== "undefined") {
-            const isStandalone = window.matchMedia(
-                "(display-mode: standalone)",
-            ).matches;
-            // @ts-ignore
-            const isIOSStandalone = window.navigator.standalone === true;
-            isPWA = isStandalone || isIOSStandalone;
-        }
+    const cachedUser = get(st_user);
+    if (cachedUser) {
+        applyLoadedUser(cachedUser);
+    }
 
-        try {
-            const userRes = await getCurrentUser();
-            if (userRes) {
-                user = userRes as User;
-                notificationStore.init(user.id);
-
-                if (!user.data || user.data.language === "") {
-                    user.data = {
-                        nickname: user.name,
-                        language: get(locale) || "",
-                        lastLoginAt: "",
-                        createdAt: "",
-                        hasReceivedFirstCreationReward: false,
-                        lastLoginIP: "",
-                    };
-
-                    settings.update((s) => {
-                        s.language = (user.data.language as Language) || "en";
-                        return { ...s };
-                    });
-                }
-            } else {
-                error = "Failed to load user";
-                goto("/login");
-            }
-
-            const personasRes = await api.get(`/api/persona/user`);
-            if (personasRes.ok) {
-                personas = await personasRes.json();
-            } else {
-                error = "Failed to load personas";
-            }
-            await loadUserPersonasFromServer();
-
-            const liveRes = await fetchLivePersonas();
-            liveIds = liveRes.map((x) => x);
-        } catch (err) {
-            error = "Error: " + err;
-        }
+    onMount(() => {
+        void initializeSettingsPage();
     });
 
     $: currentLiveIds = liveIds;
@@ -412,54 +484,6 @@
     let followerCount = 0;
     let followingCount = 0;
 
-    onMount(async () => {
-        try {
-            const userRes = await getCurrentUser();
-            if (userRes) {
-                user = userRes as User;
-                notificationStore.init(user.id);
-
-                getFollowers(user.id).then(
-                    (ids) => (followerCount = ids.length),
-                );
-                getFollowing(user.id).then(
-                    (ids) => (followingCount = ids.length),
-                );
-
-                if (!user.data || user.data.language === "") {
-                    user.data = {
-                        nickname: user.name,
-                        language: get(locale) || "",
-                        lastLoginAt: "",
-                        createdAt: "",
-                        hasReceivedFirstCreationReward: false,
-                        lastLoginIP: "",
-                    };
-                    settings.update((s) => {
-                        s.language = (user.data.language as Language) || "en";
-                        return { ...s };
-                    });
-                }
-            } else {
-                error = "Failed to load user";
-                goto("/login");
-            }
-
-            const personasRes = await api.get(`/api/persona/user`);
-            if (personasRes.ok) {
-                personas = await personasRes.json();
-            } else {
-                error = "Failed to load personas";
-            }
-            await loadUserPersonasFromServer();
-
-            const liveRes = await fetchLivePersonas();
-            liveIds = liveRes.map((x) => x);
-        } catch (err) {
-            error = "Error: " + err;
-        }
-    });
-
     function openUserList(tab: "followers" | "following") {
         userListTab = tab;
         showUserListModal = true;
@@ -472,6 +496,7 @@
     let likedPersonas: any[] = [];
     let followedPersonas: any[] = [];
     let isLoadingTab = false;
+    const PROFILE_PREVIEW_STORAGE_PREFIX = "personaxi:profile-preview:";
 
     async function switchTab(
         tab: "profile" | "created" | "liked" | "following",
@@ -489,6 +514,16 @@
     }
 
     function handleCardClick(content: any) {
+        if (typeof sessionStorage !== "undefined") {
+            try {
+                sessionStorage.setItem(
+                    `${PROFILE_PREVIEW_STORAGE_PREFIX}${content.id}`,
+                    JSON.stringify(content),
+                );
+            } catch (error) {
+                console.warn("Failed to cache settings card preview", error);
+            }
+        }
         goto(`/profile?c=${content.id}`);
     }
 

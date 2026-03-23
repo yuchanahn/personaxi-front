@@ -13,6 +13,7 @@
 
   let lastSessionId: string | null = null;
   let persona: Persona | null = null;
+  let loadRequestId = 0;
 
   let Viewer: VrmModelViewer;
   let showChat: boolean = false;
@@ -83,18 +84,26 @@
     if (sessionId !== lastSessionId) {
       lastSessionId = sessionId;
       if (sessionId) {
+        const requestId = ++loadRequestId;
         persona = null;
         // Reset state
         affectionScore = 0;
 
-        Promise.all([
-          loadChatHistory(sessionId, (esf) => {
-            isStartSpeech = esf.recent_turns.length < 1;
-          }),
-          loadPersona(sessionId),
-        ]).then(([_, p]) => {
-          persona = p;
+        void loadChatHistory(sessionId, (esf) => {
+          if (requestId !== loadRequestId) return;
+          isStartSpeech = esf.recent_turns.length < 1;
+        }).catch((error) => {
+          console.error("Failed to load 3D chat history:", error);
         });
+
+        void loadPersona(sessionId)
+          .then((p) => {
+            if (requestId !== loadRequestId) return;
+            persona = p;
+          })
+          .catch((error) => {
+            console.error("Failed to load 3D persona:", error);
+          });
       }
     }
   }

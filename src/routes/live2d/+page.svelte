@@ -125,6 +125,7 @@
         bodyZMin: -90,
         bodyZMax: 90,
     };
+    let loadRequestId = 0;
 
     $: if (Viewer && Viewer.setSensitivity) {
         Viewer.setSensitivity(autonomySensitivity);
@@ -141,6 +142,7 @@
         if (sessionId !== lastSessionId) {
             lastSessionId = sessionId;
             if (sessionId) {
+                const requestId = ++loadRequestId;
                 persona = null;
                 motionMap = {}; // Reset map
                 motionExprMap = {};
@@ -148,74 +150,78 @@
                 hitMotionMap = {}; // Reset map
                 affectionScore = 0; // Reset affection for new session
 
-                Promise.all([
-                    loadChatHistory(sessionId, (esf) => {
-                        isStartSpeech = esf.recent_turns.length < 1;
-                        console.log("@@@ isStartSpeech @@@", isStartSpeech);
-                    }),
-                    loadPersona(sessionId),
-                ]).then(([_, p]) => {
-                    if (!p) return;
+                void loadChatHistory(sessionId, (esf) => {
+                    if (requestId !== loadRequestId) return;
+                    isStartSpeech = esf.recent_turns.length < 1;
+                    console.log("@@@ isStartSpeech @@@", isStartSpeech);
+                }).catch((error) => {
+                    console.error("Failed to load Live2D chat history:", error);
+                });
 
-                    if (!p.live2d_model_url) {
-                        p.live2d_model_url = TEST_MODEL_URL;
-                    }
+                void loadPersona(sessionId)
+                    .then((p) => {
+                        if (requestId !== loadRequestId) return;
+                        if (!p) return;
 
-                    try {
-                        let cfg: any = null;
-                        if (
-                            p.live2d_config &&
-                            typeof p.live2d_config === "object"
-                        ) {
-                            cfg = p.live2d_config;
-                        } else if (typeof p.live2d_config === "string") {
-                            try {
-                                cfg = JSON.parse(p.live2d_config);
-                            } catch {
-                                cfg = null;
-                            }
+                        if (!p.live2d_model_url) {
+                            p.live2d_model_url = TEST_MODEL_URL;
                         }
 
-                        const cfgEditor =
-                            cfg?.editor_config &&
-                            typeof cfg.editor_config === "object"
-                                ? cfg.editor_config
-                                : cfg?.live2d_editor_config &&
-                                    typeof cfg.live2d_editor_config === "object"
-                                  ? cfg.live2d_editor_config
+                        try {
+                            let cfg: any = null;
+                            if (
+                                p.live2d_config &&
+                                typeof p.live2d_config === "object"
+                            ) {
+                                cfg = p.live2d_config;
+                            } else if (typeof p.live2d_config === "string") {
+                                try {
+                                    cfg = JSON.parse(p.live2d_config);
+                                } catch {
+                                    cfg = null;
+                                }
+                            }
+
+                            const cfgEditor =
+                                cfg?.editor_config &&
+                                typeof cfg.editor_config === "object"
+                                    ? cfg.editor_config
+                                    : cfg?.live2d_editor_config &&
+                                        typeof cfg.live2d_editor_config === "object"
+                                      ? cfg.live2d_editor_config
+                                      : null;
+
+                            const cfgMotionList = Array.isArray(cfg?.motion_list)
+                                ? cfg.motion_list
+                                : Array.isArray(cfg?.live2d_motion_list)
+                                  ? cfg.live2d_motion_list
                                   : null;
 
-                        const cfgMotionList = Array.isArray(cfg?.motion_list)
-                            ? cfg.motion_list
-                            : Array.isArray(cfg?.live2d_motion_list)
-                              ? cfg.live2d_motion_list
-                              : null;
+                            const cfgExpressionMap =
+                                cfg?.expression_map &&
+                                typeof cfg.expression_map === "object"
+                                    ? cfg.expression_map
+                                    : cfg?.live2d_expression_map &&
+                                        typeof cfg.live2d_expression_map ===
+                                            "object"
+                                      ? cfg.live2d_expression_map
+                                      : null;
 
-                        const cfgExpressionMap =
-                            cfg?.expression_map &&
-                            typeof cfg.expression_map === "object"
-                                ? cfg.expression_map
-                                : cfg?.live2d_expression_map &&
-                                    typeof cfg.live2d_expression_map ===
-                                        "object"
-                                  ? cfg.live2d_expression_map
-                                  : null;
+                            const cfgHitMotionMap =
+                                cfg?.hit_motion_map &&
+                                typeof cfg.hit_motion_map === "object"
+                                    ? cfg.hit_motion_map
+                                    : cfg?.live2d_hit_motion_map &&
+                                        typeof cfg.live2d_hit_motion_map ===
+                                            "object"
+                                      ? cfg.live2d_hit_motion_map
+                                      : null;
 
-                        const cfgHitMotionMap =
-                            cfg?.hit_motion_map &&
-                            typeof cfg.hit_motion_map === "object"
-                                ? cfg.hit_motion_map
-                                : cfg?.live2d_hit_motion_map &&
-                                    typeof cfg.live2d_hit_motion_map ===
-                                        "object"
-                                  ? cfg.live2d_hit_motion_map
-                                  : null;
-
-                        const cfgSettings =
-                            cfgEditor?.settings &&
-                            typeof cfgEditor.settings === "object"
-                                ? cfgEditor.settings
-                                : null;
+                            const cfgSettings =
+                                cfgEditor?.settings &&
+                                typeof cfgEditor.settings === "object"
+                                    ? cfgEditor.settings
+                                    : null;
 
                         if (cfgSettings) {
                             if (typeof cfgSettings.sensitivity === "number") {
@@ -430,49 +436,61 @@
                             );
                             expressionMap = nextMap;
                         }
-                        if (cfgHitMotionMap) {
-                            hitMotionMap = cfgHitMotionMap;
-                        }
+                            if (cfgHitMotionMap) {
+                                hitMotionMap = cfgHitMotionMap;
+                            }
 
-                        if (p.first_scene) {
-                            const fs = JSON.parse(p.first_scene);
+                            if (p.first_scene) {
+                                const fs = JSON.parse(p.first_scene);
 
-                            // Parse Motions
-                            if (
-                                fs.live2d_motion_list &&
-                                Array.isArray(fs.live2d_motion_list)
-                            ) {
-                                fs.live2d_motion_list.forEach((m: any) => {
-                                    if (m.name && m.file) {
-                                        let resolved = m.file;
-                                        if (
-                                            typeof resolved === "string" &&
-                                            motionByAliasOrFile[resolved]
-                                        ) {
-                                            resolved =
-                                                motionByAliasOrFile[resolved];
+                                // Parse Motions
+                                if (
+                                    fs.live2d_motion_list &&
+                                    Array.isArray(fs.live2d_motion_list)
+                                ) {
+                                    fs.live2d_motion_list.forEach((m: any) => {
+                                        if (m.name && m.file) {
+                                            let resolved = m.file;
+                                            if (
+                                                typeof resolved === "string" &&
+                                                motionByAliasOrFile[resolved]
+                                            ) {
+                                                resolved =
+                                                    motionByAliasOrFile[resolved];
+                                            }
+                                            motionMap[m.name] = resolved;
                                         }
-                                        motionMap[m.name] = resolved;
-                                    }
-                                });
-                            }
+                                    });
+                                }
 
-                            // HIT Motions
-                            if (fs.live2d_hit_motion_map && !cfgHitMotionMap) {
-                                hitMotionMap = fs.live2d_hit_motion_map;
-                            }
+                                // HIT Motions
+                                if (
+                                    fs.live2d_hit_motion_map &&
+                                    !cfgHitMotionMap
+                                ) {
+                                    hitMotionMap = fs.live2d_hit_motion_map;
+                                }
 
-                            // Expressions
-                            if (fs.live2d_expression_map && !cfgExpressionMap) {
-                                expressionMap = fs.live2d_expression_map;
+                                // Expressions
+                                if (
+                                    fs.live2d_expression_map &&
+                                    !cfgExpressionMap
+                                ) {
+                                    expressionMap = fs.live2d_expression_map;
+                                }
                             }
+                        } catch (e) {
+                            console.error(
+                                "Failed to parse first_scene JSON:",
+                                e,
+                            );
                         }
-                    } catch (e) {
-                        console.error("Failed to parse first_scene JSON:", e);
-                    }
 
-                    persona = p;
-                });
+                        persona = p;
+                    })
+                    .catch((error) => {
+                        console.error("Failed to load Live2D persona:", error);
+                    });
             }
         }
     }

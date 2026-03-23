@@ -10,6 +10,40 @@ interface AuthRequestInit extends RequestInit {
     requireAuth?: boolean;
 }
 
+let pendingSessionTokenRequest: Promise<string | null> | null = null;
+
+async function getSessionToken(): Promise<string | null> {
+    const storedToken = get(accessToken);
+    if (storedToken) {
+        return storedToken;
+    }
+
+    if (!browser) {
+        return null;
+    }
+
+    if (!pendingSessionTokenRequest) {
+        pendingSessionTokenRequest = supabase.auth
+            .getSession()
+            .then(({ data: { session } }) => {
+                const token = session?.access_token ?? null;
+                if (token) {
+                    accessToken.set(token);
+                }
+                return token;
+            })
+            .catch((error) => {
+                console.error("Failed to resolve Supabase session", error);
+                return null;
+            })
+            .finally(() => {
+                pendingSessionTokenRequest = null;
+            });
+    }
+
+    return pendingSessionTokenRequest;
+}
+
 async function fetchWithAuth(url: string, options: AuthRequestInit = {}): Promise<Response> {
     if (!browser) {
         return fetch(url, options);
@@ -18,12 +52,9 @@ async function fetchWithAuth(url: string, options: AuthRequestInit = {}): Promis
     options.credentials = 'include';
     const headers = new Headers(options.headers);
 
-    // Supabase에서 현재 세션 가져오기
-    const { data: { session } } = await supabase.auth.getSession();
-    const token = session?.access_token;
-
     // Default requireAuth to true unless explicitly set to false
     const requireAuth = options.requireAuth !== false;
+    const token = (await getSessionToken()) ?? null;
 
     if (token) {
         headers.set('Authorization', `Bearer ${token}`);
@@ -115,12 +146,10 @@ export const api = {
         }
 
         // Get Supabase access token
-        const { data: { session } } = await supabase.auth.getSession();
-        if (!session) {
+        const token = await getSessionToken();
+        if (!token) {
             throw new Error("No active session. Please login first.");
         }
-
-        const token = session.access_token;
 
         let wsURL: string;
         const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
