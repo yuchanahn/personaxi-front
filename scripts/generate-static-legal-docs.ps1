@@ -64,6 +64,18 @@ function New-AlternateLinks {
     return ($lines + "    <link rel=`"alternate`" hreflang=`"x-default`" href=`"$defaultHref`" />") -join "`n"
 }
 
+function New-PathAlternateLinks {
+    param([string]$BaseName)
+
+    $langs = @("ko", "en", "ja")
+    $lines = foreach ($lang in $langs) {
+        "    <link rel=`"alternate`" hreflang=`"$lang`" href=`"https://personaxi.com/$lang/$BaseName/`" />"
+    }
+
+    $defaultHref = "https://personaxi.com/en/$BaseName/"
+    return ($lines + "    <link rel=`"alternate`" hreflang=`"x-default`" href=`"$defaultHref`" />") -join "`n"
+}
+
 function New-StaticLegalDoc {
     param(
         [string]$MarkdownPath,
@@ -349,3 +361,108 @@ foreach ($dirName in @("terms", "privacy", "policy")) {
 Copy-Item -Path (Join-Path $staticRoot "terms.html") -Destination (Join-Path $staticRoot "terms\index.html") -Force
 Copy-Item -Path (Join-Path $staticRoot "privacy.html") -Destination (Join-Path $staticRoot "privacy\index.html") -Force
 Copy-Item -Path (Join-Path $staticRoot "policy.html") -Destination (Join-Path $staticRoot "policy\index.html") -Force
+
+function Convert-LegacyHtmlToLocalizedPath {
+    param(
+        [string]$SourcePath,
+        [string]$OutputPath,
+        [string]$BaseName,
+        [string]$Lang
+    )
+
+    $html = Get-Content -Path $SourcePath -Raw -Encoding utf8
+    $canonicalUrl = "https://personaxi.com/$Lang/$BaseName/"
+    $alternateLinks = New-PathAlternateLinks -BaseName $BaseName
+
+    $html = [regex]::Replace(
+        $html,
+        '<link rel="canonical" href="[^"]+" />',
+        "    <link rel=`"canonical`" href=`"$canonicalUrl`" />"
+    )
+    $html = [regex]::Replace(
+        $html,
+        '<link rel="alternate" hreflang="ko" href="[^"]+" />\s*<link rel="alternate" hreflang="en" href="[^"]+" />\s*<link rel="alternate" hreflang="ja" href="[^"]+" />\s*<link rel="alternate" hreflang="x-default" href="[^"]+" />',
+        $alternateLinks
+    )
+    $html = [regex]::Replace(
+        $html,
+        '<meta property="og:url" content="[^"]+" />',
+        "    <meta property=`"og:url`" content=`"$canonicalUrl`" />"
+    )
+
+    $legacyDocs = @("terms", "privacy", "policy", "faq", "welcome")
+    $langs = @("ko", "en", "ja")
+
+    foreach ($doc in $legacyDocs) {
+        foreach ($docLang in $langs) {
+            $legacySuffix = if ($docLang -eq "ko") { "" } else { "-$docLang" }
+            $legacyRelative = "/$doc$legacySuffix.html"
+            $legacyAbsolute = "https://personaxi.com/$doc$legacySuffix.html"
+            $localizedRelative = "/$docLang/$doc/"
+            $localizedAbsolute = "https://personaxi.com/$docLang/$doc/"
+
+            $html = $html.Replace($legacyAbsolute, $localizedAbsolute)
+            $html = $html.Replace($legacyRelative, $localizedRelative)
+        }
+    }
+
+    $dir = Split-Path -Parent $OutputPath
+    if ($dir -and -not (Test-Path $dir)) {
+        New-Item -ItemType Directory -Path $dir -Force | Out-Null
+    }
+
+    Set-Content -Path $OutputPath -Value $html -Encoding utf8
+}
+
+$localizedStaticDocs = @(
+    @{
+        BaseName = "terms"
+        Sources = @{
+            ko = "terms.html"
+            en = "terms-en.html"
+            ja = "terms-ja.html"
+        }
+    },
+    @{
+        BaseName = "privacy"
+        Sources = @{
+            ko = "privacy.html"
+            en = "privacy-en.html"
+            ja = "privacy-ja.html"
+        }
+    },
+    @{
+        BaseName = "policy"
+        Sources = @{
+            ko = "policy.html"
+            en = "policy-en.html"
+            ja = "policy-ja.html"
+        }
+    },
+    @{
+        BaseName = "faq"
+        Sources = @{
+            ko = "faq.html"
+            en = "faq-en.html"
+            ja = "faq-ja.html"
+        }
+    },
+    @{
+        BaseName = "welcome"
+        Sources = @{
+            ko = "welcome.html"
+            en = "welcome-en.html"
+            ja = "welcome-ja.html"
+        }
+    }
+)
+
+foreach ($doc in $localizedStaticDocs) {
+    foreach ($lang in @("ko", "en", "ja")) {
+        Convert-LegacyHtmlToLocalizedPath `
+            -SourcePath (Join-Path $staticRoot $doc.Sources[$lang]) `
+            -OutputPath (Join-Path $staticRoot "$lang\$($doc.BaseName)\index.html") `
+            -BaseName $doc.BaseName `
+            -Lang $lang
+    }
+}

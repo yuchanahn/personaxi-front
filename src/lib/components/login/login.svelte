@@ -1,9 +1,10 @@
 <script lang="ts">
     import { goto } from "$app/navigation";
-    import { t } from "svelte-i18n";
+    import { locale, t } from "svelte-i18n";
     import { supabase } from "$lib/supabase";
     import Icon from "@iconify/svelte";
     import { toast } from "$lib/stores/toast";
+    import { getLocalizedStaticDocHref } from "$lib/utils/localePaths";
 
     let mode: "options" | "email" | "register" | "reset" = "options";
 
@@ -148,9 +149,13 @@
             </div>
 
             <div class="legal-links">
-                <a href="/terms">{$t("login.terms")}</a>
+                <a href={getLocalizedStaticDocHref($locale, "terms")}
+                    >{$t("login.terms")}</a
+                >
                 <span>·</span>
-                <a href="/privacy">{$t("login.privacy")}</a>
+                <a href={getLocalizedStaticDocHref($locale, "privacy")}
+                    >{$t("login.privacy")}</a
+                >
             </div>
         {:else if mode === "reset"}
             <form

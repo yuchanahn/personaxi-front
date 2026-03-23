@@ -45,15 +45,6 @@
 
     import { hideBackButton } from "$lib/utils/LayoutUtils";
 
-    /* ────────────── PWA: Service Worker ────────────── */
-    if ("serviceWorker" in navigator) {
-        window.addEventListener("load", () => {
-            navigator.serviceWorker.register("/service-worker.js").catch((e) => {
-                console.error("Service Worker registration failed:", e);
-            });
-        });
-    }
-
     /* ────────────── 화면 크기 감지 ────────────── */
     let isMobile = false;
     if (browser) {
@@ -150,6 +141,19 @@
     /* ────────────── 인증 확인 ────────────── */
     onMount(() => {
         if (!browser) return;
+
+        if ("serviceWorker" in navigator) {
+            window.addEventListener("load", () => {
+                navigator.serviceWorker
+                    .register("/service-worker.js")
+                    .catch((e) => {
+                        console.error(
+                            "Service Worker registration failed:",
+                            e,
+                        );
+                    });
+            });
+        }
 
         // Global chat error handler — show toast when LLM fails
         const handleChatError = (e: CustomEvent) => {

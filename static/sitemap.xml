@@ -17,49 +17,49 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://personaxi.com/faq.html</loc>
+    <loc>https://personaxi.com/ko/faq/</loc>
     <changefreq>weekly</changefreq>
     <priority>0.5</priority>
   </url>
   <url>
-    <loc>https://personaxi.com/faq-en.html</loc>
+    <loc>https://personaxi.com/en/faq/</loc>
     <changefreq>weekly</changefreq>
     <priority>0.4</priority>
   </url>
   <url>
-    <loc>https://personaxi.com/faq-ja.html</loc>
+    <loc>https://personaxi.com/ja/faq/</loc>
     <changefreq>weekly</changefreq>
     <priority>0.4</priority>
   </url>
   
   <!-- Legal Pages -->
   <url>
-    <loc>https://personaxi.com/terms.html</loc>
+    <loc>https://personaxi.com/ko/terms/</loc>
     <changefreq>monthly</changefreq>
     <priority>0.3</priority>
   </url>
   <url>
-    <loc>https://personaxi.com/terms-en.html</loc>
+    <loc>https://personaxi.com/en/terms/</loc>
     <changefreq>monthly</changefreq>
     <priority>0.2</priority>
   </url>
   <url>
-    <loc>https://personaxi.com/terms-ja.html</loc>
+    <loc>https://personaxi.com/ja/terms/</loc>
     <changefreq>monthly</changefreq>
     <priority>0.2</priority>
   </url>
   <url>
-    <loc>https://personaxi.com/privacy.html</loc>
+    <loc>https://personaxi.com/ko/privacy/</loc>
     <changefreq>monthly</changefreq>
     <priority>0.3</priority>
   </url>
   <url>
-    <loc>https://personaxi.com/privacy-en.html</loc>
+    <loc>https://personaxi.com/en/privacy/</loc>
     <changefreq>monthly</changefreq>
     <priority>0.2</priority>
   </url>
   <url>
-    <loc>https://personaxi.com/privacy-ja.html</loc>
+    <loc>https://personaxi.com/ja/privacy/</loc>
     <changefreq>monthly</changefreq>
     <priority>0.2</priority>
   </url>

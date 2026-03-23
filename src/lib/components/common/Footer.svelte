@@ -1,6 +1,7 @@
 <script lang="ts">
-    import { t } from "svelte-i18n";
+    import { locale, t } from "svelte-i18n";
     import Icon from "@iconify/svelte";
+    import { getLocalizedStaticDocHref } from "$lib/utils/localePaths";
 </script>
 
 <footer
@@ -37,12 +38,12 @@
             class="flex flex-wrap items-center gap-x-3 gap-y-2 text-[10px] font-semibold pt-3 mt-1 border-t border-border/10"
         >
             <a
-                href="/policy"
+                href={getLocalizedStaticDocHref($locale, "privacy")}
                 class="text-foreground/80 hover:text-foreground underline decoration-border/50 underline-offset-2 transition-colors"
                 >{$t("legal.privacyPolicy")}</a
             >
             <a
-                href="/terms"
+                href={getLocalizedStaticDocHref($locale, "terms")}
                 class="text-foreground/80 hover:text-foreground underline decoration-border/50 underline-offset-2 transition-colors"
                 >{$t("legal.termsOfService")}</a
             >

@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { t } from "svelte-i18n";
+    import { locale, t } from "svelte-i18n";
     import Icon from "@iconify/svelte";
     import AssetPreview from "$lib/components/AssetPreview.svelte";
     import { toast } from "$lib/stores/toast";
@@ -14,6 +14,7 @@
     import VoiceClonePanel from "$lib/components/edit/VoiceClonePanel.svelte";
     import type { ImageMetadata, Persona } from "$lib/types";
     import { getOptimizedSupabaseImageUrl } from "$lib/utils/mediaTransform";
+    import { getLocalizedStaticDocHref } from "$lib/utils/localePaths";
 
     export let persona: Persona;
     export let originalPersona: Persona | null;
@@ -672,7 +673,10 @@
                 </label>
                 <p class="rights-help">
                     {$t("editPage.modelRights.relatedDocs")}
-                    <a href="/terms" target="_blank" rel="noreferrer"
+                    <a
+                        href={getLocalizedStaticDocHref($locale, "terms")}
+                        target="_blank"
+                        rel="noreferrer"
                         >{$t("legal.termsOfService")}</a
                     >
                     ·
