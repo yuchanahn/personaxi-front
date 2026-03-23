@@ -390,6 +390,9 @@
     let lastHubLanguage = "";
     let featuredRequestId = 0;
     const PROFILE_PREVIEW_STORAGE_PREFIX = "personaxi:profile-preview:";
+    const homeSkeletonSections = Array.from({ length: 3 }, (_, index) => index);
+    const homeSkeletonCards = Array.from({ length: 5 }, (_, index) => index);
+    let isInitialHomeSectionsLoading = true;
 
     function cacheProfilePreview(content: PersonaDTO) {
         if (typeof sessionStorage === "undefined") return;
@@ -725,7 +728,18 @@
 
     async function loadFeaturedSections() {
         const requestId = ++featuredRequestId;
-        homeSections.set([]);
+        const existingSections = get(homeSections);
+
+        if (existingSections.length === 0) {
+            isInitialHomeSectionsLoading = true;
+        } else {
+            homeSections.update((items) =>
+                items.map((item) => ({
+                    ...item,
+                    isLoading: true,
+                })),
+            );
+        }
 
         try {
             const sectionConfigs = await loadHubSections();
@@ -746,10 +760,21 @@
 
             if (requestId !== featuredRequestId) return;
             homeSections.set(sectionViews);
+            isInitialHomeSectionsLoading = false;
         } catch (error) {
             console.error("Failed to load hub sections:", error);
             if (requestId !== featuredRequestId) return;
-            homeSections.set([]);
+            if (existingSections.length > 0) {
+                homeSections.set(
+                    existingSections.map((section) => ({
+                        ...section,
+                        isLoading: false,
+                    })),
+                );
+            } else {
+                homeSections.set([]);
+            }
+            isInitialHomeSectionsLoading = false;
         }
     }
 
@@ -1213,18 +1238,43 @@
             <!-- HOME DASHBOARD VIEW -->
             <!-- If we are in home tab AND NOT searching/filtering, show dashboard -->
             {#if activeTab === "home" && !selectedCategory}
-                {#each $homeSections as section (section.id)}
-                    {#if section.isLoading || section.contents.length > 0}
-                        <ContentCarousel
-                            title={section.title}
-                            contents={section.contents}
-                            isLoading={section.isLoading}
-                            hasMore={section.hasMore}
-                            on:select={(e) => handleCardClick(e.detail)}
-                            on:loadMore={() => handleLoadMore(section.sectionKey)}
-                        />
-                    {/if}
-                {/each}
+                {#if isInitialHomeSectionsLoading && $homeSections.length === 0}
+                    <div class="home-skeleton" aria-hidden="true">
+                        {#each homeSkeletonSections as sectionIndex}
+                            <section class="hub-section skeleton-section">
+                                <div class="section-header">
+                                    <div
+                                        class="skeleton-title"
+                                        style={`--skeleton-title-width: ${sectionIndex % 2 === 0 ? "10.5rem" : "8.5rem"}`}
+                                    ></div>
+                                </div>
+                                <div class="skeleton-carousel">
+                                    {#each homeSkeletonCards as cardIndex}
+                                        <div
+                                            class="skeleton-card"
+                                            class:is-dim={cardIndex >= 4}
+                                        >
+                                            <div class="skeleton-card-media"></div>
+                                        </div>
+                                    {/each}
+                                </div>
+                            </section>
+                        {/each}
+                    </div>
+                {:else}
+                    {#each $homeSections as section (section.id)}
+                        {#if section.isLoading || section.contents.length > 0}
+                            <ContentCarousel
+                                title={section.title}
+                                contents={section.contents}
+                                isLoading={section.isLoading}
+                                hasMore={section.hasMore}
+                                on:select={(e) => handleCardClick(e.detail)}
+                                on:loadMore={() => handleLoadMore(section.sectionKey)}
+                            />
+                        {/if}
+                    {/each}
+                {/if}
             {:else}
                 <!-- LIST VIEW (Character / Story / Filtered) -->
                 <section class="hub-section full-height">
@@ -1465,6 +1515,68 @@
     }
     .hub-section.full-height {
         height: 100%;
+    }
+
+    .home-skeleton {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .skeleton-section {
+        overflow: hidden;
+    }
+
+    .skeleton-title {
+        width: var(--skeleton-title-width, 9.5rem);
+        max-width: 70%;
+        height: 1.35rem;
+        border-radius: 999px;
+        background:
+            linear-gradient(
+                90deg,
+                color-mix(in srgb, var(--card) 82%, transparent) 0%,
+                color-mix(in srgb, var(--muted) 70%, transparent) 50%,
+                color-mix(in srgb, var(--card) 82%, transparent) 100%
+            );
+        background-size: 200% 100%;
+        animation: skeleton-shimmer 1.4s ease-in-out infinite;
+    }
+
+    .skeleton-carousel {
+        display: flex;
+        gap: 0.5rem;
+        overflow: hidden;
+        padding-top: 0.45rem;
+        padding-right: 1.5rem;
+        padding-bottom: 1rem;
+        margin-top: -0.45rem;
+        min-height: 276px;
+    }
+
+    .skeleton-card {
+        flex: 0 0 200px;
+        width: 200px;
+        align-self: stretch;
+    }
+
+    .skeleton-card.is-dim {
+        opacity: 0.72;
+    }
+
+    .skeleton-card-media {
+        width: 100%;
+        aspect-ratio: 9 / 11;
+        border-radius: var(--radius-card);
+        background:
+            linear-gradient(
+                120deg,
+                color-mix(in srgb, var(--card) 90%, transparent) 0%,
+                color-mix(in srgb, var(--muted) 74%, transparent) 52%,
+                color-mix(in srgb, var(--card) 90%, transparent) 100%
+            );
+        background-size: 220% 100%;
+        box-shadow: var(--media-card-shadow);
+        animation: skeleton-shimmer 1.4s ease-in-out infinite;
     }
 
     .section-header {
@@ -1788,6 +1900,17 @@
         .hub-section {
             padding-left: 1rem;
         }
+
+        .skeleton-carousel {
+            min-height: 228px;
+            padding-right: 1rem;
+        }
+
+        .skeleton-card {
+            flex-basis: 160px;
+            width: 160px;
+        }
+
         .left-controls {
             padding-left: 1rem;
             width: 100%;
@@ -1815,6 +1938,16 @@
         }
         .nav-tab {
             font-size: 1rem;
+        }
+    }
+
+    @keyframes skeleton-shimmer {
+        0% {
+            background-position: 100% 0;
+        }
+
+        100% {
+            background-position: -100% 0;
         }
     }
 </style>
