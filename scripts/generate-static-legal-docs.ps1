@@ -1,4 +1,4 @@
-﻿Set-StrictMode -Version Latest
+Set-StrictMode -Version Latest
 $ErrorActionPreference = "Stop"
 
 $projectRoot = Split-Path -Parent $PSScriptRoot
@@ -110,13 +110,13 @@ $Alternates
     <meta property="og:url" content="$CanonicalUrl" />
     <meta property="og:title" content="$Title" />
     <meta property="og:description" content="$Description" />
-    <meta property="og:image" content="https://personaxi.com/og-image.png" />
+    <meta property="og:image" content="https://personaxi.com/og-image-v3.png" />
     <meta property="og:site_name" content="PersonaXi" />
     <meta property="og:locale" content="$($meta.Locale)" />
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content="$Title" />
     <meta name="twitter:description" content="$Description" />
-    <meta name="twitter:image" content="https://personaxi.com/og-image.png" />
+    <meta name="twitter:image" content="https://personaxi.com/og-image-v3.png" />
     <link rel="icon" href="/favicon.png" />
     <style>
         :root {
@@ -466,3 +466,4 @@ foreach ($doc in $localizedStaticDocs) {
             -Lang $lang
     }
 }
+

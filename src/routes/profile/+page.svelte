@@ -744,7 +744,7 @@
         <meta
             property="og:image"
             content={persona.portrait_url ||
-                "https://personaxi.com/og-image.png"}
+                "https://personaxi.com/og-image-v3.png"}
         />
         <meta
             property="og:url"
@@ -755,7 +755,7 @@
         <meta
             name="twitter:image"
             content={persona.portrait_url ||
-                "https://personaxi.com/og-image.png"}
+                "https://personaxi.com/og-image-v3.png"}
         />
     {:else}
         <title>Profile - PXI</title>
@@ -3024,3 +3024,4 @@
         }
     }
 </style>
+
