@@ -51,7 +51,14 @@ export function createLive2DInteractionControl({
             detach = null;
         }
 
+        model.interactive = true;
         model.buttonMode = true;
+        if ("eventMode" in model) {
+            model.eventMode = "static";
+        }
+        if ("cursor" in model) {
+            model.cursor = "grab";
+        }
 
         const pointerDown = (event: any) => {
             isPointerDown = true;

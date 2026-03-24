@@ -1,6 +1,6 @@
 # Worldview & Story
 
-Individual characters in PersonaXi come together to form a massive **Multiverse**. 🌌
+Individual characters in PXI come together to form a massive **Multiverse**. 🌌
 
 ## 🧩 Connected Universe
 
@@ -10,10 +10,11 @@ Characters may have relationships with each other.
 
 ## 📚 Original Stories
 
-Official characters have their own unique stories within PersonaXi.
+Official characters have their own unique stories within PXI.
 Uncover their pasts and secrets through conversation.
 
 > [!TIP]
 > **Crossover (Coming Soon)**
 > We are updating Story Chat to allow inviting multiple characters at once.
 > Imagine your favorite characters meeting each other—what would they talk about?
+

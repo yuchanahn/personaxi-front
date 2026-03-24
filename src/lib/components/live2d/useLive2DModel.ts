@@ -158,6 +158,22 @@ export async function loadLive2DModel({
     return { model, hitAreaKeys };
 }
 
+function getRawSettingsJson(settings: any) {
+    if (settings?.json && typeof settings.json === "object") return settings.json;
+    if (settings?._json && typeof settings._json === "object") return settings._json;
+    return null;
+}
+
+function getExpressionEntries(settings: any): any[] {
+    const rawJson = getRawSettingsJson(settings);
+    const entries =
+        settings?.FileReferences?.Expressions ||
+        rawJson?.FileReferences?.Expressions ||
+        settings?.expressions ||
+        rawJson?.expressions;
+    return Array.isArray(entries) ? entries : [];
+}
+
 export function collectAvailableExpressions(model: any): string[] {
     const found = new Set<string>();
 
@@ -166,25 +182,15 @@ export function collectAvailableExpressions(model: any): string[] {
     }
 
     const settings = model?.internalModel?.settings;
-    if (settings?.FileReferences?.Expressions) {
-        const expressions = settings.FileReferences.Expressions;
-        if (Array.isArray(expressions)) {
-            expressions.forEach((expr: any) => {
-                if (expr.Name) {
-                    found.add(expr.Name);
-                } else if (expr.File) {
-                    found.add(
-                        expr.File.split("/").pop().replace(".exp3.json", ""),
-                    );
-                }
-            });
+    getExpressionEntries(settings).forEach((expr: any) => {
+        if (expr.name) found.add(expr.name);
+        else if (expr.Name) found.add(expr.Name);
+        else if (expr.file) {
+            found.add(expr.file.split("/").pop().replace(/\.exp3\.json$/i, ""));
+        } else if (expr.File) {
+            found.add(expr.File.split("/").pop().replace(/\.exp3\.json$/i, ""));
         }
-    } else if (Array.isArray(settings?.expressions)) {
-        settings.expressions.forEach((expr: any) => {
-            if (expr.name) found.add(expr.name);
-            else if (expr.Name) found.add(expr.Name);
-        });
-    }
+    });
 
     return Array.from(found);
 }
@@ -241,17 +247,14 @@ export async function applyPermanentExpressions(
 
     for (const exprName of expressions) {
         let file = "";
-        if (settings?.FileReferences?.Expressions) {
-            const found = settings.FileReferences.Expressions.find(
-                (expr: any) => expr.Name === exprName || expr.File?.includes(exprName),
-            );
-            if (found) file = found.File;
-        } else if (Array.isArray(settings?.expressions)) {
-            const found = settings.expressions.find(
-                (expr: any) => expr.name === exprName || expr.Name === exprName,
-            );
-            if (found) file = found.file || found.File || "";
-        }
+        const found = getExpressionEntries(settings).find(
+            (expr: any) =>
+                expr.name === exprName ||
+                expr.Name === exprName ||
+                expr.file?.includes?.(exprName) ||
+                expr.File?.includes?.(exprName),
+        );
+        if (found) file = found.file || found.File || "";
 
         if (!file) continue;
 

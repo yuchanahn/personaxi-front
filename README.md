@@ -1,207 +1,68 @@
-<div align="center">
-  <img src="static/logo.png" alt="PersonaXi" width="120" height="120" />
-  
-  # PersonaXi — AI Persona Platform (VRM + Live2D, Real-time Voice Chat)
-  **Create 2D & 3D AI characters, talk by voice, and share or monetize your persona.**
+# PXI Frontend
 
-  ### VRM 3D? Live2D 2D? Chat with both in one place with AI! 🔥
+This frontend powers the public PXI experience.
 
-  [🇺🇸 English](README.md) | [🇰🇷 한국어](README.ko.md)
-  
-  <br/>
+## Brand Summary
 
-  <a href="https://personaxi.com">
-    <img src="https://img.shields.io/badge/🚀_Try_Now-FF6B6B?style=for-the-badge" />
-  </a>
-  <a href="https://personaxi.com/hub">
-    <img src="https://img.shields.io/badge/👥_Explore_Characters-4ECDC4?style=for-the-badge" />
-  </a>
-  
-  ---
-  
-  <sub>
-  Note: We support both **VRM (3D)** and **Live2D (2D)** avatars with live voice chat in one service. Public web docs currently available: FAQ and Welcome pages.
-  </sub>
-</div>
+- Main message: `원하는 대로 표현하는 AI 채팅`
+- Support line: `상태창, Live2D, VRM까지. 캐릭터가 보이는 방식을 직접 디자인할 수 있는 유일한 AI 채팅 플랫폼.`
+- Public brand: `PXI`
+- Legal / operational name: `PersonaXi`
 
----
+## Stack
 
-## 🔥 Looking for this?
+- SvelteKit
+- `@sveltejs/adapter-static`
+- GitHub Pages deployment
+- client-side rendering for app routes
 
-### ✨ Create a VTuber AI Assistant
-- Add AI to your VTuber character and let it chat with fans 24/7
-- Just upload your VRM file
-- Customize voice, tone, and personality
+## Current Product Surfaces
 
-### 💬 Chat with Favorite Characters
-- Both 2D illustrations and 3D models come to life
-- "How was your day?", "Listen to my worries" - anything goes
-- Voice Support - Characters speak directly to you
+The frontend covers:
 
-### 🎨 Create & Share Your Character
-- Upload models created with VRoid directly
-- Live2D illustrations are also supported
-- Earn creator rewards if your character becomes popular
+- hub and profile discovery
+- 2D, Live2D, and VRM chat routes
+- creator pages
+- guide pages
+- static welcome / FAQ / legal documents
 
----
+## Local Development
 
-## 💎 Why PersonaXi?
+```bash
+npm install
+npm run dev
+```
 
-| Others | PersonaXi |
-|-----------|-----------|
-| Text Only | ✅ **Voice Conversation Support** |
-| 2D OR 3D | ✅ **Both 2D + 3D** |
-| Fixed Characters | ✅ **Create Your Own** |
-| English Only | ✅ **Full Korean/English Support** |
-| Simple Chatbot | ✅ **Expressions + Animations** |
+## Static Document Notes
 
----
+Static locale documents are generated and copied into both flat and locale-path forms.
 
-## 🌟 Top 3 Popular Characters
+Examples:
 
-### 1. 🎨 Live2D Cat Girl "Peroyang"
-> "Meow~ Will you play with me today?"
+- `/welcome.html`
+- `/faq-en.html`
+- `/ko/privacy/`
+- `/en/terms/`
 
-- 2D Live2D Animation | Cute Tone
-- Loves games and anime
-- [Chat Now →](https://personaxi.com/profile?c=ae3f9f53-3e90-4cab-9edd-7369116007b8)
+Generation script:
 
-### 2. High School Girl "Ranella"
-> "Hello~ How are you feeling today?"
+- [`scripts/generate-static-legal-docs.ps1`](./scripts/generate-static-legal-docs.ps1)
 
-- 3D VRM Model | Bright & Positive Personality
-- From daily chat to counseling
-- [Chat Now →](https://personaxi.com/profile?c=10c94bb4-f0cf-4b36-a6cd-d00685745d65)
+## Naming Rule
 
-### 3. Boyfriend & Girlfriend Characters
-> Erica | "How was your day?"
-> Dmitri | "What are you up to?"
+Use `PXI` on:
 
-- Chat with male/female characters!
-- [Chat Now (Erica) →](https://personaxi.com/profile?c=50e4c4ca-7e41-4561-9d46-2cb513a6bf73)
-- [Chat Now (Dmitri) →](https://personaxi.com/profile?c=6acbce00-12f4-4c68-b064-936ba7ba2469)
+- welcome / FAQ copy
+- global meta
+- brand-facing product descriptions
 
+Use `PersonaXi` on:
 
+- legal documents
+- operator identity
+- support email / domain references
 
-[See More Characters →](https://personaxi.com/hub)
+## Related Docs
 
----
-
-## 🎁 Join Now
-
-- ✅ First Character Creation **FREE**
-- ✅ Daily Chat Credits **FREE Refill**
-- ✅ Unlimited Trial of Popular Characters (Limited Time)
-
-<div align="center">
-  <a href="https://personaxi.com/login">
-    <img src="https://img.shields.io/badge/🚀_Start_in_1_Minute-FF6B6B?style=for-the-badge&logo=rocket&logoColor=white&height=50" />
-  </a>
-</div>
-
----
-
-## 💬 User Reviews
-
-> "Feels like talking to a real character! The voice gave me goosebumps."  
-> ⭐⭐⭐⭐⭐ - VTuber aspirant KimOO
-
-> "Uploaded my VRoid model and it moved instantly. No coding needed."  
-> ⭐⭐⭐⭐⭐ - 3D Modeler LeeOO
-
-> "Struggled to find a place that supports both Live2D and VRM, found the answer here."  
-> ⭐⭐⭐⭐⭐ - AI Chat User ParkOO
-
----
-
-## 🎓 Start in 5 Minutes
-
-### Step 1: Choose or Create
-- Try popular characters OR
-- Create your own (Upload VRM/Live2D)
-
-### Step 2: Set Personality
-- Input tone, personality, interests
-- AI automatically generates the persona
-
-### Step 3: Start Chatting!
-- Chat with text or voice
-- Characters react in real-time
-
----
-
-## ❓ FAQ
-
-<details>
-<summary><b>Is it free?</b></summary>
-<br>
-Basic features are free!  
-- Get free Neurons (chat credits) upon signup!
-- Unlimited character creation!
-</details>
-
-<details>
-<summary><b>What file formats are supported?</b></summary>
-<br>
-- **VRM** (VRoid Studio, Vket, etc.)
-- **Live2D** (.model3.json)
-- PNG/JPG Illustrations (AI auto-animation coming soon)
-</details>
-
-<details>
-<summary><b>Can I use it commercially?</b></summary>
-<br>
-Creators can earn points!
-Please check the repository policy documents below for details.
-</details>
-
----
-
-## 🔗 Links
-
-- 🌐 [PersonaXi Website](https://personaxi.com)
-- ❓ [FAQ](https://personaxi.com/faq.html)
-- 👋 [Welcome](https://personaxi.com/welcome.html)
-- 💬 [Discord Community](https://discord.gg/v88p26Fpmc)
-
-## Legal & Policy
-- Terms of Service: https://personaxi.com/terms.html
-- Privacy Policy: https://personaxi.com/privacy.html
-- Terms source (repo): [src/lib/i18n/locales/en/terms.md](src/lib/i18n/locales/en/terms.md)
-- Privacy source (repo): [src/lib/i18n/locales/en/policy.md](src/lib/i18n/locales/en/policy.md)
-
----
-
-<div align="center">
-  
-  ### 🚀 Start Right Now!
-  
-  <a href="https://personaxi.com">
-    <img src="https://img.shields.io/badge/Try_PersonaXi-FF6B6B?style=for-the-badge&logo=rocket&logoColor=white" height="60"/>
-  </a>
-  
-  <br/><br/>
-  
-  <sub>
-  💌 Contact: contact@personaxi.com
-  </sub>
-  
-  <br/><br/>
-  
-  <img src="https://img.shields.io/badge/🇰🇷_Made_in_Korea-white?style=flat-square" />
-  
-</div>
-
----
-
-## Credits & Licenses
-
-This project uses the following open-source software and proprietary technologies:
-
-- **Live2D Cubism SDK** (Proprietary License) - Copyright (c) Live2D Inc.
-- **Three.js** & **@pixiv/three-vrm** (MIT License)
-- **Svelte** & **SvelteKit** (MIT License)
-- **FFmpeg** (LGPL/GPL)
-
-For a full list of third-party licenses, please refer to the [Licenses Page](src/lib/i18n/locales/en/licenses.md) or the in-app menu.
-
+- Root overview: [../README.md](../README.md)
+- Branding guide: [../docs/branding-guide.md](../docs/branding-guide.md)

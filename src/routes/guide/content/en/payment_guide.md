@@ -1,9 +1,9 @@
 # Payment & Neurons
 
-Guide to **'Neurons'**, the currency of PersonaXi. 💎
+Guide to **'Neurons'**, the currency of PXI. 💎
 
 ## 🧠 What are Neurons?
-The virtual currency used in the PersonaXi ecosystem.
+The virtual currency used in the PXI ecosystem.
 Inspired by brain cells, symbolizing connection with AI.
 
 ### Main Uses
@@ -22,3 +22,4 @@ You can purchase Neuron packages in the `Shop` tab.
 > **Free Neurons**
 > During the Beta period, we give out bonus Neurons for **Daily Check-ins** or **Bug Reports**.
 > Don't miss out on Discord community events!
+

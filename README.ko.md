@@ -1,207 +1,66 @@
-<div align="center">
-  <img src="static/logo.png" alt="PersonaXi" width="120" height="120" />
-  
-  # PersonaXi — AI Persona Platform (VRM + Live2D, Real-time Voice Chat)
-  **Create 2D & 3D AI characters, talk by voice, and share or monetize your persona.**
+# PXI 프론트엔드
 
-  ### VRM 3D? Live2D 2D? 이제 둘 다, 한곳에서 AI로 채팅하세요. 🔥
+이 프론트엔드는 공개 서비스 **PXI**를 구동합니다.
 
-  [🇺🇸 English](README.md) | [🇰🇷 한국어](README.ko.md)
-  
-  <br/>
+## 현재 브랜드 기준
 
-  <a href="https://personaxi.com">
-    <img src="https://img.shields.io/badge/🚀_지금_체험하기-FF6B6B?style=for-the-badge" />
-  </a>
-  <a href="https://personaxi.com/hub">
-    <img src="https://img.shields.io/badge/👥_인기_캐릭터_구경-4ECDC4?style=for-the-badge" />
-  </a>
-  
-  ---
-  
-  <sub>
-  국내에서 **VRM (3D)**과 **Live2D (2D)** 아바타를 동시에 지원하며, 실시간 음성 대화가 가능한 AI 캐릭터 플랫폼입니다. (See <a href="#오픈소스-라이선스-및-크레딧">Legal & Privacy</a>)
-  </sub>
-</div>
+- 메인 문구: `원하는 대로 표현하는 AI 채팅`
+- 서브 문구: `상태창, Live2D, VRM까지. 캐릭터가 보이는 방식을 직접 디자인할 수 있는 유일한 AI 채팅 플랫폼.`
+- 공개 브랜드명: `PXI`
+- 법적 / 운영 명칭: `PersonaXi`
 
----
+## 기술 스택
 
-## 🔥 이런 거 찾고 있었어?
+- SvelteKit
+- `@sveltejs/adapter-static`
+- GitHub Pages 배포
+- 앱 라우트는 CSR 중심으로 동작
 
-### ✨ 버튜버 AI 비서 만들기
-- 내 버튜버 캐릭터에 AI 넣어서 팬들이랑 24시간 대화
-- VRM 파일 업로드만 하면 끝
-- 목소리, 말투, 성격까지 커스터마이징
+## 이 프론트가 다루는 화면
 
-### 💬 좋아하는 캐릭터랑 대화
-- 2D 일러스트도, 3D 모델도 다 움직여요
-- "오늘 뭐했어?", "고민 들어줘" 다 통함
-- 음성 지원 - 캐릭터가 직접 말해줌
+- 허브 / 프로필 탐색
+- 2D / Live2D / VRM 채팅 화면
+- 크리에이터 페이지
+- 가이드 페이지
+- 웰컴 / FAQ / 법률 정적 문서
 
-### 🎨 내 캐릭터 만들어서 공유
-- VRoid로 만든 모델 바로 업로드
-- Live2D 일러스트도 OK
-- 인기 캐릭터 만들면 크리에이터 보상
+## 로컬 개발
 
----
+```bash
+npm install
+npm run dev
+```
 
-## 💎 왜 PersonaXi인가요?
+## 정적 문서 관련
 
-| 다른 사이트 | PersonaXi |
-|-----------|-----------|
-| 텍스트만 | ✅ **음성 대화 지원** |
-| 2D 또는 3D 중 택1 | ✅ **2D + 3D 둘 다** |
-| 정해진 캐릭터만 | ✅ **직접 만들기 가능** |
-| 영어만 | ✅ **한국어 완벽 지원** |
-| 단순 챗봇 | ✅ **감정 표현 + 애니메이션** |
+정적 locale 문서는 flat 경로와 locale 경로를 함께 생성합니다.
 
----
+예:
 
-## 🌟 인기 캐릭터 TOP 3
+- `/welcome.html`
+- `/faq-en.html`
+- `/ko/privacy/`
+- `/en/terms/`
 
-### 1. 🎨 Live2D 고양이 소녀 "페로냥"
-> "냐앙~ 오늘도 놀아줄거야?"
+생성 스크립트:
 
-- 2D Live2D 애니메이션 | 귀여운 말투
-- 게임, 애니 얘기 좋아함
-- [지금 대화하기 →](https://personaxi.com/profile?c=ae3f9f53-3e90-4cab-9edd-7369116007b8)
+- [`scripts/generate-static-legal-docs.ps1`](./scripts/generate-static-legal-docs.ps1)
 
-### 2. 여고생 캐릭터 "라넬라"
-> "안녕하세요~ 오늘 기분은 어때요?"
+## 표기 원칙
 
-- 3D VRM 모델 | 밝고 긍정적 성격
-- 일상 대화부터 고민 상담까지
-- [지금 대화하기 →](https://personaxi.com/profile?c=10c94bb4-f0cf-4b36-a6cd-d00685745d65)
+`PXI`를 쓰는 곳:
 
-### 3. 남사친 여사친 캐릭터들
-> 에리카 | "오늘 뭐했어?"
-> 드미트리 | "오늘 뭐해?"
+- 웰컴 / FAQ 카피
+- 전역 메타
+- 브랜드 소개 문구
 
-- 남/녀 캐릭터와 대화 해봐요!
-- [지금 대화하기(에리카) →](https://personaxi.com/profile?c=50e4c4ca-7e41-4561-9d46-2cb513a6bf73)
-- [지금 대화하기(드미트리) →](https://personaxi.com/profile?c=6acbce00-12f4-4c68-b064-936ba7ba2469)
+`PersonaXi`를 유지하는 곳:
 
+- 이용약관 / 개인정보처리방침 / 환불정책
+- 운영 주체 식별
+- 도메인 / 이메일 / 사업자 표기
 
+## 관련 문서
 
-[더 많은 캐릭터 보기 →](https://personaxi.com/hub)
-
----
-
-## 🎁 지금 가입하면
-
-- ✅ 첫 캐릭터 생성 **무료**
-- ✅ 뉴런(대화 크레딧) **무료 증정**
-- ✅ 인기 캐릭터 **무제한 체험** (뉴런 소모시까지)
-
-<div align="center">
-  <a href="https://personaxi.com/login">
-    <img src="https://img.shields.io/badge/🚀_1분만에_시작하기-FF6B6B?style=for-the-badge&logo=rocket&logoColor=white&height=50" />
-  </a>
-</div>
-
----
-
-## 💬 사용자 후기
-
-> "진짜 캐릭터랑 대화하는 느낌! 목소리까지 나와서 소름"  
-> ⭐⭐⭐⭐⭐ - 버튜버 지망생 김OO
-
-> "VRoid로 만든 모델 올렸더니 바로 움직여요. 개발 지식 필요 없음"  
-> ⭐⭐⭐⭐⭐ - 3D 모델러 이OO
-
-> "Live2D도 되고 VRM도 되는 곳 찾느라 고생했는데 여기가 정답"  
-> ⭐⭐⭐⭐⭐ - AI 채팅 유저 박OO
-
----
-
-## 🎓 5분 만에 시작하기
-
-### 1단계: 캐릭터 선택 또는 생성
-- 인기 캐릭터 체험 OR
-- 내 캐릭터 만들기 (VRM/Live2D 업로드)
-
-### 2단계: 성격 설정
-- 말투, 성격, 관심사 입력
-- AI가 자동으로 페르소나 생성
-
-### 3단계: 대화 시작!
-- 텍스트 또는 음성으로 대화
-- 캐릭터가 실시간 반응
-
----
-
-## ❓ 자주 묻는 질문
-
-<details>
-<summary><b>무료인가요?</b></summary>
-<br>
-기본 기능은 무료입니다!  
-- 가입시 무료 뉴런(캐릭터 채팅 이용권) 증정!
-- 캐릭터 무제한 생성!
-</details>
-
-<details>
-<summary><b>어떤 캐릭터 파일을 지원하나요?</b></summary>
-<br>
-- **VRM** (VRoid Studio, Vket 등)
-- **Live2D** (.model3.json)
-- PNG/JPG 일러스트 (AI가 자동 애니메이션 지원예정)
-</details>
-
-<details>
-<summary><b>상업적 이용 가능한가요?</b></summary>
-<br>
-크리에이터가 되면 일정량의 포인트를 얻을 수 있어요!
-자세한 내용은 아래 리포지토리 정책 문서를 확인해주세요.
-</details>
-
----
-
-## 🔗 바로가기
-
-- 🌐 [PersonaXi 웹사이트](https://personaxi.com)
-- ❓ [FAQ](https://personaxi.com/faq.html)
-- 👋 [Welcome](https://personaxi.com/welcome.html)
-- 💬 [Discord 커뮤니티](https://discord.gg/v88p26Fpmc)
-
-## Legal & Policy
-- 이용약관: https://personaxi.com/terms.html
-- 개인정보처리방침: https://personaxi.com/privacy.html
-- 이용약관 원문 (repo): [src/lib/i18n/locales/ko/terms.md](src/lib/i18n/locales/ko/terms.md)
-- 개인정보처리방침 원문 (repo): [src/lib/i18n/locales/ko/policy.md](src/lib/i18n/locales/ko/policy.md)
-
----
-
-<div align="center">
-  
-  ### 🚀 지금 바로 시작하세요!
-  
-  <a href="https://personaxi.com">
-    <img src="https://img.shields.io/badge/PersonaXi_체험하기-FF6B6B?style=for-the-badge&logo=rocket&logoColor=white" height="60"/>
-  </a>
-  
-  <br/><br/>
-  
-  <sub>
-  💌 문의: contact@personaxi.com
-  </sub>
-  
-  <br/><br/>
-  
-  <img src="https://img.shields.io/badge/🇰🇷_Made_in_Korea-white?style=flat-square" />
-  
-</div>
-
----
-
-## 오픈소스 라이선스 및 크레딧
-
-본 프로젝트는 다음의 오픈소스 소프트웨어 및 독점 기술을 활용합니다:
-
-- **Live2D Cubism SDK** (Proprietary License) - Copyright (c) Live2D Inc.
-- **Three.js** & **@pixiv/three-vrm** (MIT License)
-- **Svelte** & **SvelteKit** (MIT License)
-- **FFmpeg** (LGPL/GPL)
-
-전체 라이브러리 및 라이선스 목록은 [라이선스 페이지](src/lib/i18n/locales/ko/licenses.md) 또는 앱 내 메뉴에서 확인하실 수 있습니다.
-
+- 루트 개요: [../README.md](../README.md)
+- 브랜딩 가이드: [../docs/branding-guide.md](../docs/branding-guide.md)

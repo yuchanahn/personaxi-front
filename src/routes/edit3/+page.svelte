@@ -109,8 +109,12 @@
 [LOOK_UP_THINK] : Looking up (Thinking, Remembering)
 [FLINCH] : Flinching (Surprise, Fear, Pain)
 [PANT] : Panting (Exhaustion, Excitement, Heat)`;
+    const DEFAULT_LIVE2D_GESTURE_LINE_LIST =
+        DEFAULT_LIVE2D_GESTURE_ANIM_LIST.split("\n")
+            .map((line) => line.trim())
+            .filter((line) => !!line);
     const DEFAULT_LIVE2D_GESTURE_LINES = new Set(
-        DEFAULT_LIVE2D_GESTURE_ANIM_LIST.split("\n").map((line) => line.trim()),
+        DEFAULT_LIVE2D_GESTURE_LINE_LIST,
     );
 
     function stripDefaultLive2DGestureLines(text: string): string {
@@ -123,6 +127,93 @@
             (line) => !DEFAULT_LIVE2D_GESTURE_LINES.has(line),
         );
         return customOnly.join("\n").trim();
+    }
+
+    function normalizeAnimListLine(line: string): string {
+        return line.replace(/\s+/g, " ").replace(/\s*:\s*/g, " : ").trim();
+    }
+
+    function getAnimListLabel(line: string): string {
+        const match = line.trim().match(/^\[([^\]]+)\]/);
+        return match?.[1]?.trim().toLowerCase() || line.trim().toLowerCase();
+    }
+
+    function getLive2DConfigObject(rawConfig: any): Record<string, any> | null {
+        if (rawConfig && typeof rawConfig === "object") {
+            return rawConfig;
+        }
+        if (typeof rawConfig === "string") {
+            try {
+                const parsed = JSON.parse(rawConfig);
+                if (parsed && typeof parsed === "object") {
+                    return parsed;
+                }
+            } catch {
+                return null;
+            }
+        }
+        return null;
+    }
+
+    function getLive2DMotionListFromConfig(rawConfig: any): any[] {
+        const config = getLive2DConfigObject(rawConfig);
+        if (!config) return [];
+
+        if (Array.isArray(config.motion_list)) {
+            return config.motion_list;
+        }
+        if (Array.isArray(config.live2d_motion_list)) {
+            return config.live2d_motion_list;
+        }
+        return [];
+    }
+
+    function formatLive2DMotionAsAnimLine(motion: any): string {
+        if (!motion || typeof motion !== "object") return "";
+
+        const file =
+            typeof motion.file === "string" ? motion.file.trim() : "";
+        const fallbackName = file
+            ? (file.split("/").pop() || file).replace(/\.motion3\.json$/i, "")
+            : "";
+        const name =
+            typeof motion.name === "string" && motion.name.trim()
+                ? motion.name.trim()
+                : fallbackName;
+        const desc =
+            typeof motion.desc === "string" ? motion.desc.trim() : "";
+
+        if (!name) return "";
+        return desc ? `[${name}] : ${desc}` : `[${name}]`;
+    }
+
+    function mergeAnimListLines(
+        existingLines: string[],
+        motionLines: string[],
+        defaultLines: string[],
+    ): string {
+        const motionLabels = new Set(
+            motionLines.map((line) => getAnimListLabel(line)).filter((line) => !!line),
+        );
+        const preservedExisting = existingLines.filter((line) => {
+            const normalized = normalizeAnimListLine(line);
+            if (!normalized) return false;
+            return !motionLabels.has(getAnimListLabel(normalized));
+        });
+
+        const seen = new Set<string>();
+        const merged: string[] = [];
+        [...preservedExisting, ...motionLines, ...defaultLines].forEach((line) => {
+            const normalized = normalizeAnimListLine(line);
+            if (!normalized) return;
+
+            const dedupeKey = normalized.toLowerCase();
+            if (seen.has(dedupeKey)) return;
+            seen.add(dedupeKey);
+            merged.push(normalized);
+        });
+
+        return merged.join("\n");
     }
 
     $: stepLabels = [
@@ -319,10 +410,19 @@
                 typeof parsed.anim_list === "string"
                     ? parsed.anim_list.trim()
                     : "";
-            const customAnimList = stripDefaultLive2DGestureLines(currentAnimList);
-            parsed.anim_list = [customAnimList, DEFAULT_LIVE2D_GESTURE_ANIM_LIST]
-                .filter((v) => !!v)
-                .join("\n");
+            const customAnimLines = stripDefaultLive2DGestureLines(currentAnimList)
+                .split("\n")
+                .map((line) => line.trim())
+                .filter((line) => !!line);
+            const motionAnimLines = getLive2DMotionListFromConfig(p.live2d_config)
+                .map((motion) => formatLive2DMotionAsAnimLine(motion))
+                .filter((line) => !!line);
+
+            parsed.anim_list = mergeAnimListLines(
+                customAnimLines,
+                motionAnimLines,
+                DEFAULT_LIVE2D_GESTURE_LINE_LIST,
+            );
             p.first_scene = JSON.stringify(parsed, null, 2);
         } catch {
             // Keep original if first_scene is not valid JSON.
@@ -597,6 +697,9 @@
     async function handleSave() {
         if (loading || showSuccess) return;
         error = "";
+
+        // Advanced Live2D editor changes are staged in localStorage until the main editor saves.
+        applyLive2DEditorBridgeIfExists(persona);
 
         const normalizedType = (persona.personaType || "").trim().toLowerCase();
         const isLive2DType =

@@ -432,7 +432,7 @@
                     </div>
                     <span
                         class="text-lg font-bold tracking-tight hidden sm:block"
-                        >PersonaXi</span
+                        >PXI</span
                     >
                 </a>
                 <div class="h-4 w-px bg-border mx-2 hidden sm:block"></div>
@@ -645,7 +645,7 @@
                                         <h1
                                             class="text-2xl md:text-3xl font-bold mb-2"
                                         >
-                                            PersonaXi
+                                            PXI
                                         </h1>
                                         <p
                                             class="text-white/80 text-sm font-medium tracking-wide"
@@ -900,3 +900,4 @@
         color: #ea4335;
     }
 </style>
+

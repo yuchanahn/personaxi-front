@@ -22,11 +22,26 @@ export function createLive2DMotionControl({
     const getMotionManager = (model?: Live2DModelLike | null) =>
         (model ?? getCurrentModel())?.internalModel?.motionManager;
 
+    const getRawSettingsJson = (settings: any) => {
+        if (settings?.json && typeof settings.json === "object") {
+            return settings.json;
+        }
+        if (settings?._json && typeof settings._json === "object") {
+            return settings._json;
+        }
+        return null;
+    };
+
     const cloneMotionDefinitionsFromSettings = (
         model?: Live2DModelLike | null,
     ): Record<string, any[]> | null => {
+        const settings = (model as any)?.internalModel?.settings;
+        const rawJson = getRawSettingsJson(settings);
         const motions =
-            (model as any)?.internalModel?.settings?.FileReferences?.Motions;
+            settings?.FileReferences?.Motions ||
+            rawJson?.FileReferences?.Motions ||
+            settings?.motions ||
+            rawJson?.motions;
         if (!motions || typeof motions !== "object") return null;
 
         const defs: Record<string, any[]> = {};

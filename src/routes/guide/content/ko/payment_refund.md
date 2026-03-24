@@ -2,7 +2,7 @@
 
 **최신 업데이트: 2026-02-15**
 
-PersonaXi는 전자상거래법 및 관련 법령을 준수하며, 투명한 환불 절차를 제공합니다.
+PXI는 전자상거래법 및 관련 법령을 준수하며, 투명한 환불 절차를 제공합니다.
 
 ## 1. 청약철회(결제 취소) 기준
 
@@ -30,5 +30,5 @@ PersonaXi는 전자상거래법 및 관련 법령을 준수하며, 투명한 환
 
 > [!IMPORTANT]
 > **공식 고객센터**
-> * 📧 이메일: [support@personaxi.com](mailto:support@personaxi.com)
+> * 📧 이메일: [support@PXI.com](mailto:support@PXI.com)
 > * 상담 가능 시간: 평일 10:00 ~ 18:00

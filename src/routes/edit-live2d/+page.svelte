@@ -3,7 +3,12 @@
     import { onDestroy, onMount, tick } from "svelte";
     import Icon from "@iconify/svelte";
     import PxlAdvancedViewer from "$lib/components/live2d/PxlAdvancedViewer.svelte";
-    import type { Live2DMotionInfo } from "$lib/components/live2d/PxlAdvancedViewer.svelte";
+    import type {
+        Live2DBodyPhysicsLinkSummary,
+        Live2DMotionInfo,
+        Live2DParameterSlotSupport,
+        Live2DParameterSupportSummary,
+    } from "$lib/components/live2d/PxlAdvancedViewer.svelte";
     import { toast } from "$lib/stores/toast";
     import { page } from "$app/stores";
     import { loadPersonaOriginal } from "$lib/api/edit_persona";
@@ -117,6 +122,10 @@
         "CALM",
     ] as const;
     type EmotionMapKey = (typeof emotionMapKeys)[number];
+    const parameterGroups = ["head", "body"] as const;
+    type ParameterGroup = (typeof parameterGroups)[number];
+    const parameterAxes = ["x", "y", "z"] as const;
+    type ParameterAxis = (typeof parameterAxes)[number];
     type SceneMotionItem = { name: string; file: string; desc: string };
     let sceneExpressionMap: Record<EmotionMapKey, string> = {
         ELATED: "",
@@ -129,6 +138,8 @@
     };
     let scenePermanentExpressions: string[] = [];
     let sceneMotionList: SceneMotionItem[] = [];
+    let parameterSupport = createEmptyParameterSupport();
+    let bodyPhysicsLinks = createEmptyBodyPhysicsLinks();
 
     const emotionOptions = [
         "CALM",
@@ -156,6 +167,127 @@
         "FLINCH",
         "PANT",
     ];
+
+    function createEmptyParameterSupport(): Live2DParameterSupportSummary {
+        return {
+            head: {
+                x: {
+                    canonicalId: "ParamAngleX",
+                    resolvedId: null,
+                    supported: false,
+                },
+                y: {
+                    canonicalId: "ParamAngleY",
+                    resolvedId: null,
+                    supported: false,
+                },
+                z: {
+                    canonicalId: "ParamAngleZ",
+                    resolvedId: null,
+                    supported: false,
+                },
+            },
+            body: {
+                x: {
+                    canonicalId: "ParamBodyAngleX",
+                    resolvedId: null,
+                    supported: false,
+                },
+                y: {
+                    canonicalId: "ParamBodyAngleY",
+                    resolvedId: null,
+                    supported: false,
+                },
+                z: {
+                    canonicalId: "ParamBodyAngleZ",
+                    resolvedId: null,
+                    supported: false,
+                },
+            },
+        };
+    }
+
+    function createEmptyBodyPhysicsLinks(): Live2DBodyPhysicsLinkSummary {
+        return {
+            x: {
+                linked: false,
+                bodyParamId: null,
+                sourceParamIds: [],
+                physicsSettingIds: [],
+            },
+            y: {
+                linked: false,
+                bodyParamId: null,
+                sourceParamIds: [],
+                physicsSettingIds: [],
+            },
+            z: {
+                linked: false,
+                bodyParamId: null,
+                sourceParamIds: [],
+                physicsSettingIds: [],
+            },
+        };
+    }
+
+    function getParameterSlot(
+        group: ParameterGroup,
+        axis: ParameterAxis,
+    ): Live2DParameterSlotSupport {
+        return parameterSupport[group][axis];
+    }
+
+    function getParameterSlotLabel(slot: Live2DParameterSlotSupport): string {
+        return slot.resolvedId || slot.canonicalId;
+    }
+
+    function getParameterAxisLabel(axis: ParameterAxis): string {
+        return axis.toUpperCase();
+    }
+
+    function countSupportedParameters(
+        group: ParameterGroup,
+    ): number {
+        return parameterAxes.filter((axis) => getParameterSlot(group, axis).supported)
+            .length;
+    }
+
+    function isBodyAxisPhysicsLinked(axis: ParameterAxis): boolean {
+        return bodyPhysicsLinks[axis].linked;
+    }
+
+    function countPhysicsLinkedBodyAxes(): number {
+        return parameterAxes.filter((axis) => isBodyAxisPhysicsLinked(axis)).length;
+    }
+
+    function isBodyCalibrationLocked(): boolean {
+        const supportedAxes = countSupportedParameters("body");
+        return (
+            supportedAxes > 0 &&
+            countPhysicsLinkedBodyAxes() >= supportedAxes
+        );
+    }
+
+    function getBodyAxisLinkLabel(axis: ParameterAxis): string {
+        const link = bodyPhysicsLinks[axis];
+        if (!link.linked) return "";
+        const sources = link.sourceParamIds.join(", ");
+        return sources ? `${sources} -> ${link.bodyParamId}` : (link.bodyParamId || "");
+    }
+
+    function getBodySupportMessage(): string {
+        if (isBodyCalibrationLocked()) {
+            return "This model exposes body params, but they are physics-linked to head angles. Body calibration is disabled because the rig overwrites those values.";
+        }
+        const count = countSupportedParameters("body");
+        if (count === 3) {
+            return "Body X/Y/Z params are present. Drag the model on the left to verify the response range.";
+        }
+        if (count > 0) {
+            return "Only some body params exist on this model. Missing axes will ignore the Body X/Y/Z sliders.";
+        }
+        return "This model does not expose ParamBodyAngleX/Y/Z or the known body aliases, so Body X/Y/Z sliders will not visibly affect it.";
+    }
 
     function normalizePxlState(raw: any): Pxl2DMapping {
         const normalizedMotions: Record<
@@ -320,7 +452,9 @@
             },
         };
         localStorage.setItem(getBridgeKey(personaId), JSON.stringify(payload));
-        toast.success("Live2D settings saved");
+        toast.success(
+            "Live2D settings staged locally. Save the persona in the main editor to persist to DB.",
+        );
         goto(returnPath);
     }
 
@@ -493,6 +627,7 @@
 
     async function load_persona(id: string) {
         isLoading = true;
+        parameterSupport = createEmptyParameterSupport();
         try {
             const p = await loadPersonaOriginal(id);
             persona = p;
@@ -629,6 +764,10 @@
 
     function loadSceneFieldsFromPersona(p: Persona) {
         let cfg: any = null;
+        let hasConfigExpressionMap = false;
+        let hasConfigMotionList = false;
+        let hasConfigPermanentExpressions = false;
+        let hasConfigEditorConfig = false;
         if (p.live2d_config && typeof p.live2d_config === "object") {
             cfg = p.live2d_config;
         } else if (typeof p.live2d_config === "string") {
@@ -647,6 +786,7 @@
                       ? cfg.live2d_expression_map
                       : null;
             if (expressionMap) {
+                hasConfigExpressionMap = true;
                 sceneExpressionMap = {
                     ...sceneExpressionMap,
                     ...expressionMap,
@@ -659,6 +799,7 @@
                   ? cfg.live2d_motion_list
                   : null;
             if (motionList) {
+                hasConfigMotionList = true;
                 sceneMotionList = motionList.filter(
                     (m: any) => m && typeof m === "object",
                 );
@@ -670,6 +811,7 @@
                   ? cfg.live2d_permanent_expressions
                   : null;
             if (permanentExpressions) {
+                hasConfigPermanentExpressions = true;
                 scenePermanentExpressions = permanentExpressions.filter(
                     (v: any) => typeof v === "string",
                 );
@@ -683,6 +825,7 @@
                       ? cfg.live2d_editor_config
                       : null;
             if (editorConfig) {
+                hasConfigEditorConfig = true;
                 pxlState = normalizePxlState(editorConfig);
             }
         }
@@ -690,21 +833,32 @@
         if (!p.first_scene?.trim()) return;
         try {
             const obj = JSON.parse(p.first_scene);
-            if (obj?.live2d_expression_map && typeof obj.live2d_expression_map === "object") {
+            if (
+                !hasConfigExpressionMap &&
+                obj?.live2d_expression_map &&
+                typeof obj.live2d_expression_map === "object"
+            ) {
                 sceneExpressionMap = {
                     ...sceneExpressionMap,
                     ...obj.live2d_expression_map,
                 };
             }
-            if (Array.isArray(obj?.live2d_motion_list)) {
+            if (!hasConfigMotionList && Array.isArray(obj?.live2d_motion_list)) {
                 sceneMotionList = obj.live2d_motion_list.filter((m: any) => m && typeof m === "object");
             }
-            if (Array.isArray(obj?.live2d_permanent_expressions)) {
+            if (
+                !hasConfigPermanentExpressions &&
+                Array.isArray(obj?.live2d_permanent_expressions)
+            ) {
                 scenePermanentExpressions = obj.live2d_permanent_expressions.filter(
                     (v: any) => typeof v === "string",
                 );
             }
-            if (obj?.live2d_editor_config && typeof obj.live2d_editor_config === "object") {
+            if (
+                !hasConfigEditorConfig &&
+                obj?.live2d_editor_config &&
+                typeof obj.live2d_editor_config === "object"
+            ) {
                 pxlState = normalizePxlState(obj.live2d_editor_config);
             }
         } catch {
@@ -730,6 +884,8 @@
                         onMetadataLoaded={(detail) => {
                             availableExpressions = detail.expressions;
                             availableMotions = detail.motions;
+                            parameterSupport = detail.parameterSupport;
+                            bodyPhysicsLinks = detail.bodyPhysicsLinks;
 
                             // Initialize state slots for new motions
                             availableMotions.forEach((m: any) => {
@@ -773,7 +929,7 @@
                         >Back</button
                     >
                     <button on:click={saveBridgeConfigAndReturn}
-                        >Save & Return</button
+                        >Save Locally & Return</button
                     >
                 </div>
             </div>
@@ -1098,9 +1254,72 @@
                 <div class="runtime-panel">
                     <h3>Runtime Controls</h3>
                     <p class="desc">
-                        Test emotion, gesture, and global sensitivity in real
-                        time.
+                        Test emotion, gesture, and sensitivity in real time.
+                        Drag the model on the left preview to verify live head
+                        and body response.
                     </p>
+
+                    <div class="runtime-section">
+                        <h4>Parameter Support</h4>
+                        <p class="runtime-note">
+                            Some Live2D models simply do not expose body
+                            parameters. In that case the body sliders are not
+                            broken; the rig has nothing for them to drive.
+                        </p>
+                        <div class="param-support-grid">
+                            {#each parameterGroups as group}
+                                <div class="param-support-card">
+                                    <div class="param-support-title">
+                                        {group === "head"
+                                            ? "Head Params"
+                                            : "Body Params"}
+                                    </div>
+                                    {#each parameterAxes as axis}
+                                        {@const slot = getParameterSlot(group, axis)}
+                                        <div
+                                            class="param-support-row"
+                                            class:missing={!slot.supported}
+                                            class:physics-linked={group === "body" &&
+                                                slot.supported &&
+                                                isBodyAxisPhysicsLinked(axis)}
+                                        >
+                                            <span
+                                                >{group === "head"
+                                                    ? `Head ${getParameterAxisLabel(
+                                                          axis,
+                                                      )}`
+                                                    : `Body ${getParameterAxisLabel(
+                                                          axis,
+                                                      )}`}</span
+                                            >
+                                            <code
+                                                >{slot.supported
+                                                    ? getParameterSlotLabel(
+                                                          slot,
+                                                      )
+                                                    : "missing"}</code
+                                            >
+                                        </div>
+                                        {#if group === "body" &&
+                                            slot.supported &&
+                                            isBodyAxisPhysicsLinked(axis)}
+                                            <div class="param-support-meta">
+                                                physics: {getBodyAxisLinkLabel(
+                                                    axis,
+                                                )}
+                                            </div>
+                                        {/if}
+                                    {/each}
+                                </div>
+                            {/each}
+                        </div>
+                        <p
+                            class="runtime-warning"
+                            class:ok={countSupportedParameters("body") === 3}
+                        >
+                            {getBodySupportMessage()}
+                        </p>
+                    </div>
 
                     <div class="runtime-section">
                         <h4>Global Sensitivity</h4>
@@ -1256,7 +1475,17 @@
 
                     <div class="runtime-section">
                         <h4>Body Calibration (X/Y/Z)</h4>
-                        <div class="calib-grid">
+                        {#if isBodyCalibrationLocked()}
+                            <p class="runtime-warning">
+                                This model's body params are driven by head-angle
+                                physics. Use head calibration instead.
+                            </p>
+                        {/if}
+                        <fieldset
+                            class="calib-fieldset"
+                            disabled={isBodyCalibrationLocked()}
+                        >
+                            <div class="calib-grid">
                             <label class="calib-item">
                                 <span>Body X Gain</span>
                                 <input
@@ -1451,7 +1680,8 @@
                                 />
                                 <small>{pxlState.settings.bodyZMax.toFixed(0)}</small>
                             </label>
-                        </div>
+                            </div>
+                        </fieldset>
                     </div>
 
                     <div class="runtime-section">
@@ -1826,6 +2056,13 @@
         line-height: 1.4;
     }
 
+    .runtime-note {
+        margin: 0;
+        font-size: 0.82rem;
+        color: #a6a6a6;
+        line-height: 1.45;
+    }
+
     .runtime-section {
         background: #252525;
         border: 1px solid #383838;
@@ -1840,6 +2077,83 @@
         margin: 0;
         font-size: 0.9rem;
         color: #ddd;
+    }
+
+    .param-support-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 0.6rem;
+    }
+
+    .param-support-card {
+        background: #1f1f1f;
+        border: 1px solid #323232;
+        border-radius: 8px;
+        padding: 0.7rem;
+        display: flex;
+        flex-direction: column;
+        gap: 0.45rem;
+    }
+
+    .param-support-title {
+        font-size: 0.8rem;
+        font-weight: 600;
+        color: #dedede;
+    }
+
+    .param-support-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 0.6rem;
+        font-size: 0.77rem;
+        color: #c9c9c9;
+    }
+
+    .param-support-row.missing {
+        color: #ff9b9b;
+    }
+
+    .param-support-row.physics-linked {
+        color: #ffd89a;
+    }
+
+    .param-support-row code {
+        font-size: 0.74rem;
+        color: #a99dff;
+        word-break: break-all;
+        text-align: right;
+    }
+
+    .param-support-row.missing code {
+        color: #ff8f8f;
+    }
+
+    .param-support-row.physics-linked code {
+        color: #ffd089;
+    }
+
+    .param-support-meta {
+        font-size: 0.7rem;
+        color: #a8a8a8;
+        word-break: break-all;
+    }
+
+    .runtime-warning {
+        margin: 0;
+        padding: 0.7rem 0.85rem;
+        border-radius: 8px;
+        background: rgba(255, 125, 125, 0.08);
+        border: 1px solid rgba(255, 125, 125, 0.22);
+        color: #ffb0b0;
+        font-size: 0.8rem;
+        line-height: 1.45;
+    }
+
+    .runtime-warning.ok {
+        background: rgba(86, 196, 120, 0.08);
+        border-color: rgba(86, 196, 120, 0.2);
+        color: #9be7b0;
     }
 
     .sensitivity-row {
@@ -1881,6 +2195,17 @@
         display: grid;
         grid-template-columns: repeat(2, minmax(0, 1fr));
         gap: 0.6rem;
+    }
+
+    .calib-fieldset {
+        margin: 0;
+        padding: 0;
+        border: 0;
+        min-width: 0;
+    }
+
+    .calib-fieldset:disabled {
+        opacity: 0.55;
     }
 
     .calib-item {

@@ -1,6 +1,6 @@
 # Delete Account
 
-Leaving PersonaXi? 😢
+Leaving PXI? 😢
 We will wait for your return. Please check the following before you go.
 
 ## ⚠️ Important Warning
@@ -20,4 +20,5 @@ We will wait for your return. Please check the following before you go.
 
 > [!IMPORTANT]
 > **Before you go...**
-> If you had any issues using the service, please leave feedback via [Support](mailto:support@personaxi.com) or our community instead of leaving. We strive to be better.
+> If you had any issues using the service, please leave feedback via [Support](mailto:support@PXI.com) or our community instead of leaving. We strive to be better.
+

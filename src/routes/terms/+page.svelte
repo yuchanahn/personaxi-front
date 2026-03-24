@@ -23,7 +23,7 @@
 </script>
 
 <svelte:head>
-    <title>{$t("terms.pageTitle")}</title>
+    <title>Terms of Service - PersonaXi</title>
 </svelte:head>
 
 <div class="terms-container">

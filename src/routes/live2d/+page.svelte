@@ -331,6 +331,58 @@
                         }
 
                         const motionByAliasOrFile: Record<string, string> = {};
+                        const expressionByAliasOrFile: Record<string, string> = {};
+                        const registerExpressionCandidate = (
+                            key: string,
+                            resolved: string,
+                        ) => {
+                            const trimmedKey =
+                                typeof key === "string" ? key.trim() : "";
+                            const trimmedResolved =
+                                typeof resolved === "string"
+                                    ? resolved.trim()
+                                    : "";
+                            if (!trimmedKey || !trimmedResolved) return;
+
+                            expressionByAliasOrFile[trimmedKey] = trimmedResolved;
+
+                            const base =
+                                trimmedKey.split("/").pop() || trimmedKey;
+                            expressionByAliasOrFile[base] = trimmedResolved;
+
+                            const stem = base.replace(
+                                /\.(exp3|exp)\.json$/i,
+                                "",
+                            );
+                            if (stem) {
+                                expressionByAliasOrFile[stem] = trimmedResolved;
+                            }
+                        };
+
+                        const resolveExpressionFile = (value: string) => {
+                            const trimmed =
+                                typeof value === "string" ? value.trim() : "";
+                            if (!trimmed) return "";
+
+                            if (expressionByAliasOrFile[trimmed]) {
+                                return expressionByAliasOrFile[trimmed];
+                            }
+
+                            const base = trimmed.split("/").pop() || trimmed;
+                            if (expressionByAliasOrFile[base]) {
+                                return expressionByAliasOrFile[base];
+                            }
+
+                            const stem = base.replace(
+                                /\.(exp3|exp)\.json$/i,
+                                "",
+                            );
+                            if (expressionByAliasOrFile[stem]) {
+                                return expressionByAliasOrFile[stem];
+                            }
+
+                            return "";
+                        };
                         if (
                             cfgEditor?.motions &&
                             typeof cfgEditor.motions === "object"
@@ -357,6 +409,76 @@
                             );
                         }
 
+                        const editorExpressionAliases =
+                            cfgEditor?.expressionAliases &&
+                            typeof cfgEditor.expressionAliases === "object"
+                                ? cfgEditor.expressionAliases
+                                : {};
+
+                        Object.entries(editorExpressionAliases).forEach(
+                            ([source, alias]: [string, any]) => {
+                                if (
+                                    typeof source !== "string" ||
+                                    !source.trim()
+                                )
+                                    return;
+
+                                registerExpressionCandidate(source, source);
+
+                                if (
+                                    typeof alias === "string" &&
+                                    alias.trim()
+                                ) {
+                                    registerExpressionCandidate(
+                                        alias,
+                                        source.trim(),
+                                    );
+                                }
+                            },
+                        );
+
+                        if (
+                            cfgEditor?.expressions &&
+                            typeof cfgEditor.expressions === "object"
+                        ) {
+                            Object.entries(cfgEditor.expressions).forEach(
+                                ([name, file]: [string, any]) => {
+                                    if (
+                                        typeof file !== "string" ||
+                                        !file.trim()
+                                    )
+                                        return;
+
+                                    const resolved = file.trim();
+                                    registerExpressionCandidate(resolved, resolved);
+
+                                    if (
+                                        typeof name === "string" &&
+                                        name.trim()
+                                    ) {
+                                        registerExpressionCandidate(
+                                            name,
+                                            resolved,
+                                        );
+                                    }
+
+                                    const alias =
+                                        typeof editorExpressionAliases[name] ===
+                                        "string"
+                                            ? editorExpressionAliases[
+                                                  name
+                                              ].trim()
+                                            : "";
+                                    if (alias) {
+                                        registerExpressionCandidate(
+                                            alias,
+                                            resolved,
+                                        );
+                                    }
+                                },
+                            );
+                        }
+
                         const registerMotion = (name: string, file: string) => {
                             const key =
                                 typeof name === "string" ? name.trim() : "";
@@ -366,10 +488,42 @@
                             motionMap[key] = resolvedFile;
                         };
 
+                        const registerExpression = (
+                            name: string,
+                            file: string,
+                        ) => {
+                            const key =
+                                typeof name === "string" ? name.trim() : "";
+                            const resolvedFile =
+                                typeof file === "string" ? file.trim() : "";
+                            if (!key || !resolvedFile) return;
+                            expressionMap[key] = resolvedFile;
+                        };
+
                         if (cfgMotionList) {
                             cfgMotionList.forEach((m: any) => {
                                 if (!m?.name || !m?.file) return;
-                                let resolved = m.file;
+                                const rawFile =
+                                    typeof m.file === "string"
+                                        ? m.file.trim()
+                                        : "";
+                                if (!rawFile) return;
+
+                                const resolvedExpression =
+                                    resolveExpressionFile(rawFile);
+                                if (
+                                    resolvedExpression ||
+                                    rawFile.endsWith(".exp3.json") ||
+                                    rawFile.endsWith(".exp.json")
+                                ) {
+                                    registerExpression(
+                                        m.name,
+                                        resolvedExpression || rawFile,
+                                    );
+                                    return;
+                                }
+
+                                let resolved = rawFile;
                                 if (
                                     typeof resolved === "string" &&
                                     motionByAliasOrFile[resolved]
@@ -411,7 +565,10 @@
                         }
 
                         if (cfgExpressionMap) {
-                            expressionMap = cfgExpressionMap;
+                            expressionMap = {
+                                ...expressionMap,
+                                ...cfgExpressionMap,
+                            };
                         } else if (cfgEditor?.expressions) {
                             // Fallback: expression map from editor aliases when explicit mapping is absent.
                             const aliases =
@@ -434,7 +591,10 @@
                                     nextMap[alias || name] = file.trim();
                                 },
                             );
-                            expressionMap = nextMap;
+                            expressionMap = {
+                                ...expressionMap,
+                                ...nextMap,
+                            };
                         }
                             if (cfgHitMotionMap) {
                                 hitMotionMap = cfgHitMotionMap;
@@ -446,11 +606,33 @@
                                 // Parse Motions
                                 if (
                                     fs.live2d_motion_list &&
-                                    Array.isArray(fs.live2d_motion_list)
+                                    Array.isArray(fs.live2d_motion_list) &&
+                                    !cfgMotionList
                                 ) {
                                     fs.live2d_motion_list.forEach((m: any) => {
                                         if (m.name && m.file) {
-                                            let resolved = m.file;
+                                            const rawFile =
+                                                typeof m.file === "string"
+                                                    ? m.file.trim()
+                                                    : "";
+                                            if (!rawFile) return;
+
+                                            const resolvedExpression =
+                                                resolveExpressionFile(rawFile);
+                                            if (
+                                                resolvedExpression ||
+                                                rawFile.endsWith(".exp3.json") ||
+                                                rawFile.endsWith(".exp.json")
+                                            ) {
+                                                registerExpression(
+                                                    m.name,
+                                                    resolvedExpression ||
+                                                        rawFile,
+                                                );
+                                                return;
+                                            }
+
+                                            let resolved = rawFile;
                                             if (
                                                 typeof resolved === "string" &&
                                                 motionByAliasOrFile[resolved]
@@ -476,7 +658,10 @@
                                     fs.live2d_expression_map &&
                                     !cfgExpressionMap
                                 ) {
-                                    expressionMap = fs.live2d_expression_map;
+                                    expressionMap = {
+                                        ...expressionMap,
+                                        ...fs.live2d_expression_map,
+                                    };
                                 }
                             }
                         } catch (e) {
@@ -552,8 +737,10 @@
                         expressionMap[actionName]
                     ) {
                         // Existing Motion/Expression Logic
+                        const mappedMotion = motionMap[actionName];
+                        const mappedExpression = expressionMap[actionName];
                         const mappedFile =
-                            motionMap[actionName] || expressionMap[actionName];
+                            mappedMotion || mappedExpression;
                         if (!mappedFile) {
                             console.warn(
                                 `Debug: Action [${actionName}] mapping is empty.`,
@@ -564,6 +751,7 @@
                                 actionName,
                             );
                             const isExpression =
+                                !!mappedExpression ||
                                 (Viewer.getAvailableExpressions &&
                                     Viewer.getAvailableExpressions().includes(
                                         mappedFile,
@@ -594,7 +782,7 @@
                         }
                     } else {
                         console.warn(
-                            `Debug: Action [${actionName}] not found in map. Available: ${Object.keys(motionMap).join(", ")}`,
+                            `Debug: Action [${actionName}] not found in map. Available motions: ${Object.keys(motionMap).join(", ")} / expressions: ${Object.keys(expressionMap).join(", ")}`,
                         );
                     }
                 } else if (actionName === lastTriggeredAction) {

@@ -731,12 +731,12 @@
 
 <svelte:head>
     {#if persona}
-        <title>{persona.name} - PersonaXi</title>
+        <title>{persona.name} - PXI</title>
         <meta
             name="description"
             content={getProfileMetaDescription()}
         />
-        <meta property="og:title" content="{persona.name} - PersonaXi" />
+        <meta property="og:title" content="{persona.name} - PXI" />
         <meta
             property="og:description"
             content={getProfileMetaDescription()}
@@ -751,14 +751,14 @@
             content="https://personaxi.com/profile?c={persona.id}"
         />
         <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:title" content="{persona.name} - PersonaXi" />
+        <meta name="twitter:title" content="{persona.name} - PXI" />
         <meta
             name="twitter:image"
             content={persona.portrait_url ||
                 "https://personaxi.com/og-image.png"}
         />
     {:else}
-        <title>{$t("profilePage.pageTitle")}</title>
+        <title>Profile - PXI</title>
     {/if}
 </svelte:head>
 

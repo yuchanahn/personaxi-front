@@ -22,7 +22,7 @@
 </script>
 
 <svelte:head>
-    <title>{$t("policy.pageTitle")}</title>
+    <title>Privacy Policy - PersonaXi</title>
 </svelte:head>
 
 <div class="policy-container">

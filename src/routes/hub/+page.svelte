@@ -1,18 +1,17 @@
 <script lang="ts">
     import ContentHub from "$lib/components/portal/ContentHub.svelte";
-    import { t } from "svelte-i18n";
 </script>
 
 <svelte:head>
-    <title>{$t("hub.metaTitle")}</title>
+    <title>Explore - PXI</title>
     <meta
         name="description"
-        content={$t("hub.metaDescription")}
+        content="Explore expressive AI chat experiences across 2D, Live2D, and VRM on PXI."
     />
-    <meta property="og:title" content={$t("hub.metaTitle")} />
+    <meta property="og:title" content="Explore - PXI" />
     <meta
         property="og:description"
-        content={$t("hub.metaOgDescription")}
+        content="Explore expressive AI chat experiences across 2D, Live2D, and VRM on PXI."
     />
 </svelte:head>
 

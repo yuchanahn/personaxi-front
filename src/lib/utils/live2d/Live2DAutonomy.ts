@@ -1,3 +1,24 @@
+export interface Live2DParameterSlotSupport {
+    canonicalId: string;
+    resolvedId: string | null;
+    supported: boolean;
+}
+
+export interface Live2DParameterSupportSummary {
+    head: {
+        x: Live2DParameterSlotSupport;
+        y: Live2DParameterSlotSupport;
+        z: Live2DParameterSlotSupport;
+    };
+    body: {
+        x: Live2DParameterSlotSupport;
+        y: Live2DParameterSlotSupport;
+        z: Live2DParameterSlotSupport;
+    };
+}
+
+export type Live2DParameterAliasHints = Partial<Record<string, string[]>>;
+
 export class Live2DAutonomy {
     // ⚙️ SENSITIVITY SETTINGS (0.1 ~ 2.0)
     // 모델마다 반응이 다르니 이 값으로 전체 모션 크기 조절
@@ -76,6 +97,8 @@ export class Live2DAutonomy {
 
     private activeConfig = this.emotionConfigs.CALM;
     private paramIndices: Record<string, number> = {};
+    private resolvedParamIds: Record<string, string | null> = {};
+    private runtimeAliasHints: Live2DParameterAliasHints = {};
 
     private currentHeadZ = 0;
     private voiceEnv = 0;
@@ -142,7 +165,9 @@ export class Live2DAutonomy {
             this.update(deltaMS);
         };
 
-        this.app.ticker.add(this.ticker, null, 0);
+        // Run after the model's own motion/physics updates so our final parameter
+        // overrides (especially custom body params) are not immediately overwritten.
+        this.app.ticker.add(this.ticker, null, -100);
         console.log("🤖 Live2D Autonomy Enhanced Started");
         this.StartSleepTimer();
     }
@@ -338,6 +363,29 @@ export class Live2DAutonomy {
 
         this.dragTargetX = normalizedX;
         this.dragTargetY = normalizedY;
+    }
+
+    public getParameterSupportSummary(): Live2DParameterSupportSummary {
+        return {
+            head: {
+                x: this.getParameterSlotSupport('ParamAngleX'),
+                y: this.getParameterSlotSupport('ParamAngleY'),
+                z: this.getParameterSlotSupport('ParamAngleZ'),
+            },
+            body: {
+                x: this.getParameterSlotSupport('ParamBodyAngleX'),
+                y: this.getParameterSlotSupport('ParamBodyAngleY'),
+                z: this.getParameterSlotSupport('ParamBodyAngleZ'),
+            },
+        };
+    }
+
+    public setParameterAliasHints(hints: Live2DParameterAliasHints) {
+        this.runtimeAliasHints = {
+            ...this.runtimeAliasHints,
+            ...hints,
+        };
+        this.cacheParamIndices();
     }
 
     private update(deltaMS: number) {
@@ -990,16 +1038,31 @@ export class Live2DAutonomy {
 
         targets.forEach(key => {
             let idx = ids.indexOf(key);
-            if (idx === -1 && aliases[key]) {
-                for (const alias of aliases[key]) {
+            const aliasCandidates = [
+                ...(aliases[key] || []),
+                ...(this.runtimeAliasHints[key] || []),
+            ];
+            if (idx === -1 && aliasCandidates.length > 0) {
+                for (const alias of aliasCandidates) {
                     idx = ids.indexOf(alias);
                     if (idx !== -1) break;
                 }
             }
             this.paramIndices[key] = idx;
+            this.resolvedParamIds[key] = idx !== -1 ? ids[idx] : null;
         });
 
         console.log("🤖 Autonomy Parameter Map:", this.paramIndices);
+    }
+
+    private getParameterSlotSupport(key: string): Live2DParameterSlotSupport {
+        const idx = this.paramIndices[key];
+        const resolvedId = this.resolvedParamIds[key] ?? null;
+        return {
+            canonicalId: key,
+            resolvedId,
+            supported: idx !== undefined && idx !== -1,
+        };
     }
 
     private setParam(values: Float32Array, key: string, value: number) {

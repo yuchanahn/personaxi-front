@@ -4,13 +4,53 @@
         index: number;
         file: string;
     }
+
+    export interface Live2DParameterSlotSupport {
+        canonicalId: string;
+        resolvedId: string | null;
+        supported: boolean;
+    }
+
+    export interface Live2DParameterSupportSummary {
+        head: {
+            x: Live2DParameterSlotSupport;
+            y: Live2DParameterSlotSupport;
+            z: Live2DParameterSlotSupport;
+        };
+        body: {
+            x: Live2DParameterSlotSupport;
+            y: Live2DParameterSlotSupport;
+            z: Live2DParameterSlotSupport;
+        };
+    }
+
+    export interface Live2DBodyPhysicsLinkSlot {
+        linked: boolean;
+        bodyParamId: string | null;
+        sourceParamIds: string[];
+        physicsSettingIds: string[];
+    }
+
+    export interface Live2DBodyPhysicsLinkSummary {
+        x: Live2DBodyPhysicsLinkSlot;
+        y: Live2DBodyPhysicsLinkSlot;
+        z: Live2DBodyPhysicsLinkSlot;
+    }
 </script>
 
 <script lang="ts">
     import { onMount, onDestroy } from "svelte";
     import { loadLive2DScripts } from "$lib/utils/live2dLoader";
     import { SafeAudioManager } from "$lib/utils/safeAudioManager";
-    import { Live2DAutonomy } from "$lib/utils/live2d/Live2DAutonomy";
+    import {
+        Live2DAutonomy,
+        type Live2DParameterSupportSummary as RuntimeParameterSupportSummary,
+    } from "$lib/utils/live2d/Live2DAutonomy";
+    import {
+        resolveLive2DParameterMetadata,
+        type Live2DBodyPhysicsLinkSummary as MetadataBodyPhysicsLinkSummary,
+    } from "$lib/components/live2d/live2dParameterMetadata";
+    import { createLive2DInteractionControl } from "$lib/components/live2d/useLive2DInteractionControl";
     import { createLive2DMotionControl } from "$lib/components/live2d/useLive2DMotionControl";
 
     interface Props {
@@ -19,6 +59,8 @@
         onMetadataLoaded?: (info: {
             expressions: string[];
             motions: Live2DMotionInfo[];
+            parameterSupport: Live2DParameterSupportSummary;
+            bodyPhysicsLinks: Live2DBodyPhysicsLinkSummary;
         }) => void;
         onError?: (error: { message: string }) => void;
     }
@@ -34,6 +76,26 @@
     let app: any = null;
     let currentModel: any = null;
     let autonomy: Live2DAutonomy | null = null;
+    let currentBodyPhysicsLinks: Live2DBodyPhysicsLinkSummary = {
+        x: {
+            linked: false,
+            bodyParamId: null,
+            sourceParamIds: [],
+            physicsSettingIds: [],
+        },
+        y: {
+            linked: false,
+            bodyParamId: null,
+            sourceParamIds: [],
+            physicsSettingIds: [],
+        },
+        z: {
+            linked: false,
+            bodyParamId: null,
+            sourceParamIds: [],
+            physicsSettingIds: [],
+        },
+    };
     let headCalibration = {
         angleYGain: 1.0,
         angleYOffset: 0,
@@ -67,6 +129,8 @@
     let cryptoModule: any = null;
 
     let isSpeaking = false;
+    let isDragging = false;
+    let hasInteracted = false;
 
     onMount(async () => {
         await loadLive2DScripts();
@@ -88,6 +152,7 @@
     });
 
     onDestroy(() => {
+        interactionControl.destroy();
         autonomy?.stop();
         autonomy = null;
         if (currentModel) {
@@ -103,6 +168,19 @@
         if (app && modelUrl) {
             loadModel(modelUrl);
         }
+    });
+
+    const interactionControl = createLive2DInteractionControl({
+        getApp: () => app,
+        getAutonomy: () => autonomy,
+        onCursorChange: () => {},
+        onDragStateChange: (dragging) => {
+            isDragging = dragging;
+        },
+        onInteractionStart: () => {
+            hasInteracted = true;
+        },
+        onInteractionEnd: () => {},
     });
 
     // Helper to load and decrypt Live2D (copied from Live2DViewer)
@@ -220,6 +298,10 @@
     async function loadModel(url: string) {
         if (!url) return;
 
+        interactionControl.destroy();
+        isDragging = false;
+        hasInteracted = false;
+
         if (currentModel) {
             autonomy?.stop();
             autonomy = null;
@@ -251,22 +333,67 @@
             currentModel = model;
             motionControl.disableAllMotions(model);
             autonomy = new Live2DAutonomy(model, app);
+            const parameterMetadata = await resolveLive2DParameterMetadata(
+                url,
+                model,
+            );
+            const parameterAliasHints = parameterMetadata.aliasHints;
+            currentBodyPhysicsLinks = mapBodyPhysicsLinks(
+                parameterMetadata.bodyPhysicsLinks,
+            );
+            if (Object.keys(parameterAliasHints).length > 0) {
+                autonomy.setParameterAliasHints(parameterAliasHints);
+            }
             autonomy.setHeadCalibration(headCalibration);
             autonomy.setBodyCalibration(bodyCalibration);
             autonomy.start();
+            interactionControl.bind(model);
 
             // Extract real motions and expressions
-            extractMetadata(model);
+            extractMetadata(model, currentBodyPhysicsLinks);
         } catch (error) {
             console.error("Failed to load Live2D model in Sandbox:", error);
             onError({ message: "Failed to load model" });
         }
     }
 
-    function extractMetadata(model: any) {
+    function createEmptyBodyPhysicsLinks(): Live2DBodyPhysicsLinkSummary {
+        return {
+            x: {
+                linked: false,
+                bodyParamId: null,
+                sourceParamIds: [],
+                physicsSettingIds: [],
+            },
+            y: {
+                linked: false,
+                bodyParamId: null,
+                sourceParamIds: [],
+                physicsSettingIds: [],
+            },
+            z: {
+                linked: false,
+                bodyParamId: null,
+                sourceParamIds: [],
+                physicsSettingIds: [],
+            },
+        };
+    }
+
+    function mapBodyPhysicsLinks(
+        summary: MetadataBodyPhysicsLinkSummary | null | undefined,
+    ): Live2DBodyPhysicsLinkSummary {
+        return summary ?? createEmptyBodyPhysicsLinks();
+    }
+
+    function extractMetadata(
+        model: any,
+        bodyPhysicsLinks: MetadataBodyPhysicsLinkSummary | null | undefined,
+    ) {
         // Expressions
         const expressions = new Set<string>();
         const settings = model.internalModel?.settings;
+        const expressionEntries = getExpressionEntries(settings);
 
         // Some runtimes expose model.expressions but keep it empty.
         // Do not stop fallback discovery when that happens.
@@ -297,23 +424,31 @@
             });
         }
 
-        if (settings?.FileReferences?.Expressions) {
-            settings.FileReferences.Expressions.forEach((e: any) => {
+        expressionEntries.forEach((e: any) => {
+            if (typeof e?.name === "string" && e.name.trim()) {
+                expressions.add(e.name.trim());
+            } else if (typeof e?.Name === "string" && e.Name.trim()) {
+                expressions.add(e.Name.trim());
+            } else if (typeof e?.File === "string" && e.File.trim()) {
+                expressions.add(
+                    e.File.split("/")
+                        .pop()
+                        ?.replace(/\.exp3\.json$/i, "")
+                        ?.replace(/\.json$/i, "") || e.File,
+                );
+            } else if (typeof e?.file === "string" && e.file.trim()) {
+                expressions.add(
+                    e.file.split("/")
+                        .pop()
+                        ?.replace(/\.exp3\.json$/i, "")
+                        ?.replace(/\.json$/i, "") || e.file,
+                );
+            }
+        });
+
+        if (expressions.size === 0 && Array.isArray(settings?.json?.FileReferences?.Expressions)) {
+            settings.json.FileReferences.Expressions.forEach((e: any) => {
                 if (typeof e?.Name === "string" && e.Name.trim()) {
-                    expressions.add(e.Name.trim());
-                } else if (typeof e?.File === "string" && e.File.trim()) {
-                    expressions.add(
-                        e.File.split("/")
-                            .pop()
-                            ?.replace(/\.exp3\.json$/i, "") || e.File,
-                    );
-                }
-            });
-        } else if (Array.isArray(settings?.expressions)) {
-            settings.expressions.forEach((e: any) => {
-                if (typeof e?.name === "string" && e.name.trim()) {
-                    expressions.add(e.name.trim());
-                } else if (typeof e?.Name === "string" && e.Name.trim()) {
                     expressions.add(e.Name.trim());
                 }
             });
@@ -324,7 +459,7 @@
         const motionDefs =
             motionControl.getMotionDefinitionsForDebug() ||
             model.internalModel?.motionManager?.definitions;
-        const motionFiles = settings?.FileReferences?.Motions;
+        const motionFiles = getMotionGroups(settings);
 
         if (motionFiles) {
             Object.keys(motionFiles).forEach((group) => {
@@ -348,10 +483,218 @@
             });
         }
 
+        const parameterSupport = mapParameterSupport(
+            autonomy?.getParameterSupportSummary(),
+        );
+        const mappedBodyPhysicsLinks = mapBodyPhysicsLinks(bodyPhysicsLinks);
+        if (hasMissingParameterSupport(parameterSupport)) {
+            logDiagnostics(
+                model,
+                parameterSupport,
+                mappedBodyPhysicsLinks,
+                "missing-parameter-support",
+            );
+        }
+
         onMetadataLoaded({
             expressions: Array.from(expressions),
             motions: motions,
+            parameterSupport,
+            bodyPhysicsLinks: mappedBodyPhysicsLinks,
         });
+    }
+
+    function mapParameterSupport(
+        summary: RuntimeParameterSupportSummary | null | undefined,
+    ): Live2DParameterSupportSummary {
+        return (
+            summary ?? {
+                head: {
+                    x: {
+                        canonicalId: "ParamAngleX",
+                        resolvedId: null,
+                        supported: false,
+                    },
+                    y: {
+                        canonicalId: "ParamAngleY",
+                        resolvedId: null,
+                        supported: false,
+                    },
+                    z: {
+                        canonicalId: "ParamAngleZ",
+                        resolvedId: null,
+                        supported: false,
+                    },
+                },
+                body: {
+                    x: {
+                        canonicalId: "ParamBodyAngleX",
+                        resolvedId: null,
+                        supported: false,
+                    },
+                    y: {
+                        canonicalId: "ParamBodyAngleY",
+                        resolvedId: null,
+                        supported: false,
+                    },
+                    z: {
+                        canonicalId: "ParamBodyAngleZ",
+                        resolvedId: null,
+                        supported: false,
+                    },
+                },
+            }
+        );
+    }
+
+    function hasMissingParameterSupport(
+        summary: Live2DParameterSupportSummary,
+    ): boolean {
+        return [
+            summary.head.x,
+            summary.head.y,
+            summary.head.z,
+            summary.body.x,
+            summary.body.y,
+            summary.body.z,
+        ].some((slot) => !slot.supported);
+    }
+
+    function summarizeMotionGroups(settings: any) {
+        const motions = getMotionGroups(settings);
+        if (!motions || typeof motions !== "object") return {};
+        const summary: Record<string, string[]> = {};
+        Object.entries(motions).forEach(([group, entries]: [string, any]) => {
+            summary[group] = Array.isArray(entries)
+                ? entries.map(
+                      (entry) =>
+                          entry?.File || entry?.file || "(no file)",
+                  )
+                : [];
+        });
+        return summary;
+    }
+
+    function summarizeExpressions(settings: any) {
+        const expressions = getExpressionEntries(settings);
+        if (!Array.isArray(expressions)) return [];
+        return expressions.map((entry: any) => ({
+            name: entry?.name || entry?.Name || null,
+            file: entry?.file || entry?.File || null,
+        }));
+    }
+
+    function getRawSettingsJson(settings: any) {
+        if (settings?.json && typeof settings.json === "object") return settings.json;
+        if (settings?._json && typeof settings._json === "object") return settings._json;
+        return null;
+    }
+
+    function getExpressionEntries(settings: any): any[] {
+        const rawJson = getRawSettingsJson(settings);
+        const entries =
+            settings?.FileReferences?.Expressions ||
+            rawJson?.FileReferences?.Expressions ||
+            settings?.expressions ||
+            rawJson?.expressions;
+        return Array.isArray(entries) ? entries : [];
+    }
+
+    function getMotionGroups(settings: any): Record<string, any[]> | null {
+        const rawJson = getRawSettingsJson(settings);
+        const motions =
+            settings?.FileReferences?.Motions ||
+            rawJson?.FileReferences?.Motions ||
+            settings?.motions ||
+            rawJson?.motions;
+        return motions && typeof motions === "object" ? motions : null;
+    }
+
+    function getHitAreas(settings: any): any[] {
+        const rawJson = getRawSettingsJson(settings);
+        const hitAreas =
+            settings?.HitAreas ||
+            settings?.hitAreas ||
+            rawJson?.HitAreas ||
+            rawJson?.hitAreas;
+        return Array.isArray(hitAreas) ? hitAreas : [];
+    }
+
+    function getGroups(settings: any): any[] {
+        const rawJson = getRawSettingsJson(settings);
+        const groups =
+            settings?.Groups ||
+            settings?.groups ||
+            rawJson?.Groups ||
+            rawJson?.groups;
+        return Array.isArray(groups) ? groups : [];
+    }
+
+    function getLayout(settings: any) {
+        const rawJson = getRawSettingsJson(settings);
+        return (
+            settings?.Layout ||
+            settings?.layout ||
+            rawJson?.Layout ||
+            rawJson?.layout ||
+            null
+        );
+    }
+
+    function buildDiagnostics(
+        model: any,
+        parameterSupport: Live2DParameterSupportSummary,
+        bodyPhysicsLinks: Live2DBodyPhysicsLinkSummary,
+    ) {
+        const internal = model?.internalModel;
+        const core = internal?.coreModel;
+        const settings = internal?.settings;
+        const parameterIds = Array.isArray(core?._parameterIds)
+            ? [...core._parameterIds]
+            : [];
+
+        return {
+            modelUrl,
+            parameterSupport,
+            bodyPhysicsLinks,
+            parameterCount: parameterIds.length,
+            parameterIds,
+            motions: summarizeMotionGroups(settings),
+            expressions: summarizeExpressions(settings),
+            hitAreas: getHitAreas(settings),
+            groups: getGroups(settings),
+            layout: getLayout(settings),
+            rawSettings: settings || null,
+            rawModelJson: getRawSettingsJson(settings),
+            internalModelKeys: internal ? Object.keys(internal) : [],
+        };
+    }
+
+    function logDiagnostics(
+        model: any,
+        parameterSupport: Live2DParameterSupportSummary,
+        bodyPhysicsLinks: Live2DBodyPhysicsLinkSummary,
+        reason: string,
+    ) {
+        const diagnostics = buildDiagnostics(
+            model,
+            parameterSupport,
+            bodyPhysicsLinks,
+        );
+        console.groupCollapsed(
+            `[Live2D Advanced Diagnostics] ${reason}: ${modelUrl || "(unknown model)"}`,
+        );
+        console.warn("Parameter support issue detected.", diagnostics);
+        console.log("Body physics links:", diagnostics.bodyPhysicsLinks);
+        console.log("All parameter IDs:", diagnostics.parameterIds);
+        console.log("Motion groups:", diagnostics.motions);
+        console.log("Expressions:", diagnostics.expressions);
+        console.log("Hit areas:", diagnostics.hitAreas);
+        console.log("Groups:", diagnostics.groups);
+        console.log("Layout:", diagnostics.layout);
+        console.log("Raw model json:", diagnostics.rawModelJson);
+        console.log("Raw settings:", diagnostics.rawSettings);
+        console.groupEnd();
     }
 
     // --- Public API for Parent Sandbox ---
@@ -507,7 +850,18 @@
     }
 </script>
 
-<div class="viewer-container" bind:this={canvasContainer}></div>
+<div
+    class="viewer-container"
+    class:dragging={isDragging}
+    class:interactive={!!currentModel}
+    bind:this={canvasContainer}
+>
+    {#if currentModel && !hasInteracted}
+        <div class="interaction-hint">
+            Drag the model to test head/body sensitivity
+        </div>
+    {/if}
+</div>
 
 <style>
     .viewer-container {
@@ -515,6 +869,31 @@
         height: 100%;
         position: relative;
         overflow: hidden;
+    }
+
+    .viewer-container.interactive {
+        cursor: grab;
+    }
+
+    .viewer-container.dragging {
+        cursor: grabbing;
+    }
+
+    .interaction-hint {
+        position: absolute;
+        left: 50%;
+        bottom: 1.5rem;
+        transform: translateX(-50%);
+        padding: 0.65rem 0.9rem;
+        border-radius: 999px;
+        background: rgba(17, 17, 17, 0.78);
+        border: 1px solid rgba(255, 255, 255, 0.14);
+        color: rgba(255, 255, 255, 0.88);
+        font-size: 0.8rem;
+        letter-spacing: 0.01em;
+        pointer-events: none;
+        z-index: 2;
+        backdrop-filter: blur(8px);
     }
 
     :global(canvas) {

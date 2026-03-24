@@ -1,4 +1,4 @@
-# PersonaXi Manual For OpenClaw
+# PXI by PersonaXi Manual For OpenClaw
 
 Primary references:
 
@@ -9,7 +9,7 @@ Assume no hidden context exists beyond these markdown files.
 
 ## Mission
 
-OpenClaw should produce an explicit, route-ready PersonaXi result with no hidden assumptions.
+OpenClaw should produce an explicit, route-ready PXI result with no hidden assumptions.
 
 ## Platform-Specific Discipline
 
@@ -33,7 +33,7 @@ OpenClaw should be strict and literal:
 - Do not invent hidden routes.
 - Do not send `custom` or template markers in `instructions`.
 - Do not attempt direct publication.
-- Do not assume PersonaXi will generate images for you.
+- Do not assume PXI will generate images for you.
 - Do not flatten the persona into generic assistant language.
 
 ## OpenClaw Failure Risks

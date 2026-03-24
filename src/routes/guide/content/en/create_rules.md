@@ -1,6 +1,6 @@
 # Creation Rules
 
-PersonaXi aims for a safe community where everyone can enjoy communicating.
+PXI aims for a safe community where everyone can enjoy communicating.
 Please strictly adhere to the following rules when creating characters. 🛡️
 
 ## 🚫 Prohibited Content
@@ -22,7 +22,7 @@ Characters containing the following will be **hidden without notice** and may le
 
 ## Content Safety & Operations
 
-PersonaXi operates a systematic content management system to ensuring a safe community for everyone.
+PXI operates a systematic content management system to ensuring a safe community for everyone.
 
 *   **Safety Guardrails:** All AI-generated content is filtered according to our internal ethical guidelines. Profanity, hate speech, and dangerous content are monitored and restricted in real-time.
 *   **Content Moderation:** Content levels are managed according to universal standards. If content exceeds our operational policies, it may be restricted or adjusted by the system.
@@ -31,3 +31,4 @@ PersonaXi operates a systematic content management system to ensuring a safe com
 > [!IMPORTANT]
 > **Creator Responsibility**
 > Creators bear primary legal liability for User Generated Content (UGC). We strictly adhere to laws regarding child protection, copyright, and anti-social content. Violations may result in immediate content removal and account restriction without prior notice.
+

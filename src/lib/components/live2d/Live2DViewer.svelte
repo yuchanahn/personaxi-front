@@ -10,6 +10,7 @@
     import { createLive2DInteractionControl } from "$lib/components/live2d/useLive2DInteractionControl";
     import { createLive2DDebugControl } from "$lib/components/live2d/useLive2DDebugControl";
     import { createLive2DCameraControl } from "$lib/components/live2d/useLive2DCameraControl";
+    import { resolveLive2DParameterAliasHints } from "$lib/components/live2d/live2dParameterMetadata";
     import {
         applyPermanentExpressions,
         collectAvailableExpressions,
@@ -283,6 +284,11 @@
                 disableAllMotions(model);
 
                 autonomy = new Live2DAutonomy(model, app);
+                const parameterAliasHints =
+                    await resolveLive2DParameterAliasHints(modelUrl, model);
+                if (Object.keys(parameterAliasHints).length > 0) {
+                    autonomy.setParameterAliasHints(parameterAliasHints);
+                }
                 autonomy.start();
                 if (pendingSensitivity !== null) {
                     autonomy.setSensitivity(pendingSensitivity);

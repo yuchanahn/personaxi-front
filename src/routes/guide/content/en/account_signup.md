@@ -1,6 +1,6 @@
 # Sign Up Guide
 
-All features of PersonaXi are available after signing up.
+All features of PXI are available after signing up.
 Start in just **3 seconds** with no hassle! ⚡
 
 ## 🚀 Easy Sign Up (Social Login)
@@ -15,7 +15,7 @@ The fastest and safest way. Link immediately with your existing accounts.
 
 > [!NOTE]
 > **Secure Privacy**
-> PersonaXi does not store your password directly. We handle authentication securely via a trusted provider (Supabase).
+> PXI does not store your password directly. We handle authentication securely via a trusted provider (Supabase).
 
 ---
 
@@ -27,3 +27,4 @@ Don't want to link social accounts? You can sign up with an email address.
 > [!IMPORTANT]
 > **Check Your Email**
 > Please use a **valid email address** as it is used for account recovery and important notifications.
+

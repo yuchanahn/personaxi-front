@@ -1,6 +1,6 @@
 # Notification Settings
 
-Don't miss out on important news from PersonaXi. 🔔
+Don't miss out on important news from PXI. 🔔
 
 ## 📢 Notification Types
 
@@ -18,3 +18,4 @@ Don't miss out on important news from PersonaXi. 🔔
 > [!NOTE]
 > **Web Push**
 > Notifications use browser push technology. You must **Allow** notifications in your browser settings to receive them.
+

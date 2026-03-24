@@ -23,7 +23,7 @@
 </script>
 
 <svelte:head>
-    <title>{$t("licenses.pageTitle")}</title>
+    <title>Licenses & Neurons - PersonaXi</title>
 </svelte:head>
 
 <div class="licenses-container">

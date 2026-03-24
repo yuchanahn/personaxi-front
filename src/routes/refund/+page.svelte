@@ -24,7 +24,7 @@
 </script>
 
 <svelte:head>
-    <title>{$t("legal.refundPolicy", { default: "Refund Policy" })}</title>
+    <title>Refund Policy - PersonaXi</title>
 </svelte:head>
 
 <div class="policy-container">

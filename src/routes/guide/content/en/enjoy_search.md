@@ -1,6 +1,6 @@
 # Search & Discover
 
-Thousands of charming personas are waiting for you on PersonaXi. 🔍
+Thousands of charming personas are waiting for you on PXI. 🔍
 Find the perfect character for you!
 
 ## 🏷️ Using Search
@@ -27,3 +27,4 @@ Click their profile and **Follow**!
 > [!TIP]
 > **Finding Hidden Gems**
 > Even if they aren't on the leaderboard, check the 'New' tab to discover unique characters that perfectly match your taste before anyone else.
+

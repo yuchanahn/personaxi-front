@@ -1,9 +1,9 @@
-# Getting Started with PersonaXi
+# Getting Started with PXI
 
-Welcome to **PersonaXi**! 🎉
+Welcome to **PXI**! 🎉
 This is your **Digital Life Platform** where you can create your own AI personas, interact with living characters, and weave infinite stories.
 
-## 🌟 Why PersonaXi?
+## 🌟 Why PXI?
 
 We offer a new dimension of experience beyond simple text chat.
 
@@ -26,6 +26,7 @@ Bring your imagination to life.
 
 > [!TIP]
 > **For a Better Experience**
-> PersonaXi is optimized for mobile environments too. Be with your persona anytime, anywhere!
+> PXI is optimized for mobile environments too. Be with your persona anytime, anywhere!
 
-Ready? Let's blast off into the world of PersonaXi! 🚀
+Ready? Let's blast off into the world of PXI! 🚀
+

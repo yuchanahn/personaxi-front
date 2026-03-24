@@ -1,6 +1,6 @@
 # Membership & Subscription
 
-Enjoy PersonaXi to the fullest!
+Enjoy PXI to the fullest!
 (As of Feb 2026, the membership system is **Getting Ready**.)
 
 ## 🌟 Membership Benefits (Planned)
@@ -20,3 +20,4 @@ Subscribing to membership will grant the following:
 > **Launch Notification**
 > We will announce via Notices as soon as membership opens.
 > Look forward to special early-bird discounts!
+

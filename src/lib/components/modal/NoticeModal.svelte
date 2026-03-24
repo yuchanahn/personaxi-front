@@ -29,7 +29,7 @@
     });
 
     let asset: ImageMetadata = {
-        description: "PersonaXi",
+        description: "PXI",
         url: "/event_01.mp4",
         type: "video",
     };
@@ -381,3 +381,4 @@
         background: #777;
     }
 </style>
+

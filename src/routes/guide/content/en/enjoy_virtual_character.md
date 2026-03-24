@@ -1,6 +1,6 @@
 # Virtual Character
 
-The core of PersonaXi! Interact with living, breathing characters. ✨
+The core of PXI! Interact with living, breathing characters. ✨
 Experience **Digital Life Forms** that react and move, not just static images.
 
 ## 🎥 Supported Model Types
@@ -33,3 +33,4 @@ Characters understand your words and feel emotions.
 > [!IMPORTANT]
 > **Mobile Tip**
 > Loading high-resolution models on mobile may consume data. We recommend using **Wi-Fi**.
+

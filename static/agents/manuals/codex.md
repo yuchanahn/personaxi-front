@@ -1,4 +1,4 @@
-# PersonaXi Manual For Codex
+# PXI by PersonaXi Manual For Codex
 
 Primary references:
 
@@ -28,7 +28,7 @@ You are expected to:
 
 ## Required Working Style
 
-When generating a PersonaXi draft:
+When generating a PXI draft:
 
 1. Decide whether the target is `2D character` or `2D story`.
 2. Write a rich `first_scene` before trimming anything else.
