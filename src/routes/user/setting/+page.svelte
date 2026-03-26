@@ -175,7 +175,6 @@
             const userRes = await getCurrentUser();
             if (!userRes) {
                 error = "Failed to load user";
-                goto("/login");
                 return null;
             }
 
@@ -198,15 +197,23 @@
     async function initializeSettingsPage() {
         detectPwaMode();
 
+        if (!(await api.isLoggedIn())) {
+            return;
+        }
+
         const cachedUser = get(st_user);
         if (cachedUser) {
             void loadSocialCounts(cachedUser.id);
         }
 
+        const currentUser = await refreshCurrentUser();
+        if (!currentUser) {
+            return;
+        }
+
         void loadOwnPersonas();
         void loadUserPersonasFromServer();
         void loadLivePersonaIds();
-        await refreshCurrentUser();
     }
 
     $: optimizedUserProfileImage = getOptimizedProfileImage(user.profile, 320);
