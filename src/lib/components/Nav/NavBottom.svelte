@@ -11,12 +11,12 @@
         { href: "/hub", icon: "ph:compass-duotone", label: $t("nav.explore") },
         {
             href: "/feed",
-            icon: "material-symbols:smart-display-outline",
+            icon: "ph:play-square-duotone",
             label: $t("nav.feed"),
         },
         {
             href: "/chat", // ✨ 추가된 채팅 페이지 링크
-            icon: "ph:chats-duotone",
+            icon: "ph:chat-circle-dots-duotone",
             label: $t("nav.chat"),
         },
         {
@@ -26,7 +26,7 @@
         },
         {
             href: "/user/setting",
-            icon: "ph:user-circle-duotone",
+            icon: "ph:gear-six-duotone",
             label: $t("nav.settings"),
         },
     ];
@@ -63,8 +63,8 @@
         left: 0;
         width: 100%;
         height: 70px;
-        background: var(--card);
-        border-top: 1px solid var(--border);
+        background: color-mix(in srgb, var(--card) 94%, var(--background) 6%);
+        border-top: 1px solid color-mix(in srgb, var(--border) 88%, transparent);
         display: flex;
         justify-content: space-around;
         align-items: center;
@@ -74,6 +74,8 @@
         box-shadow:
             0 -4px 16px rgba(0, 0, 0, 0.1),
             0 -2px 8px rgba(0, 0, 0, 0.06);
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
         padding: 8px 0;
     }
 
@@ -98,15 +100,9 @@
         white-space: nowrap;
     }
 
-    .nav-item:hover {
-        color: var(--foreground);
-        background-color: var(--muted);
-        transform: translateY(-2px);
-    }
-
     .nav-item.active {
         color: var(--primary);
-        background-color: hsl(var(--primary) / 0.1);
+        background-color: color-mix(in srgb, var(--primary) 12%, transparent);
     }
 
     .nav-item.active::before {
@@ -121,12 +117,25 @@
         border-radius: 0 0 6px 6px;
     }
 
-    /* 다크 테마에서 더 진한 그림자 */
-    @media (prefers-color-scheme: dark) {
-        .nav-bottom {
-            box-shadow:
-                0 -4px 16px rgba(0, 0, 0, 0.3),
-                0 -2px 8px rgba(0, 0, 0, 0.2);
+    @media (hover: hover) and (pointer: fine) {
+        .nav-item:hover {
+            color: var(--foreground);
+            background-color: var(--muted);
+            transform: translateY(-2px);
+        }
+    }
+
+    :global([data-theme="dark"]) .nav-bottom {
+        box-shadow:
+            0 -8px 24px rgba(0, 0, 0, 0.32),
+            0 -2px 10px rgba(0, 0, 0, 0.18);
+    }
+
+    @media (hover: none), (pointer: coarse) {
+        .nav-item:hover {
+            color: var(--muted-foreground);
+            background-color: transparent;
+            transform: none;
         }
     }
 
