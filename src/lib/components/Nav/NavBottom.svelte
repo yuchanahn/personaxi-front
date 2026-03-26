@@ -3,6 +3,7 @@
     import { onMount } from "svelte";
     import { preloadCode } from "$app/navigation";
     import { page } from "$app/stores";
+    import { st_user } from "$lib/stores/user";
 
     import { t } from "svelte-i18n";
     import { notificationStore } from "$lib/stores/notification";
@@ -10,6 +11,7 @@
 
     const { unreadCount } = notificationStore;
     const navHrefs = ["/hub", "/feed", "/chat", "/edit3", "/user/setting"];
+    let brokenProfileImage = false;
 
     onMount(() => {
         if (typeof window === "undefined") return;
@@ -31,12 +33,12 @@
         { href: "/hub", icon: "ph:compass-duotone", label: $t("nav.explore") },
         {
             href: "/feed",
-            icon: "ph:film-script-duotone",
+            icon: "material-symbols:smart-display-outline",
             label: $t("nav.feed"),
         },
         {
             href: "/chat", // ✨ 추가된 채팅 페이지 링크
-            icon: "ph:chat-circle-dots-duotone",
+            icon: "ph:chats-duotone",
             label: $t("nav.chat"),
         },
         {
@@ -53,6 +55,10 @@
 
     // 현재 경로 확인
     $: currentPath = $page.url.pathname;
+    $: profileImageUrl = $st_user?.profile?.trim() || "";
+    $: if (profileImageUrl) {
+        brokenProfileImage = false;
+    }
 
     function handleNavTap() {
         void triggerNativeSelectionHaptic();
@@ -68,8 +74,18 @@
             {href}
             on:click={handleNavTap}
         >
-            <div class="relative">
-                <Icon {icon} width="24" height="24" />
+            <div class="relative nav-icon-shell">
+                {#if href === "/user/setting" && profileImageUrl && !brokenProfileImage}
+                    <img
+                        src={profileImageUrl}
+                        alt=""
+                        class="nav-avatar"
+                        loading="lazy"
+                        on:error={() => (brokenProfileImage = true)}
+                    />
+                {:else}
+                    <Icon {icon} width="24" height="24" />
+                {/if}
                 {#if href === "/user/setting" && $unreadCount > 0}
                     <span
                         class="absolute -top-1 -right-1 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-white dark:border-gray-900"
@@ -114,7 +130,7 @@
         border-radius: 12px;
         color: var(--muted-foreground);
         text-decoration: none;
-        transition: all 0.2s ease;
+        transition: color 0.18s ease;
         min-width: 60px;
         position: relative;
     }
@@ -127,7 +143,6 @@
 
     .nav-item.active {
         color: var(--primary);
-        background-color: color-mix(in srgb, var(--primary) 12%, transparent);
     }
 
     .nav-item.active::before {
@@ -142,11 +157,38 @@
         border-radius: 0 0 6px 6px;
     }
 
+    .nav-item:active {
+        background: transparent;
+    }
+
+    .nav-icon-shell {
+        width: 28px;
+        height: 28px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .nav-avatar {
+        width: 26px;
+        height: 26px;
+        border-radius: 999px;
+        object-fit: cover;
+        border: 1.5px solid color-mix(in srgb, var(--border) 82%, transparent);
+        background: var(--card);
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+    }
+
+    .nav-item.active .nav-avatar {
+        border-color: color-mix(in srgb, var(--primary) 70%, white 30%);
+        box-shadow:
+            0 0 0 2px color-mix(in srgb, var(--primary) 18%, transparent),
+            0 1px 4px rgba(0, 0, 0, 0.1);
+    }
+
     @media (hover: hover) and (pointer: fine) {
         .nav-item:hover {
             color: var(--foreground);
-            background-color: var(--muted);
-            transform: translateY(-2px);
         }
     }
 
@@ -159,8 +201,6 @@
     @media (hover: none), (pointer: coarse) {
         .nav-item:hover {
             color: var(--muted-foreground);
-            background-color: transparent;
-            transform: none;
         }
     }
 
