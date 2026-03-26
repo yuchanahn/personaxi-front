@@ -21,6 +21,7 @@
     import { st_user } from "$lib/stores/user";
     import { chatSessions } from "$lib/stores/chatSessions";
     import { getOptimizedSupabaseImageUrl } from "$lib/utils/mediaTransform";
+    import { isInstalledAppShell } from "$lib/utils/appShell";
 
     const supabaseURL = "/storage/v1/object/public/personaxi-assets/";
 
@@ -171,12 +172,7 @@
     function detectPwaMode() {
         if (typeof window === "undefined") return;
 
-        const isStandalone = window.matchMedia(
-            "(display-mode: standalone)",
-        ).matches;
-        // @ts-ignore
-        const isIOSStandalone = window.navigator.standalone === true;
-        isPWA = isStandalone || isIOSStandalone;
+        isPWA = isInstalledAppShell();
     }
 
     async function initializeSettingsPage() {
