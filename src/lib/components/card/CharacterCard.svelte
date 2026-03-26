@@ -71,9 +71,15 @@
                   quality: 72,
               })
             : "";
+        const optimizedPortraitUrl = content.portrait_url
+            ? getOptimizedSupabaseImageUrl(content.portrait_url, {
+                  width: 480,
+                  quality: 72,
+              })
+            : "";
 
         meta = {
-            url: optimizedStaticUrl || content.portrait_url,
+            url: optimizedStaticUrl || optimizedPortraitUrl || content.portrait_url,
             static_url: optimizedStaticUrl || undefined,
             description: "",
             // Hub cards are thumbnail-only. Force image mode to avoid probing the

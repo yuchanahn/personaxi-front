@@ -72,6 +72,26 @@
             : undefined;
     }
 
+    function getMyPersonaPortraitThumb(url?: string) {
+        return url
+            ? getOptimizedSupabaseImageUrl(url, {
+                  width: 480,
+                  quality: 72,
+              })
+            : undefined;
+    }
+
+    function getOptimizedProfileImage(url?: string, size = 320) {
+        return url
+            ? getOptimizedSupabaseImageUrl(url, {
+                  width: size,
+                  height: size,
+                  quality: 76,
+                  resize: "cover",
+              })
+            : "";
+    }
+
     function fillUserPersonaEditor(persona: UserPersona | null) {
         editingUserPersonaId = persona?.id || "";
         userPersonaName = persona?.name || "";
@@ -202,6 +222,8 @@
         runAfterFirstPaint(loadUserPersonasFromServer);
         runAfterFirstPaint(loadLivePersonaIds);
     }
+
+    $: optimizedUserProfileImage = getOptimizedProfileImage(user.profile, 320);
 
     async function loadUserPersonasFromServer() {
         try {
@@ -657,7 +679,8 @@
                                 {#if user.profile}
                                     <div class="avatar-wrapper">
                                         <img
-                                            src={user.profile}
+                                            src={optimizedUserProfileImage ||
+                                                user.profile}
                                             alt="Profile"
                                             class="avatar-image"
                                         />
@@ -1102,7 +1125,10 @@
                             >
                                 <AssetPreview
                                     asset={{
-                                        url: persona.portrait_url,
+                                        url:
+                                            getMyPersonaPortraitThumb(
+                                                persona.portrait_url,
+                                            ) || persona.portrait_url,
                                         static_url: getMyPersonaStaticThumb(
                                             persona.static_portrait_url,
                                         ),
