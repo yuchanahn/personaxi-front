@@ -29,6 +29,7 @@
     import StepReview from "$lib/components/edit3/StepReview.svelte";
 
     const AUTO_SAVE_KEY = "edit3_draft";
+    const MIN_DRAFT_STEP = 3;
     const LIVE2D_EDITOR_BRIDGE_PREFIX = "live2d_editor_config_bridge:";
     const DEFAULT_SHARED_CHAT_STYLE_CSS = `.px-dialogue {
     display: block;
@@ -828,6 +829,10 @@
     // ── Auto-save Draft ──
     function saveDraft() {
         if (persona.id) return; // Only for new personas
+        if (currentStep < MIN_DRAFT_STEP) {
+            clearDraft();
+            return;
+        }
         try {
             const draft = {
                 persona,
@@ -855,6 +860,15 @@
                 return false;
             }
 
+            const restoredStep = Number(draft.currentStep);
+            if (
+                !Number.isFinite(restoredStep) ||
+                restoredStep < MIN_DRAFT_STEP
+            ) {
+                clearDraft();
+                return false;
+            }
+
             persona = { ...createEmptyPersona(), ...draft.persona };
             persona.chat_style_css = normalizeSharedChatStyleCSS(
                 persona.chat_style_css,
@@ -862,12 +876,7 @@
             singleInstruction = draft.singleInstruction || "";
             firstSceneJson = draft.firstSceneJson || "";
             selectedVoiceId = draft.selectedVoiceId || "";
-            const restoredStep = Number(draft.currentStep);
-            if (Number.isFinite(restoredStep)) {
-                currentStep = Math.max(0, Math.min(4, Math.floor(restoredStep)));
-            } else {
-                currentStep = 0;
-            }
+            currentStep = Math.max(0, Math.min(4, Math.floor(restoredStep)));
             return true;
         } catch (e) {
             return false;
