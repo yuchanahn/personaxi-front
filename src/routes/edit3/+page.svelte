@@ -20,6 +20,7 @@
 
     import LoadingAnimation from "$lib/components/utils/LoadingAnimation.svelte";
     import FirstCreationRewardModal from "$lib/components/modal/FirstCreationRewardModal.svelte";
+    import { requireAuth } from "$lib/stores/authGate";
 
     import StepWizard from "$lib/components/edit3/StepWizard.svelte";
     import StepTypeSelect from "$lib/components/edit3/StepTypeSelect.svelte";
@@ -889,8 +890,12 @@
 
     // ── Lifecycle ──
     onMount(async () => {
-        if (!(await api.isLoggedIn())) {
-            goto("/login");
+        if (
+            !(await requireAuth({
+                source: "page",
+                reason: "edit3-page-access",
+            }))
+        ) {
             return;
         }
 

@@ -23,12 +23,13 @@
     import { settings } from "$lib/stores/settings";
     import { st_user } from "$lib/stores/user";
     import { get } from "svelte/store";
-    import { toastError } from "$lib/utils/errorMapper";
     import { toast } from "$lib/stores/toast";
     import { showNeedMoreNeuronsModal } from "$lib/stores/modal";
     import { requestIdentityVerification } from "$lib/services/verification";
     import { updateBirthDate, updateSafetyFilter } from "$lib/api/user";
     import HubBanner from "./HubBanner.svelte";
+    import { ensureAuthenticated } from "$lib/utils/authNavigation";
+    import { AuthRequiredError } from "$lib/stores/authGate";
 
     type HubHomeSection = {
         id: string;
@@ -106,12 +107,16 @@
     async function handleHubSafetyToggle() {
         if (isCheckingIp || isUpdatingSafety) return;
 
-        const user = get(st_user);
-        if (!user) {
-            toastError("loginRequired");
-            goto("/login");
+        if (
+            !(await ensureAuthenticated({
+                reason: "hub-safety-toggle",
+            }))
+        ) {
             return;
         }
+
+        const user = get(st_user);
+        if (!user) return;
 
         const storedBirthDate = getStoredBirthDate();
         if (isOverseas && storedBirthDate) {
@@ -226,12 +231,16 @@
     }
 
     async function confirmAgeVerification() {
-        const user = get(st_user);
-        if (!user) {
-            toastError("loginRequired");
-            goto("/login");
+        if (
+            !(await ensureAuthenticated({
+                reason: "hub-age-verification",
+            }))
+        ) {
             return;
         }
+
+        const user = get(st_user);
+        if (!user) return;
 
         if (safetyModalMode === "kr_verification") {
             isAgeVerificationModalOpen = false;
@@ -307,12 +316,16 @@
     }
 
     async function handleHubIdentityVerification() {
-        const user = get(st_user);
-        if (!user) {
-            toastError("loginRequired");
-            goto("/login");
+        if (
+            !(await ensureAuthenticated({
+                reason: "hub-identity-verification",
+            }))
+        ) {
             return;
         }
+
+        const user = get(st_user);
+        if (!user) return;
 
         await requestIdentityVerification({
             onSuccess: () => {},
@@ -856,9 +869,23 @@
                 );
             }
         } else if (category === "following") {
-            data = await loadFollowedContent();
+            try {
+                data = await loadFollowedContent();
+            } catch (error) {
+                if (!(error instanceof AuthRequiredError)) {
+                    throw error;
+                }
+                data = [];
+            }
         } else if (category === "liked") {
-            data = await loadLikedContent();
+            try {
+                data = await loadLikedContent();
+            } catch (error) {
+                if (!(error instanceof AuthRequiredError)) {
+                    throw error;
+                }
+                data = [];
+            }
         } else {
             data = await loadContentWithTags(
                 tags,
@@ -916,9 +943,23 @@
                 data = await loadContent(page, limit, sort, currentContentType);
             }
         } else if (selectedCategory === "following") {
-            data = await loadFollowedContent();
+            try {
+                data = await loadFollowedContent();
+            } catch (error) {
+                if (!(error instanceof AuthRequiredError)) {
+                    throw error;
+                }
+                data = [];
+            }
         } else if (selectedCategory === "liked") {
-            data = await loadLikedContent();
+            try {
+                data = await loadLikedContent();
+            } catch (error) {
+                if (!(error instanceof AuthRequiredError)) {
+                    throw error;
+                }
+                data = [];
+            }
         } else if (selectedCategory === "search") {
             if (searchType === "name") {
                 data = await loadContentWithName(query);
@@ -967,7 +1008,9 @@
     function handleNeuronClick() {
         const user = get(st_user);
         if (!user || !user.id) {
-            goto("/login");
+            void ensureAuthenticated({
+                reason: "hub-neuron-modal",
+            });
             return;
         }
         showNeedMoreNeuronsModal(false);

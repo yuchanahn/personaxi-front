@@ -1,6 +1,6 @@
 <script lang="ts">
     import Icon from "@iconify/svelte";
-    import { afterNavigate } from "$app/navigation";
+    import { afterNavigate, goto } from "$app/navigation";
     import { page } from "$app/stores";
     import { accessToken } from "$lib/stores/auth";
     import { st_user } from "$lib/stores/user";
@@ -24,7 +24,7 @@
             href: "/feed",
             icon: "material-symbols:smart-display-outline",
             label: $t("nav.feed"),
-            requiresAuth: true,
+            requiresAuth: false,
         },
         {
             href: "/chat", // ✨ 추가된 채팅 페이지 링크
@@ -55,16 +55,11 @@
         return window.matchMedia("(hover: none), (pointer: coarse)").matches;
     }
 
-    function resolveNavHref(href: string, requiresAuth: boolean) {
-        return requiresAuth && $accessToken === null ? "/login" : href;
-    }
-
     function isItemActive(
         activePathname: string,
         href: string,
         requiresAuth: boolean,
     ) {
-        if (requiresAuth && $accessToken === null) return false;
         return matchesHref(activePathname, href);
     }
 
@@ -73,16 +68,19 @@
         href: string,
         requiresAuth: boolean,
     ) {
-        const resolvedHref = resolveNavHref(href, requiresAuth);
-        pendingNavHref = resolvedHref;
-
-        if (resolvedHref === currentPath) {
-            event.preventDefault();
-        }
+        event.preventDefault();
 
         if (isTouchLikePointer()) {
             (event.currentTarget as HTMLAnchorElement | null)?.blur();
         }
+
+        if (href === currentPath) {
+            pendingNavHref = "";
+            return;
+        }
+
+        pendingNavHref = href;
+        void goto(href);
     }
 
     afterNavigate(() => {
@@ -109,7 +107,7 @@
         <a
             class="nav-item"
             class:active={isItemActive(activePath, href, requiresAuth)}
-            href={resolveNavHref(href, requiresAuth)}
+            href={href}
             on:click={(event) => handleNavTap(event, href, requiresAuth)}
         >
             <div class="relative nav-icon-shell">

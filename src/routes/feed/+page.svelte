@@ -9,6 +9,7 @@
     import FeedItem from "$lib/components/feed/FeedItem.svelte";
     import { t } from "svelte-i18n";
     import LoadingAnimation from "$lib/components/utils/LoadingAnimation.svelte";
+    import { AuthRequiredError } from "$lib/stores/authGate";
 
     let personas: Persona[] = [];
     let loading = false;
@@ -118,6 +119,10 @@
             personas = [...personas, ...uniqueNew];
             offset += limit;
         } catch (e) {
+            if (e instanceof AuthRequiredError) {
+                loadError = false;
+                return;
+            }
             console.error("Failed to load feed", e);
             loadError = true;
         } finally {
@@ -146,6 +151,7 @@
 
     async function changeTab(nextTab: "recommended" | "following") {
         if (nextTab === currentTab || loading) return;
+
         currentTab = nextTab;
         personas = [];
         offset = 0;

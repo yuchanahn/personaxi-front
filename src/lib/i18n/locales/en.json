@@ -134,6 +134,7 @@
     "title": "Welcome Back",
     "slogan": "Log in to access all features.",
     "loginWith": "Log in with {provider}",
+    "modalSubtitle": "Sign in to continue.",
     "resetDescription": "Enter your email to receive a password reset link."
   },
   "auction": {

@@ -178,6 +178,7 @@
     "loginWith": "{provider}로 로그인",
     "welcomeBack": "환영합니다!",
     "slogan": "당신만의 AI 페르소나를 만드세요.",
+    "modalSubtitle": "계속하려면 로그인하세요.",
     "resetDescription": "비밀번호 재설정 링크를 받을 이메일을 입력해주세요."
   },
   "auctionModal": {

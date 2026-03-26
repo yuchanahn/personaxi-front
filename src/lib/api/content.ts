@@ -184,10 +184,6 @@ export async function loadFollowedContentPaged(limit: number, offset: number) {
 }
 
 export async function loadLikedContent() {
-    if (!(await api.isLoggedIn())) {
-        return [];
-    }
-
     const res = await api.get(`/api/contents/liked?locale=${get(settings).language}`);
     if (res.ok) {
         const data = await res.json();
