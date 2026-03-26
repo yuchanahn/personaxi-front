@@ -2,6 +2,7 @@ import { browser, dev } from '$app/environment';
 import { supabase } from '$lib/supabase';
 import { get } from 'svelte/store';
 import { accessToken } from '$lib/stores/auth';
+import { AuthRequiredError, openAuthGate } from '$lib/stores/authGate';
 
 export const API_BASE_URL = dev ? '' : "https://api.personaxi.com";
 
@@ -59,9 +60,11 @@ async function fetchWithAuth(url: string, options: AuthRequestInit = {}): Promis
     if (token) {
         headers.set('Authorization', `Bearer ${token}`);
     } else if (requireAuth) {
-        // 토큰이 없는데 인증이 필수라면 로그인 페이지로 이동
-        window.location.href = '/login';
-        throw new Error('No session');
+        openAuthGate({
+            source: 'api',
+            reason: 'missing-session',
+        });
+        throw new AuthRequiredError('No session');
     }
 
     const isFormData =
@@ -74,9 +77,12 @@ async function fetchWithAuth(url: string, options: AuthRequestInit = {}): Promis
     let response = await fetch(url, options);
 
     if (response.status === 401 && requireAuth) {
-        // 401 에러(인증 실패) 시 로그인 페이지로 이동 (필수 인증일 때만)
-        window.location.href = '/login';
-        throw new Error('Unauthorized');
+        accessToken.set(null);
+        openAuthGate({
+            source: 'api',
+            reason: 'unauthorized',
+        });
+        throw new AuthRequiredError('Unauthorized');
     }
 
     if (response.status === 503) {

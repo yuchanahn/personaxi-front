@@ -20,6 +20,7 @@
     import { st_user } from "$lib/stores/user";
     import { toast } from "$lib/stores/toast";
     import ReportModal from "$lib/components/modal/ReportModal.svelte";
+    import { AuthRequiredError } from "$lib/stores/authGate";
 
     let persona: Persona | null = null;
     let comments: Comment[] = [];
@@ -284,6 +285,9 @@
             comments = [...comments, newComment];
             newCommentText = ""; // 입력창 초기화
         } catch (err) {
+            if (err instanceof AuthRequiredError) {
+                return;
+            }
             console.error("Error posting comment:", err);
             toast.error($t("profilePage.commentPostFailed"));
         }
@@ -436,6 +440,8 @@
     });
 
     function handleStartChat() {
+        if (!persona) return;
+
         // Default to Flash-Lite
         let llmType = "gemini-flash-lite";
 
@@ -494,6 +500,9 @@
                 );
             }
         } catch (error) {
+            if (error instanceof AuthRequiredError) {
+                return;
+            }
             console.error("Like toggle failed:", error);
             toast.error(
                 $t("profilePage.likeFailed", {

@@ -183,6 +183,7 @@
     "title": "おかえりなさい",
     "welcomeBack": "おかえりなさい！",
     "slogan": "あなただけのAIペルソナを作りましょう。",
+    "modalSubtitle": "続けるにはログインしてください。",
     "resetDescription": "パスワード再設定リンクを受け取るメールアドレスを入力してください。"
   },
   "auctionModal": {

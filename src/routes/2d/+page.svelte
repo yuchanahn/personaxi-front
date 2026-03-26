@@ -17,6 +17,7 @@
   import ModelSelector from "$lib/components/chat/ModelSelector.svelte";
   import { messages } from "$lib/stores/messages";
   import { api } from "$lib/api";
+  import { requireAuth } from "$lib/stores/authGate";
 
   let lastSessionId: string | null = null;
   let persona: Persona | null = null;
@@ -77,9 +78,15 @@
       showModelSelector = false;
 
       try {
-        const historyPromise = loadChatHistory(sessionId ?? "").catch((error) => {
-          console.error("Failed to load chat history:", error);
+        const canAccessChat = await requireAuth({
+          source: "page",
+          reason: "chat-2d-access",
         });
+        const historyPromise = canAccessChat
+          ? loadChatHistory(sessionId ?? "").catch((error) => {
+              console.error("Failed to load chat history:", error);
+            })
+          : Promise.resolve();
         const p = await loadPersona(sessionId);
 
         if (currentLoad !== loadSequence || lastSessionId !== sessionId) {
@@ -87,6 +94,10 @@
         }
 
         persona = p;
+
+        if (!canAccessChat) {
+          return;
+        }
 
         await historyPromise;
 

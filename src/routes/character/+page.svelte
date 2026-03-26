@@ -10,6 +10,7 @@
   import TtsStatusModal from "$lib/components/modal/TTSStatusModal.svelte";
   import { messages } from "$lib/stores/messages";
   import { toast } from "$lib/stores/toast";
+  import { requireAuth } from "$lib/stores/authGate";
 
   let lastSessionId: string | null = null;
   let persona: Persona | null = null;
@@ -89,11 +90,20 @@
         // Reset state
         affectionScore = 0;
 
-        void loadChatHistory(sessionId, (esf) => {
-          if (requestId !== loadRequestId) return;
-          isStartSpeech = esf.recent_turns.length < 1;
-        }).catch((error) => {
-          console.error("Failed to load 3D chat history:", error);
+        void requireAuth({
+          source: "page",
+          reason: "chat-3d-access",
+        }).then((canAccessChat) => {
+          if (!canAccessChat) {
+            return;
+          }
+
+          void loadChatHistory(sessionId, (esf) => {
+            if (requestId !== loadRequestId) return;
+            isStartSpeech = esf.recent_turns.length < 1;
+          }).catch((error) => {
+            console.error("Failed to load 3D chat history:", error);
+          });
         });
 
         void loadPersona(sessionId)

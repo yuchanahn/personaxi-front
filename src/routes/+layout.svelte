@@ -12,6 +12,7 @@
     import NeedMoreNeuronsModal from "$lib/components/modal/NeedMoreNeuronsModal.svelte";
     import ConsentModal from "$lib/components/modal/ConsentModal.svelte";
     import WelcomeModal from "$lib/components/modal/WelcomeModal.svelte";
+    import AuthLoginModal from "$lib/components/modal/AuthLoginModal.svelte";
     import ToastContainer from "$lib/components/ui/toast/ToastContainer.svelte";
     import ConfirmModal from "$lib/components/ui/ConfirmModal.svelte";
 
@@ -46,6 +47,11 @@
     import { supabase } from "$lib/supabase";
     import { registerNativeOAuthRedirectHandler } from "$lib/services/nativeSocialAuth";
     import { isNativeApp } from "$lib/utils/appShell";
+    import {
+        authRenderVersion,
+        consumeAuthGateSuccess,
+        bumpAuthRenderVersion,
+    } from "$lib/stores/authGate";
     import { scheduleGoogleTagManager } from "$lib/utils/googleTagManager";
 
     import { hideBackButton } from "$lib/utils/LayoutUtils";
@@ -67,28 +73,7 @@
     let bootstrappedUserToken: string | null = null;
     let bootstrappedUserPromise: Promise<User | null> | null = null;
     let initializedNotificationUserId = "";
-    let authResolved = false;
     let isNativeShell = false;
-
-    function isPublicPath(pathname: string) {
-        const publicRoutes = [
-            "/login",
-            "/signup",
-            "/",
-            "/test",
-            "/suspended",
-            "/install",
-            "/terms",
-            "/policy",
-            "/privacy",
-            "/licenses",
-            "/profile",
-            "/hub",
-            "/creator",
-        ];
-
-        return publicRoutes.includes(pathname) || pathname.startsWith("/test/");
-    }
 
     function syncUserLanguage(user: User) {
         if (user.data.language === "") {
@@ -217,7 +202,6 @@
         // 1. 초기 세션 로드
         void supabase.auth.getSession().then(({ data: { session } }) => {
             accessToken.set(session?.access_token ?? null);
-            authResolved = true;
         });
 
         // 2. Auth 상태 변경 감지
@@ -226,11 +210,21 @@
         } = supabase.auth.onAuthStateChange((_event, session) => {
             if (session) {
                 accessToken.set(session.access_token);
-                authResolved = true;
+                const completedAuthRequest = consumeAuthGateSuccess();
+                if (completedAuthRequest?.returnTo) {
+                    const currentUrl =
+                        `${window.location.pathname}${window.location.search}${window.location.hash}` ||
+                        "/hub";
+                    if (completedAuthRequest.returnTo !== currentUrl) {
+                        void goto(completedAuthRequest.returnTo, {
+                            replaceState: true,
+                        });
+                    }
+                }
             } else {
                 resetAuthenticatedBootstrap();
                 accessToken.set(null);
-                authResolved = true;
+                bumpAuthRenderVersion();
             }
         });
 
@@ -361,8 +355,6 @@
     $: isChatPage = ["/2d", "/character", "/live2d", "/feed"].includes(
         $page.url.pathname,
     );
-    $: isAuthRoute = ["/login", "/signup"].includes($page.url.pathname);
-    $: routeRequiresAuth = !isPublicPath($page.url.pathname);
     $: showNavBottom =
         isMobile &&
         ![
@@ -374,17 +366,6 @@
             "/maintenance",
         ].includes($page.url.pathname) &&
         !$page.url.pathname.startsWith("/test/");
-    $: if (
-        browser &&
-        authResolved &&
-        routeRequiresAuth &&
-        $accessToken === null
-    ) {
-        goto("/login", { replaceState: true });
-    }
-    $: if (browser && authResolved && isAuthRoute && $accessToken !== null) {
-        goto("/hub", { replaceState: true });
-    }
 </script>
 
 <!-- ────────────── 레이아웃 ────────────── -->
@@ -394,11 +375,9 @@
     {/if}
 
     <main class:no-padding-bottom={isChatPage} class="no-scrollbar">
-        {#if routeRequiresAuth && !authResolved}
-            <div class="route-auth-loading">{$t("common.loading")}</div>
-        {:else}
+        {#key `${$authRenderVersion}:${$page.url.pathname}:${$page.url.search}`}
             <slot />
-        {/if}
+        {/key}
 
         <CheatConsole
             isVisible={showCheatConsole}
@@ -447,6 +426,7 @@
 
     <ToastContainer />
     <ConfirmModal />
+    <AuthLoginModal />
 </div>
 
 <style>
@@ -486,14 +466,6 @@
     main:global(.no-padding-bottom) {
         padding-bottom: env(safe-area-inset-bottom, 0px);
         /* padding-bottom: 0; */
-    }
-
-    .route-auth-loading {
-        display: grid;
-        place-items: center;
-        min-height: 100%;
-        color: var(--muted-foreground);
-        font-size: 0.95rem;
     }
 
     .back-btn {

@@ -21,6 +21,7 @@
     import { toast } from "$lib/stores/toast";
     import { settings } from "$lib/stores/settings";
     import type { Live2DAutonomy } from "$lib/utils/live2d/Live2DAutonomy";
+    import { requireAuth } from "$lib/stores/authGate";
 
     let lastSessionId: string | null = null;
     let persona: Persona | null = null;
@@ -150,12 +151,21 @@
                 hitMotionMap = {}; // Reset map
                 affectionScore = 0; // Reset affection for new session
 
-                void loadChatHistory(sessionId, (esf) => {
-                    if (requestId !== loadRequestId) return;
-                    isStartSpeech = esf.recent_turns.length < 1;
-                    console.log("@@@ isStartSpeech @@@", isStartSpeech);
-                }).catch((error) => {
-                    console.error("Failed to load Live2D chat history:", error);
+                void requireAuth({
+                    source: "page",
+                    reason: "chat-live2d-access",
+                }).then((canAccessChat) => {
+                    if (!canAccessChat) {
+                        return;
+                    }
+
+                    void loadChatHistory(sessionId, (esf) => {
+                        if (requestId !== loadRequestId) return;
+                        isStartSpeech = esf.recent_turns.length < 1;
+                        console.log("@@@ isStartSpeech @@@", isStartSpeech);
+                    }).catch((error) => {
+                        console.error("Failed to load Live2D chat history:", error);
+                    });
                 });
 
                 void loadPersona(sessionId)

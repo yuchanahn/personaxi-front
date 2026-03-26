@@ -19,6 +19,7 @@
 
     import LoadingAnimation from "$lib/components/utils/LoadingAnimation.svelte";
     import FirstCreationRewardModal from "$lib/components/modal/FirstCreationRewardModal.svelte";
+    import { requireAuth } from "$lib/stores/authGate";
 
     import EditHeader from "$lib/components/edit/EditHeader.svelte";
     import BasicInfoForm from "$lib/components/edit/BasicInfoForm.svelte";
@@ -240,8 +241,12 @@
     }
 
     onMount(async () => {
-        if (!(await api.isLoggedIn())) {
-            goto("/login");
+        if (
+            !(await requireAuth({
+                source: "page",
+                reason: "edit-page-access",
+            }))
+        ) {
             return;
         }
 

@@ -9,6 +9,7 @@
     import { get } from "svelte/store";
     import { api } from "$lib/api";
     import { browser } from "$app/environment";
+    import { AuthRequiredError } from "$lib/stores/authGate";
 
     export let persona: Persona;
     export let isActive: boolean = false;
@@ -167,6 +168,7 @@
     async function handleLike(e: MouseEvent) {
         e.stopPropagation();
         if (liking) return;
+
         liking = true;
         const prevLikes = persona.likes_count ?? 0;
         const prevLiked = isLiked;
@@ -189,6 +191,9 @@
         } catch (err) {
             isLiked = prevLiked;
             persona = { ...persona, likes_count: prevLikes };
+            if (err instanceof AuthRequiredError) {
+                return;
+            }
             toast.error(err instanceof Error ? err.message : "Like failed");
         } finally {
             liking = false;

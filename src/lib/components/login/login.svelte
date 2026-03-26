@@ -1,10 +1,12 @@
 <script lang="ts">
     import { goto } from "$app/navigation";
+    import { onMount } from "svelte";
     import { locale, t } from "svelte-i18n";
     import { supabase } from "$lib/supabase";
     import Icon from "@iconify/svelte";
     import { toast } from "$lib/stores/toast";
     import { getLocalizedStaticDocHref } from "$lib/utils/localePaths";
+    import { closeAuthGate } from "$lib/stores/authGate";
     import {
         loginWithGoogle,
         loginWithKakao,
@@ -12,6 +14,8 @@
     } from "$lib/services/nativeSocialAuth";
 
     let mode: "options" | "email" | "register" | "reset" = "options";
+    export let isModal = false;
+    export let postLoginPath = "/hub";
 
     let email = "";
     let password = "";
@@ -57,18 +61,34 @@
 
     let errorMessage: string = "";
 
+    function resolvePostLoginPath() {
+        const value = (postLoginPath || "").trim();
+        if (!value) return "/hub";
+        return value.startsWith("/") ? value : "/hub";
+    }
+
+    function getOAuthRedirectUrl() {
+        return new URL(resolvePostLoginPath(), window.location.origin).toString();
+    }
+
+    async function handleSuccessfulLogin() {
+        errorMessage = "";
+
+        if (!isModal) {
+            await goto(resolvePostLoginPath(), { replaceState: true });
+        }
+    }
+
     const loginWithEmail = async () => {
         try {
-            const { data, error } = await supabase.auth.signInWithPassword({
+            const { error } = await supabase.auth.signInWithPassword({
                 email,
                 password,
             });
 
             if (error) throw error;
 
-            // 로그인 성공 시 에러 메시지 초기화 및 이동 (onAuthStateChange가 처리하겠지만 명시적으로 이동)
-            errorMessage = "";
-            goto("/hub");
+            await handleSuccessfulLogin();
         } catch (e) {
             if (e instanceof Error) {
                 errorMessage = e.message;
@@ -78,8 +98,16 @@
         }
     };
 
-    const onSignup = () => {
-        goto("/signup");
+    const onSignup = async () => {
+        if (isModal) {
+            closeAuthGate();
+            await goto(
+                `/signup?next=${encodeURIComponent(resolvePostLoginPath())}`,
+            );
+            return;
+        }
+
+        await goto("/signup");
     };
 
     type LoginOption = {
@@ -101,7 +129,7 @@
         try {
             const mode = await loginAction();
             if (mode === "native-session") {
-                goto("/hub");
+                await handleSuccessfulLogin();
             }
         } catch (e) {
             const message =
@@ -133,19 +161,31 @@
             handler: toEmailForm,
         },
     ];
+
+    onMount(() => {
+        if (isModal) return;
+
+        void supabase.auth.getSession().then(({ data: { session } }) => {
+            if (session) {
+                void goto(resolvePostLoginPath(), { replaceState: true });
+            }
+        });
+    });
 </script>
 
-<div class="login-page-wrapper">
+<div class="login-page-wrapper" class:is-modal={isModal}>
     <div class="login-container">
-        <div class="login-header">
-            <img
-                src="/logo.png"
-                alt={$t("login.serviceLogoAlt")}
-                class="logo"
-            />
-            <h1 class="title">{$t("login.welcomeBack")}</h1>
-            <p class="subtitle">{$t("login.slogan")}</p>
-        </div>
+        {#if !isModal}
+            <div class="login-header">
+                <img
+                    src="/logo.png"
+                    alt={$t("login.serviceLogoAlt")}
+                    class="logo"
+                />
+                <h1 class="title">{$t("login.welcomeBack")}</h1>
+                <p class="subtitle">{$t("login.slogan")}</p>
+            </div>
+        {/if}
 
         <!-- Provider 선택 화면 -->
         {#if mode === "options"}
@@ -178,15 +218,17 @@
                 {/each}
             </div>
 
-            <div class="legal-links">
-                <a href={getLocalizedStaticDocHref($locale, "terms")}
-                    >{$t("login.terms")}</a
-                >
-                <span>·</span>
-                <a href={getLocalizedStaticDocHref($locale, "privacy")}
-                    >{$t("login.privacy")}</a
-                >
-            </div>
+            {#if !isModal}
+                <div class="legal-links">
+                    <a href={getLocalizedStaticDocHref($locale, "terms")}
+                        >{$t("login.terms")}</a
+                    >
+                    <span>·</span>
+                    <a href={getLocalizedStaticDocHref($locale, "privacy")}
+                        >{$t("login.privacy")}</a
+                    >
+                </div>
+            {/if}
         {:else if mode === "reset"}
             <form
                 class="email-form"
@@ -287,6 +329,12 @@
         transition: background-color 0.3s ease;
     }
 
+    .login-page-wrapper.is-modal {
+        display: block;
+        min-height: auto;
+        background: transparent;
+    }
+
     .login-container {
         display: flex;
         flex-direction: column;
@@ -302,6 +350,15 @@
         transition:
             background-color 0.3s ease,
             border-color 0.3s ease;
+    }
+
+    .login-page-wrapper.is-modal .login-container {
+        margin: 0;
+        max-width: 100%;
+        padding: 0;
+        background: transparent;
+        border: none;
+        box-shadow: none;
     }
 
     /* HEADER */
@@ -331,6 +388,10 @@
         display: flex;
         flex-direction: column;
         gap: 1rem;
+    }
+
+    .login-page-wrapper.is-modal .button-group {
+        gap: 0.75rem;
     }
     .login-button {
         display: flex;
@@ -432,6 +493,10 @@
         font-size: 0.85rem;
         color: var(--color-text-secondary);
     }
+
+    .login-page-wrapper.is-modal .alt-actions {
+        margin-top: 1rem;
+    }
     .link-button {
         background: none;
         border: none;
@@ -448,6 +513,10 @@
         text-align: center;
         font-size: 0.8rem;
         color: var(--color-text-secondary);
+    }
+
+    .login-page-wrapper.is-modal .legal-links {
+        margin-top: 0.25rem;
     }
     .legal-links a {
         color: var(--color-text-secondary);

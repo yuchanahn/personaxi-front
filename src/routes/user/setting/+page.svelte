@@ -22,6 +22,7 @@
     import { chatSessions } from "$lib/stores/chatSessions";
     import { getOptimizedSupabaseImageUrl } from "$lib/utils/mediaTransform";
     import { isInstalledAppShell } from "$lib/utils/appShell";
+    import { AuthRequiredError, requireAuth } from "$lib/stores/authGate";
 
     const supabaseURL = "/storage/v1/object/public/personaxi-assets/";
 
@@ -210,7 +211,12 @@
     async function initializeSettingsPage() {
         detectPwaMode();
 
-        if (!(await api.isLoggedIn())) {
+        if (
+            !(await requireAuth({
+                source: "page",
+                reason: "settings-page-access",
+            }))
+        ) {
             return;
         }
 
@@ -542,11 +548,25 @@
         activeTab = tab;
         if (tab === "liked" && likedPersonas.length === 0) {
             isLoadingTab = true;
-            likedPersonas = await loadLikedContent();
+            try {
+                likedPersonas = await loadLikedContent();
+            } catch (error) {
+                if (!(error instanceof AuthRequiredError)) {
+                    throw error;
+                }
+                likedPersonas = [];
+            }
             isLoadingTab = false;
         } else if (tab === "following" && followedPersonas.length === 0) {
             isLoadingTab = true;
-            followedPersonas = await loadFollowedContent();
+            try {
+                followedPersonas = await loadFollowedContent();
+            } catch (error) {
+                if (!(error instanceof AuthRequiredError)) {
+                    throw error;
+                }
+                followedPersonas = [];
+            }
             isLoadingTab = false;
         }
     }
