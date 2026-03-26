@@ -4,6 +4,7 @@
     import { fade, slide } from "svelte/transition";
     import { t } from "svelte-i18n";
     import { goto } from "$app/navigation";
+    import { isInstalledAppShell } from "$lib/utils/appShell";
 
     let showPrompt = false;
     let isMobile = false;
@@ -14,10 +15,8 @@
         const ua = navigator.userAgent.toLowerCase();
         isMobile = /iphone|ipad|ipod|android/.test(ua);
 
-        // 2. Check if Standalone (Already Installed)
-        isStandalone =
-            window.matchMedia("(display-mode: standalone)").matches ||
-            (window.navigator as any).standalone === true;
+        // 2. Check if already running inside an installed shell (PWA or native app)
+        isStandalone = isInstalledAppShell();
 
         // 3. Check LocalStorage (Dismissed Timestamp?)
         const dismissedStr = localStorage.getItem(

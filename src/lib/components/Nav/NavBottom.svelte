@@ -1,11 +1,30 @@
 <script lang="ts">
     import Icon from "@iconify/svelte";
+    import { onMount } from "svelte";
+    import { preloadCode } from "$app/navigation";
     import { page } from "$app/stores";
 
     import { t } from "svelte-i18n";
     import { notificationStore } from "$lib/stores/notification";
 
     const { unreadCount } = notificationStore;
+    const navHrefs = ["/hub", "/feed", "/chat", "/edit3", "/user/setting"];
+
+    onMount(() => {
+        if (typeof window === "undefined") return;
+
+        const preloadNavRoutes = () => {
+            navHrefs.forEach((href) => {
+                void preloadCode(href);
+            });
+        };
+
+        const timer = window.setTimeout(preloadNavRoutes, 0);
+
+        return () => {
+            window.clearTimeout(timer);
+        };
+    });
 
     $: items = [
         { href: "/hub", icon: "ph:compass-duotone", label: $t("nav.explore") },

@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">PXI</string>
+    <string name="title_activity_main">PXI</string>
+    <string name="package_name">com.personaxi.app</string>
+    <string name="custom_url_scheme">com.personaxi.app</string>
+</resources>

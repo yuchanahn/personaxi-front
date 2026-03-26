@@ -1,12 +1,14 @@
 import adapter from '@sveltejs/adapter-static';
 
+const isAndroidBuild = process.env.npm_lifecycle_event === 'build:android';
+
 export default {
 	ssr: false, // 루트 수준에서 ssr 설정
 	kit: {
 		adapter: adapter({
 			strict: false,
 			fallback: 'index.html',
-			precompress: true  // gzip/brotli 압축 활성화
+			precompress: !isAndroidBuild  // Android asset merge avoids .gz/.br duplicates
 		}),
 		paths: {
 			base: ''

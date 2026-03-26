@@ -1,5 +1,7 @@
 <script lang="ts">
+    import { browser } from "$app/environment";
     import { onMount, tick } from "svelte";
+    import { Capacitor } from "@capacitor/core";
     import type { Persona } from "$lib/types";
     import {
         loadFeedRecommended,
@@ -13,7 +15,11 @@
     let personas: Persona[] = [];
     let loading = false;
     let offset = 0;
-    const limit = 10;
+    const isNativeAndroid =
+        browser &&
+        Capacitor.isNativePlatform() &&
+        Capacitor.getPlatform() === "android";
+    const limit = isNativeAndroid ? 4 : 10;
     let hasMore = true;
 
     let feedContainer: HTMLElement;
@@ -128,13 +134,15 @@
     onMount(() => {
         void (async () => {
             await loadMore();
-            try {
-                const likedIds: string[] = await loadlikesdata();
-                likedPersonaIds = new Set(likedIds || []);
-            } catch {
-                likedPersonaIds = new Set();
-            }
             setupObserver();
+
+            void loadlikesdata()
+                .then((likedIds: string[]) => {
+                    likedPersonaIds = new Set(likedIds || []);
+                })
+                .catch(() => {
+                    likedPersonaIds = new Set();
+                });
         })();
         return () => {
             if (seenTrackTimer) clearTimeout(seenTrackTimer);

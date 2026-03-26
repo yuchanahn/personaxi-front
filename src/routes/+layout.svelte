@@ -33,6 +33,7 @@
     import { browser } from "$app/environment";
     import { goto } from "$app/navigation";
     import Icon from "@iconify/svelte";
+    import { Capacitor } from "@capacitor/core";
     import { slide } from "svelte/transition";
     import { accessToken } from "$lib/stores/auth";
     import { locale, t } from "svelte-i18n";
@@ -42,6 +43,8 @@
     import type { User } from "$lib/types";
 
     import { supabase } from "$lib/supabase";
+    import { registerNativeOAuthRedirectHandler } from "$lib/services/nativeSocialAuth";
+    import { isNativeApp } from "$lib/utils/appShell";
 
     import { hideBackButton } from "$lib/utils/LayoutUtils";
 
@@ -63,6 +66,7 @@
     let bootstrappedUserPromise: Promise<User | null> | null = null;
     let initializedNotificationUserId = "";
     let authResolved = false;
+    let isNativeShell = false;
 
     function isPublicPath(pathname: string) {
         const publicRoutes = [
@@ -142,6 +146,16 @@
     onMount(() => {
         if (!browser) return;
 
+        const isNativeAndroid =
+            Capacitor.isNativePlatform() &&
+            Capacitor.getPlatform() === "android";
+        isNativeShell = isNativeApp();
+        document.documentElement.classList.toggle(
+            "native-android",
+            isNativeAndroid,
+        );
+        document.body.classList.toggle("native-android", isNativeAndroid);
+
         if ("serviceWorker" in navigator) {
             window.addEventListener("load", () => {
                 navigator.serviceWorker
@@ -165,6 +179,17 @@
             );
         };
         window.addEventListener("chat-error", handleChatError as EventListener);
+        let removeNativeOAuthHandler: (() => void) | null = null;
+        void registerNativeOAuthRedirectHandler({
+            onSuccess: () => {
+                goto("/hub", { replaceState: true });
+            },
+            onError: (message) => {
+                toast.error(message);
+            },
+        }).then((cleanup) => {
+            removeNativeOAuthHandler = cleanup;
+        });
 
         // pricingStore.fetchPricingPolicy() — called in accessToken.subscribe, no duplicate needed
 
@@ -191,6 +216,9 @@
         });
 
         return () => {
+            removeNativeOAuthHandler?.();
+            document.documentElement.classList.remove("native-android");
+            document.body.classList.remove("native-android");
             window.removeEventListener(
                 "chat-error",
                 handleChatError as EventListener,
@@ -323,9 +351,13 @@
     $: isChatPage = ["/2d", "/character", "/live2d", "/feed"].includes(
         $page.url.pathname,
     );
+    $: isAuthRoute = ["/login", "/signup"].includes($page.url.pathname);
     $: routeRequiresAuth = !isPublicPath($page.url.pathname);
     $: if (browser && authResolved && routeRequiresAuth && $accessToken === null) {
         goto("/login", { replaceState: true });
+    }
+    $: if (browser && authResolved && isAuthRoute && $accessToken !== null) {
+        goto("/hub", { replaceState: true });
     }
 </script>
 
@@ -379,11 +411,13 @@
     {/if}
 
     <!-- Global Charge Modal -->
-    <NeedMoreNeuronsModal
-        isOpen={$needMoreNeuronsModal.isOpen}
-        isNeedNeurons={$needMoreNeuronsModal.isNeedNeurons}
-        on:close={closeNeedMoreNeuronsModal}
-    />
+    {#if !isNativeShell}
+        <NeedMoreNeuronsModal
+            isOpen={$needMoreNeuronsModal.isOpen}
+            isNeedNeurons={$needMoreNeuronsModal.isNeedNeurons}
+            on:close={closeNeedMoreNeuronsModal}
+        />
+    {/if}
 
     <ToastContainer />
     <ConfirmModal />

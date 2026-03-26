@@ -21,6 +21,7 @@
     import { st_user } from "$lib/stores/user";
     import { chatSessions } from "$lib/stores/chatSessions";
     import { getOptimizedSupabaseImageUrl } from "$lib/utils/mediaTransform";
+    import { isInstalledAppShell } from "$lib/utils/appShell";
 
     const supabaseURL = "/storage/v1/object/public/personaxi-assets/";
 
@@ -171,12 +172,20 @@
     function detectPwaMode() {
         if (typeof window === "undefined") return;
 
-        const isStandalone = window.matchMedia(
-            "(display-mode: standalone)",
-        ).matches;
-        // @ts-ignore
-        const isIOSStandalone = window.navigator.standalone === true;
-        isPWA = isStandalone || isIOSStandalone;
+        isPWA = isInstalledAppShell();
+    }
+
+    function runAfterFirstPaint(task: () => Promise<void> | void) {
+        if (typeof window === "undefined") {
+            void task();
+            return;
+        }
+
+        window.requestAnimationFrame(() => {
+            window.setTimeout(() => {
+                void task();
+            }, 0);
+        });
     }
 
     async function initializeSettingsPage() {
@@ -187,10 +196,11 @@
             void loadSocialCounts(cachedUser.id);
         }
 
-        void loadOwnPersonas();
-        void loadUserPersonasFromServer();
-        void loadLivePersonaIds();
         await refreshCurrentUser();
+
+        runAfterFirstPaint(loadOwnPersonas);
+        runAfterFirstPaint(loadUserPersonasFromServer);
+        runAfterFirstPaint(loadLivePersonaIds);
     }
 
     async function loadUserPersonasFromServer() {
@@ -471,7 +481,7 @@
     import { notificationStore } from "$lib/stores/notification";
     import UserListModal from "$lib/components/modal/UserListModal.svelte";
     import { getFollowers, getFollowing } from "$lib/api/user";
-    import { needMoreNeuronsModal } from "$lib/stores/modal";
+    import { showNeedMoreNeuronsModal } from "$lib/stores/modal";
 
     let showSettingsModal = false;
     let showPaymentHistoryModal = false;
@@ -934,10 +944,7 @@
                                     <button
                                         class="primary-btn compact"
                                         on:click={() =>
-                                            needMoreNeuronsModal.set({
-                                                isOpen: true,
-                                                isNeedNeurons: false,
-                                            })}
+                                            showNeedMoreNeuronsModal(false)}
                                     >
                                         <Icon
                                             icon="ph:plus-bold"

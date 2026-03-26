@@ -29,6 +29,8 @@
     import { requestIdentityVerification } from "$lib/services/verification";
     import { updateBirthDate, updateSafetyFilter } from "$lib/api/user";
     import HubBanner from "./HubBanner.svelte";
+    import { Capacitor } from "@capacitor/core";
+    import { isNativeApp } from "$lib/utils/appShell";
 
     type HubHomeSection = {
         id: string;
@@ -340,6 +342,7 @@
     let isLoading = writable(true);
 
     let isPWA = false;
+    let isNativeShell = false;
 
     let isSearchModalOpen = false;
     let query = "";
@@ -413,6 +416,19 @@
         } else {
             reloadAll();
         }
+    }
+
+    function triggerSafetyFilterReloadAfterPaint() {
+        if (typeof window === "undefined") {
+            triggerSafetyFilterReload();
+            return;
+        }
+
+        window.requestAnimationFrame(() => {
+            window.setTimeout(() => {
+                triggerSafetyFilterReload();
+            }, 0);
+        });
     }
 
     async function reloadAll() {
@@ -588,9 +604,11 @@
 
     onMount(async () => {
         // Check if running locally for testing purposes
+        const isNativePlatform = Capacitor.isNativePlatform();
         isLocalhost =
-            window.location.hostname === "localhost" ||
-            window.location.hostname === "127.0.0.1";
+            !isNativePlatform &&
+            (window.location.hostname === "localhost" ||
+                window.location.hostname === "127.0.0.1");
 
         // IP check runs concurrently — doesn't block hub rendering
         isCheckingIp = false;
@@ -619,11 +637,12 @@
             const isIOSStandalone = window.navigator.standalone === true;
             isPWA = isStandalone || isIOSStandalone;
         }
+        isNativeShell = isNativeApp();
         hubInitialized = true;
         lastSafetyFilterValue = $settings.safetyFilterOn;
         lastHubLanguage = $settings.language;
         bindHubScrollTarget();
-        triggerSafetyFilterReload();
+        triggerSafetyFilterReloadAfterPaint();
     });
 
     onDestroy(() => {
@@ -1333,7 +1352,7 @@
             {/if}
         </div>
     </div>
-    {#if activeTab === "home"}
+    {#if activeTab === "home" && !isNativeShell}
         <Footer />
     {/if}
     <InstallPrompt />
@@ -1884,7 +1903,7 @@
             flex-direction: row;
             align-items: flex-start;
             gap: 1rem;
-            padding: 1rem 0.5rem;
+            padding: calc(env(safe-area-inset-top, 0px) + 1rem) 0.5rem 1rem;
         }
 
         .hub-container {

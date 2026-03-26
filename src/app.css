@@ -195,6 +195,33 @@ body {
     --media-pill-text-shadow: none;
 }
 
+:root.native-android {
+    --shadow-mini: none;
+    --shadow-sm: none;
+    --shadow-card: none;
+    --shadow-popover: none;
+    --shadow-dialog: none;
+    --glass-shadow: none;
+    --media-card-shadow: none;
+    --media-card-hover-shadow: none;
+}
+
+:root.native-android .glass,
+:root.native-android .nav-bottom,
+:root.native-android .sort-controls,
+:root.native-android .modal-overlay {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+}
+
+:root.native-android .nav-bottom,
+:root.native-android .profile-card,
+:root.native-android .stat-card,
+:root.native-android .persona-card-new,
+:root.native-android .modal-content {
+    box-shadow: none !important;
+}
+
 /* Auto-hiding scrollbar (Chrome/Safari/Edge) */
 :root ::-webkit-scrollbar {
     width: 6px;

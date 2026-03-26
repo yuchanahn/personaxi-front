@@ -5,20 +5,30 @@
     import Icon from "@iconify/svelte";
     import { toast } from "$lib/stores/toast";
     import { getLocalizedStaticDocHref } from "$lib/utils/localePaths";
+    import {
+        loginWithGoogle,
+        loginWithKakao,
+        type SocialLoginMode,
+    } from "$lib/services/nativeSocialAuth";
 
     let mode: "options" | "email" | "register" | "reset" = "options";
 
     let email = "";
     let password = "";
 
-    const toOptions = () => (mode = "options");
-    const toEmailForm = () => (mode = "email");
+    const toOptions = () => {
+        mode = "options";
+    };
+    const toEmailForm = () => {
+        mode = "email";
+    };
     const toResetForm = () => {
         errorMessage = "";
         mode = "reset";
     };
 
     let isResetting = false;
+    let activeLoginOption = "";
 
     const handleResetPassword = async () => {
         if (!email) return;
@@ -73,39 +83,51 @@
     };
 
     type LoginOption = {
+        key: string;
         name: string;
         icon: string;
-        handler: () => void;
+        handler: () => Promise<void> | void;
+    };
+
+    const handleSocialLogin = async (
+        providerKey: string,
+        loginAction: () => Promise<SocialLoginMode>,
+    ) => {
+        if (activeLoginOption) return;
+
+        activeLoginOption = providerKey;
+        errorMessage = "";
+
+        try {
+            const mode = await loginAction();
+            if (mode === "native-session") {
+                goto("/hub");
+            }
+        } catch (e) {
+            const message =
+                e instanceof Error ? e.message : $t("login.loginFailedRetry");
+            errorMessage = message;
+            toast.error(message);
+        } finally {
+            activeLoginOption = "";
+        }
     };
 
     const loginOptions: LoginOption[] = [
         {
+            key: "google",
             name: "Google",
             icon: "/icons/google.svg",
-            handler: async () => {
-                const { data, error } = await supabase.auth.signInWithOAuth({
-                    provider: "google",
-                    options: {
-                        redirectTo: `${window.location.origin}/hub`,
-                    },
-                });
-                if (error) toast.error(error.message);
-            },
+            handler: () => handleSocialLogin("google", loginWithGoogle),
         },
         {
+            key: "kakao",
             name: "Kakao",
             icon: "ri:kakao-talk-fill",
-            handler: async () => {
-                const { data, error } = await supabase.auth.signInWithOAuth({
-                    provider: "kakao",
-                    options: {
-                        redirectTo: `${window.location.origin}/hub`,
-                    },
-                });
-                if (error) toast.error(error.message);
-            },
+            handler: () => handleSocialLogin("kakao", loginWithKakao),
         },
         {
+            key: "email",
             name: "Email",
             icon: "/icons/email.svg",
             handler: toEmailForm,
@@ -129,7 +151,11 @@
         {#if mode === "options"}
             <div class="button-group">
                 {#each loginOptions as option}
-                    <button class="login-button" on:click={option.handler}>
+                    <button
+                        class="login-button"
+                        on:click={option.handler}
+                        disabled={activeLoginOption !== ""}
+                    >
                         {#if option.icon.startsWith("/")}
                             <img
                                 class="login-icon"
@@ -140,9 +166,13 @@
                             <Icon icon={option.icon} width="24" height="24" />
                         {/if}
                         <span>
-                            {$t("login.loginWith", {
-                                values: { provider: option.name },
-                            })}
+                            {#if activeLoginOption === option.key}
+                                {$t("common.loading")}
+                            {:else}
+                                {$t("login.loginWith", {
+                                    values: { provider: option.name },
+                                })}
+                            {/if}
                         </span>
                     </button>
                 {/each}
@@ -320,6 +350,10 @@
     }
     .login-button:hover {
         background-color: var(--color-button-hover);
+    }
+    .login-button:disabled {
+        opacity: 0.7;
+        cursor: not-allowed;
     }
     .login-icon {
         width: 20px;
