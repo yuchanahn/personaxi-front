@@ -8,6 +8,23 @@ const config: CapacitorConfig = {
   webDir: "build",
   bundledWebRuntime: false,
   plugins: {
+    App: {
+      disableBackButtonHandler: true,
+    },
+    Keyboard: {
+      resizeOnFullScreen: true,
+    },
+    SplashScreen: {
+      launchAutoHide: true,
+      launchShowDuration: 250,
+      showSpinner: false,
+      backgroundColor: "#f5f6fb",
+      androidSplashResourceName: "splash",
+      androidScaleType: "CENTER_CROP",
+    },
+    StatusBar: {
+      style: "DARK",
+    },
     SocialLogin: {
       providers: {
         google: true,

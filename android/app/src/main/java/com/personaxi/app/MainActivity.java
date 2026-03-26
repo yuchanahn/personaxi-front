@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.webkit.WebView;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
@@ -45,6 +46,15 @@ public class MainActivity extends BridgeActivity implements ModifiedMainActivity
         });
 
         ViewCompat.requestApplyInsets(root);
+
+        if (getBridge() != null) {
+            WebView webView = getBridge().getWebView();
+            if (webView != null) {
+                webView.setOverScrollMode(View.OVER_SCROLL_NEVER);
+                webView.setVerticalScrollBarEnabled(false);
+                webView.setHorizontalScrollBarEnabled(false);
+            }
+        }
     }
 
     @Override

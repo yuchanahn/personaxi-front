@@ -6,6 +6,7 @@
 
     import { t } from "svelte-i18n";
     import { notificationStore } from "$lib/stores/notification";
+    import { triggerNativeSelectionHaptic } from "$lib/utils/nativeHaptics";
 
     const { unreadCount } = notificationStore;
     const navHrefs = ["/hub", "/feed", "/chat", "/edit3", "/user/setting"];
@@ -52,6 +53,10 @@
 
     // 현재 경로 확인
     $: currentPath = $page.url.pathname;
+
+    function handleNavTap() {
+        void triggerNativeSelectionHaptic();
+    }
 </script>
 
 <nav class="nav-bottom">
@@ -61,6 +66,7 @@
             class:active={currentPath === href ||
                 (href !== "/" && currentPath.startsWith(href))}
             {href}
+            on:click={handleNavTap}
         >
             <div class="relative">
                 <Icon {icon} width="24" height="24" />

@@ -33,6 +33,7 @@
     import { browser } from "$app/environment";
     import { goto } from "$app/navigation";
     import Icon from "@iconify/svelte";
+    import { App } from "@capacitor/app";
     import { Capacitor } from "@capacitor/core";
     import { slide } from "svelte/transition";
     import { accessToken } from "$lib/stores/auth";
@@ -45,6 +46,7 @@
     import { supabase } from "$lib/supabase";
     import { registerNativeOAuthRedirectHandler } from "$lib/services/nativeSocialAuth";
     import { isNativeApp } from "$lib/utils/appShell";
+    import { scheduleGoogleTagManager } from "$lib/utils/googleTagManager";
 
     import { hideBackButton } from "$lib/utils/LayoutUtils";
 
@@ -185,6 +187,30 @@
         }).then((cleanup) => {
             removeNativeOAuthHandler = cleanup;
         });
+        const cleanupGoogleTagManager = scheduleGoogleTagManager(
+            "GTM-N3KH9NL7",
+        );
+        let removeNativeBackButtonHandler: (() => Promise<void>) | null = null;
+
+        if (isNativeShell) {
+            void App.addListener("backButton", ({ canGoBack }) => {
+                const currentPath = get(page).url.pathname;
+
+                if (canGoBack || window.history.length > 1) {
+                    window.history.back();
+                    return;
+                }
+
+                if (currentPath === "/hub" || currentPath === "/") {
+                    void App.minimizeApp();
+                    return;
+                }
+
+                void goto("/hub");
+            }).then((handle) => {
+                removeNativeBackButtonHandler = () => handle.remove();
+            });
+        }
 
         // pricingStore.fetchPricingPolicy() — called in accessToken.subscribe, no duplicate needed
 
@@ -210,12 +236,14 @@
 
         return () => {
             removeNativeOAuthHandler?.();
+            void removeNativeBackButtonHandler?.();
             document.documentElement.classList.remove("native-android");
             document.body.classList.remove("native-android");
             window.removeEventListener(
                 "chat-error",
                 handleChatError as EventListener,
             );
+            cleanupGoogleTagManager();
             subscription.unsubscribe();
         };
     });

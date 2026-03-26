@@ -1022,7 +1022,9 @@
         window.addEventListener("mousemove", onUserActivity);
         window.addEventListener("keydown", onUserActivity);
         window.addEventListener("click", onUserActivity);
-        window.addEventListener("touchstart", onUserActivity);
+        window.addEventListener("touchstart", onUserActivity, {
+            passive: true,
+        });
         resetIdleTimer();
     });
 

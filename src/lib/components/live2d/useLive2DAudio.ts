@@ -39,7 +39,7 @@ export function createLive2DAudioController({
         };
 
         window.addEventListener("click", wakeUpAudio);
-        window.addEventListener("touchstart", wakeUpAudio);
+        window.addEventListener("touchstart", wakeUpAudio, { passive: true });
 
         return () => {
             window.removeEventListener("click", wakeUpAudio);
@@ -57,4 +57,3 @@ export function createLive2DAudioController({
         stop,
     };
 }
-
