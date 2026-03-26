@@ -2,6 +2,7 @@
     import Icon from "@iconify/svelte";
     import { afterNavigate } from "$app/navigation";
     import { page } from "$app/stores";
+    import { accessToken } from "$lib/stores/auth";
     import { st_user } from "$lib/stores/user";
     import { getOptimizedSupabaseImageUrl } from "$lib/utils/mediaTransform";
 
@@ -13,26 +14,35 @@
     let pendingNavHref = "";
 
     $: items = [
-        { href: "/hub", icon: "ph:compass-duotone", label: $t("nav.explore") },
+        {
+            href: "/hub",
+            icon: "ph:compass-duotone",
+            label: $t("nav.explore"),
+            requiresAuth: false,
+        },
         {
             href: "/feed",
             icon: "material-symbols:smart-display-outline",
             label: $t("nav.feed"),
+            requiresAuth: true,
         },
         {
             href: "/chat", // ✨ 추가된 채팅 페이지 링크
             icon: "ph:chats-duotone",
             label: $t("nav.chat"),
+            requiresAuth: true,
         },
         {
             href: "/edit3",
             icon: "ph:plus-circle-duotone",
             label: $t("nav.create"),
+            requiresAuth: true,
         },
         {
             href: "/user/setting",
             icon: "ph:gear-six-duotone",
             label: $t("nav.settings"),
+            requiresAuth: true,
         },
     ];
 
@@ -45,8 +55,30 @@
         return window.matchMedia("(hover: none), (pointer: coarse)").matches;
     }
 
-    function handleNavTap(event: MouseEvent, href: string) {
-        pendingNavHref = href;
+    function resolveNavHref(href: string, requiresAuth: boolean) {
+        return requiresAuth && $accessToken === null ? "/login" : href;
+    }
+
+    function isItemActive(
+        activePathname: string,
+        href: string,
+        requiresAuth: boolean,
+    ) {
+        if (requiresAuth && $accessToken === null) return false;
+        return matchesHref(activePathname, href);
+    }
+
+    function handleNavTap(
+        event: MouseEvent,
+        href: string,
+        requiresAuth: boolean,
+    ) {
+        const resolvedHref = resolveNavHref(href, requiresAuth);
+        pendingNavHref = resolvedHref;
+
+        if (resolvedHref === currentPath) {
+            event.preventDefault();
+        }
 
         if (isTouchLikePointer()) {
             (event.currentTarget as HTMLAnchorElement | null)?.blur();
@@ -73,12 +105,12 @@
 </script>
 
 <nav class="nav-bottom">
-    {#each items as { href, icon, label }}
+    {#each items as { href, icon, label, requiresAuth }}
         <a
             class="nav-item"
-            class:active={matchesHref(activePath, href)}
-            {href}
-            on:click={(event) => handleNavTap(event, href)}
+            class:active={isItemActive(activePath, href, requiresAuth)}
+            href={resolveNavHref(href, requiresAuth)}
+            on:click={(event) => handleNavTap(event, href, requiresAuth)}
         >
             <div class="relative nav-icon-shell">
                 {#if href === "/user/setting" && profileImageUrl && !brokenProfileImage}

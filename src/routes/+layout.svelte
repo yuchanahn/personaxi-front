@@ -314,8 +314,6 @@
     $: routeRequiresAuth = !isPublicPath($page.url.pathname);
     $: showNavBottom =
         isMobile &&
-        !isAuthRoute &&
-        !(routeRequiresAuth && $accessToken === null) &&
         ![
             "/test",
             "/2d",
