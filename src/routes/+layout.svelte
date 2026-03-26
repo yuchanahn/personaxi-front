@@ -85,9 +85,7 @@
             "/creator",
         ];
 
-        return (
-            publicRoutes.includes(pathname) || pathname.startsWith("/test/")
-        );
+        return publicRoutes.includes(pathname) || pathname.startsWith("/test/");
     }
 
     function syncUserLanguage(user: User) {
@@ -161,10 +159,7 @@
                 navigator.serviceWorker
                     .register("/service-worker.js")
                     .catch((e) => {
-                        console.error(
-                            "Service Worker registration failed:",
-                            e,
-                        );
+                        console.error("Service Worker registration failed:", e);
                     });
             });
         }
@@ -194,12 +189,10 @@
         // pricingStore.fetchPricingPolicy() — called in accessToken.subscribe, no duplicate needed
 
         // 1. 초기 세션 로드
-        void supabase.auth
-            .getSession()
-            .then(({ data: { session } }) => {
-                accessToken.set(session?.access_token ?? null);
-                authResolved = true;
-            });
+        void supabase.auth.getSession().then(({ data: { session } }) => {
+            accessToken.set(session?.access_token ?? null);
+            authResolved = true;
+        });
 
         // 2. Auth 상태 변경 감지
         const {
@@ -306,7 +299,8 @@
         const settingRq: any = {
             name: user.name,
             nickname: user.data?.nickname || "",
-            language: currentSettings.language || (get(locale) as Language) || "en",
+            language:
+                currentSettings.language || (get(locale) as Language) || "en",
             llmType: currentSettings.llmType,
             safetyFilterOn: currentSettings.safetyFilterOn,
         };
@@ -353,7 +347,12 @@
     );
     $: isAuthRoute = ["/login", "/signup"].includes($page.url.pathname);
     $: routeRequiresAuth = !isPublicPath($page.url.pathname);
-    $: if (browser && authResolved && routeRequiresAuth && $accessToken === null) {
+    $: if (
+        browser &&
+        authResolved &&
+        routeRequiresAuth &&
+        $accessToken === null
+    ) {
         goto("/login", { replaceState: true });
     }
     $: if (browser && authResolved && isAuthRoute && $accessToken !== null) {
@@ -490,9 +489,5 @@
         .back-btn {
             display: block;
         }
-    }
-
-    .back-btn:hover {
-        background: #ffffff18;
     }
 </style>
