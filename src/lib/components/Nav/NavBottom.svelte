@@ -2,6 +2,7 @@
     import Icon from "@iconify/svelte";
     import { page } from "$app/stores";
     import { st_user } from "$lib/stores/user";
+    import { getOptimizedSupabaseImageUrl } from "$lib/utils/mediaTransform";
 
     import { t } from "svelte-i18n";
     import { notificationStore } from "$lib/stores/notification";
@@ -36,6 +37,12 @@
     // 현재 경로 확인
     $: currentPath = $page.url.pathname;
     $: profileImageUrl = $st_user?.profile?.trim() || "";
+    $: optimizedProfileImageUrl = getOptimizedSupabaseImageUrl(profileImageUrl, {
+        width: 96,
+        height: 96,
+        quality: 70,
+        resize: "cover",
+    });
     $: if (profileImageUrl) {
         brokenProfileImage = false;
     }
@@ -52,7 +59,7 @@
             <div class="relative nav-icon-shell">
                 {#if href === "/user/setting" && profileImageUrl && !brokenProfileImage}
                     <img
-                        src={profileImageUrl}
+                        src={optimizedProfileImageUrl || profileImageUrl}
                         alt=""
                         class="nav-avatar"
                         loading="lazy"
