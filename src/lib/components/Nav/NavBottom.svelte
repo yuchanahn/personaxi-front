@@ -1,7 +1,7 @@
 <script lang="ts">
     import Icon from "@iconify/svelte";
     import { onMount } from "svelte";
-    import { preloadCode } from "$app/navigation";
+    import { afterNavigate, preloadCode } from "$app/navigation";
     import { page } from "$app/stores";
     import { st_user } from "$lib/stores/user";
     import { getOptimizedSupabaseImageUrl } from "$lib/utils/mediaTransform";
@@ -13,6 +13,7 @@
     const { unreadCount } = notificationStore;
     const navHrefs = ["/hub", "/feed", "/chat", "/edit3", "/user/setting"];
     let brokenProfileImage = false;
+    let pendingNavHref = "";
 
     onMount(() => {
         if (typeof window === "undefined") return;
@@ -54,8 +55,31 @@
         },
     ];
 
+    function matchesHref(pathname: string, href: string) {
+        return pathname === href || (href !== "/" && pathname.startsWith(href));
+    }
+
+    function isTouchLikePointer() {
+        if (typeof window === "undefined" || !window.matchMedia) return false;
+        return window.matchMedia("(hover: none), (pointer: coarse)").matches;
+    }
+
+    function handleNavTap(event: MouseEvent, href: string) {
+        pendingNavHref = href;
+        void triggerNativeSelectionHaptic();
+
+        if (isTouchLikePointer()) {
+            (event.currentTarget as HTMLAnchorElement | null)?.blur();
+        }
+    }
+
+    afterNavigate(() => {
+        pendingNavHref = "";
+    });
+
     // 현재 경로 확인
     $: currentPath = $page.url.pathname;
+    $: activePath = pendingNavHref || currentPath;
     $: profileImageUrl = $st_user?.profile?.trim() || "";
     $: optimizedProfileImageUrl = getOptimizedSupabaseImageUrl(profileImageUrl, {
         width: 96,
@@ -67,19 +91,15 @@
         brokenProfileImage = false;
     }
 
-    function handleNavTap() {
-        void triggerNativeSelectionHaptic();
-    }
 </script>
 
 <nav class="nav-bottom">
     {#each items as { href, icon, label }}
         <a
             class="nav-item"
-            class:active={currentPath === href ||
-                (href !== "/" && currentPath.startsWith(href))}
+            class:active={matchesHref(activePath, href)}
             {href}
-            on:click={handleNavTap}
+            on:click={(event) => handleNavTap(event, href)}
         >
             <div class="relative nav-icon-shell">
                 {#if href === "/user/setting" && profileImageUrl && !brokenProfileImage}
@@ -152,6 +172,11 @@
         color: var(--primary);
     }
 
+    .nav-item:focus,
+    .nav-item:focus-visible {
+        outline: none;
+    }
+
     .nav-item.active::before {
         content: "";
         position: absolute;
@@ -208,6 +233,10 @@
     @media (hover: none), (pointer: coarse) {
         .nav-item:hover {
             color: var(--muted-foreground);
+        }
+
+        .nav-item:focus-visible {
+            outline: none;
         }
     }
 
