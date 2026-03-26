@@ -31,7 +31,7 @@
         { href: "/hub", icon: "ph:compass-duotone", label: $t("nav.explore") },
         {
             href: "/feed",
-            icon: "ph:play-square-duotone",
+            icon: "ph:film-script-duotone",
             label: $t("nav.feed"),
         },
         {
