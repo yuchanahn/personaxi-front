@@ -358,8 +358,15 @@
         }
     }
 
+    $: isChatPage = ["/2d", "/character", "/live2d", "/feed"].includes(
+        $page.url.pathname,
+    );
+    $: isAuthRoute = ["/login", "/signup"].includes($page.url.pathname);
+    $: routeRequiresAuth = !isPublicPath($page.url.pathname);
     $: showNavBottom =
         isMobile &&
+        !isAuthRoute &&
+        !(routeRequiresAuth && $accessToken === null) &&
         ![
             "/test",
             "/2d",
@@ -369,12 +376,6 @@
             "/maintenance",
         ].includes($page.url.pathname) &&
         !$page.url.pathname.startsWith("/test/");
-
-    $: isChatPage = ["/2d", "/character", "/live2d", "/feed"].includes(
-        $page.url.pathname,
-    );
-    $: isAuthRoute = ["/login", "/signup"].includes($page.url.pathname);
-    $: routeRequiresAuth = !isPublicPath($page.url.pathname);
     $: if (
         browser &&
         authResolved &&
