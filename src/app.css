@@ -718,11 +718,33 @@ body {
     html {
         -webkit-text-size-adjust: 100%;
         font-variation-settings: normal;
+        -webkit-tap-highlight-color: transparent;
     }
 
     body {
         @apply bg-background text-foreground;
         font-feature-settings: "rlig" 1, "calt" 1;
+    }
+
+    a,
+    button,
+    summary,
+    [role="button"],
+    input[type="button"],
+    input[type="submit"],
+    input[type="reset"] {
+        touch-action: manipulation;
+        -webkit-tap-highlight-color: transparent;
+    }
+
+    button,
+    summary,
+    [role="button"],
+    input[type="button"],
+    input[type="submit"],
+    input[type="reset"] {
+        user-select: none;
+        -webkit-user-select: none;
     }
 
     /* selection is handled per-theme above (no yellow) */

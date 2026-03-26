@@ -21,6 +21,10 @@
     let isKorean: boolean | null = null; // null = loading
     let paypalContainerEl: HTMLDivElement;
     let lastRenderedOptionId: string | null = null;
+    let countryDetectionPromise: Promise<boolean> | null = null;
+    let portOneLoadPromise: Promise<void> | null = null;
+    let paypalLoadPromise: Promise<void> | null = null;
+    let paypalLoadCurrency: string | null = null;
 
     async function detectCountry() {
         try {
@@ -31,7 +35,123 @@
             isKorean = true; // Fallback to Korean (PortOne)
         }
 
-        //isKorean = false;
+        return isKorean;
+    }
+
+    async function ensureCountryDetected() {
+        if (isKorean !== null) {
+            return isKorean;
+        }
+
+        if (!countryDetectionPromise) {
+            countryDetectionPromise = detectCountry();
+        }
+
+        return countryDetectionPromise;
+    }
+
+    async function ensurePortOneSDK() {
+        if (typeof window === "undefined" || !document) return;
+
+        // @ts-ignore
+        if (window.PortOne) {
+            return;
+        }
+
+        if (portOneLoadPromise) {
+            await portOneLoadPromise;
+            return;
+        }
+
+        portOneLoadPromise = new Promise<void>((resolve, reject) => {
+            const existingScript = document.getElementById(
+                "portone-v2-sdk",
+            ) as HTMLScriptElement | null;
+
+            const handleLoad = () => resolve();
+            const handleError = () =>
+                reject(new Error("PortOne SDK failed to load."));
+
+            if (existingScript) {
+                existingScript.addEventListener("load", handleLoad, {
+                    once: true,
+                });
+                existingScript.addEventListener("error", handleError, {
+                    once: true,
+                });
+                return;
+            }
+
+            const script = document.createElement("script");
+            script.id = "portone-v2-sdk";
+            script.src = "https://cdn.portone.io/v2/browser-sdk.js";
+            script.defer = true;
+            script.addEventListener("load", handleLoad, { once: true });
+            script.addEventListener("error", handleError, { once: true });
+            document.body.appendChild(script);
+        });
+
+        try {
+            await portOneLoadPromise;
+        } catch (error) {
+            portOneLoadPromise = null;
+            throw error;
+        }
+    }
+
+    async function ensurePayPalSDK() {
+        if (typeof window === "undefined" || !document) return;
+
+        const currency = getPayPalCurrency();
+        const existingScript = document.getElementById(
+            "paypal-sdk",
+        ) as HTMLScriptElement | null;
+
+        // @ts-ignore
+        if (window.paypal && existingScript?.src.includes(`currency=${currency}`)) {
+            return;
+        }
+
+        if (paypalLoadPromise && paypalLoadCurrency === currency) {
+            await paypalLoadPromise;
+            return;
+        }
+
+        if (existingScript && !existingScript.src.includes(`currency=${currency}`)) {
+            existingScript.remove();
+            // @ts-ignore
+            delete window.paypal;
+            paypalLoadPromise = null;
+            paypalLoadCurrency = null;
+        }
+
+        paypalLoadCurrency = currency;
+        paypalLoadPromise = new Promise<void>((resolve, reject) => {
+            const script = document.createElement("script");
+            script.id = "paypal-sdk";
+
+            const clientId =
+                env.PUBLIC_PAYPAL_CLIENT_ID ||
+                "AVQtXt7J8sqnSUJHbvbUYiy2CXQ0_4dOL_SQ6kvTzmg52rPzMws5GFRrG_hHDeDPNJ0KGR97UpUAnMfQ";
+            script.src = `https://www.paypal.com/sdk/js?client-id=${clientId}&currency=${currency}`;
+            script.defer = true;
+            script.addEventListener("load", () => resolve(), { once: true });
+            script.addEventListener(
+                "error",
+                () => reject(new Error("PayPal SDK failed to load.")),
+                { once: true },
+            );
+
+            document.body.appendChild(script);
+        });
+
+        try {
+            await paypalLoadPromise;
+        } catch (error) {
+            paypalLoadPromise = null;
+            paypalLoadCurrency = null;
+            throw error;
+        }
     }
 
     // --- PayPal Checkout Flow ---
@@ -127,15 +247,14 @@
         if (isKorean !== false) return;
         if (!selectedOption || !agreedToPolicies || !paypalContainerEl) return;
 
-        // If PayPal SDK hasn't loaded yet, try again shortly
-        // @ts-ignore
-        if (!window.paypal) {
-            setTimeout(() => maybeRenderPayPal(), 200);
-            return;
-        }
-
-        // setTimeout to escape Svelte's update cycle
-        setTimeout(() => tryRenderPayPalButtons(), 100);
+        void ensurePayPalSDK()
+            .then(() => {
+                window.setTimeout(() => tryRenderPayPalButtons(), 100);
+            })
+            .catch((error) => {
+                console.error(error);
+                toast.error("PayPal checkout failed to load.");
+            });
     }
 
     let noticeContent = "";
@@ -181,6 +300,20 @@
         if ($pricingStore.purchase_options.length === 0) {
             pricingStore.fetchPricingPolicy();
         }
+
+        void ensureCountryDetected();
+    }
+
+    $: if (isOpen && isKorean === true) {
+        void ensurePortOneSDK().catch((error) => {
+            console.error(error);
+        });
+    }
+
+    $: if (isOpen && isKorean === false) {
+        void ensurePayPalSDK().catch((error) => {
+            console.error(error);
+        });
     }
 
     const dispatch = createEventDispatcher();
@@ -235,15 +368,14 @@
             window.history.length.toString(),
         );
 
-        // Ensure PortOne SDK is loaded
-        // @ts-ignore
-        if (!window.PortOne) {
-            console.error("PortOne SDK not loaded");
-            isPurchasing = false;
-            return;
-        }
-
         try {
+            await ensurePortOneSDK();
+
+            // @ts-ignore
+            if (!window.PortOne) {
+                throw new Error("PortOne SDK not loaded");
+            }
+
             // @ts-ignore
             const response = await window.PortOne.requestPayment({
                 storeId: p.storeId,
@@ -296,27 +428,7 @@
 
     onMount(() => {
         window.addEventListener("keydown", handleKeydown);
-        detectCountry();
-
-        if (isOpen) {
-            pricingStore.fetchPricingPolicy();
-        }
-
-        // Load PortOne SDK
-        if (!document.getElementById("portone-v2-sdk")) {
-            const script = document.createElement("script");
-            script.id = "portone-v2-sdk";
-            script.src = "https://cdn.portone.io/v2/browser-sdk.js";
-            script.defer = true;
-            document.body.appendChild(script);
-        }
-
-        // Load PayPal SDK is now handled by a reactive statement below
     });
-
-    $: if ($locale && typeof window !== "undefined") {
-        setTimeout(() => loadPayPalSDK(), 50);
-    }
 
     let current_neurons_count: number = 0;
     $: current_neurons_count = $st_user?.credits || 0;
@@ -378,43 +490,6 @@
         if (currency === "JPY") return "¥";
         if (currency === "USD") return "$";
         return "₩";
-    }
-
-    function loadPayPalSDK() {
-        if (typeof window === "undefined" || !document) return;
-
-        const currency = getPayPalCurrency();
-
-        // Remove old SDK if currency changed
-        const oldScript = document.getElementById(
-            "paypal-sdk",
-        ) as HTMLScriptElement;
-        if (oldScript) {
-            if (oldScript.src.includes(`currency=${currency}`)) {
-                return; // already loaded for this currency
-            }
-            oldScript.remove();
-            // @ts-ignore
-            delete window.paypal;
-        }
-
-        const script = document.createElement("script");
-        script.id = "paypal-sdk";
-
-        const clientId =
-            env.PUBLIC_PAYPAL_CLIENT_ID ||
-            "AVQtXt7J8sqnSUJHbvbUYiy2CXQ0_4dOL_SQ6kvTzmg52rPzMws5GFRrG_hHDeDPNJ0KGR97UpUAnMfQ";
-        script.src = `https://www.paypal.com/sdk/js?client-id=${clientId}&currency=${currency}`;
-        script.defer = true;
-
-        script.onload = () => {
-            if (selectedOption) {
-                lastRenderedOptionId = null; // force re-render with new currency
-            }
-            maybeRenderPayPal();
-        };
-
-        document.body.appendChild(script);
     }
 
     function getPaymentParams() {

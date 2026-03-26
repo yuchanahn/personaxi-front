@@ -42,6 +42,7 @@
     import type { User } from "$lib/types";
 
     import { supabase } from "$lib/supabase";
+    import { scheduleGoogleTagManager } from "$lib/utils/googleTagManager";
 
     import { hideBackButton } from "$lib/utils/LayoutUtils";
 
@@ -160,6 +161,9 @@
             );
         };
         window.addEventListener("chat-error", handleChatError as EventListener);
+        const cleanupGoogleTagManager = scheduleGoogleTagManager(
+            "GTM-N3KH9NL7",
+        );
 
         // pricingStore.fetchPricingPolicy() — called in accessToken.subscribe, no duplicate needed
 
@@ -188,6 +192,7 @@
                 "chat-error",
                 handleChatError as EventListener,
             );
+            cleanupGoogleTagManager();
             subscription.unsubscribe();
         };
     });
