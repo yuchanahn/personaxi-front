@@ -6,6 +6,7 @@
 import * as THREE from 'three/webgpu';
 import { VRM } from '@pixiv/three-vrm';
 import { Model } from '../core/model';
+import { ANIMATION_POOLS, type AnimationPoolConfig, type WeightedAnimation } from '../animation/vrmAnimationCatalog';
 
 // StateManager.ts - 가중치 기반 랜덤 애니메이션 시스템 추가
 // Author: Senior Graphics R&D Engineer  
@@ -14,88 +15,6 @@ import { Model } from '../core/model';
 //------------------------------------------------------------------
 // Animation Pool Configuration
 //------------------------------------------------------------------
-
-interface WeightedAnimation {
-    clipName: string;
-    weight: number;                    // 가중치 (높을수록 자주 재생)
-    duration?: number;                 // 강제 재생 시간 (없으면 클립 원본 길이)
-    cooldown?: number;                 // 재실행 쿨타임 (초)
-    lastPlayedTime?: number;           // 마지막 재생 시점
-}
-
-interface AnimationPoolConfig {
-    animations: WeightedAnimation[];
-    transitionTime: number;            // 애니메이션 간 블렌드 시간
-    minPlayTime: number;              // 최소 재생 시간 (너무 빨리 바뀌는 것 방지)
-    maxPlayTime: number;              // 최대 재생 시간 (무한 루프 방지)
-}
-
-//------------------------------------------------------------------
-// Enhanced State Configuration with Animation Pools
-//------------------------------------------------------------------
-
-const ANIMATION_POOLS: Record<string, AnimationPoolConfig> = {
-    // IDLE 상태용 애니메이션 풀
-    'idle_pool': {
-        animations: [
-            //{ clipName: 'Idle Base.fbx', weight: 40 },           // 가장 자주 (기본 숨쉬기)
-            //{ clipName: 'Breathing Idle1.fbx', weight: 40 },           // 가장 자주 (기본 숨쉬기)
-            //{ clipName: 'Breathing Idle2.fbx', weight: 40 },           // 가장 자주 (기본 숨쉬기)
-
-            { clipName: 'Idle_nomal.fbx', weight: 60 },            // 보통 빈도
-            //{ clipName: 'Listening.fbx', weight: 50 },
-
-            { clipName: 'Looking Around.fbx', weight: 5 },
-            { clipName: 'Hands on waist.fbx', weight: 5 },
-            { clipName: 'Arms crossed.fbx', weight: 5 },
-            { clipName: 'Neck Stretching.fbx', weight: 2, cooldown: 30.0 }, // 매우 드물게, 30초 쿨타임
-            { clipName: 'Arm Stretching.fbx', weight: 2, cooldown: 30.0 }, // 매우 드물게, 30초 쿨타임
-            { clipName: 'Yawning.fbx', weight: 1, cooldown: 45.0, duration: 5.0 },   // 극히 드물게
-            //{ clipName: 'Adjusting Hair.fbx', weight: 2, cooldown: 60.0 } // 1분에 한 번 정도
-        ],
-        transitionTime: 1.5,
-        minPlayTime: 3.0,              // 최소 4초는 재생
-        maxPlayTime: 30.0              // 최대 12초 후 변경 고려
-    },
-
-    // THINKING 상태용 (생각하는 다양한 모션)
-    'thinking_pool': {
-        animations: [
-            { clipName: 'Thinking.fbx', weight: 35 },
-            { clipName: 'Hand To Chin.fbx', weight: 25 },
-            { clipName: 'Looking Up Thinking.fbx', weight: 20 },
-            { clipName: 'Head Scratch.fbx', weight: 15, cooldown: 20.0 },
-            { clipName: 'Deep Thought.fbx', weight: 5 }
-        ],
-        transitionTime: 1.5,
-        minPlayTime: 2.0,
-        maxPlayTime: 8.0
-    },
-
-    'speaking_pool': {
-        animations: [
-            { clipName: 'talk1.fbx', weight: 35 },
-            { clipName: 'talk2.fbx', weight: 25 },
-            { clipName: 'talk3.fbx', weight: 25 },
-        ],
-        transitionTime: 1.5,
-        minPlayTime: 2.0,
-        maxPlayTime: 8.0
-    },
-
-    // LISTENING 상태용
-    'listening_pool': {
-        animations: [
-            { clipName: 'Listening.fbx', weight: 50 },
-            //{ clipName: 'Listening2.fbx', weight: 50 },
-            //{ clipName: 'Nodding.fbx', weight: 30, duration: 2.0 },
-            //{ clipName: 'Attentive Pose.fbx', weight: 20 }
-        ],
-        transitionTime: 1.5,
-        minPlayTime: 3.0,
-        maxPlayTime: 10.0
-    }
-};
 
 //------------------------------------------------------------------
 // Animation Pool Manager
@@ -112,14 +31,20 @@ class AnimationPoolManager {
     private currentTransitionTime: number = 0;
 
     // Gesture Tracking
-    private gestureEndTime: number = 0;
     private isGesturePlaying: boolean = false;
-
-    // Timer Handles for cancellation
-    private gestureFadeTimer: any = null;
-    private gestureEndTimer: any = null;
+    private currentGestureAction: THREE.AnimationAction | null = null;
+    private isGesturePending: boolean = false;
+    private queuedGestureCountHint: number = 0;
+    private gestureElapsed: number = 0;
+    private gestureDuration: number = 0;
+    private gestureOverlapTime: number = 0;
+    private gestureFadeStarted: boolean = false;
+    private retiringActions: Array<{ action: THREE.AnimationAction; remaining: number }> = [];
+    private transientGestureClips = new Map<THREE.AnimationAction, THREE.AnimationClip>();
 
     private gestureMixer: THREE.AnimationMixer;
+    private backgroundRequestToken = 0;
+    private gestureRequestToken = 0;
 
     constructor(model: Model) {
         this.model = model;
@@ -141,48 +66,206 @@ class AnimationPoolManager {
     }
 
     public triggerGesture(clipName: string, transitionTime: number = 0.3): void {
-        const action = this.model.actions[clipName];
+        if (!this.canStartGesture()) return;
+
+        this.isGesturePending = true;
+        const requestToken = ++this.gestureRequestToken;
+        void this.triggerGestureAsync(clipName, transitionTime, requestToken);
+    }
+
+    public canStartGesture(): boolean {
+        return !this.isGesturePending && !this.isGesturePlaying;
+    }
+
+    public isGestureActive(): boolean {
+        return this.isGesturePending || this.isGesturePlaying;
+    }
+
+    public setQueuedGestureCountHint(count: number): void {
+        this.queuedGestureCountHint = Math.max(0, count);
+    }
+
+    private getKnownActions(): THREE.AnimationAction[] {
+        const persistentActions = Object.values(this.model.actions);
+        const transientActions = Array.from(this.transientGestureClips.keys());
+        return [...new Set([...persistentActions, ...transientActions])];
+    }
+
+    private getDominantAction(exclude?: THREE.AnimationAction | null): THREE.AnimationAction | null {
+        const actions = this.getKnownActions();
+        let bestAction: THREE.AnimationAction | null = null;
+        let bestWeight = 0.0001;
+
+        for (const action of actions) {
+            if (!action || action === exclude) continue;
+
+            let weight = 0;
+            try {
+                weight = action.enabled ? action.getEffectiveWeight() : 0;
+            } catch {
+                weight = 0;
+            }
+
+            const isUsable = weight > 0.0001;
+            if (!isUsable) continue;
+
+            if (weight > bestWeight) {
+                bestWeight = weight;
+                bestAction = action;
+            }
+        }
+
+        return bestAction;
+    }
+
+    private getActiveActions(exclude?: THREE.AnimationAction | null): THREE.AnimationAction[] {
+        return this.getKnownActions().filter((action) => {
+            if (!action || action === exclude) return false;
+
+            try {
+                return action.enabled && action.getEffectiveWeight() > 0.0001;
+            } catch {
+                return false;
+            }
+        });
+    }
+
+    private createTransientGestureAction(baseAction: THREE.AnimationAction): THREE.AnimationAction | null {
+        const mixer = this.model.mixer;
+        if (!mixer) return null;
+
+        const transientClip = baseAction.getClip().clone();
+        const transientAction = mixer.clipAction(transientClip);
+        this.transientGestureClips.set(transientAction, transientClip);
+        return transientAction;
+    }
+
+    private disposeTransientGestureAction(action: THREE.AnimationAction): void {
+        const transientClip = this.transientGestureClips.get(action);
+        if (!transientClip) return;
+
+        this.transientGestureClips.delete(action);
+
+        try {
+            action.stop();
+            action.reset();
+        } catch { }
+
+        try {
+            this.model.mixer?.uncacheAction(transientClip, this.model.vrm?.scene);
+        } catch { }
+
+        try {
+            this.model.mixer?.uncacheClip(transientClip);
+        } catch { }
+    }
+
+    private fadeOutConflictingActions(
+        keep: Array<THREE.AnimationAction | null>,
+        fadeTime: number,
+    ): void {
+        const keepSet = new Set(keep.filter(Boolean) as THREE.AnimationAction[]);
+        for (const action of this.getActiveActions()) {
+            if (keepSet.has(action)) continue;
+
+            try {
+                action.fadeOut(fadeTime);
+            } catch { }
+            this.enqueueRetiringAction(action, fadeTime + 0.05);
+        }
+    }
+
+    private enqueueRetiringAction(action: THREE.AnimationAction, remaining: number): void {
+        if (remaining <= 0) {
+            try {
+                action.stop();
+                action.reset();
+            } catch { }
+            return;
+        }
+
+        const existing = this.retiringActions.find((entry) => entry.action === action);
+        if (existing) {
+            existing.remaining = Math.max(existing.remaining, remaining);
+            return;
+        }
+
+        this.retiringActions.push({ action, remaining });
+    }
+
+    private cancelRetiringAction(action: THREE.AnimationAction | null | undefined): void {
         if (!action) return;
-        action.clampWhenFinished = true;
+        this.retiringActions = this.retiringActions.filter((entry) => entry.action !== action);
+    }
+
+    private updateRetiringActions(dt: number): void {
+        if (this.retiringActions.length === 0) return;
+
+        this.retiringActions = this.retiringActions.filter((entry) => {
+            entry.remaining -= dt;
+            if (entry.remaining > 0) return true;
+
+            try {
+                entry.action.stop();
+                entry.action.reset();
+            } catch { }
+            this.disposeTransientGestureAction(entry.action);
+            return false;
+        });
+    }
+
+    private async triggerGestureAsync(
+        clipName: string,
+        transitionTime: number,
+        requestToken: number,
+    ): Promise<void> {
+        const baseAction = await this.model.ensureAnimationLoaded(clipName);
+        if (!baseAction || requestToken !== this.gestureRequestToken) {
+            this.isGesturePending = false;
+            return;
+        }
+        let action = baseAction;
+        if (this.currentGestureAction === baseAction) {
+            action = this.createTransientGestureAction(baseAction) ?? baseAction;
+        }
+        action.clampWhenFinished = false;
+        action.enabled = true;
 
         console.log(`[AnimPool] Triggering gesture: ${clipName}`);
 
-        // 1. 기존 제스처 타이머 취소 (중복 실행 방지)
-        if (this.gestureFadeTimer) clearTimeout(this.gestureFadeTimer);
-        if (this.gestureEndTimer) clearTimeout(this.gestureEndTimer);
+        const previousGestureAction = this.currentGestureAction;
+        const fromAction = this.getDominantAction(action);
 
-        // 2. 현재 백그라운드 클립 페이드아웃 (아직 안 되어 있다면)
-        // (연속 제스처의 경우 이미 fadeOut 되었을 수 있지만, 안전하게 호출)
-        if (this.currentClipName && this.model.actions[this.currentClipName]) {
-            this.model.actions[this.currentClipName].fadeOut(transitionTime);
+        this.cancelRetiringAction(action);
+        action.reset();
+        action.setLoop(THREE.LoopOnce, 1);
+        action.clampWhenFinished = true;
+        action.enabled = true;
+        action.play();
+
+        if (fromAction) {
+            action.crossFadeFrom(fromAction, transitionTime, false);
+            if (previousGestureAction && previousGestureAction !== action) {
+                this.enqueueRetiringAction(previousGestureAction, transitionTime + 0.05);
+            }
+        } else {
+            action.fadeIn(transitionTime);
+            if (previousGestureAction && previousGestureAction !== action) {
+                try {
+                    previousGestureAction.fadeOut(transitionTime);
+                } catch { }
+                this.enqueueRetiringAction(previousGestureAction, transitionTime + 0.05);
+            }
         }
-
-        // 3. 제스처 재생
-        action.reset().setLoop(THREE.LoopOnce, 1).fadeIn(transitionTime).play();
-
+        this.fadeOutConflictingActions([action, fromAction], transitionTime);
 
         this.isGesturePlaying = true;
-        const clipDuration = action.getClip().duration;
-
-        // 제스처 종료 시점 기록
-        const now = Date.now() / 1000;
-        this.gestureEndTime = now + clipDuration;
-
-        // 4. Auto Fade Out 스케줄링
-        const fadeOutStartTime = (clipDuration - transitionTime) * 1000;
-
-        this.gestureFadeTimer = setTimeout(() => {
-            if (this.isGesturePlaying) {
-                action.fadeOut(transitionTime);
-                // 5. 백그라운드 애니메이션 복귀 (중요: 현재 Pool에 맞는 클립으로!)
-                this.resumeBackgroundAnimation(transitionTime);
-            }
-        }, Math.max(0, fadeOutStartTime));
-
-        // 6. 완전 종료 후 플래그 해제
-        this.gestureEndTimer = setTimeout(() => {
-            this.isGesturePlaying = false;
-        }, clipDuration * 1000);
+        this.isGesturePending = false;
+        this.currentGestureAction = action;
+        this.gestureElapsed = 0;
+        this.gestureDuration = action.getClip().duration;
+        this.gestureOverlapTime = Math.min(transitionTime, Math.max(this.gestureDuration * 0.35, 0.08));
+        this.gestureFadeStarted = false;
     }
 
     private resumeBackgroundAnimation(transitionTime: number): void {
@@ -195,6 +278,44 @@ class AnimationPoolManager {
 
     public update(dt: number): void {
         this.gestureMixer.update(dt);
+        this.updateRetiringActions(dt);
+
+        if (this.isGesturePlaying && this.currentGestureAction) {
+            this.gestureElapsed += dt;
+
+            if (!this.gestureFadeStarted && this.gestureElapsed >= this.gestureDuration - this.gestureOverlapTime) {
+                this.gestureFadeStarted = true;
+
+                if (this.queuedGestureCountHint === 0) {
+                    try {
+                        this.currentGestureAction.fadeOut(this.gestureOverlapTime);
+                    } catch { }
+                    this.resumeBackgroundAnimation(this.gestureOverlapTime);
+                }
+            }
+
+            if (this.gestureElapsed >= this.gestureDuration) {
+                const finishingAction = this.currentGestureAction;
+
+                this.isGesturePlaying = false;
+                this.isGesturePending = false;
+                this.gestureElapsed = 0;
+                this.gestureDuration = 0;
+                this.gestureOverlapTime = 0;
+                this.gestureFadeStarted = false;
+
+                if (this.queuedGestureCountHint === 0) {
+                    try {
+                        finishingAction.stop();
+                        finishingAction.reset();
+                    } catch { }
+                    this.disposeTransientGestureAction(finishingAction);
+                    if (this.currentGestureAction === finishingAction) {
+                        this.currentGestureAction = null;
+                    }
+                }
+            }
+        }
 
         // 제스처 재생 중에는 백그라운드 풀 로직 정지 (타이머는 가게 둘 수도 있지만, 변경은 막음)
         if (this.isGesturePlaying) return;
@@ -231,13 +352,13 @@ class AnimationPoolManager {
             for (let i = 0; i < 3; i++) {
                 const retry = this.weightedRandomSelect(pool.animations);
                 if (retry && retry.clipName !== this.currentClipName) {
-                    this.playClip(retry, pool, transitionOverride);
+                    void this.playClip(retry, pool, transitionOverride, ++this.backgroundRequestToken);
                     return;
                 }
             }
         }
 
-        this.playClip(selectedClip, pool, transitionOverride);
+        void this.playClip(selectedClip, pool, transitionOverride, ++this.backgroundRequestToken);
     }
 
     private weightedRandomSelect(animations: WeightedAnimation[]): WeightedAnimation | null {
@@ -271,32 +392,47 @@ class AnimationPoolManager {
         return availableAnims[0]; // 폴백
     }
 
-    private playClip(clip: WeightedAnimation, pool: AnimationPoolConfig, transitionOverride?: number): void {
-        if (!this.model.actions[clip.clipName]) {
+    private async playClip(
+        clip: WeightedAnimation,
+        pool: AnimationPoolConfig,
+        transitionOverride?: number,
+        requestToken?: number,
+    ): Promise<void> {
+        const action = await this.model.ensureAnimationLoaded(clip.clipName);
+        if (!action) {
             console.warn(`[AnimPool] Animation not found: ${clip.clipName}`);
+            this.nextChangeTime = Math.max(pool.minPlayTime, 1.0);
+            return;
+        }
+
+        if (requestToken !== undefined && requestToken !== this.backgroundRequestToken) {
             return;
         }
 
         // 실제 적용할 transition time 결정 (Override 우선)
         const transitionTime = transitionOverride ?? pool.transitionTime;
+        const dominantAction = this.getDominantAction(action);
+        const isSameAction = this.currentClipName === clip.clipName;
 
         //이전 클립이랑 같은 애니메이션인지 확인 (Override가 있으면 강제 재생)
-        if (transitionOverride || this.currentClipName !== clip.clipName) {
+        if (transitionOverride || !isSameAction) {
             console.log(`[AnimPool] Playing: ${clip.clipName} (weight: ${clip.weight}) trTime:${transitionTime}`);
 
-            // 이전 클립 페이드아웃
-            if (this.currentClipName && this.model.actions[this.currentClipName]) {
-                //this.model.actions[this.currentClipName].stop(); // fadeOut 대신 즉시 정지 후
-                //this.model.actions[this.currentClipName].reset();
-                this.model.actions[this.currentClipName].fadeOut(transitionTime);
+            // 새 클립 페이드인 / 실제 현재 기여 포즈에서 크로스페이드
+            this.cancelRetiringAction(action);
+            if (!isSameAction) {
+                action.reset();
             }
-
-            // 새 클립 페이드인
-            const action = this.model.actions[clip.clipName];
-            action.reset();
             action.setLoop(THREE.LoopPingPong, Infinity); // 무한 루프
-            action.fadeIn(transitionTime);
+            action.enabled = true;
             action.play();
+
+            if (dominantAction && dominantAction !== action) {
+                action.crossFadeFrom(dominantAction, transitionTime, false);
+            } else {
+                action.fadeIn(transitionTime);
+            }
+            this.fadeOutConflictingActions([action, dominantAction], transitionTime);
 
             this.currentClipName = clip.clipName;
             this.clipTimer = 0;
@@ -322,26 +458,27 @@ class AnimationPoolManager {
     }
 
     public stop(fadeOutTime: number = 0.0): void {
-        // 1) 타이머 정리
-        if (this.gestureFadeTimer) {
-            clearTimeout(this.gestureFadeTimer);
-            this.gestureFadeTimer = null;
-        }
-        if (this.gestureEndTimer) {
-            clearTimeout(this.gestureEndTimer);
-            this.gestureEndTimer = null;
-        }
-
-        // 2) 상태 플래그 정리
+        // 1) 상태 플래그 정리
         this.isGesturePlaying = false;
-        this.gestureEndTime = 0;
+        this.currentGestureAction = null;
+        this.isGesturePending = false;
+        this.queuedGestureCountHint = 0;
+        this.gestureElapsed = 0;
+        this.gestureDuration = 0;
+        this.gestureOverlapTime = 0;
+        this.gestureFadeStarted = false;
         this.isBlending = false;
         this.blendTimer = 0;
         this.clipTimer = 0;
         this.nextChangeTime = 0;
         this.currentTransitionTime = 0;
+        this.retiringActions = [];
+        this.transientGestureClips.forEach((_clip, action) => {
+            this.disposeTransientGestureAction(action);
+        });
+        this.transientGestureClips.clear();
 
-        // 3) 액션 정지 (background + gesture 포함)
+        // 2) 액션 정지 (background + gesture 포함)
         // model.actions는 같은 mixer를 공유할 수도 있어서 stopAllAction도 같이 해줌
         const actions = Object.values(this.model.actions);
 
@@ -368,14 +505,14 @@ class AnimationPoolManager {
             }
         }
 
-        // 4) gestureMixer도 정리
+        // 3) gestureMixer도 정리
         try {
             this.gestureMixer.stopAllAction();
             const root = this.model.vrm?.scene;
             if (root) this.gestureMixer.uncacheRoot(root);
         } catch { }
 
-        // 5) 현재 풀/클립 정보 초기화
+        // 4) 현재 풀/클립 정보 초기화
         this.currentClipName = '';
         this.currentPoolName = '';
     }
@@ -525,10 +662,11 @@ export class CharacterStateManager {
     private targetPoses: Map<THREE.Bone, THREE.Quaternion> = new Map();
     private originalPoses: Map<THREE.Bone, THREE.Quaternion> = new Map();
 
-    // External state triggers
-    private isListening: boolean = false;
-    private isSpeaking: boolean = false;
-    private lastUserInput: number = 0;
+    // External intent state
+    private inputActive: boolean = false;
+    private awaitingAssistantResponse: boolean = false;
+    private speechActive: boolean = false;
+    private desiredState: CharacterState = CharacterState.IDLE;
     private gestureQueue: string[] = [];
 
     constructor(model: Model, vrm: VRM) {
@@ -580,17 +718,52 @@ export class CharacterStateManager {
     }
 
     public setListening(listening: boolean): void {
-        this.isListening = listening;
-        if (listening) {
-            this.lastUserInput = Date.now();
-        }
+        this.onUserInputChanged(listening);
     }
 
     public setSpeaking(speaking: boolean): void {
-        this.isSpeaking = speaking;
+        if (speaking) {
+            this.onAssistantSpeechStarted();
+            return;
+        }
+
+        this.onAssistantSpeechFinished();
+    }
+
+    public beginAssistantResponse(): void {
+        this.onUserPromptSubmitted();
+    }
+
+    public onUserInputChanged(hasInput: boolean): void {
+        this.inputActive = hasInput;
+        if (hasInput) {
+            this.awaitingAssistantResponse = false;
+        }
+        this.recomputeDesiredState();
+    }
+
+    public onUserPromptSubmitted(): void {
+        this.inputActive = false;
+        this.awaitingAssistantResponse = true;
+        this.recomputeDesiredState();
+    }
+
+    public onAssistantSpeechStarted(): void {
+        this.awaitingAssistantResponse = false;
+        this.speechActive = true;
+        this.recomputeDesiredState();
+    }
+
+    public onAssistantSpeechFinished(): void {
+        this.speechActive = false;
+        this.recomputeDesiredState();
     }
 
     public triggerGesture(gestureName: string): void {
+        this.requestGesture(gestureName);
+    }
+
+    public requestGesture(gestureName: string): void {
         this.gestureQueue.push(gestureName);
     }
 
@@ -602,80 +775,29 @@ export class CharacterStateManager {
     // State Logic & Transitions
     //----------------------------------------------------------------
 
+    private recomputeDesiredState(): void {
+        if (this.speechActive) {
+            this.desiredState = CharacterState.SPEAKING;
+            return;
+        }
+
+        if (this.awaitingAssistantResponse) {
+            // Thinking 애셋이 정리되기 전까지는 idle로 대기한다.
+            this.desiredState = CharacterState.IDLE;
+            return;
+        }
+
+        if (this.inputActive) {
+            this.desiredState = CharacterState.LISTENING;
+            return;
+        }
+
+        this.desiredState = CharacterState.IDLE;
+    }
+
     private evaluateTransitions(): void {
-        const rules: TransitionRule[] = [
-            // High priority: Speaking state
-            {
-                from: CharacterState.IDLE,
-                to: CharacterState.SPEAKING,
-                condition: () => this.isSpeaking,
-                priority: 100
-            },
-            {
-                from: CharacterState.LISTENING,
-                to: CharacterState.SPEAKING,
-                condition: () => this.isSpeaking,
-                priority: 100
-            },
-            {
-                from: CharacterState.THINKING,
-                to: CharacterState.SPEAKING,
-                condition: () => this.isSpeaking,
-                priority: 100
-            },
-
-            // Medium priority: Listening
-            {
-                from: CharacterState.IDLE,
-                to: CharacterState.LISTENING,
-                condition: () => this.isListening,
-                priority: 80
-            },
-            {
-                from: CharacterState.THINKING,
-                to: CharacterState.LISTENING,
-                condition: () => this.isListening,
-                priority: 80
-            },
-
-            // Thinking state (after user input, before response)
-            //{
-            //    from: CharacterState.LISTENING,
-            //    to: CharacterState.THINKING,
-            //    condition: () => !this.isListening && !this.isSpeaking &&
-            //        (Date.now() - this.lastUserInput) < 3000,
-            //    priority: 60
-            //},
-
-            // Back to idle
-            {
-                from: CharacterState.SPEAKING,
-                to: CharacterState.IDLE,
-                condition: () => !this.isSpeaking,
-                priority: 40
-            },
-            {
-                from: CharacterState.THINKING,
-                to: CharacterState.IDLE,
-                condition: () => this.stateTimer > 2.0 && !this.isSpeaking,
-                priority: 40
-            },
-            {
-                from: CharacterState.LISTENING,
-                to: CharacterState.IDLE,
-                condition: () => !this.isListening &&
-                    (Date.now() - this.lastUserInput) > 5000,
-                priority: 40
-            }
-        ];
-
-        // Find highest priority applicable rule
-        const applicableRule = rules
-            .filter(rule => rule.from === this.currentState && rule.condition())
-            .sort((a, b) => b.priority - a.priority)[0];
-
-        if (applicableRule) {
-            this.setState(applicableRule.to);
+        if (this.currentState !== this.desiredState) {
+            this.setState(this.desiredState);
         }
     }
 
@@ -773,16 +895,17 @@ export class CharacterStateManager {
     }
 
     private handleAnimationChange(config: StateConfig): void {
-        if (config.baseAnimation && this.model.actions[config.baseAnimation]) {
-            // Fade out current animations
+        if (!config.baseAnimation) return;
+
+        void this.model.ensureAnimationLoaded(config.baseAnimation).then((targetAction) => {
+            if (!targetAction) return;
+
             for (const action of Object.values(this.model.actions)) {
                 action.fadeOut(config.blendOutTime);
             }
 
-            // Fade in target animation
-            const targetAction = this.model.actions[config.baseAnimation];
             targetAction.reset().fadeIn(config.blendInTime).play();
-        }
+        });
     }
 
     //----------------------------------------------------------------
@@ -793,10 +916,17 @@ export class CharacterStateManager {
         this.stateTimer += dt;
 
         this.handleGestures(); // 제스처 큐를 최우선으로 처리
+        this.animationPoolManager.setQueuedGestureCountHint(this.gestureQueue.length);
         this.animationPoolManager.update(dt);
 
         // Evaluate state transitions
         this.evaluateTransitions();
+
+        // 제스처 중에도 desired/current state는 따라가되,
+        // 포즈 블렌딩/상태별 미세 동작은 잠시 멈춘다.
+        if (this.animationPoolManager.isGestureActive()) {
+            return;
+        }
 
         // Handle pose blending during transitions
         if (this.isTransitioning) {
@@ -814,7 +944,10 @@ export class CharacterStateManager {
     }
 
     private handleGestures(): void {
-        if (this.gestureQueue.length > 0) {
+        if (
+            this.gestureQueue.length > 0 &&
+            this.animationPoolManager.canStartGesture()
+        ) {
 
             const gestureClipName = this.gestureQueue.shift();
             if (gestureClipName) {
@@ -908,20 +1041,24 @@ export class CharacterStateManager {
     public getDebugInfo(): object {
         return {
             currentState: this.currentState,
+            desiredState: this.desiredState,
             stateTimer: this.stateTimer.toFixed(2),
             isTransitioning: this.isTransitioning,
             transitionTimer: this.transitionTimer.toFixed(2),
             currentClip: this.animationPoolManager.getCurrentClip(),
             gestureQueueLength: this.gestureQueue.length,
-            isListening: this.isListening,
-            isSpeaking: this.isSpeaking
+            inputActive: this.inputActive,
+            awaitingAssistantResponse: this.awaitingAssistantResponse,
+            speechActive: this.speechActive
         };
     }
 
     public stop(fadeOutTime: number = 0.2): void {
         // 1) 외부 트리거/큐 정리
-        this.isListening = false;
-        this.isSpeaking = false;
+        this.inputActive = false;
+        this.awaitingAssistantResponse = false;
+        this.speechActive = false;
+        this.desiredState = CharacterState.IDLE;
         this.gestureQueue.length = 0;
 
         // 2) 상태머신 정리

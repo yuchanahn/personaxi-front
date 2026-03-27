@@ -14,6 +14,11 @@ import { CharacterStateManager } from '../fsm/StateManager';
 import { stripRootMotion } from '../utils/AnimationHelpers';
 import { HitReactionController } from './HitReactionController';
 import { addSpark } from "$lib/vrm/stores";
+import {
+    VRM_INITIAL_PRELOAD_ANIMATION_NAMES,
+    normalizeAnimationName,
+    resolveAnimationAssetPath,
+} from '../animation/vrmAnimationCatalog';
 
 
 //------------------------------------------------------------------
@@ -90,6 +95,8 @@ export class Model {
     // 기타
     public mixer?: THREE.AnimationMixer;
     public actions: Record<string, THREE.AnimationAction> = {};
+    private animationLoadPromises = new Map<string, Promise<THREE.AnimationAction | null>>();
+    private failedAnimations = new Set<string>();
 
 
     private lookAtTarget = new THREE.Object3D();
@@ -230,129 +237,12 @@ export class Model {
         if (!this.vrm) return;
         this.mixer = new THREE.AnimationMixer(this.vrm.scene);
 
-        const animNames = [
-            'Acknowledging.fbx',
-            'Agreeing.fbx',
-            'Air Squat Bent Arms.fbx',
-            'Angry Gesture.fbx',
-            'Angry.fbx',
-            'Arm Gesture.fbx',
-            'Arm Stretching.fbx',
-            'Arms Hip Hop Dance.fbx',
-            'Bashful.fbx',
-            'Being Cocky.fbx',
-            'Bellydancing.fbx',
-            'Blow A Kiss.fbx',
-            'Bored.fbx',
-            'Breathing Idle.fbx',
-            'Breathing Idle1.fbx',
-            'Breathing Idle2.fbx',
-            'Chicken Dance.fbx',
-            'Clapping.fbx',
-            'Crawling.fbx',
-            'Crying.fbx',
-            'Dancing Twerk.fbx',
-            'Dancing.fbx',
-            'Dismissing Gesture.fbx',
-            'Drunk Idle Variation.fbx',
-            'Drunk Idle.fbx',
-            'Dwarf Idle(1).fbx',
-            'Dwarf Idle(2).fbx',
-            'Dwarf Idle.fbx',
-            'Fallen Idle.fbx',
-            'Female Laying Pose.fbx',
-            'Female Standing Pose.fbx',
-            'Fist Pump.fbx',
-            'Happy Idle(1).fbx',
-            'Happy Idle.fbx',
-            'Hard Head Nod.fbx',
-            'Head Nod Yes.fbx',
-            'Hokey Pokey.fbx',
-            'Idle_nomal.fbx',
-            'Injured Hurting Idle.fbx',
-            'Injured Idle.fbx',
-            'Jazz Dancing.fbx',
-            'Joyful Jump.fbx',
-            'Kick To The Groin.fbx',
-            'Kiss.fbx',
-            'Kneeling Idle.fbx',
-            'Listening.fbx',
-            'Looking Around.fbx',
-            'Looking Behind.fbx',
-            'Low Crawl.fbx',
-            'Neck Stretching.fbx',
-            'Neutral Idle.fbx',
-            'No.fbx',
-            'Old Man Idle.fbx',
-            'Orc Idle(1).fbx',
-            'Orc Idle.fbx',
-            'Plotting.fbx',
-            'Pointing.fbx',
-            'Pouting.fbx',
-            'Praying.fbx',
-            'Quick Formal Bow.fbx',
-            'Reacting.fbx',
-            'Rumba Dancing.fbx',
-            'Sad Idle(1).fbx',
-            'Sad Idle.fbx',
-            'Sarcastic Head Nod.fbx',
-            'Shoulder Rubbing.fbx',
-            'Shrugging.fbx',
-            'Snake Hip Hop Dance.fbx',
-            'Spank twice.fbx',
-            'Standing Arguing.fbx',
-            'Standing Greeting.fbx',
-            'Standing Idle(1).fbx',
-            'Step Hip Hop Dance.fbx',
-            'Taken Hostage - Victim.fbx',
-            'Talk femininely.fbx',
-            'Talking.fbx',
-            'Talking1.fbx',
-            'Talking2.fbx',
-            'Talking3.fbx',
-            'Talking4.fbx',
-            'Talking5.fbx',
-            'Thankful.fbx',
-            'Twist Dance.fbx',
-            'Victory(1).fbx',
-            'Victory.fbx',
-            'Walking.fbx',
-            'Waving(1).fbx',
-            'Waving.fbx',
-            'Wheelbarrow Idle.fbx',
-            'Yawning.fbx',
-
-            'base/Idle Base.fbx',
-            'base/Arms crossed.fbx',
-            'base/Hands on waist.fbx',
-
-            'base/Looking Around.fbx',
-            'base/Listening.fbx',
-            'base/Listening2.fbx',
-            'base/Listening Start.fbx',
-            'base/Listening End.fbx',
-            'base/talk1.fbx',
-            'base/talk2.fbx',
-            'base/talk3.fbx',
-        ];
-
         this.actions = {};
+        this.animationLoadPromises.clear();
+        this.failedAnimations.clear();
 
-        await Promise.all(
-            animNames.map(async (name) => {
-                const clip = await loadMixamoAnimation(`/animations/${name}`, this.vrm!);
-
-                if (name.includes('/'))
-                    name = name.split('/')[1];
-
-                stripRootMotion(clip);
-
-                const act = this.mixer!.clipAction(clip);
-
-
-                this.actions[name] = act;
-            })
-        );
+        await Promise.all(VRM_INITIAL_PRELOAD_ANIMATION_NAMES.map((name) => this.ensureAnimationLoaded(name)));
+        this.stateManager?.setState(this.stateManager.getCurrentState(), true);
 
 
         //const idle = await loadMixamoAnimation(base + '/animations/Breathing Idle.fbx', this.vrm);
@@ -513,6 +403,44 @@ export class Model {
     //----------------------------------------------------------------
     public doGesture(gestureName: string) {
         this.stateManager?.triggerGesture(gestureName);
+    }
+
+    public async ensureAnimationLoaded(name: string): Promise<THREE.AnimationAction | null> {
+        if (!this.vrm || !this.mixer) return null;
+
+        const normalizedName = normalizeAnimationName(name);
+        if (this.actions[normalizedName]) {
+            return this.actions[normalizedName];
+        }
+
+        if (this.failedAnimations.has(normalizedName)) {
+            return null;
+        }
+
+        const pendingLoad = this.animationLoadPromises.get(normalizedName);
+        if (pendingLoad) {
+            return pendingLoad;
+        }
+
+        const assetPath = resolveAnimationAssetPath(name);
+        const loadPromise = loadMixamoAnimation(assetPath, this.vrm)
+            .then((clip) => {
+                stripRootMotion(clip);
+                const action = this.mixer!.clipAction(clip);
+                this.actions[normalizedName] = action;
+                return action;
+            })
+            .catch((error) => {
+                this.failedAnimations.add(normalizedName);
+                console.warn(`[VRM] Failed to load animation: ${assetPath}`, error);
+                return null;
+            })
+            .finally(() => {
+                this.animationLoadPromises.delete(normalizedName);
+            });
+
+        this.animationLoadPromises.set(normalizedName, loadPromise);
+        return loadPromise;
     }
 
     // 매 프레임 업데이트

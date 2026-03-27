@@ -11,7 +11,7 @@ export class Viewer {
   private renderer: THREE.WebGPURenderer;
   private scene: THREE.Scene;
   public camera: THREE.PerspectiveCamera;
-  //private light: THREE.DirectionalLight;
+  private keyLight: THREE.DirectionalLight;
   private clock = new THREE.Clock();
 
   private canvas: HTMLCanvasElement;
@@ -19,6 +19,8 @@ export class Viewer {
 
   private animationFrameId: number | null = null; // 애니메이션 프레임 ID를 저장할 변수
   private isStopped = false;
+  private renderScale = 1.0;
+  private usePostProcessing = false;
 
   private postProcessing: PostProcessing;
 
@@ -28,10 +30,10 @@ export class Viewer {
     // --- 1. 렌더러 설정 (그림자 추가) ---
     this.renderer = new THREE.WebGPURenderer({ canvas, antialias: true, alpha: true });
     this.renderer.setSize(canvas.clientWidth, canvas.clientHeight);
-    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.5));
+    this.renderer.setPixelRatio(this.renderScale);
+    this.renderer.setClearColor(new THREE.Color(0x000000), 0);
     //this.renderer.shadowMap.enabled = true; // 그림자 활성화
     //this.renderer.shadowMap.type = THREE.PCFSoftShadowMap; // 부드러운 그림자
-    //this.renderer.toneMapping = THREE.ACESFilmicToneMapping; // 톤 매핑으로 색감 개선
     this.renderer.outputColorSpace = THREE.SRGBColorSpace;
 
     this.scene = new THREE.Scene();
@@ -51,11 +53,11 @@ export class Viewer {
     //this.scene.add(hemisphereLight);
 
     // 주 조명 (Key Light, 태양 역할)
-    const keyLight = new THREE.DirectionalLight(0xffffff, 1.6);
-    keyLight.position.set(1, 2, 2);
+    this.keyLight = new THREE.DirectionalLight(0xffffff, 2.1);
+    this.keyLight.position.set(0.9, 1.9, 0.9);
     //keyLight.castShadow = true;
     //keyLight.shadow.mapSize.set(2048, 2048); // 그림자 해상도
-    this.scene.add(keyLight);
+    this.scene.add(this.keyLight);
 
     // 보조 조명 (Fill Light, 그림자 영역을 부드럽게)
     //const fillLight = new THREE.DirectionalLight(0xffffff, 1.8);
@@ -124,10 +126,11 @@ export class Viewer {
       console.error("VRM 로딩 실패");
       return null;
     }
+
     vrm.scene.traverse((obj) => {
       if ((obj as THREE.Mesh).isMesh) {
-        obj.castShadow = true;
-        obj.receiveShadow = true; // 다른 부분의 그림자가 맺힐 수 있도록 설정
+        obj.castShadow = false;
+        obj.receiveShadow = false;
       }
     });
 
@@ -160,6 +163,44 @@ export class Viewer {
     return this.model;
   }
 
+  public setRenderScale(scale: number) {
+    this.renderScale = 1.0;
+    this.renderer.setPixelRatio(this.renderScale);
+    this.renderer.setSize(this.canvas.clientWidth, this.canvas.clientHeight, false);
+  }
+
+  public getRenderScale() {
+    return this.renderScale;
+  }
+
+  public setUsePostProcessing(enabled: boolean) {
+    this.usePostProcessing = enabled;
+  }
+
+  public getUsePostProcessing() {
+    return this.usePostProcessing;
+  }
+
+  public setCameraFov(fov: number) {
+    this.camera.fov = Math.max(15, Math.min(fov, 45));
+    this.camera.updateProjectionMatrix();
+  }
+
+  public setKeyLight(intensity: number, x: number, y: number, z: number) {
+    this.keyLight.intensity = Math.max(0, intensity);
+    this.keyLight.position.set(x, y, z);
+    this.keyLight.updateMatrixWorld();
+  }
+
+  public getKeyLightState() {
+    return {
+      intensity: this.keyLight.intensity,
+      x: this.keyLight.position.x,
+      y: this.keyLight.position.y,
+      z: this.keyLight.position.z,
+    };
+  }
+
   private renderLoop = async () => {
     if (this.isStopped) {
       console.log("Render loop stopped by flag.");
@@ -170,7 +211,11 @@ export class Viewer {
 
     this.model.update(delta);
 
-    await this.postProcessing.renderAsync();
+    if (this.usePostProcessing) {
+      await this.postProcessing.renderAsync();
+    } else {
+      await this.renderer.renderAsync(this.scene, this.camera);
+    }
 
     // 4. 다음 프레임을 요청합니다.
     this.animationFrameId = requestAnimationFrame(this.renderLoop);
