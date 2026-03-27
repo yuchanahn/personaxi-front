@@ -10,24 +10,10 @@ import * as THREE from 'three/webgpu';
 import { base } from '$app/paths';
 import { LipSync } from '../lip_sync/lip_sync';
 import { ExpressionController } from '../emote_controller/expression_controller';
-import { isSettledPos, isSettledRot, springPos, springQuat } from '../utils/springParams';
-import { addSpark } from "$lib/vrm/stores";
 import { CharacterStateManager } from '../fsm/StateManager';
 import { stripRootMotion } from '../utils/AnimationHelpers';
-
-
-//------------------------------------------------------------------
-// 타입 보조                                                         
-//------------------------------------------------------------------
-type HitBoneState = {
-    bone: THREE.Bone;
-    originalPos: THREE.Vector3;
-    originalQuat: THREE.Quaternion;
-    velPos: THREE.Vector3;
-    velRot: THREE.Vector3;
-    halfPos: number;  // ← halflife(seconds)
-    halfRot: number;
-};
+import { HitReactionController } from './HitReactionController';
+import { addSpark } from "$lib/vrm/stores";
 
 
 //------------------------------------------------------------------
@@ -68,6 +54,8 @@ export interface HitConfig {
 // 메인 클래스
 //------------------------------------------------------------------
 export class Model {
+    private readonly lookAtEnabled = false;
+
     public cfg: HitConfig = {           // 🔹 기본값
         rotImpulseHead: 15,
         halfRotHead: 0.25,
@@ -96,10 +84,8 @@ export class Model {
     private lookDamping = 25;    // c
 
     // Hit reaction
-    private hitStates: HitBoneState[] = [];
     private camera!: THREE.PerspectiveCamera;
-    private raycaster = new THREE.Raycaster();
-    private hittableBones: THREE.Bone[] = [];
+    private hitReactionController?: HitReactionController;
 
     // 기타
     public mixer?: THREE.AnimationMixer;
@@ -210,26 +196,28 @@ export class Model {
         this.springManager?.reset();
 
         // LookAt 세팅 ----------------------------------------------------
-        this.vrm.scene.add(this.lookTarget);
-        this.vrm.scene.add(this.gazeGoal);
-        this.vrm.lookAt!.target = this.lookTarget;
-        //TODO:
-        this.vrm.lookAt!.autoUpdate = true;
+        if (this.lookAtEnabled) {
+            this.vrm.scene.add(this.lookTarget);
+            this.vrm.scene.add(this.gazeGoal);
+            this.vrm.lookAt!.target = this.lookTarget;
+            this.vrm.lookAt!.autoUpdate = true;
+        } else {
+            this.vrm.lookAt!.autoUpdate = false;
+        }
 
         this.stateManager = new CharacterStateManager(this, this.vrm);
 
-        // 히트 초기화 ----------------------------------------------------
-        const names = [
-            'head', 'neck', 'upperChest', 'chest', 'spine',
-            'leftUpperArm', 'leftLowerArm', 'leftHand', 'rightUpperArm', 'rightLowerArm', 'rightHand',
-            'leftUpperLeg', 'leftLowerLeg', 'leftFoot', 'rightUpperLeg', 'rightLowerLeg', 'rightFoot'
-        ];
-        this.hittableBones = names
-            .map(n => this.vrm!.humanoid.getRawBoneNode(n as any))
-            .filter((b): b is THREE.Bone => !!b);
-
         this.expressionController = new ExpressionController(this.vrm, camera);
         this.setupLookAt()
+        this.hitReactionController = new HitReactionController({
+            vrm: this.vrm,
+            camera,
+            getCanvas: () => this.canvas,
+            getConfig: () => this.cfg,
+            startMouseFollowing: () => this.startMouseFollowing(),
+            stopMouseFollowing: () => this.stopMouseFollowing(true),
+            spawnSpark: addSpark,
+        });
 
 
         return this.vrm;
@@ -412,7 +400,7 @@ export class Model {
 
 
     private setupLookAt() {
-        if (!this.vrm?.lookAt) return;
+        if (!this.lookAtEnabled || !this.vrm?.lookAt) return;
         if (this.vrm.lookAt) {
             this.vrm.scene.add(this.lookAtTarget);
             this.vrm.scene.add(this.lookAtGoal);
@@ -460,6 +448,7 @@ export class Model {
 
     // ③ 시선 이동·마우스 추적 관련 퍼블릭 메서드
     public changeGaze(range: { x: number; y: number; z: number } = { x: 1.5, y: 0.8, z: 1.0 }) {
+        if (!this.lookAtEnabled) return;
         this.nextGazeChangeTime = 2.0 + Math.random() * 5.0; // 2~7초 사이
         this.eyeGazeTimer = 0;
         this.gazeMoveSpeed = 10 + Math.random() * 5;    // 10~15
@@ -471,45 +460,27 @@ export class Model {
     }
 
     public startMouseFollowing() {
+        if (!this.lookAtEnabled) return;
         this.isFollowingMouse = true;
         this.gazeMoveSpeed = 20.0; // 더 빠르게
     }
 
-    public stopMouseFollowing() {
+    public stopMouseFollowing(returnToCenter: boolean = false) {
+        if (!this.lookAtEnabled) return;
         this.isFollowingMouse = false;
+        if (returnToCenter) {
+            this.eyeGazeTimer = 0;
+            this.nextGazeChangeTime = 2.0 + Math.random() * 5.0;
+            this.gazeMoveSpeed = 12.0;
+            this.lookAtGoal.position.set(0, 1.0, 1.0);
+        }
     }
 
     public updateMouseGaze(mouseX: number, mouseY: number) {
+        if (!this.lookAtEnabled) return;
         if (!this.isFollowingMouse) return;
         this.lookAtGoal.position.set(mouseX * 2.0, -mouseY * 1.0 + 1.0, 1.0);
     }
-
-
-    getHalfLifeParams(name: string) {
-        const n = name.toLowerCase();
-        if (n.includes('head') || n.includes('neck'))
-            return { halfPos: 0, halfRot: this.cfg.halfRotHead };
-
-        if (n.includes('chest') || n.includes('spine') || n.includes('upperchest'))
-            return { halfPos: 0.25, halfRot: this.cfg.halfRotBody };
-
-        return { halfPos: 0.25, halfRot: this.cfg.halfRotLimb };
-    }
-
-
-    // 1) 본 종류별로 반감기 지정
-    getHalfLifeParams2(name: string) {
-        const low = 0.18;          // 빠르게 복귀할 부위 (머리·목)
-        const mid = 0.25;          // 기본
-        const high = 0.35;         // 느리게 (다리 등)
-
-        const n = name.toLowerCase();
-        return {
-            halfPos: n.includes('head') || n.includes('neck') ? 0 : mid,
-            halfRot: n.includes('head') || n.includes('neck') ? low : mid
-        };
-    }
-
 
     mouseFollowTimer: any | null = null;
 
@@ -517,80 +488,7 @@ export class Model {
     // 마우스 타격 (충돌 위치에 따라 회전 방향 결정)
     //----------------------------------------------------------------
     hitByMouse(nx: number, ny: number, strength = 1) {
-        // 0️⃣ 이전 타격 초기화 ------------------------------------------------
-        this.resetHitSprings();
-
-        // 1️⃣ 레이 발사 ------------------------------------------------------
-        this.raycaster.setFromCamera({ x: nx, y: ny } as THREE.Vector2, this.camera);
-        const ray = this.raycaster.ray;
-
-        // 2️⃣ 맞은 본 찾기 (가장 가까운 본의 중심점 거리) ----------------------
-        let closest: THREE.Bone | null = null;
-        let minDist = Infinity;
-        const tmp = new THREE.Vector3();
-
-        for (const b of this.hittableBones) {
-            b.getWorldPosition(tmp);
-            const d = ray.distanceToPoint(tmp);
-            if (d < 0.15 && d < minDist) { closest = b; minDist = d; }
-        }
-        if (!closest) return;
-
-
-
-        // 3️⃣ 충돌 지점 및 토크 축 계산 --------------------------------------
-        const bonePos = new THREE.Vector3();
-        closest.getWorldPosition(bonePos);              // 본 중심 (월드)
-        const hitPoint = new THREE.Vector3();
-        ray.closestPointToPoint(bonePos, hitPoint);      // 레이–점 최근접점
-
-        const ndc = hitPoint.clone().project(this.camera);   // NDC (-1~1)
-        const rect = this.canvas!.getBoundingClientRect();
-        const screenX = (ndc.x * 0.5 + 0.5) * rect.width + rect.left;
-        const screenY = (-ndc.y * 0.5 + 0.5) * rect.height + rect.top;
-
-        addSpark(screenX, screenY);    // 2) DOM 스파크 스폰 ‼️
-
-        const r = hitPoint.clone().sub(bonePos);         // 중심 → 충돌점
-        //const torqueAxis = new THREE.Vector3().crossVectors(r, ray.direction);
-        const torqueAxis = new THREE.Vector3().crossVectors(ray.direction, r);
-
-        // 레이 정면‑히트(외적≈0) 때는 기본 축으로
-        if (torqueAxis.lengthSq() < 1e-6) {
-            torqueAxis.set(0, 1, 0).cross(ray.direction);
-        }
-        torqueAxis.normalize();
-
-        // 4️⃣ 파라미터 선택 (본 종류별) --------------------------------------
-        const name = closest.name.toLowerCase();
-        const rotImpulse =
-            name.includes('head') || name.includes('neck') ? this.cfg.rotImpulseHead :
-                name.includes('chest') || name.includes('spine') ? this.cfg.rotImpulseBody :
-                    this.cfg.rotImpulseLimb;
-
-        const { halfPos, halfRot } = this.getHalfLifeParams(closest.name);
-
-        // 5️⃣ 선속도·각속도 ---------------------------------------------------
-        const velPos = ray.direction.clone().multiplyScalar(0.6 * strength);
-        const velRot = torqueAxis.multiplyScalar(rotImpulse * strength);
-
-        // 6️⃣ hitState 등록 ---------------------------------------------------
-        this.hitStates.push({
-            bone: closest,
-            originalPos: closest.position.clone(),
-            originalQuat: closest.quaternion.clone(),
-            velPos,
-            velRot,
-            halfPos,
-            halfRot
-        });
-
-        this.startMouseFollowing();
-        //3초간 마우스 팔로우
-        if (this.mouseFollowTimer) clearTimeout(this.mouseFollowTimer);
-        this.mouseFollowTimer = setTimeout(() => {
-            this.stopMouseFollowing();
-        }, 3000);
+        this.hitReactionController?.handlePointerHit(nx, ny, strength);
     }
 
 
@@ -601,32 +499,12 @@ export class Model {
     }
 
     resetHitSprings() {
-        for (const st of this.hitStates) {
-            st.bone.position.copy(st.originalPos);
-            st.bone.quaternion.copy(st.originalQuat);
-            st.bone.updateMatrixWorld(true);
-        }
-        this.hitStates.length = 0;          // 배열 완전 비우기
-        this.hitStates = [];
+        this.hitReactionController?.reset();
     }
 
 
     applyHitSprings(dt: number) {
-        // --- Hit reaction 스프링 ---------------------------------
-        for (let i = this.hitStates.length - 1; i >= 0; --i) {
-            const st = this.hitStates[i];
-            springPos(st.bone.position, st.velPos, st.originalPos, st.halfPos, dt);
-            springQuat(st.bone.quaternion, st.velRot, st.originalQuat, st.halfRot, dt);
-            st.bone.updateMatrixWorld(true);   // ← 반드시
-
-            // update 루프에서
-            if (isSettledPos(st) && isSettledRot(st)) {
-                st.bone.position.copy(st.originalPos);
-                st.bone.quaternion.copy(st.originalQuat);
-                this.hitStates.splice(i, 1);
-            }
-
-        }
+        this.hitReactionController?.afterBaseUpdate(dt);
     }
 
     fps = 0
@@ -641,26 +519,29 @@ export class Model {
     //----------------------------------------------------------------
     update(dt: number) {
         if (!this.vrm) return;
+        this.hitReactionController?.beforeBaseUpdate();
 
         // 2.2 LookAt 스프링 보간 --------------------------------------
-        integrateSpring(
-            this.lookPos,
-            this.lookVel,
-            this.gazeGoal.position,
-            this.lookStiffness,
-            this.lookDamping,
-            dt,
-        );
-        this.lookTarget.position.copy(this.lookPos);
+        if (this.lookAtEnabled) {
+            integrateSpring(
+                this.lookPos,
+                this.lookVel,
+                this.gazeGoal.position,
+                this.lookStiffness,
+                this.lookDamping,
+                dt,
+            );
+            this.lookTarget.position.copy(this.lookPos);
 
-        // 눈 트래킹 ---------------------------------------------------
-        this.eyeGazeTimer += dt;
-        if (!this.isFollowingMouse && this.eyeGazeTimer > this.nextGazeChangeTime) {
-            this.changeGaze()
-        }
-        const dist = this.lookAtTarget.position.distanceTo(this.lookAtGoal.position);
-        if (dist > 0.01) {
-            this.lookAtTarget.position.lerp(this.lookAtGoal.position, dt * this.gazeMoveSpeed);
+            // 눈 트래킹 ---------------------------------------------------
+            this.eyeGazeTimer += dt;
+            if (!this.isFollowingMouse && this.eyeGazeTimer > this.nextGazeChangeTime) {
+                this.changeGaze()
+            }
+            const dist = this.lookAtTarget.position.distanceTo(this.lookAtGoal.position);
+            if (dist > 0.01) {
+                this.lookAtTarget.position.lerp(this.lookAtGoal.position, dt * this.gazeMoveSpeed);
+            }
         }
         // -----------------------------------------------------------------------------
 
@@ -692,6 +573,8 @@ export class Model {
             clearTimeout(this.mouseFollowTimer);
             this.mouseFollowTimer = null;
         }
+        this.hitReactionController?.dispose();
+        this.hitReactionController = undefined;
         this.stateManager?.stop(0.2);
         this.mixer?.stopAllAction();
         if (this.vrm?.scene) this.mixer?.uncacheRoot(this.vrm.scene);
