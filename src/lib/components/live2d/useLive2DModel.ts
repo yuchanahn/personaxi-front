@@ -8,6 +8,9 @@ type LoadLive2DModelOptions = {
     scale: number;
 };
 
+const MODEL_RESOURCE_PATH_PATTERN = /\.(moc3|png|jpg|jpeg|tga|atlas|json)$/i;
+const resolvedModelUrlCache = new Map<string, Promise<string>>();
+
 async function blobToDataUrl(blob: Blob): Promise<string> {
     return await new Promise((resolve, reject) => {
         const reader = new FileReader();
@@ -17,96 +20,146 @@ async function blobToDataUrl(blob: Blob): Promise<string> {
     });
 }
 
-async function resolveEncryptedModelUrl(url: string): Promise<string> {
-    const isSupabase = url.includes("uohepkqmwbstbmnkoqju.supabase.co");
-    if (!isSupabase) return url;
+function isAbsoluteResourcePath(path: string): boolean {
+    return /^(https?:|data:|blob:)/i.test(path);
+}
 
-    const cryptoModule = await import("$lib/utils/crypto");
-    const basePath = url.substring(0, url.lastIndexOf("/") + 1);
-    const res = await fetch(url);
-    if (!res.ok) throw new Error("Failed to fetch model3.json");
-    const buffer = await res.arrayBuffer();
-
-    let modelJson: any;
-    try {
-        const plainText = new TextDecoder().decode(buffer);
-        modelJson = JSON.parse(plainText);
-        return url;
-    } catch {
-        const decryptedJsonBuffer = await cryptoModule.xorEncryptDecrypt(buffer);
-        const jsonStr = new TextDecoder().decode(decryptedJsonBuffer);
-        modelJson = JSON.parse(jsonStr);
+function resolveModelResourceUrl(
+    modelUrl: string,
+    relativeOrAbsolutePath: string,
+): string {
+    if (isAbsoluteResourcePath(relativeOrAbsolutePath)) {
+        return relativeOrAbsolutePath;
     }
 
-    const createDecryptedDataUrl = async (
-        relativeOrAbsolutePath: string,
-    ): Promise<string> => {
-        let fullUrl = relativeOrAbsolutePath;
-        if (!fullUrl.startsWith("http") && !fullUrl.startsWith("data:")) {
-            fullUrl = new URL(relativeOrAbsolutePath, basePath).href;
-        }
+    const absoluteModelUrl = new URL(modelUrl, window.location.origin).href;
+    const basePath = absoluteModelUrl.substring(
+        0,
+        absoluteModelUrl.lastIndexOf("/") + 1,
+    );
+    return new URL(relativeOrAbsolutePath, basePath).href;
+}
 
-        const ext = fullUrl.split(".").pop()?.toLowerCase() || "";
-        const mimeByExt: Record<string, string> = {
-            png: "image/png",
-            jpg: "image/jpeg",
-            jpeg: "image/jpeg",
-            json: "application/json",
-            moc3: "application/octet-stream",
-        };
-        const mime = mimeByExt[ext] || "application/octet-stream";
+async function rewriteModelResourcePaths(
+    obj: any,
+    resolver: (resourcePath: string) => Promise<string> | string,
+) {
+    if (Array.isArray(obj)) {
+        await Promise.all(
+            obj.map(async (item, index) => {
+                if (
+                    typeof item === "string" &&
+                    MODEL_RESOURCE_PATH_PATTERN.test(item)
+                ) {
+                    obj[index] = await resolver(item);
+                } else if (typeof item === "object" && item !== null) {
+                    await rewriteModelResourcePaths(item, resolver);
+                }
+            }),
+        );
+        return;
+    }
 
-        const fileRes = await fetch(fullUrl);
-        if (!fileRes.ok) throw new Error(`Failed to fetch ${fullUrl}`);
-        const fileBuffer = await fileRes.arrayBuffer();
+    if (typeof obj === "object" && obj !== null) {
+        await Promise.all(
+            Object.keys(obj).map(async (key) => {
+                const value = obj[key];
+                if (
+                    typeof value === "string" &&
+                    MODEL_RESOURCE_PATH_PATTERN.test(value)
+                ) {
+                    obj[key] = await resolver(value);
+                } else if (typeof value === "object" && value !== null) {
+                    await rewriteModelResourcePaths(value, resolver);
+                }
+            }),
+        );
+    }
+}
 
-        const decryptedFileBuffer =
-            await cryptoModule.xorEncryptDecrypt(fileBuffer);
-        const blob = new Blob([decryptedFileBuffer], { type: mime });
-        return await blobToDataUrl(blob);
-    };
-
-    const replacePaths = async (obj: any) => {
-        if (Array.isArray(obj)) {
-            await Promise.all(
-                obj.map(async (item, i) => {
-                    if (
-                        typeof item === "string" &&
-                        item.match(/\.(moc3|png|jpg|jpeg|tga|atlas|json)$/i)
-                    ) {
-                        obj[i] = await createDecryptedDataUrl(item);
-                    } else if (typeof item === "object" && item !== null) {
-                        await replacePaths(item);
-                    }
-                }),
-            );
-            return;
-        }
-
-        if (typeof obj === "object" && obj !== null) {
-            const keys = Object.keys(obj);
-            await Promise.all(
-                keys.map(async (key) => {
-                    const value = obj[key];
-                    if (
-                        typeof value === "string" &&
-                        value.match(/\.(moc3|png|jpg|jpeg|tga|atlas|json)$/i)
-                    ) {
-                        obj[key] = await createDecryptedDataUrl(value);
-                    } else if (typeof value === "object" && value !== null) {
-                        await replacePaths(value);
-                    }
-                }),
-            );
-        }
-    };
-
-    await replacePaths(modelJson);
+async function convertModelJsonToDataUrl(modelJson: any): Promise<string> {
     const modelJsonBlob = new Blob([JSON.stringify(modelJson)], {
         type: "application/json",
     });
     const finalDataUrl = await blobToDataUrl(modelJsonBlob);
     return `${finalDataUrl}#dummy.model3.json`;
+}
+
+async function resolveEncryptedModelUrl(url: string): Promise<string> {
+    const cached = resolvedModelUrlCache.get(url);
+    if (cached) {
+        return await cached;
+    }
+
+    const resolutionTask = (async () => {
+        const cryptoModule = await import("$lib/utils/crypto");
+        const absoluteModelUrl = new URL(url, window.location.origin).href;
+        const res = await fetch(absoluteModelUrl);
+        if (!res.ok) throw new Error("Failed to fetch model3.json");
+        const buffer = await res.arrayBuffer();
+
+        let modelJson: any;
+        let isEncrypted = false;
+
+        try {
+            const plainText = new TextDecoder().decode(buffer);
+            modelJson = JSON.parse(plainText);
+        } catch (plainParseError) {
+            try {
+                const decryptedJsonBuffer =
+                    await cryptoModule.xorEncryptDecrypt(buffer);
+                const jsonStr = new TextDecoder().decode(decryptedJsonBuffer);
+                modelJson = JSON.parse(jsonStr);
+                isEncrypted = true;
+            } catch {
+                throw plainParseError;
+            }
+        }
+
+        if (!isEncrypted) {
+            await rewriteModelResourcePaths(modelJson, (resourcePath) =>
+                resolveModelResourceUrl(absoluteModelUrl, resourcePath),
+            );
+            return await convertModelJsonToDataUrl(modelJson);
+        }
+
+        const createDecryptedDataUrl = async (
+            relativeOrAbsolutePath: string,
+        ): Promise<string> => {
+            const fullUrl = resolveModelResourceUrl(
+                absoluteModelUrl,
+                relativeOrAbsolutePath,
+            );
+
+            const ext = fullUrl.split(".").pop()?.toLowerCase() || "";
+            const mimeByExt: Record<string, string> = {
+                png: "image/png",
+                jpg: "image/jpeg",
+                jpeg: "image/jpeg",
+                json: "application/json",
+                moc3: "application/octet-stream",
+            };
+            const mime = mimeByExt[ext] || "application/octet-stream";
+
+            const fileRes = await fetch(fullUrl);
+            if (!fileRes.ok) throw new Error(`Failed to fetch ${fullUrl}`);
+            const fileBuffer = await fileRes.arrayBuffer();
+
+            const decryptedFileBuffer =
+                await cryptoModule.xorEncryptDecrypt(fileBuffer);
+            const blob = new Blob([decryptedFileBuffer], { type: mime });
+            return await blobToDataUrl(blob);
+        };
+
+        await rewriteModelResourcePaths(modelJson, createDecryptedDataUrl);
+        return await convertModelJsonToDataUrl(modelJson);
+    })().catch((error) => {
+        resolvedModelUrlCache.delete(url);
+        throw error;
+    });
+
+    resolvedModelUrlCache.set(url, resolutionTask);
+    return await resolutionTask;
 }
 
 export async function loadLive2DModel({
@@ -238,7 +291,6 @@ export async function applyPermanentExpressions(
     if (!Array.isArray(expressions) || expressions.length === 0) return;
 
     const settings = model?.internalModel?.settings;
-    const baseUrl = modelUrl.substring(0, modelUrl.lastIndexOf("/") + 1);
     const coreModel = model?.internalModel?.coreModel;
     const setParameterValueById = coreModel?.setParameterValueById?.bind(
         coreModel,
@@ -259,7 +311,7 @@ export async function applyPermanentExpressions(
         if (!file) continue;
 
         try {
-            const exprUrl = baseUrl + file;
+            const exprUrl = resolveModelResourceUrl(modelUrl, file);
             const resp = await fetch(exprUrl);
             if (!resp.ok) continue;
             const json = await resp.json();

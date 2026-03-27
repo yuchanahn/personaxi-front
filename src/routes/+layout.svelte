@@ -7,7 +7,11 @@
     import Sidebar from "$lib/components/sidebar/Sidebar.svelte";
     import NavBottom from "$lib/components/Nav/NavBottom.svelte";
     import CheatConsole from "$lib/components/cheat/CheatConsole.svelte";
-    import { settings, type Language } from "$lib/stores/settings";
+    import {
+        settings,
+        type AppSettings,
+        type Language,
+    } from "$lib/stores/settings";
     /* ────────────── 모달들 ────────────── */
     import NeedMoreNeuronsModal from "$lib/components/modal/NeedMoreNeuronsModal.svelte";
     import ConsentModal from "$lib/components/modal/ConsentModal.svelte";
@@ -69,25 +73,57 @@
     let bootstrappedUserToken: string | null = null;
     let bootstrappedUserPromise: Promise<User | null> | null = null;
     let initializedNotificationUserId = "";
+    let suppressSettingsSync = 0;
 
-    function syncUserLanguage(user: User) {
-        if (user.data.language === "") {
-            settings.update((s) => {
-                s.language = (get(locale) as Language) || "en";
-                return { ...s };
-            });
-        } else if (user.data.language !== get(locale)) {
-            settings.update((s) => {
-                s.language = user.data.language as Language;
-                return { ...s };
-            });
+    function buildUserSettingsPayload(
+        currentSettings: AppSettings,
+        user: User,
+    ) {
+        return {
+            name: user.name,
+            nickname: user.data?.nickname || "",
+            language:
+                currentSettings.language || (get(locale) as Language) || "en",
+            llmType: currentSettings.llmType,
+            safetyFilterOn: currentSettings.safetyFilterOn,
+        };
+    }
+
+    function syncSettingsFromUser(user: User) {
+        const currentSettings = get(settings);
+        const nextLanguage =
+            user.data.language === ""
+                ? ((get(locale) as Language) || "en")
+                : (user.data.language as Language);
+        const nextSafetyFilterOn =
+            user.data?.safetyFilterOn ?? currentSettings.safetyFilterOn ?? true;
+        const nextSettings: AppSettings = {
+            ...currentSettings,
+            language: nextLanguage,
+            safetyFilterOn: nextSafetyFilterOn,
+        };
+
+        lastSyncedSettingsPayload = JSON.stringify(
+            buildUserSettingsPayload(nextSettings, user),
+        );
+
+        if (
+            currentSettings.language === nextSettings.language &&
+            currentSettings.safetyFilterOn === nextSettings.safetyFilterOn
+        ) {
+            return;
         }
+
+        suppressSettingsSync += 1;
+        settings.set(nextSettings);
+        suppressSettingsSync = Math.max(0, suppressSettingsSync - 1);
     }
 
     function resetAuthenticatedBootstrap() {
         bootstrappedUserToken = null;
         bootstrappedUserPromise = null;
         initializedNotificationUserId = "";
+        lastSyncedSettingsPayload = "";
     }
 
     async function bootstrapCurrentUser(force = false) {
@@ -109,7 +145,7 @@
                 if (user.state === "new") {
                     consentModal = true;
                 }
-                syncUserLanguage(user);
+                syncSettingsFromUser(user);
             }
             return user;
         })();
@@ -284,18 +320,12 @@
 
     settings.subscribe((currentSettings) => {
         if (!browser || get(accessToken) === null) return;
+        if (suppressSettingsSync > 0) return;
 
         const user = get(st_user) as User | null;
         if (!user) return;
 
-        const settingRq: any = {
-            name: user.name,
-            nickname: user.data?.nickname || "",
-            language:
-                currentSettings.language || (get(locale) as Language) || "en",
-            llmType: currentSettings.llmType,
-            safetyFilterOn: currentSettings.safetyFilterOn,
-        };
+        const settingRq = buildUserSettingsPayload(currentSettings, user);
 
         const payloadKey = JSON.stringify(settingRq);
         if (payloadKey === lastSyncedSettingsPayload) {
