@@ -2,7 +2,7 @@ import * as THREE from 'three/webgpu';
 import { Model } from './model';
 import { v4 as uuidv4 } from 'uuid';
 
-import { PostProcessing, uniform, bloom, pass } from 'three/tsl';
+import { PostProcessing, pass } from 'three/tsl';
 import { RGBELoader } from 'three/addons/loaders/RGBELoader.js';
 
 export class Viewer {
@@ -28,7 +28,7 @@ export class Viewer {
     // --- 1. 렌더러 설정 (그림자 추가) ---
     this.renderer = new THREE.WebGPURenderer({ canvas, antialias: true, alpha: true });
     this.renderer.setSize(canvas.clientWidth, canvas.clientHeight);
-    this.renderer.setPixelRatio(window.devicePixelRatio);
+    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.5));
     //this.renderer.shadowMap.enabled = true; // 그림자 활성화
     //this.renderer.shadowMap.type = THREE.PCFSoftShadowMap; // 부드러운 그림자
     //this.renderer.toneMapping = THREE.ACESFilmicToneMapping; // 톤 매핑으로 색감 개선
@@ -77,11 +77,8 @@ export class Viewer {
 
     // --- 4. 후처리 설정 (블룸 효과) ---
     const scenePass = pass(this.scene, this.camera);
-    // 강도(strength)를 낮추고, 임계값(threshold)을 높여서 효과를 줄임
-    const bloomPass = bloom(scenePass, 0.1, 0.001, 0.2);
 
     this.postProcessing = new PostProcessing(this.renderer);
-    //this.postProcessing.outputNode = bloomPass;
     this.postProcessing.outputNode = scenePass;
   }
 
@@ -173,8 +170,7 @@ export class Viewer {
 
     this.model.update(delta);
 
-    await this.renderer.renderAsync(this.scene, this.camera);
-    this.postProcessing.render();
+    await this.postProcessing.renderAsync();
 
     // 4. 다음 프레임을 요청합니다.
     this.animationFrameId = requestAnimationFrame(this.renderLoop);
@@ -210,9 +206,13 @@ export class Viewer {
   }
 
   start() {
+    if (!this.isStopped && (this.animationFrameId !== null || this.clock.running)) {
+      return;
+    }
+
+    this.isStopped = false;
     this.clock.start();
     this.renderLoop();
-    this.isStopped = false;
   }
 
 
@@ -228,8 +228,8 @@ export class Viewer {
 
     if (this.animationFrameId) {
       cancelAnimationFrame(this.animationFrameId);
-      // this.animationFrameId = 0; // ID 초기화 (선택 사항)
     }
+    this.animationFrameId = null;
     this.clock.stop();
 
     if (this.model && this.model.vrm) {

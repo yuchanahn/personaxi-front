@@ -672,7 +672,6 @@ export class Model {
 
 
         this.mixer?.update(dt);
-        this.springManager?.update(dt);
         this.vrm.update(dt);
         this.stateManager?.update(dt);
         this.applyHitSprings(dt);

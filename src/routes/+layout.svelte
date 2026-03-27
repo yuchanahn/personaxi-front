@@ -93,7 +93,7 @@
         const currentSettings = get(settings);
         const nextLanguage =
             user.data.language === ""
-                ? ((get(locale) as Language) || "en")
+                ? (get(locale) as Language) || "en"
                 : (user.data.language as Language);
         const nextSafetyFilterOn =
             user.data?.safetyFilterOn ?? currentSettings.safetyFilterOn ?? true;
@@ -196,32 +196,17 @@
         const {
             data: { subscription },
         } = supabase.auth.onAuthStateChange((event, session) => {
-            console.log("[AUTH] onAuthStateChange", {
-                event,
-                hasSession: !!session,
-            });
-
             if (session) {
                 accessToken.set(session.access_token);
 
                 const completedAuthRequest = consumeAuthGateSuccess();
-                console.log(
-                    "[LAYOUT] consumeAuthGateSuccess",
-                    completedAuthRequest,
-                );
 
                 if (completedAuthRequest?.returnTo) {
                     const currentUrl =
                         `${window.location.pathname}${window.location.search}${window.location.hash}` ||
                         "/hub";
 
-                    console.log("[LAYOUT] auth returnTo compare", {
-                        returnTo: completedAuthRequest.returnTo,
-                        currentUrl,
-                    });
-
                     if (completedAuthRequest.returnTo !== currentUrl) {
-                        console.log("[LAYOUT] goto returnTo");
                         void goto(completedAuthRequest.returnTo, {
                             replaceState: true,
                         });
