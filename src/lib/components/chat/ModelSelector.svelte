@@ -74,11 +74,7 @@
         id = normalizeVisibleLLMType(id);
         const base = $pricingStore.costs.chat_2d || 5;
         const fallbackMultiplier =
-            id === "gemini-flash"
-                ? 1.5
-                : id === "gemini-pro"
-                  ? 2.0
-                  : 1.0;
+            id === "gemini-flash" ? 1.5 : id === "gemini-pro" ? 2.0 : 1.0;
         const mult = $pricingStore.model_multipliers[id] || fallbackMultiplier;
         return Math.round(base * mult);
     };

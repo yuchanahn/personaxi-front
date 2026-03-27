@@ -146,9 +146,8 @@
             );
         };
         window.addEventListener("chat-error", handleChatError as EventListener);
-        const cleanupGoogleTagManager = scheduleGoogleTagManager(
-            "GTM-N3KH9NL7",
-        );
+        const cleanupGoogleTagManager =
+            scheduleGoogleTagManager("GTM-N3KH9NL7");
 
         // pricingStore.fetchPricingPolicy() — called in accessToken.subscribe, no duplicate needed
 
@@ -160,23 +159,45 @@
         // 2. Auth 상태 변경 감지
         const {
             data: { subscription },
-        } = supabase.auth.onAuthStateChange((_event, session) => {
+        } = supabase.auth.onAuthStateChange((event, session) => {
+            console.log("[AUTH] onAuthStateChange", {
+                event,
+                hasSession: !!session,
+            });
+
             if (session) {
                 accessToken.set(session.access_token);
+
                 const completedAuthRequest = consumeAuthGateSuccess();
+                console.log(
+                    "[LAYOUT] consumeAuthGateSuccess",
+                    completedAuthRequest,
+                );
+
                 if (completedAuthRequest?.returnTo) {
                     const currentUrl =
                         `${window.location.pathname}${window.location.search}${window.location.hash}` ||
                         "/hub";
+
+                    console.log("[LAYOUT] auth returnTo compare", {
+                        returnTo: completedAuthRequest.returnTo,
+                        currentUrl,
+                    });
+
                     if (completedAuthRequest.returnTo !== currentUrl) {
+                        console.log("[LAYOUT] goto returnTo");
                         void goto(completedAuthRequest.returnTo, {
                             replaceState: true,
                         });
                     }
                 }
-            } else {
-                resetAuthenticatedBootstrap();
-                accessToken.set(null);
+                return;
+            }
+
+            resetAuthenticatedBootstrap();
+            accessToken.set(null);
+
+            if (event === "SIGNED_OUT") {
                 bumpAuthRenderVersion();
             }
         });
@@ -324,7 +345,8 @@
     {/if}
 
     <main class:no-padding-bottom={isChatPage} class="no-scrollbar">
-        {#key `${$authRenderVersion}:${$page.url.pathname}:${$page.url.search}`}
+        <!-- access_token -->
+        {#key `${$authRenderVersion}`}
             <slot />
         {/key}
 
