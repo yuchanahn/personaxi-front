@@ -1,6 +1,6 @@
 # Terms of Service for personaxi
 
-**Effective Date:** February 3, 2026  
+**Effective Date:** March 30, 2026  
 **Operator:** PersonaXI (Sole Proprietorship, Republic of Korea)  
 **Address:** 충청남도 천안시 서북구 번영로 306-15, 104-101, Republic of Korea  
 **Support:** support@personaxi.com
@@ -53,6 +53,9 @@ By accessing or using personaxi ("Service"), operated by PersonaXI ("Company"), 
    - Collecting, storing, or exploiting another person's personal information without authorization.
    - Infringing on the intellectual property rights of the Company or third parties.
    - Engaging in any activity that interferes with the stable operation of the Service.
+   - Uploading, publishing, or monetizing derivative works or fan-made content beyond the scope permitted by the original creator or distributor.
+   - Presenting derivative works as official sequels, official collaborations, official accounts, or rights-holder-approved content when they are not.
+   - Re-uploading or redistributing original images, Live2D/VRM files, voice assets, logos, UI resources, or similar assets without substantial transformation.
 2. Members shall comply with all applicable laws and these Terms when using the Service.
 
 ### Article 7: Fair Use Policy and Account Restrictions
@@ -66,6 +69,12 @@ By accessing or using personaxi ("Service"), operated by PersonaXI ("Company"), 
 2. **License Grant:** The Member grants the Company a worldwide, royalty-free, non-exclusive license to host, store, reproduce, display, and distribute the UGC **strictly for the purposes of operating, promoting, and improving the Service**. This license remains valid after the Member's account termination, within the scope of the stated purposes. Content that has been specifically deleted by the Member is excluded from this license.
 3. The Company shall not use UGC for purposes other than those stated in paragraph 1 without obtaining separate consent from the Member.
 4. **GDPR Exception:** If a data subject within the EU requests deletion of their content under Article 17 of the GDPR, the Company shall delete the relevant content in accordance with its legal obligations, and the license granted under paragraph 2 shall be terminated for that content. Content that is required to be retained under applicable legal obligations shall be maintained for the relevant retention period.
+5. For Live2D models and related assets uploaded by a Member, the underlying copyright remains with the original rights holder. The Member represents and warrants that it holds or has lawfully obtained the copyrights, neighboring rights, publicity rights, trademark rights, and any other rights necessary to upload and use the asset within the Service.
+6. The Member grants the Company a non-exclusive, revocable license to store, encrypt-transmit, temporarily reproduce, cache, load into memory, render in real time, and display such assets only to the extent required to operate the Service.
+7. The license in the preceding paragraph is limited to technical processing for Service operation and does not authorize the Company to sell, re-license, redistribute, publish, or provide the asset as standalone content.
+8. If UGC is a derivative work or fan-made content, the Member is responsible for confirming that the original creator or distributor allows the derivative work, platform publication, scope of disclosure, and, where applicable, monetization.
+9. The Member shall clearly indicate in the title, description, credits, or similar disclosure that such derivative work is unofficial and not approved or endorsed by the rights holder, unless such approval actually exists.
+10. Upon a rights-holder complaint, platform inquiry, or reasonable claim of infringement involving derivative works or assets, the Company may, without prior notice, hide, delete, restrict visibility, reclaim Creator Contribution, restrict uploads, or take any other necessary action.
 
 ---
 
@@ -116,6 +125,9 @@ By accessing or using personaxi ("Service"), operated by PersonaXI ("Company"), 
 1. Members may earn Creator Contribution as rewards when other Members use their created Personas or through other activities within the Service.
 2. Earned Creator Contribution is managed as an internal creator-impact metric, and conversion into Neurons is currently not supported.
 3. The earning method and conditions of use for Creator Contribution may be changed in accordance with the Company's operational policies. The Company shall provide advance notice of such changes within the Service.
+4. Creator Contribution is available only where the Member owns the relevant rights or has lawful permission to publish the Persona or asset on the Service, including any commercial or real-time display rights required for the specific use case.
+5. The Company may request proof of rights. If the Member fails to substantiate the rights within a reasonable period, or if infringement concerns are identified, the Company may limit accrual, cancel previously accrued points, or restrict settlement or visibility.
+6. Derivative works and fan-made assets are eligible for Creator Contribution only within the scope expressly permitted by the original creator's license, including platform publication and commercial use where applicable.
 
 ### Article 16: Nature of Creator Contribution and Prohibition of Cashout
 1. Creator Contribution are free credits issued to encourage participation in the Service. Under no circumstances may they be cashed out or sold or transferred to a third party for value.
@@ -153,6 +165,9 @@ By accessing or using personaxi ("Service"), operated by PersonaXI ("Company"), 
 1. Members may contact the Company regarding any issues related to the use of the Service at support@personaxi.com.
 2. The Company shall review any disputes or complaints and communicate the result within **5–10 business days** of receipt.
 3. If a dispute related to payment remains unresolved through the above process, the Member may escalate the matter to the relevant consumer dispute resolution authority.
+4. Upon a rights-holder complaint or a reasonable suspicion of infringement, the Company may temporarily disable access to the relevant asset or Persona and request supporting documentation from the Member.
+5. If the Member fails to adequately substantiate its rights within a reasonable period, the Company may delete the content and take measures such as reclaiming points or restricting the account.
+6. For derivative works, the Company may additionally require information about the source work, applicable fanwork rules, and the basis for any monetization claim. Failure to provide sufficient information may result in hiding or removal without prior notice.
 
 #### Article 21 (Governing Law and Jurisdiction)
 These Terms shall be governed by and construed in accordance with the laws of the **Republic of Korea**. Any disputes arising from the use of the Service shall be resolved in the court with jurisdiction over the location of the Company's principal place of business.
@@ -163,4 +178,4 @@ These Terms shall be governed by and construed in accordance with the laws of th
 **Address:** 충청남도 천안시 서북구 번영로 306-15, 104-101, Republic of Korea  
 **Customer Support:** support@personaxi.com
 
-**Effective Date:** February 3, 2026
+**Effective Date:** March 30, 2026

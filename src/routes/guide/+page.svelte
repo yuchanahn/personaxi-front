@@ -184,6 +184,12 @@
                             fileName: "create_rules",
                         },
                         {
+                            id: "create_fanwork",
+                            titleKey: "guide.articles.create_fanwork",
+                            fileName: "create_fanwork",
+                            date: "2026.03.30",
+                        },
+                        {
                             id: "create_original",
                             titleKey: "guide.articles.create_original",
                             fileName: "create_original",

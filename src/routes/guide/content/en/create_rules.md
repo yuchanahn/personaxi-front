@@ -27,6 +27,7 @@ PXI operates a systematic content management system to ensuring a safe community
 *   **Safety Guardrails:** All AI-generated content is filtered according to our internal ethical guidelines. Profanity, hate speech, and dangerous content are monitored and restricted in real-time.
 *   **Content Moderation:** Content levels are managed according to universal standards. If content exceeds our operational policies, it may be restricted or adjusted by the system.
 *   **Thumbnail Safety:** All character thumbnails must be suitable for general audiences (publicly viewable). Images that do not meet these standards will be automatically **blurred** or hidden.
+*   **Separate Fanwork Standard:** Fanart, homage, and parody-based characters must also follow the allowed scope and labeling rules in the separate `Fanwork Guidelines`, and the original creator's license always takes priority.
 
 > [!IMPORTANT]
 > **Creator Responsibility**
