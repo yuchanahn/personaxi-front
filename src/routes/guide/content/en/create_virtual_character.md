@@ -4,7 +4,7 @@ How to connect 2.5D (Live2D) and 3D (VRM) models to a character.
 
 ## Where to Upload
 
-- Upload in the media/model area of `edit3`
+- Upload in the media/model area of `edit`
 - For Live2D, use **Live2D Advanced Editor** after save to tune motions/expressions/audio/runtime behavior
 
 ## 1) Live2D

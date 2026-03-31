@@ -16,7 +16,7 @@
 
     function openAdvancedLive2DEditor() {
         if (!persona?.id) return;
-        const returnUrl = `/edit3?c=${persona.id}`;
+        const returnUrl = `/edit?c=${persona.id}`;
         goto(
             `/edit-live2d?c=${encodeURIComponent(persona.id)}&return=${encodeURIComponent(returnUrl)}`,
         );

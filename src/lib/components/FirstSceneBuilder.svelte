@@ -2,6 +2,14 @@
     import { createEventDispatcher, onMount } from "svelte";
     import { t } from "svelte-i18n";
     import { get } from "svelte/store";
+    import {
+        formatWeightedCharCount,
+        formatWeightedUnits,
+        getWeightedCharCount,
+        getWeightedCharUnits,
+        getWeightedLimitUnits,
+        isWeightedLimitReached,
+    } from "$lib/utils/weightedText";
     const dispatch = createEventDispatcher();
     export let initialData: string | null = null;
     export let onChange: (jsonStr: string) => void = () => {};
@@ -565,10 +573,11 @@
     // + mem_list(2000) + emotion_triggers(500) + short_term_memory(1000)
     // + last_atmosphere(300) + current_emotion(200) = 7500
     const TOTAL_FIELD_CHAR_LIMIT = 7500;
+    const TOTAL_FIELD_LIMIT_UNITS = getWeightedLimitUnits(TOTAL_FIELD_CHAR_LIMIT);
     let totalFieldChars = 0;
 
     function safeLen(v: unknown): number {
-        return typeof v === "string" ? v.length : 0;
+        return typeof v === "string" ? getWeightedCharUnits(v) : 0;
     }
 
     function calculateTotalFieldChars(): number {
@@ -615,11 +624,16 @@
     $: totalFieldChars = calculateTotalFieldChars();
     function getDynamicMax(currentValue: string, baseMax: number): number {
         const current = safeLen(currentValue);
+        const currentRawLength = typeof currentValue === "string" ? currentValue.length : 0;
         const allowance = Math.max(
             0,
-            TOTAL_FIELD_CHAR_LIMIT - (totalFieldChars - current),
+            TOTAL_FIELD_LIMIT_UNITS - (totalFieldChars - current),
         );
-        return Math.max(current, Math.min(baseMax, allowance));
+        const permittedUnits = Math.max(
+            current,
+            Math.min(getWeightedLimitUnits(baseMax), allowance),
+        );
+        return currentRawLength + Math.max(0, permittedUnits - current);
     }
 </script>
 
@@ -636,13 +650,16 @@
     </div>
     <div
         class="total-counter"
-        class:warning={totalFieldChars > 2300}
-        class:error={totalFieldChars >= TOTAL_FIELD_CHAR_LIMIT}
+        class:warning={totalFieldChars > getWeightedLimitUnits(2300)}
+        class:error={totalFieldChars >= TOTAL_FIELD_LIMIT_UNITS}
     >
         {$t("editPage.characterSettings.totalChars", {
-            values: { count: totalFieldChars, limit: TOTAL_FIELD_CHAR_LIMIT },
+            values: {
+                count: formatWeightedUnits(totalFieldChars),
+                limit: TOTAL_FIELD_CHAR_LIMIT,
+            },
         })}
-        {#if totalFieldChars >= TOTAL_FIELD_CHAR_LIMIT}
+        {#if totalFieldChars >= TOTAL_FIELD_LIMIT_UNITS}
             <span class="limit-msg">
                 {$t("editPage.characterSettings.limitReached")}
             </span>
@@ -677,10 +694,10 @@
                 ></textarea>
                 <div
                     class="char-counter"
-                    class:warning={body_desc.length > 800}
-                    class:error={body_desc.length >= 1000}
+                    class:warning={getWeightedCharCount(body_desc) > 800}
+                    class:error={isWeightedLimitReached(body_desc, 1000)}
                 >
-                    {body_desc.length} / 1000
+                    {formatWeightedCharCount(body_desc)} / 1000
                 </div>
             {/if}
         </div>
@@ -878,10 +895,10 @@
                 ></textarea>
                 <div
                     class="char-counter"
-                    class:warning={core_desire.length > 400}
-                    class:error={core_desire.length >= 500}
+                    class:warning={getWeightedCharCount(core_desire) > 400}
+                    class:error={isWeightedLimitReached(core_desire, 500)}
                 >
-                    {core_desire.length} / 500
+                    {formatWeightedCharCount(core_desire)} / 500
                 </div>
             {/if}
         </div>
@@ -915,10 +932,10 @@
                 ></textarea>
                 <div
                     class="char-counter"
-                    class:warning={contradiction.length > 400}
-                    class:error={contradiction.length >= 500}
+                    class:warning={getWeightedCharCount(contradiction) > 400}
+                    class:error={isWeightedLimitReached(contradiction, 500)}
                 >
-                    {contradiction.length} / 500
+                    {formatWeightedCharCount(contradiction)} / 500
                 </div>
             {/if}
         </div>
@@ -952,10 +969,10 @@
                 ></textarea>
                 <div
                     class="char-counter"
-                    class:warning={personality.length > 800}
-                    class:error={personality.length >= 1000}
+                    class:warning={getWeightedCharCount(personality) > 800}
+                    class:error={isWeightedLimitReached(personality, 1000)}
                 >
-                    {personality.length} / 1000
+                    {formatWeightedCharCount(personality)} / 1000
                 </div>
             {/if}
         </div>
@@ -987,10 +1004,10 @@
                 ></textarea>
                 <div
                     class="char-counter"
-                    class:warning={values.length > 400}
-                    class:error={values.length >= 500}
+                    class:warning={getWeightedCharCount(values) > 400}
+                    class:error={isWeightedLimitReached(values, 500)}
                 >
-                    {values.length} / 500
+                    {formatWeightedCharCount(values)} / 500
                 </div>
             {/if}
         </div>
@@ -1047,10 +1064,10 @@
                 </div>
                 <div
                     class="char-counter"
-                    class:warning={mem_list.length > 1800}
-                    class:error={mem_list.length >= 2000}
+                    class:warning={getWeightedCharCount(mem_list) > 1800}
+                    class:error={isWeightedLimitReached(mem_list, 2000)}
                 >
-                    {mem_list.length} / 2000
+                    {formatWeightedCharCount(mem_list)} / 2000
                 </div>
             {/if}
         </div>
@@ -1084,10 +1101,10 @@
                 ></textarea>
                 <div
                     class="char-counter"
-                    class:warning={emotion_triggers.length > 400}
-                    class:error={emotion_triggers.length >= 500}
+                    class:warning={getWeightedCharCount(emotion_triggers) > 400}
+                    class:error={isWeightedLimitReached(emotion_triggers, 500)}
                 >
-                    {emotion_triggers.length} / 500
+                    {formatWeightedCharCount(emotion_triggers)} / 500
                 </div>
             {/if}
         </div>
@@ -1122,10 +1139,10 @@
                     ></textarea>
                     <div
                         class="char-counter"
-                        class:warning={short_term_memory.length > 800}
-                        class:error={short_term_memory.length >= 1000}
+                        class:warning={getWeightedCharCount(short_term_memory) > 800}
+                        class:error={isWeightedLimitReached(short_term_memory, 1000)}
                     >
-                        {short_term_memory.length} / 1000
+                        {formatWeightedCharCount(short_term_memory)} / 1000
                     </div>
                 {/if}
             </div>
@@ -1159,10 +1176,10 @@
                     ></textarea>
                     <div
                         class="char-counter"
-                        class:warning={last_atmosphere.length > 250}
-                        class:error={last_atmosphere.length >= 300}
+                        class:warning={getWeightedCharCount(last_atmosphere) > 250}
+                        class:error={isWeightedLimitReached(last_atmosphere, 300)}
                     >
-                        {last_atmosphere.length} / 300
+                        {formatWeightedCharCount(last_atmosphere)} / 300
                     </div>
                 {/if}
             </div>
@@ -1196,10 +1213,10 @@
                     ></textarea>
                     <div
                         class="char-counter"
-                        class:warning={current_emotion.length > 180}
-                        class:error={current_emotion.length >= 200}
+                        class:warning={getWeightedCharCount(current_emotion) > 180}
+                        class:error={isWeightedLimitReached(current_emotion, 200)}
                     >
-                        {current_emotion.length} / 200
+                        {formatWeightedCharCount(current_emotion)} / 200
                     </div>
                 {/if}
             </div>

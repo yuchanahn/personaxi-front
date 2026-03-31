@@ -74,7 +74,7 @@
             title: $t("hubBanner.event.title"),
             subtitle: $t("hubBanner.event.subtitle"),
             imageUrl: "/images/hub_banner_event_anime.png",
-            linkUrl: "/edit3",
+            linkUrl: "/edit",
             actionText: $t("hubBanner.event.action"),
             bgColor:
                 "linear-gradient(to right, rgba(0,0,0,0.9) 0%, rgba(99,102,241,0) 80%)",

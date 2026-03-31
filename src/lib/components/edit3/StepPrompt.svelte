@@ -7,6 +7,12 @@
     import VariableEditor from "$lib/components/edit3/VariableEditor.svelte";
     import LoreLinker from "$lib/components/lore/LoreLinker.svelte";
     import ChatRenderer from "$lib/components/chat/ChatRenderer.svelte";
+    import {
+        formatWeightedCharCount,
+        getWeightedRawMaxLength,
+        getWeightedCharCount,
+        isWeightedLimitReached,
+    } from "$lib/utils/weightedText";
     import type { Persona } from "$lib/types";
     import { parseChat2DMessages } from "$lib/chat2d/parser";
     import type { Chat2DBlock } from "$lib/chat2d/types";
@@ -208,17 +214,17 @@
                     bind:this={firstSceneTextarea}
                     bind:value={persona.first_scene}
                     rows="8"
-                    maxlength="2500"
+                    maxlength={getWeightedRawMaxLength(persona.first_scene, 2500)}
                     placeholder={$t("edit3.prompt.firstScenePlaceholder", {
                         values: { char: "{{char}}" },
                     })}
                 ></textarea>
                 <div
                     class="char-counter"
-                    class:warning={persona.first_scene.length > 2400}
-                    class:error={persona.first_scene.length >= 2500}
+                    class:warning={getWeightedCharCount(persona.first_scene) > 2400}
+                    class:error={isWeightedLimitReached(persona.first_scene, 2500)}
                 >
-                    {persona.first_scene.length} / 2500
+                    {formatWeightedCharCount(persona.first_scene)} / 2500
                 </div>
             {/if}
         </div>
@@ -285,15 +291,15 @@
                     class="field-textarea"
                     bind:value={singleInstruction}
                     rows="8"
-                    maxlength="3000"
+                    maxlength={getWeightedRawMaxLength(singleInstruction, 3000)}
                     placeholder={$t("editPage.instructionsPlaceholder")}
                 ></textarea>
                 <div
                     class="char-counter"
-                    class:warning={singleInstruction.length > 2800}
-                    class:error={singleInstruction.length >= 3000}
+                    class:warning={getWeightedCharCount(singleInstruction) > 2800}
+                    class:error={isWeightedLimitReached(singleInstruction, 3000)}
                 >
-                    {singleInstruction.length} / 3000
+                    {formatWeightedCharCount(singleInstruction)} / 3000
                 </div>
             </div>
         {/if}

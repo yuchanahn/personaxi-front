@@ -16,6 +16,7 @@
         ensureSecretAssetBlurVariants,
     } from "$lib/api/edit_persona";
     import { loreApi } from "$lib/api/lore";
+    import { isWeightedLimitExceeded } from "$lib/utils/weightedText";
     import type { Persona } from "$lib/types";
 
     import LoadingAnimation from "$lib/components/utils/LoadingAnimation.svelte";
@@ -29,7 +30,8 @@
     import StepPrompt from "$lib/components/edit3/StepPrompt.svelte";
     import StepReview from "$lib/components/edit3/StepReview.svelte";
 
-    const AUTO_SAVE_KEY = "edit3_draft";
+    const AUTO_SAVE_KEY = "edit_draft";
+    const LEGACY_AUTO_SAVE_KEYS = ["edit3_draft"];
     const MIN_DRAFT_STEP = 3;
     const LIVE2D_EDITOR_BRIDGE_PREFIX = "live2d_editor_config_bridge:";
     const DEFAULT_SHARED_CHAT_STYLE_CSS = `.px-dialogue {
@@ -689,7 +691,7 @@
     // ── URL Change Watcher ──
     $: {
         const id = $page.url.searchParams.get("c");
-        if (id && id !== last_id) {
+        if ($page.url.pathname !== "/edit3" && id && id !== last_id) {
             last_id = id;
             if (id !== persona.id) load_persona(id);
         }
@@ -714,7 +716,7 @@
 
         // Prompt v2 no longer uses editable prompt templates in edit3.
         // Persist the freeform instruction body and keep the legacy marker fixed.
-        if (singleInstruction.length > 3000) {
+        if (isWeightedLimitExceeded(singleInstruction, 3000)) {
             error = $t("editPage.validation.instructionsLimitExceeded");
             toast.error(error);
             return;
@@ -761,15 +763,15 @@
         }
         const firstSceneLimit = isLive2DType || is3DType ? 7500 : 2500;
         if (
-            persona.greeting.length > 200 ||
-            persona.first_scene.length > firstSceneLimit
+            isWeightedLimitExceeded(persona.greeting, 200) ||
+            isWeightedLimitExceeded(persona.first_scene, firstSceneLimit)
         ) {
             error = $t("editPage.validation.charLimitExceeded");
             toast.error(error);
             return;
         }
         if (
-            persona.promptExamples.some((ex) => ex.length > 200) ||
+            persona.promptExamples.some((ex) => isWeightedLimitExceeded(ex, 200)) ||
             persona.promptExamples.length > 10
         ) {
             error = $t("editPage.validation.promptExamplesLimitExceeded");
@@ -808,7 +810,7 @@
                 setTimeout(() => (showSuccess = false), 2000);
 
                 if (!persona.id) {
-                    goto(`/edit3?c=${id}`, { replaceState: true });
+                    goto(`/edit?c=${id}`, { replaceState: true });
                     if (hasReceivedFirstCreationReward) {
                         showRewardModal = true;
                         hasReceivedFirstCreationReward = false;
@@ -851,7 +853,11 @@
 
     function loadDraft() {
         try {
-            const raw = localStorage.getItem(AUTO_SAVE_KEY);
+            const draftKey =
+                [AUTO_SAVE_KEY, ...LEGACY_AUTO_SAVE_KEYS].find((key) =>
+                    !!localStorage.getItem(key),
+                ) || AUTO_SAVE_KEY;
+            const raw = localStorage.getItem(draftKey);
             if (!raw) return false;
 
             const draft = JSON.parse(raw);
@@ -878,6 +884,10 @@
             firstSceneJson = draft.firstSceneJson || "";
             selectedVoiceId = draft.selectedVoiceId || "";
             currentStep = Math.max(0, Math.min(4, Math.floor(restoredStep)));
+            if (draftKey !== AUTO_SAVE_KEY) {
+                localStorage.setItem(AUTO_SAVE_KEY, raw);
+                localStorage.removeItem(draftKey);
+            }
             return true;
         } catch (e) {
             return false;
@@ -885,15 +895,26 @@
     }
 
     function clearDraft() {
-        localStorage.removeItem(AUTO_SAVE_KEY);
+        [AUTO_SAVE_KEY, ...LEGACY_AUTO_SAVE_KEYS].forEach((key) =>
+            localStorage.removeItem(key),
+        );
     }
 
     // ── Lifecycle ──
     onMount(async () => {
+        if ($page.url.pathname === "/edit3") {
+            await goto(`/edit${$page.url.search}`, {
+                replaceState: true,
+                noScroll: true,
+                keepFocus: true,
+            });
+            return;
+        }
+
         if (
             !(await requireAuth({
                 source: "page",
-                reason: "edit3-page-access",
+                reason: "edit-page-access",
             }))
         ) {
             return;

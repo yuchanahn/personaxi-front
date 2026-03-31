@@ -4,6 +4,12 @@
     import { tick } from "svelte";
     import KintsugiForm from "./KintsugiForm.svelte";
     import FirstSceneBuilder from "$lib/components/FirstSceneBuilder.svelte";
+    import {
+        formatWeightedCharCount,
+        getWeightedRawMaxLength,
+        getWeightedCharCount,
+        isWeightedLimitReached,
+    } from "$lib/utils/weightedText";
     import type { Persona } from "$lib/types";
 
     export let persona: Persona;
@@ -113,14 +119,14 @@
                 bind:value={persona.first_scene}
                 placeholder={$t("editPage.firstScenePlaceholder")}
                 rows="5"
-                maxlength="2500"
+                maxlength={getWeightedRawMaxLength(persona.first_scene, 2500)}
             ></textarea>
             <div
                 class="char-counter"
-                class:warning={persona.first_scene.length > 2400}
-                class:error={persona.first_scene.length >= 2500}
+                class:warning={getWeightedCharCount(persona.first_scene) > 2400}
+                class:error={isWeightedLimitReached(persona.first_scene, 2500)}
             >
-                {persona.first_scene.length} / 2500
+                {formatWeightedCharCount(persona.first_scene)} / 2500
             </div>
         {/if}
     </div>
@@ -162,14 +168,14 @@
                     bind:value={singleInstruction}
                     placeholder={$t("editPage.instructionsPlaceholder")}
                     rows="10"
-                    maxlength="3000"
+                    maxlength={getWeightedRawMaxLength(singleInstruction, 3000)}
                 ></textarea>
                 <div
                     class="char-counter"
-                    class:warning={singleInstruction.length > 2500}
-                    class:error={singleInstruction.length >= 3000}
+                    class:warning={getWeightedCharCount(singleInstruction) > 2500}
+                    class:error={isWeightedLimitReached(singleInstruction, 3000)}
                 >
-                    {singleInstruction.length} / 3000
+                    {formatWeightedCharCount(singleInstruction)} / 3000
                 </div>
             </div>
         {:else}

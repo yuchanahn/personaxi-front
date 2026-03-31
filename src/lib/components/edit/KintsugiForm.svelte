@@ -1,5 +1,11 @@
 <script lang="ts">
     import { t } from "svelte-i18n";
+    import {
+        formatWeightedCharCount,
+        getWeightedRawMaxLength,
+        getWeightedCharCount,
+        isWeightedLimitReached,
+    } from "$lib/utils/weightedText";
 
     export let k_description: string;
     export let k_personality: string;
@@ -20,14 +26,14 @@
             bind:value={k_description}
             placeholder={$t("editPage.kintsugi.descriptionPlaceholder")}
             rows="5"
-            maxlength="1000"
+            maxlength={getWeightedRawMaxLength(k_description, 1000)}
         ></textarea>
         <div
             class="char-counter"
-            class:warning={k_description.length > 900}
-            class:error={k_description.length >= 1000}
+            class:warning={getWeightedCharCount(k_description) > 900}
+            class:error={isWeightedLimitReached(k_description, 1000)}
         >
-            {k_description.length} / 1000
+            {formatWeightedCharCount(k_description)} / 1000
         </div>
     </div>
     <div class="form-group">
@@ -42,14 +48,14 @@
             bind:value={k_personality}
             placeholder={$t("editPage.kintsugi.personalityPlaceholder")}
             rows="5"
-            maxlength="1000"
+            maxlength={getWeightedRawMaxLength(k_personality, 1000)}
         ></textarea>
         <div
             class="char-counter"
-            class:warning={k_personality.length > 900}
-            class:error={k_personality.length >= 1000}
+            class:warning={getWeightedCharCount(k_personality) > 900}
+            class:error={isWeightedLimitReached(k_personality, 1000)}
         >
-            {k_personality.length} / 1000
+            {formatWeightedCharCount(k_personality)} / 1000
         </div>
     </div>
     <div class="form-group">
@@ -64,14 +70,14 @@
             bind:value={k_userPersona}
             placeholder={$t("editPage.kintsugi.userPersonaPlaceholder")}
             rows="5"
-            maxlength="800"
+            maxlength={getWeightedRawMaxLength(k_userPersona, 800)}
         ></textarea>
         <div
             class="char-counter"
-            class:warning={k_userPersona.length > 700}
-            class:error={k_userPersona.length >= 800}
+            class:warning={getWeightedCharCount(k_userPersona) > 700}
+            class:error={isWeightedLimitReached(k_userPersona, 800)}
         >
-            {k_userPersona.length} / 800
+            {formatWeightedCharCount(k_userPersona)} / 800
         </div>
     </div>
     <div class="form-group">
@@ -86,14 +92,14 @@
             bind:value={k_scenario}
             placeholder={$t("editPage.kintsugi.scenarioPlaceholder")}
             rows="2"
-            maxlength="200"
+            maxlength={getWeightedRawMaxLength(k_scenario, 200)}
         ></textarea>
         <div
             class="char-counter"
-            class:warning={k_scenario.length > 180}
-            class:error={k_scenario.length >= 200}
+            class:warning={getWeightedCharCount(k_scenario) > 180}
+            class:error={isWeightedLimitReached(k_scenario, 200)}
         >
-            {k_scenario.length} / 200
+            {formatWeightedCharCount(k_scenario)} / 200
         </div>
     </div>
 </div>

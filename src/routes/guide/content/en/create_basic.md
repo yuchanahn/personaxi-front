@@ -1,7 +1,7 @@
 # Basic Creation Guide
 
 Basic Mode is the fastest way to create a character without writing a full prompt setup.  
-After saving, you can continue tuning in `edit3` (prompt, variables, advanced settings).
+After saving, you can continue tuning in `edit` (prompt, variables, advanced settings).
 
 ## Creation Flow
 
@@ -28,7 +28,7 @@ After saving, you can continue tuning in `edit3` (prompt, variables, advanced se
 
 ## Recommended Next Steps
 
-- Refine prompt details in `edit3`
+- Refine prompt details in `edit`
 - Connect Live2D/VRM in advanced editor if needed
 - For 2D characters, review variable/interactive chat rules
 

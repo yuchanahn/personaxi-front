@@ -673,7 +673,7 @@
             </div>
 
             {#if activeTab === "created"}
-                <button class="primary-btn" on:click={() => goto("/edit3")}>
+                <button class="primary-btn" on:click={() => goto("/edit")}>
                     <Icon icon="ph:plus-bold" width="20" height="20" />
                     <span class="btn-label">{$t("settingPage.newPersona")}</span
                     >
@@ -1174,7 +1174,7 @@
                                 <button
                                     class="action-btn"
                                     on:click={() =>
-                                        goto(`/edit3?c=${persona.id}`)}
+                                        goto(`/edit?c=${persona.id}`)}
                                     aria-label="Edit"
                                 >
                                     <Icon
