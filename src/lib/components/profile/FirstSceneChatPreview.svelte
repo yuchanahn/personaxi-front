@@ -25,10 +25,6 @@
             .trim();
     }
 
-    function containsPreviewHtml(content: string): boolean {
-        return /<\/?[a-z][^>]*>/i.test(content);
-    }
-
     function buildPreviewAsset(
         metadata?: ImageMetadata,
         fallbackUrl = "",
@@ -94,16 +90,10 @@
     {/if}
     {#each previewBlocks as block (block.id)}
         {#if block.type === "narration"}
-            {#if containsPreviewHtml(block.content)}
-                <div class="preview-html-block">
-                    {@html block.content}
-                </div>
-            {:else}
-                <ChatRenderer
-                    content={block.content}
-                    wrapperClass="px-narration"
-                />
-            {/if}
+            <ChatRenderer
+                content={block.content}
+                wrapperClass="px-narration"
+            />
         {:else if block.type === "dialogue"}
             <div class="message assistant preview-dialogue-wrap">
                 <div class="speaker-name">{block.speaker}</div>
@@ -165,19 +155,6 @@
         display: flex;
         flex-direction: column;
         gap: 0.95rem;
-    }
-
-    .preview-html-block {
-        color: var(--foreground);
-    }
-
-    .preview-html-block :global(img),
-    .preview-html-block :global(video),
-    .preview-html-block :global(canvas) {
-        display: block;
-        max-width: 100%;
-        height: auto;
-        border-radius: 18px;
     }
 
     .preview-dialogue-wrap {
