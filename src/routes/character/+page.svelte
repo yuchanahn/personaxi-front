@@ -35,6 +35,22 @@
     pinkOpacity = t * 0.45;
   }
 
+  function handleVrmTtsAudio(audio: ArrayBuffer | null) {
+    if (!audio) {
+      toast.error("TTS Server Busy");
+      console.warn("TTS Failed (3D). Falling back to text bubble.");
+      Viewer?.fallbackToTextSpeech?.();
+      return;
+    }
+
+    if (Viewer && Viewer.speek) {
+      Viewer.speek(audio);
+    } else {
+      console.warn("Viewer not ready for TTS audio. Falling back to text bubble.");
+      Viewer?.fallbackToTextSpeech?.();
+    }
+  }
+
   onMount(() => {
     // Listen for Affection Updates
     const handleAffection = (e: CustomEvent) => {
@@ -60,17 +76,7 @@
         // Data loading is handled by the reactive block below
 
         await connectTTSSocket(async (audio: ArrayBuffer | null) => {
-          if (!audio) {
-            toast.error("TTS Server Busy");
-            console.warn("TTS Failed (3D).");
-            return;
-          }
-
-          if (Viewer && Viewer.speek) {
-            Viewer.speek(audio);
-          } else {
-            console.warn("Viewer not ready for TTS audio.");
-          }
+          handleVrmTtsAudio(audio);
         });
       }
     })();
@@ -155,16 +161,7 @@
       bind:isCloseup
       impl_connectTTS={async () => {
         await connectTTSSocket(async (audio: ArrayBuffer | null) => {
-          if (!audio) {
-            toast.error("TTS Server Busy");
-            return;
-          }
-          // Copy same logic as onMount or refactor to function
-          if (Viewer && Viewer.speek) {
-            Viewer.speek(audio);
-          } else {
-            console.warn("Viewer not ready for TTS audio.");
-          }
+          handleVrmTtsAudio(audio);
         });
       }}
       impl_disconnectTTS={() => {

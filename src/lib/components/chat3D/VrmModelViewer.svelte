@@ -87,6 +87,8 @@
   let isSpeaking = false;
   let speechText = "";
   let showSpeech = false;
+  let thought2RevealTimeout: ReturnType<typeof setTimeout> | null = null;
+  let thought2HideTimeout: ReturnType<typeof setTimeout> | null = null;
 
   // Parse thoughts from the last message
   $: if ($messages.length > 0) {
@@ -120,17 +122,65 @@
     }
   }
 
+  function updateSpeechTextFromLastAssistantMessage(): boolean {
+    const lastMsg = $messages[$messages.length - 1];
+    if (!lastMsg || lastMsg.role !== "assistant") {
+      return false;
+    }
+
+    let content = lastMsg.content;
+    content = content.replace(/\([^)]*\)/g, "");
+    content = content.replace(/\[[^\]]*\]/g, "");
+    speechText = content.trim();
+    return !!speechText;
+  }
+
+  function startSpeechFallback(): void {
+    if (!updateSpeechTextFromLastAssistantMessage()) {
+      return;
+    }
+
+    model?.stateManager?.onAssistantSpeechStarted();
+    showSpeech = true;
+  }
+
+  export function fallbackToTextSpeech(): void {
+    startSpeechFallback();
+  }
+
+  function clearThought2Timers(): void {
+    if (thought2RevealTimeout) {
+      clearTimeout(thought2RevealTimeout);
+      thought2RevealTimeout = null;
+    }
+    if (thought2HideTimeout) {
+      clearTimeout(thought2HideTimeout);
+      thought2HideTimeout = null;
+    }
+  }
+
+  function scheduleThought2Flow(): void {
+    clearThought2Timers();
+    showThought2 = true;
+
+    if (!thought2) {
+      return;
+    }
+
+    const delay = Math.floor(Math.random() * 1000) + 2000;
+    thought2RevealTimeout = setTimeout(() => {
+      showThought2 = true;
+      thought2HideTimeout = setTimeout(() => {
+        showThought2 = false;
+        thought2HideTimeout = null;
+      }, 8000);
+      thought2RevealTimeout = null;
+    }, delay);
+  }
+
   function handleThoughtEnded(): void {
     if ($ttsState == "connected") return;
-    const lastMsg = $messages[$messages.length - 1];
-    if (lastMsg.role === "assistant") {
-      let content = lastMsg.content;
-      content = content.replace(/\([^)]*\)/g, "");
-      content = content.replace(/\[[^\]]*\]/g, "");
-      console.log("content: ", content);
-      speechText = content;
-    }
-    showSpeech = true;
+    startSpeechFallback();
     setTimeout(() => {
       showThought1 = false;
     }, 2000);
@@ -139,10 +189,9 @@
   function handleSpeechEnded(): void {
     showSpeech = false;
     showThought1 = false;
-    showThought2 = true;
-    setTimeout(() => {
-      showThought2 = false;
-    }, 8000);
+    isSpeaking = false;
+    model?.stateManager?.onAssistantSpeechFinished();
+    scheduleThought2Flow();
   }
 
   let cfg = {
@@ -159,6 +208,7 @@
   onDestroy(() => {
     unload();
     clearTimeout(listeningTimeout);
+    clearThought2Timers();
   });
 
   function loadVrm() {
@@ -281,6 +331,7 @@
     thought2 = "";
     showThought1 = false;
     showThought2 = false;
+    clearThought2Timers();
 
     try {
       isLoading = true;
@@ -302,27 +353,15 @@
       model.stateManager?.onAssistantSpeechStarted();
 
       isSpeaking = true;
-      // Keep thought1 visible for a bit longer into speech, then fade
-      // setTimeout(() => {
-      //   showThought1 = false;
-      // }, 2000); // 2 seconds overlap
-
+      showThought1 = false;
       showThought2 = false;
       showSpeech = false;
+      clearThought2Timers();
 
       model
         .speak(audio)
         .then(() => {
-          model!.stateManager?.onAssistantSpeechFinished();
-          isSpeaking = false;
-          showThought1 = false; // Ensure thought1 is gone
-
-          if (thought2) {
-            showThought2 = true;
-            setTimeout(() => {
-              showThought2 = false;
-            }, 8000);
-          }
+          handleSpeechEnded();
         })
         .catch((error) => {
           console.error("Error speaking:", error);
