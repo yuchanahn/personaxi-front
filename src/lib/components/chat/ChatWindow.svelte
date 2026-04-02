@@ -159,7 +159,6 @@
 
   // Regex for stripping <vars> tags from AI output (they carry data, not display content)
   const VARS_TAG_REGEX = /(?:\s*)<vars\b[^>]*>[\s\S]*?<\/vars>(?:\s*)/gi;
-
   function parseAssistantContent(
     content: string,
     baseId: string,
