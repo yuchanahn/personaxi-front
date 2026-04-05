@@ -1,0 +1,1 @@
+function n(){return window.Capacitor??null}function a(){const t=n();if(!t?.isNativePlatform)return!1;try{return t.isNativePlatform()?t.getPlatform?.()!=="web":!1}catch{return!1}}function e(){return window.matchMedia?.("(display-mode: standalone)")?.matches===!0||navigator.standalone===!0}function r(){return a()?"native":e()?"pwa":"web"}function i(){return r()!=="web"}export{a,i};

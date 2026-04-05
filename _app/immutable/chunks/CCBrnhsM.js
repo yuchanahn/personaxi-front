@@ -1,0 +1,1 @@
+function i(t){return t==="ko"||t==="en"||t==="ja"?t:"en"}function e(t,n){return`/${i(t)}/${n}/`}function r(t,n){const o=i(t);return o==="ko"?`/${n}.html`:`/${n}-${o}.html`}function c(t,n){if(typeof window<"u"){const o=window.location.hostname;if(o==="localhost"||o==="127.0.0.1"||o==="0.0.0.0")return r(t,n)}return e(t,n)}export{c as g};

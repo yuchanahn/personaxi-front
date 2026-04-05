@@ -1,0 +1,929 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- SEO -->
+    <title>PXI - AI Chat, Your Way</title>
+    <meta name="description"
+        content="From status panels to Live2D and VRM, PXI is the only AI chat platform where you can design how characters appear.">
+    <meta name="keywords" content="AI chat, AI character, character design, Live2D, VRM, status panel, PXI">
+    <link rel="canonical" href="https://personaxi.com/en/welcome/">
+
+    <!-- hreflang -->
+    <link rel="alternate" hreflang="ko" href="https://personaxi.com/ko/welcome/">
+    <link rel="alternate" hreflang="en" href="https://personaxi.com/en/welcome/">
+    <link rel="alternate" hreflang="ja" href="https://personaxi.com/ja/welcome/">
+    <link rel="alternate" hreflang="x-default" href="https://personaxi.com/en/welcome/">
+
+    <!-- Open Graph -->
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="PXI - AI Chat, Your Way">
+    <meta property="og:description"
+        content="From status panels to Live2D and VRM, PXI is the only AI chat platform where you can design how characters appear.">
+    <meta property="og:image" content="https://personaxi.com/og-image-v3.png">
+    <meta property="og:url" content="https://personaxi.com/en/welcome/">
+    <meta property="og:site_name" content="PXI">
+    <meta property="og:locale" content="en_US">
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="PXI - AI Chat, Your Way">
+    <meta name="twitter:description" content="From status panels to Live2D and VRM, PXI is the only AI chat platform where you can design how characters appear.">
+    <meta name="twitter:image" content="https://personaxi.com/og-image-v3.png">
+
+    <link rel="icon" type="image/png" href="/favicon.png">
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+    <link rel="stylesheet"
+        href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable.min.css">
+
+    <style>
+        *,
+        *::before,
+        *::after {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg: #0a0a0f;
+            --bg-card: rgba(255, 255, 255, 0.04);
+            --bg-card-hover: rgba(255, 255, 255, 0.07);
+            --text: #f0eef5;
+            --text-secondary: #9d95b0;
+            --text-tertiary: #6b6280;
+            --accent: #a855f7;
+            --accent-secondary: #ec4899;
+            --gradient: linear-gradient(135deg, #8b5cf6, #a855f7, #ec4899);
+            --gradient-subtle: linear-gradient(135deg, rgba(139, 92, 246, 0.15), rgba(168, 85, 247, 0.08), rgba(236, 72, 153, 0.15));
+            --border: rgba(255, 255, 255, 0.08);
+            --border-hover: rgba(168, 85, 247, 0.3);
+            --glow: 0 0 80px rgba(168, 85, 247, 0.15);
+        }
+
+        html {
+            scroll-behavior: smooth;
+            -webkit-text-size-adjust: 100%;
+        }
+
+        body {
+            font-family: "Pretendard Variable", Pretendard, -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.7;
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .ambient {
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+            pointer-events: none;
+            overflow: hidden;
+        }
+
+        .ambient-orb {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(100px);
+            opacity: 0.25;
+            animation: float 20s ease-in-out infinite;
+        }
+
+        .ambient-orb:nth-child(1) {
+            width: 600px;
+            height: 600px;
+            background: #7c3aed;
+            top: -10%;
+            left: -5%;
+            animation-delay: 0s;
+        }
+
+        .ambient-orb:nth-child(2) {
+            width: 500px;
+            height: 500px;
+            background: #ec4899;
+            top: 40%;
+            right: -10%;
+            animation-delay: -7s;
+        }
+
+        .ambient-orb:nth-child(3) {
+            width: 400px;
+            height: 400px;
+            background: #6366f1;
+            bottom: -5%;
+            left: 30%;
+            animation-delay: -13s;
+        }
+
+        @keyframes float {
+
+            0%,
+            100% {
+                transform: translate(0, 0) scale(1);
+            }
+
+            33% {
+                transform: translate(30px, -30px) scale(1.05);
+            }
+
+            66% {
+                transform: translate(-20px, 20px) scale(0.95);
+            }
+        }
+
+        .page {
+            position: relative;
+            z-index: 1;
+        }
+
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 0 24px;
+        }
+
+        section {
+            padding: 100px 0;
+        }
+
+        .nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 100;
+            padding: 16px 0;
+            background: rgba(10, 10, 15, 0.7);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .nav .container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .nav-logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            text-decoration: none;
+            color: var(--text);
+        }
+
+        .nav-logo img {
+            height: 32px;
+            width: 32px;
+            border-radius: 8px;
+        }
+
+        .nav-logo span {
+            font-weight: 700;
+            font-size: 1.1rem;
+            letter-spacing: -0.02em;
+        }
+
+        .nav-right {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .lang-switcher {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            padding: 4px;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+        }
+
+        .lang-switcher a {
+            padding: 5px 10px;
+            border-radius: 6px;
+            font-size: 0.78rem;
+            font-weight: 500;
+            color: var(--text-secondary);
+            text-decoration: none;
+            transition: all 0.2s;
+        }
+
+        .lang-switcher a:hover {
+            color: var(--text);
+            background: rgba(255, 255, 255, 0.06);
+        }
+
+        .lang-switcher a.active {
+            color: #fff;
+            background: var(--gradient);
+        }
+
+        .nav-cta {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 10px 22px;
+            background: var(--gradient);
+            color: #fff;
+            border: none;
+            border-radius: 10px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            text-decoration: none;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .nav-cta:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 8px 25px rgba(168, 85, 247, 0.35);
+        }
+
+        .hero {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding-top: 80px;
+        }
+
+        .hero-inner {
+            max-width: 720px;
+        }
+
+        .hero-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 16px;
+            background: var(--gradient-subtle);
+            border: 1px solid var(--border);
+            border-radius: 100px;
+            font-size: 0.8rem;
+            font-weight: 500;
+            color: var(--accent);
+            margin-bottom: 28px;
+            letter-spacing: 0.02em;
+        }
+
+        .hero-badge .dot {
+            width: 6px;
+            height: 6px;
+            background: #22c55e;
+            border-radius: 50%;
+            animation: pulse-dot 2s infinite;
+        }
+
+        @keyframes pulse-dot {
+
+            0%,
+            100% {
+                opacity: 1;
+                transform: scale(1);
+            }
+
+            50% {
+                opacity: 0.5;
+                transform: scale(0.8);
+            }
+        }
+
+        .hero h1 {
+            font-size: clamp(2.2rem, 5.5vw, 3.6rem);
+            font-weight: 800;
+            line-height: 1.2;
+            letter-spacing: -0.03em;
+            margin-bottom: 20px;
+        }
+
+        .hero h1 .gradient-text {
+            background: var(--gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .hero-sub {
+            font-size: 1.15rem;
+            color: var(--text-secondary);
+            line-height: 1.8;
+            margin-bottom: 40px;
+            max-width: 540px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .hero-actions {
+            display: flex;
+            gap: 14px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .btn-primary {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 14px 32px;
+            background: var(--gradient);
+            color: #fff;
+            border: none;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 600;
+            text-decoration: none;
+            cursor: pointer;
+            transition: all 0.25s;
+            box-shadow: 0 4px 20px rgba(168, 85, 247, 0.25);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 30px rgba(168, 85, 247, 0.4);
+        }
+
+        .btn-secondary {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 14px 32px;
+            background: var(--bg-card);
+            color: var(--text);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 500;
+            text-decoration: none;
+            cursor: pointer;
+            transition: all 0.25s;
+        }
+
+        .btn-secondary:hover {
+            background: var(--bg-card-hover);
+            border-color: var(--border-hover);
+            transform: translateY(-1px);
+        }
+
+        .welcome {
+            text-align: center;
+            padding: 60px 0 40px;
+        }
+
+        .welcome-card {
+            max-width: 700px;
+            margin: 0 auto;
+            padding: 40px;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            backdrop-filter: blur(10px);
+        }
+
+        .welcome-card .emoji {
+            font-size: 2.4rem;
+            margin-bottom: 16px;
+        }
+
+        .welcome-card h2 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 14px;
+            letter-spacing: -0.02em;
+        }
+
+        .welcome-card p {
+            color: var(--text-secondary);
+            font-size: 1rem;
+            line-height: 1.8;
+        }
+
+        .section-header {
+            text-align: center;
+            margin-bottom: 60px;
+        }
+
+        .section-label {
+            display: inline-block;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+            color: var(--accent);
+            margin-bottom: 12px;
+        }
+
+        .section-header h2 {
+            font-size: clamp(1.6rem, 3.5vw, 2.2rem);
+            font-weight: 700;
+            letter-spacing: -0.02em;
+            margin-bottom: 14px;
+        }
+
+        .section-header p {
+            color: var(--text-secondary);
+            font-size: 1.05rem;
+            max-width: 500px;
+            margin: 0 auto;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+        }
+
+        .feature-card {
+            padding: 32px 28px;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            transition: all 0.3s;
+            cursor: default;
+        }
+
+        .feature-card:hover {
+            background: var(--bg-card-hover);
+            border-color: var(--border-hover);
+            transform: translateY(-4px);
+            box-shadow: var(--glow);
+        }
+
+        .feature-icon {
+            width: 48px;
+            height: 48px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--gradient-subtle);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            font-size: 1.4rem;
+            margin-bottom: 18px;
+        }
+
+        .feature-card h3 {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+
+        .feature-card p {
+            color: var(--text-secondary);
+            font-size: 0.92rem;
+            line-height: 1.7;
+        }
+
+        .steps {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 24px;
+            counter-reset: step;
+        }
+
+        .step {
+            position: relative;
+            padding: 28px 24px;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            text-align: center;
+            counter-increment: step;
+            transition: all 0.3s;
+        }
+
+        .step:hover {
+            border-color: var(--border-hover);
+            transform: translateY(-3px);
+        }
+
+        .step::before {
+            content: counter(step);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 36px;
+            height: 36px;
+            background: var(--gradient);
+            border-radius: 50%;
+            font-size: 0.9rem;
+            font-weight: 700;
+            color: #fff;
+            margin-bottom: 16px;
+        }
+
+        .step h3 {
+            font-size: 1rem;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .step p {
+            color: var(--text-secondary);
+            font-size: 0.88rem;
+            line-height: 1.65;
+        }
+
+        .models-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+        }
+
+        .model-card {
+            padding: 32px 24px;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            text-align: center;
+            transition: all 0.3s;
+        }
+
+        .model-card:hover {
+            border-color: var(--border-hover);
+            transform: translateY(-4px);
+            box-shadow: var(--glow);
+        }
+
+        .model-icon {
+            font-size: 2.8rem;
+            margin-bottom: 16px;
+        }
+
+        .model-card h3 {
+            font-size: 1.15rem;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .model-card p {
+            color: var(--text-secondary);
+            font-size: 0.88rem;
+            line-height: 1.65;
+        }
+
+        .model-tag {
+            display: inline-block;
+            margin-top: 14px;
+            padding: 4px 12px;
+            background: var(--gradient-subtle);
+            border: 1px solid var(--border);
+            border-radius: 100px;
+            font-size: 0.75rem;
+            font-weight: 500;
+            color: var(--accent);
+        }
+
+        .cta-section {
+            text-align: center;
+            padding: 80px 0 120px;
+        }
+
+        .cta-box {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 50px 40px;
+            background: var(--gradient-subtle);
+            border: 1px solid var(--border);
+            border-radius: 24px;
+            box-shadow: var(--glow);
+        }
+
+        .cta-box h2 {
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin-bottom: 14px;
+            letter-spacing: -0.02em;
+        }
+
+        .cta-box p {
+            color: var(--text-secondary);
+            margin-bottom: 30px;
+            font-size: 1rem;
+        }
+
+        .footer {
+            border-top: 1px solid var(--border);
+            padding: 40px 0;
+            text-align: center;
+        }
+
+        .footer-links {
+            display: flex;
+            justify-content: center;
+            gap: 24px;
+            margin-bottom: 16px;
+            flex-wrap: wrap;
+        }
+
+        .footer-links a {
+            color: var(--text-tertiary);
+            text-decoration: none;
+            font-size: 0.85rem;
+            transition: color 0.2s;
+        }
+
+        .footer-links a:hover {
+            color: var(--text);
+        }
+
+        .footer-copy {
+            color: var(--text-tertiary);
+            font-size: 0.8rem;
+        }
+
+        @media (max-width: 768px) {
+            section {
+                padding: 70px 0;
+            }
+
+            .models-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .hero-actions {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .btn-primary,
+            .btn-secondary {
+                width: 100%;
+                max-width: 300px;
+                justify-content: center;
+            }
+
+            .welcome-card {
+                padding: 28px 20px;
+            }
+
+            .cta-box {
+                padding: 36px 24px;
+            }
+        }
+
+        .fade-up {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: opacity 0.7s ease, transform 0.7s ease;
+        }
+
+        .fade-up.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    </style>
+    <!-- Sitelinks JSON-LD -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "ItemList",
+      "itemListElement": [
+        {
+          "@type": "SiteNavigationElement",
+          "position": 1,
+          "name": "Character Hub",
+          "description": "Meet and chat with various 2D, Live2D, and 3D AI characters.",
+          "url": "https://personaxi.com/hub"
+        },
+        {
+          "@type": "SiteNavigationElement",
+          "position": 2,
+          "name": "Create Persona",
+          "description": "Create and deploy your own custom AI characters.",
+          "url": "https://personaxi.com/edit"
+        },
+        {
+          "@type": "SiteNavigationElement",
+          "position": 3,
+          "name": "Guide & Tutorial",
+          "description": "Learn how to use PXI and design your own characters.",
+          "url": "https://personaxi.com/guide"
+        }
+      ]
+    }
+    </script>
+</head>
+
+<body>
+    <div class="ambient" aria-hidden="true">
+        <div class="ambient-orb"></div>
+        <div class="ambient-orb"></div>
+        <div class="ambient-orb"></div>
+    </div>
+
+    <div class="page">
+        <nav class="nav">
+            <div class="container">
+                <a href="https://personaxi.com" class="nav-logo">
+                    <img src="/logo.png" alt="PXI Logo">
+                    <span>PXI</span>
+                </a>
+                <div class="nav-right">
+                    <div class="lang-switcher">
+                        <a href="/ko/welcome/">한국어</a>
+                        <a href="/en/welcome/" class="active">EN</a>
+                        <a href="/ja/welcome/">日本語</a>
+                    </div>
+                    <a href="https://personaxi.com/hub" class="nav-cta">
+                        Get Started →
+                    </a>
+                </div>
+            </div>
+        </nav>
+
+        <section class="hero">
+            <div class="container">
+                <div class="hero-inner">
+                    <div class="hero-badge">
+                        <span class="dot"></span>
+                        Service Live
+                    </div>
+                    <h1>
+                        AI chat, shaped<br>
+                        <span class="gradient-text">your way</span>
+                    </h1>
+                    <p class="hero-sub">
+                        From status panels to Live2D and VRM,<br>
+                        PXI is the only AI chat platform where you can design<br>
+                        how characters appear.
+                    </p>
+                    <div class="hero-actions">
+                        <a href="https://personaxi.com/hub" class="btn-primary">
+                            Browse Characters
+                        </a>
+                        <a href="#features" class="btn-secondary">
+                            Learn More ↓
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="welcome fade-up">
+            <div class="container">
+                <div class="welcome-card">
+                    <div class="emoji">👋</div>
+                    <h2>Welcome, First-time Visitors</h2>
+                    <p>
+                        PXI is built for more than plain conversation.
+                        First scenes, status panels, situational images, Live2D, and VRM all work together
+                        so you can shape how characters appear and feel.
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <section id="features" class="fade-up">
+            <div class="container">
+                <div class="section-header">
+                    <span class="section-label">Features</span>
+                    <h2>Why PXI?</h2>
+                    <p>It is not only about what characters say, but how they appear.</p>
+                </div>
+                <div class="features-grid">
+                    <div class="feature-card">
+                        <div class="feature-icon">🎭</div>
+                        <h3>Diverse Characters</h3>
+                        <p>Romance, fantasy, horror, slice-of-life, and more. Unique characters across countless genres
+                            are waiting for you.</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">✨</div>
+                        <h3>Real-time Motion</h3>
+                        <p>With Live2D and VRM model support, characters change expressions and move as they chat. A
+                            whole new dimension of conversation.</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">📊</div>
+                        <h3>Variables & Status Panel</h3>
+                        <p>Affection, stress, relationship stages — variables change in real time. Your choices shape
+                            the story.</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">📖</div>
+                        <h3>Lorebook System</h3>
+                        <p>When specific keywords appear, hidden lore and character backgrounds activate automatically.
+                            Dive deep into rich world-building.</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">🎨</div>
+                        <h3>Situational Images</h3>
+                        <p>Character expressions and scenes are illustrated to match the conversation flow. Visual
+                            immersion at its best.</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">🛠️</div>
+                        <h3>Create Your Own</h3>
+                        <p>Build and publish your own characters. Customize personality, speech style, backstory, and
+                            images down to the finest detail.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="fade-up">
+            <div class="container">
+                <div class="section-header">
+                    <span class="section-label">Models</span>
+                    <h2>Supported Character Types</h2>
+                    <p>Choose the format that suits you</p>
+                </div>
+                <div class="models-grid">
+                    <div class="model-card">
+                        <div class="model-icon">🖼️</div>
+                        <h3>2D Characters</h3>
+                        <p>Beautiful illustration-based 2D characters. Situational images bring diverse expressions and
+                            scenes to life.</p>
+                        <span class="model-tag">Default</span>
+                    </div>
+                    <div class="model-card">
+                        <div class="model-icon">💃</div>
+                        <h3>Live2D</h3>
+                        <p>Live2D models with smooth motion and facial expressions. Experience characters that truly
+                            come alive.</p>
+                        <span class="model-tag">Motion</span>
+                    </div>
+                    <div class="model-card">
+                        <div class="model-icon">🧊</div>
+                        <h3>VRM (3D)</h3>
+                        <p>Characters rendered in 3D VRM models. Enjoy three-dimensional conversations with rich
+                            animations.</p>
+                        <span class="model-tag">3D</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="fade-up">
+            <div class="container">
+                <div class="section-header">
+                    <span class="section-label">Getting Started</span>
+                    <h2>Start in 3 Easy Steps</h2>
+                </div>
+                <div class="steps">
+                    <div class="step">
+                        <h3>Sign Up</h3>
+                        <p>Create your account in seconds. Quick and easy.</p>
+                    </div>
+                    <div class="step">
+                        <h3>Explore Characters</h3>
+                        <p>Browse the Content Hub and find characters you love.</p>
+                    </div>
+                    <div class="step">
+                        <h3>Start Chatting</h3>
+                        <p>Pick a character and dive right into conversation!</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="cta-section fade-up">
+            <div class="container">
+                <div class="cta-box">
+                    <h2>Get Started Now</h2>
+                    <p>Your special character is waiting for you.</p>
+                    <a href="https://personaxi.com/hub" class="btn-primary">
+                        Start PXI →
+                    </a>
+                </div>
+            </div>
+        </section>
+
+        <footer class="footer">
+            <div class="container">
+                <div class="footer-links">
+                    <a href="https://personaxi.com/ko/terms/">Terms of Service</a>
+                    <a href="https://personaxi.com/ko/privacy/">Privacy Policy</a>
+                    <a href="https://personaxi.com/licenses">Open Source Licenses</a>
+                    <a href="https://personaxi.com/tutorial">Tutorial</a>
+                </div>
+                <p class="footer-copy">© 2025 PersonaXi. All rights reserved.</p>
+            </div>
+        </footer>
+    </div>
+
+    <script>
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) entry.target.classList.add('visible');
+            });
+        }, { threshold: 0.15 });
+        document.querySelectorAll('.fade-up').forEach(el => observer.observe(el));
+    </script>
+</body>
+
+</html>
+
+
