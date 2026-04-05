@@ -1,9 +1,9 @@
-# Privacy Policy for personaxi
+# Privacy Policy for {{LEGAL_SERVICE_NAME}}
 
 **Effective Date:** February 3, 2026  
-**Operator:** PersonaXI (Sole Proprietorship, Republic of Korea)  
+**Operator:** {{LEGAL_ENTITY_NAME}} (Sole Proprietorship, Republic of Korea)  
 **Address:** 충청남도 천안시 서북구 번영로 306-15, 104-101, Republic of Korea  
-**Data Protection Officer:** An Yu-chan (Representative) — privacy@personaxi.com
+**Data Protection Officer:** An Yu-chan (Representative) — {{PRIVACY_EMAIL}}
 
 ---
 
@@ -67,7 +67,7 @@ The Company shall process personal information only within the scope specified i
 
 2. The Company supervises entrusted parties to ensure that they process personal information safely in accordance with applicable laws at the time of signing the entrustment agreement.
 
-3. **Explicit Consent for International Transfer:** During the registration process, the Company shall explicitly inform the user via a separate consent box that "Your personal information will be transferred to overseas servers (USA - Google, Supabase, Oracle, etc.)" and shall only approve registration if the user acknowledges and consents to this via a checkbox. To withdraw consent, the data subject may request account termination through the account settings or by contacting support@personaxi.com.
+3. **Explicit Consent for International Transfer:** During the registration process, the Company shall explicitly inform the user via a separate consent box that "Your personal information will be transferred to overseas servers (USA - Google, Supabase, Oracle, etc.)" and shall only approve registration if the user acknowledges and consents to this via a checkbox. To withdraw consent, the data subject may request account termination through the account settings or by contacting {{SUPPORT_EMAIL}}.
 
 ---
 
@@ -75,7 +75,7 @@ The Company shall process personal information only within the scope specified i
 
 1. Data subjects may exercise the following rights with respect to their personal information at any time: **access, correction, deletion, and suspension of processing**.
 
-2. Rights may be exercised by contacting the Company via email at **privacy@personaxi.com**.
+2. Rights may be exercised by contacting the Company via email at **{{PRIVACY_EMAIL}}**.
 
 3. The Company shall take the necessary action within **15 days** of receiving a request and notify the data subject of the result.
 
@@ -130,7 +130,7 @@ The Company has appointed a Data Protection Officer to oversee all matters relat
 |:---|:---|
 | **Name** | An Yu-chan |
 | **Position** | Representative (Data Protection Officer, concurrent) |
-| **Contact** | privacy@personaxi.com |
+| **Contact** | {{PRIVACY_EMAIL}} |
 | **Address** | 충청남도 천안시 서북구 번영로 306-15, 104-101, Republic of Korea |
 
 Data subjects may contact the Data Protection Officer for any questions regarding this Privacy Policy or to exercise their rights.
@@ -166,7 +166,7 @@ Data subjects may contact the Data Protection Officer for any questions regardin
 
 3. The Company also complies with the **California Consumer Privacy Act (CCPA)** and ensures the rights of data subjects to whom the Act applies.
 
-4. To exercise the above rights, please contact privacy@personaxi.com. The Company shall take the necessary action within **30 days** of receipt.
+4. To exercise the above rights, please contact {{PRIVACY_EMAIL}}. The Company shall take the necessary action within **30 days** of receipt.
 
 5. **Supervisory Authority:** EU data subjects have the right to lodge a complaint with the relevant data protection supervisory authority in their EU Member State.
 
@@ -180,6 +180,9 @@ Data subjects may contact the Data Protection Officer for any questions regardin
 
 ---
 
-**Company:** PersonaXI  
+**Company:** {{LEGAL_ENTITY_NAME}}  
 **Address:** 충청남도 천안시 서북구 번영로 306-15, 104-101, Republic of Korea  
-**Data Protection Officer:** An Yu-chan (privacy@personaxi.com)
+**Data Protection Officer:** An Yu-chan ({{PRIVACY_EMAIL}})
+
+
+

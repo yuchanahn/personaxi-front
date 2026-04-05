@@ -1,6 +1,6 @@
 # Membership & Subscription
 
-Enjoy PXI to the fullest!
+Enjoy {{PUBLIC_BRAND_NAME}} to the fullest!
 (As of Feb 2026, the membership system is **Getting Ready**.)
 
 ## 🌟 Membership Benefits (Planned)
@@ -20,4 +20,5 @@ Subscribing to membership will grant the following:
 > **Launch Notification**
 > We will announce via Notices as soon as membership opens.
 > Look forward to special early-bird discounts!
+
 

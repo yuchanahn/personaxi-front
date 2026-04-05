@@ -73,3 +73,4 @@ Expert Mode is for prompt-level control, including output format and interaction
 - Kintsugi template already includes interactive-engine guidance.
 - Fully custom templates should explicitly include these rules.
 - Test at least one full cycle: button clicks + text input + end button.
+

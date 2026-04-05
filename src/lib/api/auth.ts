@@ -5,6 +5,7 @@ import { t as $t, locale as $locale, locale } from "svelte-i18n";
 import { get } from "svelte/store";
 import { accessToken } from "$lib/stores/auth";
 import { st_user } from "$lib/stores/user";
+import { branding } from "$lib/branding/config";
 
 
 export function getBaseUrl(): string {
@@ -12,7 +13,7 @@ export function getBaseUrl(): string {
   if (host === 'localhost' || host === '127.0.0.1') {
     return 'http://localhost:5173/';
   } else {
-    return 'https://personaxi.com/';
+    return `${branding.publicOrigin}/`;
   }
 }
 

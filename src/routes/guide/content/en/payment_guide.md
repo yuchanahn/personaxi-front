@@ -1,9 +1,9 @@
 # Payment & Neurons
 
-Guide to **'Neurons'**, the currency of PXI. 💎
+Guide to **'Neurons'**, the currency of {{PUBLIC_BRAND_NAME}}. 💎
 
 ## 🧠 What are Neurons?
-The virtual currency used in the PXI ecosystem.
+The virtual currency used in the {{PUBLIC_BRAND_NAME}} ecosystem.
 Inspired by brain cells, symbolizing connection with AI.
 
 ### Main Uses
@@ -22,4 +22,5 @@ You can purchase Neuron packages in the `Shop` tab.
 > **Free Neurons**
 > During the Beta period, we give out bonus Neurons for **Daily Check-ins** or **Bug Reports**.
 > Don't miss out on Discord community events!
+
 

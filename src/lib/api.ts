@@ -3,8 +3,9 @@ import { supabase } from '$lib/supabase';
 import { get } from 'svelte/store';
 import { accessToken } from '$lib/stores/auth';
 import { AuthRequiredError, openAuthGate } from '$lib/stores/authGate';
+import { branding } from '$lib/branding/config';
 
-export const API_BASE_URL = dev ? '' : "https://api.personaxi.com";
+export const API_BASE_URL = dev ? '' : branding.apiOrigin;
 
 // AuthOption extension to RequestInit
 interface AuthRequestInit extends RequestInit {

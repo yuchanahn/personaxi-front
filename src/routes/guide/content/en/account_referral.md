@@ -1,7 +1,7 @@
 # Referral Program
 
 Invite friends and get **Free Neurons** together! 🎁
-Introduce PXI to your friends and reap the rewards.
+Introduce {{PUBLIC_BRAND_NAME}} to your friends and reap the rewards.
 
 ## 💎 How to Participate
 
@@ -22,4 +22,5 @@ Introduce PXI to your friends and reap the rewards.
 > [!CAUTION]
 > **Abuse Policy**
 > Creating multiple accounts or using fake accounts for referrals is strictly prohibited. If caught, all Neurons will be **clawed back** and your account may be **permanently banned**. Please play fair!
+
 

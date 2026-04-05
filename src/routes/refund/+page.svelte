@@ -1,7 +1,8 @@
 <script>
     import { locale, t } from "svelte-i18n";
-    import { marked } from "marked";
     import { get } from "svelte/store";
+    import { branding } from "$lib/branding/config";
+    import { renderBrandedMarkdown } from "$lib/branding/markdown";
 
     let refundContent = "";
 
@@ -15,7 +16,7 @@
           : import(`$lib/i18n/locales/en/refund.md?raw`)
     )
         .then(async (module) => {
-            refundContent = await marked(module.default);
+            refundContent = await renderBrandedMarkdown(module.default);
         })
         .catch((error) => {
             console.error("Error loading refund.md:", error);
@@ -24,7 +25,7 @@
 </script>
 
 <svelte:head>
-    <title>Refund Policy - PersonaXi</title>
+    <title>Refund Policy - {branding.legalServiceName}</title>
 </svelte:head>
 
 <div class="policy-container">

@@ -1,6 +1,6 @@
 # Fanwork Guidelines
 
-PersonaXi does not categorically ban fanart, homage, parody, or other derivative works.
+{{PUBLIC_BRAND_NAME}} does not categorically ban fanart, homage, parody, or other derivative works.
 However, whether such content can remain public on the Service is judged under the standards below.
 
 ## ✅ Core Principles
@@ -65,3 +65,4 @@ However, whether such content can remain public on the Service is judged under t
 
 > [!IMPORTANT]
 > This guide is the Service's publication standard, not a replacement for the actual legal scope of use. Original licenses, applicable law, and separate contracts take priority.
+

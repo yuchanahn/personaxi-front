@@ -27,3 +27,4 @@ How to connect 2.5D (Live2D) and 3D (VRM) models to a character.
 - Keep a separate thumbnail image even when using a model.
 - After replacing a model, run a quick chat test for motion/expression/voice behavior.
 - Verify the model license first (redistribution/commercial restrictions).
+

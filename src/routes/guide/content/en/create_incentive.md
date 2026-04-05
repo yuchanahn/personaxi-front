@@ -1,7 +1,7 @@
 # Creator Incentive
 
 Your imagination becomes revenue! 💰
-PXI aims for an ecosystem where creators are rewarded as much as their characters are loved.
+{{PUBLIC_BRAND_NAME}} aims for an ecosystem where creators are rewarded as much as their characters are loved.
 
 ## 📈 Revenue Structure
 
@@ -27,4 +27,5 @@ Accumulated creator contribution is used as an internal contribution metric.
 > *   Catch users' eyes with an attractive thumbnail.
 > *   The **first 3 turns** are crucial! Design an engaging opening.
 > *   Update frequently to communicate with your fans.
+
 

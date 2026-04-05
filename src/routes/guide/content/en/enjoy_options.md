@@ -19,3 +19,4 @@ Swap the AI brain powering the character.
     > Resetting permanently deletes intimacy and memories. They cannot be recovered!
 *   **Regenerate**: Don't like the last response? Make them say it again.
 *   **Edit**: Directly modify the character's response or your message to steer the conversation.
+

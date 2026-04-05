@@ -1,9 +1,9 @@
-# PXI Beta Launch!
+# {{PUBLIC_BRAND_NAME}} Beta Launch!
 
 Hello, travelers of the digital world! 👋
-**PXI Beta** has finally officially launched.
+**{{PUBLIC_BRAND_NAME}} Beta** has finally officially launched.
 
-## 🚀 What is PXI?
+## 🚀 What is {{PUBLIC_BRAND_NAME}}?
 
 A platform where you can create living, breathing AI personas and share your own stories.
 We support everything from simple chats to deep emotional interactions.
@@ -16,5 +16,6 @@ To celebrate the launch, we are holding the following events:
 2.  **Bug Hunter**: Report bugs in the Discord `#bug-report` channel to receive rewards.
 
 Thank you for being with us from the start.
-Please verify the potential of PXI with us!
+Please verify the potential of {{PUBLIC_BRAND_NAME}} with us!
+
 

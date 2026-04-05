@@ -4,6 +4,79 @@ $ErrorActionPreference = "Stop"
 $projectRoot = Split-Path -Parent $PSScriptRoot
 $localesRoot = Join-Path $projectRoot "src\lib\i18n\locales"
 $staticRoot = Join-Path $projectRoot "static"
+$appTemplatePath = Join-Path $projectRoot "src\app.template.html"
+$appHtmlPath = Join-Path $projectRoot "src\app.html"
+$offlineTemplatePath = Join-Path $staticRoot "offline.template.html"
+$offlineHtmlPath = Join-Path $staticRoot "offline.html"
+$manifestTemplatePath = Join-Path $staticRoot "manifest.template.json"
+$manifestPath = Join-Path $staticRoot "manifest.json"
+$brandingConfigPath = Join-Path $projectRoot "src\lib\branding\branding.config.json"
+$branding = Get-Content -Path $brandingConfigPath -Raw -Encoding utf8 | ConvertFrom-Json
+$publicOrigin = $branding.publicOrigin.TrimEnd("/")
+$apiOrigin = $branding.apiOrigin.TrimEnd("/")
+$publicHost = ([uri]$publicOrigin).Host
+$apiHost = ([uri]$apiOrigin).Host
+$publicBrandName = [string]$branding.publicBrandName
+$legalServiceName = [string]$branding.legalServiceName
+$legalEntityName = [string]$branding.legalEntityName
+$serviceSlug = [string]$branding.serviceSlug
+$supportEmail = [string]$branding.supportEmail
+$privacyEmail = [string]$branding.privacyEmail
+$contactEmail = [string]$branding.contactEmail
+$copyrightName = [string]$branding.copyrightName
+$appTitle = "$publicBrandName - AI Chat, Your Way"
+$appDescription = "From status panels to Live2D and VRM, $publicBrandName is the only AI chat platform where you can design how characters appear."
+$ogImageUrl = "$publicOrigin/og-image-v3.png"
+
+function Apply-BrandingText {
+    param([string]$Text)
+
+    $result = $Text
+    $replacements = @(
+        @("{{PUBLIC_BRAND_NAME}}", $publicBrandName),
+        @("{{LEGAL_SERVICE_NAME}}", $legalServiceName),
+        @("{{LEGAL_ENTITY_NAME}}", $legalEntityName),
+        @("{{SERVICE_SLUG}}", $serviceSlug),
+        @("{{PUBLIC_ORIGIN}}", $publicOrigin),
+        @("{{API_ORIGIN}}", $apiOrigin),
+        @("{{PUBLIC_HOST}}", $publicHost),
+        @("{{API_HOST}}", $apiHost),
+        @("{{SUPPORT_EMAIL}}", $supportEmail),
+        @("{{PRIVACY_EMAIL}}", $privacyEmail),
+        @("{{CONTACT_EMAIL}}", $contactEmail),
+        @("{{COPYRIGHT_NAME}}", $copyrightName),
+        @("{{APP_TITLE}}", $appTitle),
+        @("{{APP_DESCRIPTION}}", $appDescription),
+        @("{{OG_IMAGE_URL}}", $ogImageUrl)
+    )
+
+    foreach ($pair in $replacements) {
+        $from = [string]$pair[0]
+        $to = [string]$pair[1]
+        if ($from -and $from -ne $to) {
+            $result = $result.Replace($from, $to)
+        }
+    }
+
+    return $result
+}
+
+function Write-BrandedTemplateFile {
+    param(
+        [string]$TemplatePath,
+        [string]$OutputPath,
+        [string]$GeneratedComment = ""
+    )
+
+    $template = Get-Content -Path $TemplatePath -Raw -Encoding utf8
+    $output = Apply-BrandingText $template
+
+    if ($GeneratedComment) {
+        $output = $GeneratedComment + "`r`n" + $output
+    }
+
+    Set-Content -Path $OutputPath -Value $output -Encoding utf8
+}
 
 function Get-LangMeta {
     param([string]$Lang)
@@ -55,15 +128,15 @@ function New-AlternateLinks {
     $lines = foreach ($lang in $langs) {
         $suffix = $SuffixMap[$lang]
         $href = if ([string]::IsNullOrWhiteSpace($suffix)) {
-            "https://personaxi.com/$BaseName.html"
+            "$publicOrigin/$BaseName.html"
         } else {
-            "https://personaxi.com/$BaseName-$suffix.html"
+            "$publicOrigin/$BaseName-$suffix.html"
         }
 
         "    <link rel=`"alternate`" hreflang=`"$lang`" href=`"$href`" />"
     }
 
-    $defaultHref = "https://personaxi.com/$BaseName-en.html"
+    $defaultHref = "$publicOrigin/$BaseName-en.html"
     return ($lines + "    <link rel=`"alternate`" hreflang=`"x-default`" href=`"$defaultHref`" />") -join "`n"
 }
 
@@ -72,10 +145,10 @@ function New-PathAlternateLinks {
 
     $langs = @("ko", "en", "ja")
     $lines = foreach ($lang in $langs) {
-        "    <link rel=`"alternate`" hreflang=`"$lang`" href=`"https://personaxi.com/$lang/$BaseName/`" />"
+        "    <link rel=`"alternate`" hreflang=`"$lang`" href=`"$publicOrigin/$lang/$BaseName/`" />"
     }
 
-    $defaultHref = "https://personaxi.com/en/$BaseName/"
+    $defaultHref = "$publicOrigin/en/$BaseName/"
     return ($lines + "    <link rel=`"alternate`" hreflang=`"x-default`" href=`"$defaultHref`" />") -join "`n"
 }
 
@@ -92,7 +165,8 @@ function New-StaticLegalDoc {
     )
 
     $meta = Get-LangMeta -Lang $Lang
-    $markdown = ConvertFrom-Markdown -Path $MarkdownPath
+    $markdownSource = Get-Content -Path $MarkdownPath -Raw -Encoding utf8
+    $markdown = ConvertFrom-Markdown -InputObject (Apply-BrandingText $markdownSource)
     $contentHtml = $markdown.Html
 
     $navTermsHref = if ($Lang -eq "ko") { "/terms.html" } else { "/terms-$Lang.html" }
@@ -114,13 +188,13 @@ $Alternates
     <meta property="og:url" content="$CanonicalUrl" />
     <meta property="og:title" content="$Title" />
     <meta property="og:description" content="$Description" />
-    <meta property="og:image" content="https://personaxi.com/og-image-v3.png" />
-    <meta property="og:site_name" content="PersonaXi" />
+    <meta property="og:image" content="$ogImageUrl" />
+    <meta property="og:site_name" content="$legalServiceName" />
     <meta property="og:locale" content="$($meta.Locale)" />
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content="$Title" />
     <meta name="twitter:description" content="$Description" />
-    <meta name="twitter:image" content="https://personaxi.com/og-image-v3.png" />
+    <meta name="twitter:image" content="$ogImageUrl" />
     <link rel="icon" href="/favicon.png" />
     <style>
         :root {
@@ -246,7 +320,7 @@ $Alternates
 <body>
     <main>
         <div class="doc">
-            <p class="eyebrow">PersonaXi $DocType</p>
+            <p class="eyebrow">$legalServiceName $DocType</p>
             <p class="lead">$Description</p>
             <nav class="nav">
                 <a href="/">$($meta.HomeLabel)</a>
@@ -295,90 +369,90 @@ $docs = @(
     @{
         MarkdownPath = Join-Path $localesRoot "ko\terms.md"
         OutputPath   = Join-Path $staticRoot "terms.html"
-        Title        = "PersonaXi 이용약관"
-        Description  = "PersonaXi 서비스 이용약관 정적 문서."
+        Title        = "$legalServiceName 이용약관"
+        Description  = "$legalServiceName 서비스 이용약관 정적 문서."
         Lang         = "ko"
-        CanonicalUrl = "https://personaxi.com/terms.html"
+        CanonicalUrl = "$publicOrigin/terms.html"
         Alternates   = $termsAlternates
         DocType      = "Terms"
     },
     @{
         MarkdownPath = Join-Path $localesRoot "en\terms.md"
         OutputPath   = Join-Path $staticRoot "terms-en.html"
-        Title        = "PersonaXi Terms of Service"
-        Description  = "Static Terms of Service document for PersonaXi."
+        Title        = "$legalServiceName Terms of Service"
+        Description  = "Static Terms of Service document for $legalServiceName."
         Lang         = "en"
-        CanonicalUrl = "https://personaxi.com/terms-en.html"
+        CanonicalUrl = "$publicOrigin/terms-en.html"
         Alternates   = $termsAlternates
         DocType      = "Terms"
     },
     @{
         MarkdownPath = Join-Path $localesRoot "ja\terms.md"
         OutputPath   = Join-Path $staticRoot "terms-ja.html"
-        Title        = "PersonaXi Terms of Service"
-        Description  = "Static Terms of Service document for PersonaXi."
+        Title        = "$legalServiceName Terms of Service"
+        Description  = "Static Terms of Service document for $legalServiceName."
         Lang         = "ja"
-        CanonicalUrl = "https://personaxi.com/terms-ja.html"
+        CanonicalUrl = "$publicOrigin/terms-ja.html"
         Alternates   = $termsAlternates
         DocType      = "Terms"
     },
     @{
         MarkdownPath = Join-Path $localesRoot "ko\policy.md"
         OutputPath   = Join-Path $staticRoot "privacy.html"
-        Title        = "PersonaXi 개인정보처리방침"
-        Description  = "PersonaXi 개인정보처리방침 정적 문서."
+        Title        = "$legalServiceName 개인정보처리방침"
+        Description  = "$legalServiceName 개인정보처리방침 정적 문서."
         Lang         = "ko"
-        CanonicalUrl = "https://personaxi.com/privacy.html"
+        CanonicalUrl = "$publicOrigin/privacy.html"
         Alternates   = $privacyAlternates
         DocType      = "Privacy"
     },
     @{
         MarkdownPath = Join-Path $localesRoot "en\policy.md"
         OutputPath   = Join-Path $staticRoot "privacy-en.html"
-        Title        = "PersonaXi Privacy Policy"
-        Description  = "Static Privacy Policy document for PersonaXi."
+        Title        = "$legalServiceName Privacy Policy"
+        Description  = "Static Privacy Policy document for $legalServiceName."
         Lang         = "en"
-        CanonicalUrl = "https://personaxi.com/privacy-en.html"
+        CanonicalUrl = "$publicOrigin/privacy-en.html"
         Alternates   = $privacyAlternates
         DocType      = "Privacy"
     },
     @{
         MarkdownPath = Join-Path $localesRoot "ja\policy.md"
         OutputPath   = Join-Path $staticRoot "privacy-ja.html"
-        Title        = "PersonaXi Privacy Policy"
-        Description  = "Static Privacy Policy document for PersonaXi."
+        Title        = "$legalServiceName Privacy Policy"
+        Description  = "Static Privacy Policy document for $legalServiceName."
         Lang         = "ja"
-        CanonicalUrl = "https://personaxi.com/privacy-ja.html"
+        CanonicalUrl = "$publicOrigin/privacy-ja.html"
         Alternates   = $privacyAlternates
         DocType      = "Privacy"
     },
     @{
         MarkdownPath = Join-Path $localesRoot "ko\licenses.md"
         OutputPath   = Join-Path $staticRoot "licenses.html"
-        Title        = "PersonaXi 라이선스 및 권리 고지"
-        Description  = "PersonaXi 라이선스 및 2차 창작 권리 고지 정적 문서."
+        Title        = "$legalServiceName 라이선스 및 권리 고지"
+        Description  = "$legalServiceName 라이선스 및 2차 창작 권리 고지 정적 문서."
         Lang         = "ko"
-        CanonicalUrl = "https://personaxi.com/licenses.html"
+        CanonicalUrl = "$publicOrigin/licenses.html"
         Alternates   = $licensesAlternates
         DocType      = "Licenses"
     },
     @{
         MarkdownPath = Join-Path $localesRoot "en\licenses.md"
         OutputPath   = Join-Path $staticRoot "licenses-en.html"
-        Title        = "PersonaXi Licenses and Rights Notice"
-        Description  = "Static licenses and derivative-work rights notice for PersonaXi."
+        Title        = "$legalServiceName Licenses and Rights Notice"
+        Description  = "Static licenses and derivative-work rights notice for $legalServiceName."
         Lang         = "en"
-        CanonicalUrl = "https://personaxi.com/licenses-en.html"
+        CanonicalUrl = "$publicOrigin/licenses-en.html"
         Alternates   = $licensesAlternates
         DocType      = "Licenses"
     },
     @{
         MarkdownPath = Join-Path $localesRoot "ja\licenses.md"
         OutputPath   = Join-Path $staticRoot "licenses-ja.html"
-        Title        = "PersonaXi Licenses and Rights Notice"
-        Description  = "Static licenses and derivative-work rights notice for PersonaXi."
+        Title        = "$legalServiceName Licenses and Rights Notice"
+        Description  = "Static licenses and derivative-work rights notice for $legalServiceName."
         Lang         = "ja"
-        CanonicalUrl = "https://personaxi.com/licenses-ja.html"
+        CanonicalUrl = "$publicOrigin/licenses-ja.html"
         Alternates   = $licensesAlternates
         DocType      = "Licenses"
     }
@@ -413,7 +487,7 @@ function Convert-LegacyHtmlToLocalizedPath {
     )
 
     $html = Get-Content -Path $SourcePath -Raw -Encoding utf8
-    $canonicalUrl = "https://personaxi.com/$Lang/$BaseName/"
+    $canonicalUrl = "$publicOrigin/$Lang/$BaseName/"
     $alternateLinks = New-PathAlternateLinks -BaseName $BaseName
 
     $html = [regex]::Replace(
@@ -439,9 +513,9 @@ function Convert-LegacyHtmlToLocalizedPath {
         foreach ($docLang in $langs) {
             $legacySuffix = if ($docLang -eq "ko") { "" } else { "-$docLang" }
             $legacyRelative = "/$doc$legacySuffix.html"
-            $legacyAbsolute = "https://personaxi.com/$doc$legacySuffix.html"
+            $legacyAbsolute = "$publicOrigin/$doc$legacySuffix.html"
             $localizedRelative = "/$docLang/$doc/"
-            $localizedAbsolute = "https://personaxi.com/$docLang/$doc/"
+            $localizedAbsolute = "$publicOrigin/$docLang/$doc/"
 
             $html = $html.Replace($legacyAbsolute, $localizedAbsolute)
             $html = $html.Replace($legacyRelative, $localizedRelative)
@@ -516,4 +590,18 @@ foreach ($doc in $localizedStaticDocs) {
             -Lang $lang
     }
 }
+
+Write-BrandedTemplateFile `
+    -TemplatePath $appTemplatePath `
+    -OutputPath $appHtmlPath `
+    -GeneratedComment "<!-- Generated from src/app.template.html by scripts/generate-static-legal-docs.ps1. -->"
+
+Write-BrandedTemplateFile `
+    -TemplatePath $offlineTemplatePath `
+    -OutputPath $offlineHtmlPath `
+    -GeneratedComment "<!-- Generated from static/offline.template.html by scripts/generate-static-legal-docs.ps1. -->"
+
+Write-BrandedTemplateFile `
+    -TemplatePath $manifestTemplatePath `
+    -OutputPath $manifestPath
 

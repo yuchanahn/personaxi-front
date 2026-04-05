@@ -309,7 +309,7 @@
     "fantasy": "Fantasy World"
   },
   "hub": {
-    "metaTitle": "Explore - PersonaXi",
+    "metaTitle": "Explore - {{PUBLIC_BRAND_NAME}}",
     "metaDescription": "Explore and chat with diverse AI personas. 2D, 3D, and Live2D characters are waiting for you.",
     "metaOgDescription": "Explore and chat with diverse AI personas.",
     "feedbackButtonLabel": "Send Feedback",
@@ -340,27 +340,27 @@
     "agreedToPolicies": "."
   },
   "footer": {
-    "companyName": "PersonaXI",
+    "companyName": "{{LEGAL_ENTITY_NAME}}",
     "address": "104-101, 306-15, Beonyeong-ro, Seobuk-gu, Cheonan-si, Chungcheongnam-do, Republic of Korea",
     "ceo": "CEO: An Yu-chan",
     "bizLicense": "Business License: 628-14-02633 (Simplified Taxpayer)",
     "mailOrder": "E-Commerce License: 2025-ChungnamCheonan-2452",
     "phone": "Phone: 070-8064-0436",
-    "email": "Email: contact@personaxi.com",
-    "liability": "PersonaXI is responsible for all transactions, refunds, and complaints.",
+    "email": "Email: {{CONTACT_EMAIL}}",
+    "liability": "{{LEGAL_ENTITY_NAME}} is responsible for all transactions, refunds, and complaints.",
     "grievance": "Grievance Officer: An Yu-chan (070-8064-0436)"
   },
   "licenses": {
     "loadError": "Failed to load license information.",
-    "pageTitle": "Licenses & Neurons - [Site/Service Name]"
+    "pageTitle": "Licenses & Neurons - {{LEGAL_SERVICE_NAME}}"
   },
   "policy": {
     "loadError": "Failed to load privacy policy.",
-    "pageTitle": "Privacy Policy - [Site/Service Name]"
+    "pageTitle": "Privacy Policy - {{LEGAL_SERVICE_NAME}}"
   },
   "terms": {
     "loadError": "Failed to load terms of service.",
-    "pageTitle": "Terms of Service - [Site/Service Name]"
+    "pageTitle": "Terms of Service - {{LEGAL_SERVICE_NAME}}"
   },
   "tutorial": {
     "title": "Tutorial",
@@ -390,7 +390,7 @@
     "create": "Create"
   },
   "welcomeModal": {
-    "title": "Welcome to PersonaXI!",
+    "title": "Welcome to {{PUBLIC_BRAND_NAME}}!",
     "neuronReward": "As a welcome gift, you've received {amount} Neurons!",
     "confirmButton": "Start Exploring",
     "message": "We're glad you're here!",
@@ -399,7 +399,7 @@
   "noticeModal": {
     "title": "Launch Event",
     "subtitle": "First 500 Users Only!",
-    "description1": "To celebrate the official launch of <strong>PersonaXi</strong>, we're giving special rewards to the first 500 users!",
+    "description1": "To celebrate the official launch of <strong>{{PUBLIC_BRAND_NAME}}</strong>, we're giving special rewards to the first 500 users!",
     "description2": "Sign up now and create your first content to get <strong>300 Neurons</strong> for free!",
     "benefitTitle": "Event Benefits",
     "benefit1": "Sign-up Bonus: <strong>100 Neurons</strong>",
@@ -459,7 +459,7 @@
     "termsOfServiceContent": "Terms of Service content goes here..."
   },
   "profilePage": {
-    "pageTitle": "Persona - PersonaXi",
+    "pageTitle": "Persona - {{PUBLIC_BRAND_NAME}}",
     "translating": "Translating content. You can see the results by refreshing the page shortly.",
     "commentPostFailed": "Failed to post comment. Please try again later.",
     "loadingPersona": "Loading character information...",
@@ -1091,7 +1091,7 @@
   },
   "install": {
     "title": "Install App",
-    "description": "Install PersonaXi as a native app for fullscreen access and better performance.",
+    "description": "Install {{PUBLIC_BRAND_NAME}} as a native app for fullscreen access and better performance.",
     "shareAction": "Share button",
     "addToHome": "Add to Home Screen",
     "addAction": "Add",
@@ -1140,7 +1140,7 @@
     "emptyState": "Please select an item.",
     "noticeListTitle": "Notices",
     "guideListTitle": "Guide Contents",
-    "poweredBy": "Powered by PersonaXi Team",
+    "poweredBy": "Powered by {{PUBLIC_BRAND_NAME}} Team",
     "categories": {
       "start": "Getting Started",
       "account": "Account Settings",
@@ -1150,7 +1150,7 @@
       "policy": "Terms & Policies"
     },
     "articles": {
-      "start_intro": "About PersonaXi",
+      "start_intro": "About {{PUBLIC_BRAND_NAME}}",
       "account_signup": "Sign Up",
       "account_login": "Login / Identity Verification",
       "account_mypage": "Manage My Account / Creator Info",
@@ -1161,26 +1161,26 @@
       "enjoy_chat": "Chat Features",
       "enjoy_options": "Chat Options",
       "enjoy_summary": "Auto Summary",
-      "enjoy_story": "PersonaXi Story",
+      "enjoy_story": "{{PUBLIC_BRAND_NAME}} Story",
       "create_rules": "Creation Guidelines",
       "create_fanwork": "Fanwork Guidelines",
       "create_original": "What is Original Character?",
-      "create_incentive": "PersonaXi Incentive",
+      "create_incentive": "{{PUBLIC_BRAND_NAME}} Incentive",
       "create_basic": "Basic Creation Guide",
       "create_expert": "Expert Mode Guide",
       "create_virtual_character": "Virtual Model Upload Guide",
       "create_lorebook": "Lorebook System Guide",
       "enjoy_virtual_character": "Virtual Character Chat Guide",
       "payment_guide": "Wing & Payment Guide",
-      "payment_member": "PersonaXi Membership",
+      "payment_member": "{{PUBLIC_BRAND_NAME}} Membership",
       "payment_refund": "Refund Policy",
       "policy_terms": "Terms of Service",
       "policy_privacy": "Privacy Policy",
       "policy_marketing": "Marketing Consent"
     },
     "notices": {
-      "launch_title": "🎉 PersonaXi Official Launch",
-      "launch_desc": "PersonaXi is finally officially open! Meet total new features.",
+      "launch_title": "🎉 {{PUBLIC_BRAND_NAME}} Official Launch",
+      "launch_desc": "{{PUBLIC_BRAND_NAME}} is finally officially open! Meet total new features.",
       "maintenance_title": "🛠️ Server Maintenance (1/30)",
       "maintenance_desc": "Server maintenance is scheduled for more stable service.",
       "event_title": "🎁 Launch Event",
@@ -1286,22 +1286,22 @@
       "firstScenePlaceholder": "e.g. A windy afternoon on the school rooftop. {char} is leaning.",
       "instructionHint": "Freely write about the character's personality, tone, etc.",
       "lorebookHint": "Provides extra context to the AI when certain keywords appear.",
-        "sharedStyle": {
-          "tabLabel": "Style (Advanced)",
-          "kicker": "Style Preset",
-          "sectionTitle": "Shared Chat Style",
-          "label": "Prompt Advanced Feature: Shared Chat Style",
-          "description": "Predefine CSS that should be shared across 2D chat output. Instead of repeating style blocks in the first scene or later replies, define reusable classes here and reuse them in the body.",
-          "note": "Paste CSS rules only, without a style tag. This stylesheet is applied to 2D chat rendering and the prompt will describe it as an already loaded shared style.",
-          "placeholder": ".px-dialogue { ... }\n\n.px-narration { ... }",
-          "previewButton": "Preview Style",
-          "previewKicker": "Live first scene preview",
-          "previewTitle": "Current style result",
-          "previewDescription": "Preview the current first_scene with the shared chat style applied.",
-          "previewEmpty": "first_scene is empty, so the preview is showing a default sample scene.",
-          "closePreview": "Close style preview",
-          "previewSample": "<say speaker=\"{{char}}\">This is a sample line for style preview.</say>\n\nUse this area to check how the shared style applies to the first scene."
-        },
+      "sharedStyle": {
+        "tabLabel": "Style (Advanced)",
+        "kicker": "Style Preset",
+        "sectionTitle": "Shared Chat Style",
+        "label": "Prompt Advanced Feature: Shared Chat Style",
+        "description": "Predefine CSS that should be shared across 2D chat output. Instead of repeating style blocks in the first scene or later replies, define reusable classes here and reuse them in the body.",
+        "note": "Paste CSS rules only, without a style tag. This stylesheet is applied to 2D chat rendering and the prompt will describe it as an already loaded shared style.",
+        "placeholder": ".px-dialogue { ... }\n\n.px-narration { ... }",
+        "previewButton": "Preview Style",
+        "previewKicker": "Live first scene preview",
+        "previewTitle": "Current style result",
+        "previewDescription": "Preview the current first_scene with the shared chat style applied.",
+        "previewEmpty": "first_scene is empty, so the preview is showing a default sample scene.",
+        "closePreview": "Close style preview",
+        "previewSample": "<say speaker=\"{{char}}\">This is a sample line for style preview.</say>\n\nUse this area to check how the shared style applies to the first scene."
+      },
       "interactiveUi": {
         "label": "Interactive UI",
         "description": "Allow interactive UI output such as buttons and input fields. This option is intended for story content only.",
@@ -1330,7 +1330,7 @@
   },
   "hubBanner": {
     "discord": {
-      "title": "PersonaXi Official Community",
+      "title": "{{PUBLIC_BRAND_NAME}} Official Community",
       "subtitle": "Share tips with creators and meet new personas.",
       "action": "Join Community"
     },
@@ -1340,7 +1340,7 @@
       "action": "Create Content"
     },
     "guide": {
-      "title": "PersonaXi Guidebook",
+      "title": "{{PUBLIC_BRAND_NAME}} Guidebook",
       "subtitle": "New to the app? Check out our detailed guide for beginners.",
       "action": "View Guide"
     }

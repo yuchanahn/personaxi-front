@@ -1,7 +1,8 @@
 <script>
     import { locale, t } from "svelte-i18n";
-    import { marked } from "marked";
     import { get } from "svelte/store";
+    import { branding } from "$lib/branding/config";
+    import { renderBrandedMarkdown } from "$lib/branding/markdown";
 
     let policyContent = "";
     let loc = get(locale) || "en";
@@ -13,7 +14,7 @@
           : import(`$lib/i18n/locales/en/policy.md?raw`)
     )
         .then(async (module) => {
-            policyContent = await marked(module.default);
+            policyContent = await renderBrandedMarkdown(module.default);
         })
         .catch((error) => {
             console.error("Error loading policy.md:", error);
@@ -22,7 +23,7 @@
 </script>
 
 <svelte:head>
-    <title>Privacy Policy - PersonaXi</title>
+    <title>Privacy Policy - {branding.legalServiceName}</title>
 </svelte:head>
 
 <div class="policy-container">

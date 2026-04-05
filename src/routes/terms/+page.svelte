@@ -1,7 +1,8 @@
 <script>
     import { locale, t } from "svelte-i18n";
-    import { marked } from "marked";
     import { get } from "svelte/store";
+    import { branding } from "$lib/branding/config";
+    import { renderBrandedMarkdown } from "$lib/branding/markdown";
 
     let termsContent = "";
 
@@ -14,7 +15,7 @@
           : import(`$lib/i18n/locales/en/terms.md?raw`)
     )
         .then(async (module) => {
-            termsContent = await marked(module.default);
+            termsContent = await renderBrandedMarkdown(module.default);
         })
         .catch((error) => {
             console.error("Error loading terms.md:", error);
@@ -23,7 +24,7 @@
 </script>
 
 <svelte:head>
-    <title>Terms of Service - PersonaXi</title>
+    <title>Terms of Service - {branding.legalServiceName}</title>
 </svelte:head>
 
 <div class="terms-container">

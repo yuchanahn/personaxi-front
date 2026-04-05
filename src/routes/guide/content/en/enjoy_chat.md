@@ -1,6 +1,6 @@
 # Chat Modes
 
-PXI supports both normal roleplay chat and interactive simulation chat.
+{{PUBLIC_BRAND_NAME}} supports both normal roleplay chat and interactive simulation chat.
 
 ## 1) Character Chat (1:1)
 
@@ -38,4 +38,5 @@ After user interaction, the client aggregates actions/inputs and sends them back
 
 > [!TIP]
 > If you are creating interactive characters, design output rules first in `Expert Mode (create_expert)` and validate with a real chat test.
+
 

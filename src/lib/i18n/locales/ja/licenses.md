@@ -1,6 +1,6 @@
 # Licenses & Third-Party Credits
 
-PersonaXI ("the Company") utilizes the following open-source software and technologies in its Service.
+{{LEGAL_ENTITY_NAME}} ("the Company") utilizes the following open-source software and technologies in its Service.
 
 ---
 
@@ -74,7 +74,7 @@ This Service incorporates proprietary technology from Live2D Inc.
 
 ## 8. DMCA and Copyright Infringement
 
-If you believe that any content on the Service infringes upon your copyright, please submit a notice to **support@personaxi.com** with the following information:
+If you believe that any content on the Service infringes upon your copyright, please submit a notice to **{{SUPPORT_EMAIL}}** with the following information:
 
 1. **Identification** of the copyrighted work that you claim has been infringed (or, if multiple works on a single site are covered by a single notification, a representative list of such works).
 2. **Sufficient information** to locate the infringing material on the Service (e.g., URL or description of the location).
@@ -85,3 +85,6 @@ If you believe that any content on the Service infringes upon your copyright, pl
 The Company shall review the notice promptly and take appropriate action upon receipt.
 
 **Last Updated:** March 30, 2026
+
+
+

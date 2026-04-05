@@ -443,27 +443,27 @@
     "checkedAndAgree": " "
   },
   "footer": {
-    "companyName": "ペルソナエックスアイ",
+    "companyName": "{{LEGAL_ENTITY_NAME}}",
     "address": "忠清南道 天安市 西北区 繁栄路 306-15, 104-101",
     "ceo": "代表者：アン・ユチャン",
     "bizLicense": "事業者登録番号：628-14-02633（簡易課税者）",
     "mailOrder": "通信販売業届出番号：2025-忠南天安-2452",
     "phone": "電話番号：070-8064-0436",
-    "email": "メール：contact@personaxi.com",
-    "liability": "すべての取引に関する責任、返金、苦情はペルソナエックスアイが対応いたします。",
+    "email": "メール：{{CONTACT_EMAIL}}",
+    "liability": "すべての取引に関する責任、返金、苦情は{{LEGAL_ENTITY_NAME}}が対応いたします。",
     "grievance": "苦情担当者：アン・ユチャン（070-8064-0436）"
   },
   "licenses": {
     "loadError": "ライセンス情報の読み込みに失敗しました。",
-    "pageTitle": "ライセンスおよびニューロン - PersonaXi"
+    "pageTitle": "ライセンスおよびニューロン - {{LEGAL_SERVICE_NAME}}"
   },
   "policy": {
     "loadError": "プライバシーポリシーの読み込みに失敗しました。",
-    "pageTitle": "プライバシーポリシー - PersonaXi"
+    "pageTitle": "プライバシーポリシー - {{LEGAL_SERVICE_NAME}}"
   },
   "terms": {
     "loadError": "利用規約の読み込みに失敗しました。",
-    "pageTitle": "利用規約 - PersonaXi"
+    "pageTitle": "利用規約 - {{LEGAL_SERVICE_NAME}}"
   },
   "tutorial": {
     "title": "チュートリアル",
@@ -522,7 +522,7 @@
     "unexpectedError": "An unexpected error occurred. Please try again."
   },
   "hub": {
-    "metaTitle": "探索 - PersonaXi",
+    "metaTitle": "探索 - {{PUBLIC_BRAND_NAME}}",
     "metaDescription": "さまざまなAIペルソナを探索して会話しましょう。2D、3D、Live2Dキャラクターたちが待っています。",
     "metaOgDescription": "さまざまなAIペルソナを探索して会話しましょう。",
     "feedbackButtonLabel": "フィードバック送信",
@@ -540,8 +540,8 @@
     "placeholder": "ここにフィードバックを入力してください..."
   },
   "welcomeModal": {
-    "title": "PersonaXIへようこそ！",
-    "message": "PersonaXIにご登録いただきありがとうございます。楽しい時間をお過ごしください！",
+    "title": "{{PUBLIC_BRAND_NAME}}へようこそ！",
+    "message": "{{PUBLIC_BRAND_NAME}}にご登録いただきありがとうございます。楽しい時間をお過ごしください！",
     "neuronReward": "ウェルカムギフトとして{amount}ニューロンが付与されました！",
     "confirmButton": "冒険を始める",
     "startButton": "探索を始める"
@@ -584,7 +584,7 @@
   "noticeModal": {
     "title": "オープンイベントのご案内",
     "subtitle": "先着500名限定！",
-    "description1": "<strong>PersonaXi</strong>の正式オープンを記念して、先着500名様に特別な特典をお届けします！",
+    "description1": "<strong>{{PUBLIC_BRAND_NAME}}</strong>の正式オープンを記念して、先着500名様に特別な特典をお届けします！",
     "description2": "今すぐ登録して最初のコンテンツを作ると、<strong>合計300ニューロン</strong>を無料でもらえます！",
     "benefitTitle": "イベント特典",
     "benefit1": "登録ボーナス：<strong>100ニューロン</strong>",
@@ -620,7 +620,7 @@
     "confirm": "確認"
   },
   "profilePage": {
-    "pageTitle": "ペルソナ - PersonaXi",
+    "pageTitle": "ペルソナ - {{PUBLIC_BRAND_NAME}}",
     "translating": "コンテンツを翻訳中です。しばらくしてからリロードすると確認できます。",
     "loadingPersona": "キャラクター情報を読み込み中...",
     "restrictedOrMissing": "このキャラクターは読み込めませんでした。成人向けコンテンツか、アクセス権限のないリンクの可能性があります。",
@@ -1180,9 +1180,9 @@
     "emptyState": "項目を選択してください。",
     "noticeListTitle": "お知らせ",
     "guideListTitle": "ガイド目次",
-    "poweredBy": "Powered by PersonaXi Team",
+    "poweredBy": "Powered by {{PUBLIC_BRAND_NAME}} Team",
     "categories": {
-      "start": "PersonaXi スタート",
+      "start": "{{PUBLIC_BRAND_NAME}} スタート",
       "account": "アカウント設定",
       "enjoy": "キャラクターを楽しむ",
       "create": "キャラクター制作",
@@ -1190,7 +1190,7 @@
       "policy": "規約・ポリシー"
     },
     "articles": {
-      "start_intro": "PersonaXi 紹介",
+      "start_intro": "{{PUBLIC_BRAND_NAME}} 紹介",
       "account_signup": "会員登録",
       "account_login": "ログイン/本人認証",
       "account_mypage": "アカウント/クリエイター情報管理",
@@ -1202,25 +1202,25 @@
       "enjoy_options": "チャットルームオプション",
       "enjoy_summary": "自動要約",
       "enjoy_virtual_character": "バーチャルキャラクター",
-      "enjoy_story": "PersonaXi ストーリー",
+      "enjoy_story": "{{PUBLIC_BRAND_NAME}} ストーリー",
       "create_rules": "キャラクター制作規定",
       "create_fanwork": "二次創作ガイド",
       "create_original": "オリジナルキャラクターとは？",
-      "create_incentive": "PersonaXi インセンティブ",
+      "create_incentive": "{{PUBLIC_BRAND_NAME}} インセンティブ",
       "create_basic": "キャラクター基本制作方法",
       "create_virtual_character": "バーチャルキャラクター制作方法",
       "create_expert": "エキスパートモードの使い方",
       "create_lorebook": "ロアブック（Lorebook）システムガイド",
-      "payment_guide": "PersonaXi ニューロンと決済ガイド",
-      "payment_member": "PersonaXi メンバーシップ",
-      "payment_refund": "PersonaXi 返金ポリシー",
+      "payment_guide": "{{PUBLIC_BRAND_NAME}} ニューロンと決済ガイド",
+      "payment_member": "{{PUBLIC_BRAND_NAME}} メンバーシップ",
+      "payment_refund": "{{PUBLIC_BRAND_NAME}} 返金ポリシー",
       "policy_terms": "サービス利用規約",
       "policy_privacy": "プライバシーポリシー",
       "policy_marketing": "マーケティング利用同意"
     },
     "notices": {
-      "launch_title": "🎉 PersonaXi 正式オープンのお知らせ",
-      "launch_desc": "PersonaXiがついに正式オープンしました！新しい機能をお楽しみください。",
+      "launch_title": "🎉 {{PUBLIC_BRAND_NAME}} 正式オープンのお知らせ",
+      "launch_desc": "{{PUBLIC_BRAND_NAME}}がついに正式オープンしました！新しい機能をお楽しみください。",
       "maintenance_title": "🛠️ サーバーメンテナンスのお知らせ（1/30）",
       "maintenance_desc": "より安定したサービスのため、サーバーメンテナンスを実施予定です。",
       "event_title": "🎁 オープン記念イベント",
@@ -1286,22 +1286,22 @@
       "firstScenePlaceholder": "例：学校の屋上で風が吹く午後。{char}が手すりに寄りかかり空を眺めている。",
       "instructionHint": "キャラクターの性格、言葉遣い、行動ルールなどを自由に記述してください。",
       "lorebookHint": "特定のキーワードが登場した際にAIに追加情報を提供します。",
-        "sharedStyle": {
-          "tabLabel": "スタイル (高度)",
-          "kicker": "スタイル事前指定",
-          "sectionTitle": "共通チャットスタイル",
-          "label": "プロンプト高度機能: 共通チャットスタイル",
-          "description": "2Dチャットで共通適用するCSSを事前に指定します。first_scene や各応答ごとに style ブロックを繰り返す代わりに、ここで再利用クラスを定義し、本文ではそのクラスを使い回してください。",
-          "note": "style タグは入れず、CSS本文だけを貼り付けてください。このスタイルは2Dチャット描画に共通適用され、プロンプトでも既に読み込まれた共有スタイルとして案内されます。",
-          "placeholder": ".px-dialogue { ... }\n\n.px-narration { ... }",
-          "previewButton": "スタイルをプレビュー",
-          "previewKicker": "first_scene リアルタイムプレビュー",
-          "previewTitle": "現在のスタイル適用結果",
-          "previewDescription": "現在編集中の first_scene と共有チャットスタイルをそのまま確認します。",
-          "previewEmpty": "first_scene が空のため、デフォルトのサンプルシーンを表示しています。",
-          "closePreview": "スタイルプレビューを閉じる",
-          "previewSample": "<say speaker=\"{{char}}\">スタイルプレビュー用のサンプル台詞です。</say>\n\nこの領域では、現在入力している共有スタイルが first_scene にどう適用されるかを確認できます。"
-        },
+      "sharedStyle": {
+        "tabLabel": "スタイル (高度)",
+        "kicker": "スタイル事前指定",
+        "sectionTitle": "共通チャットスタイル",
+        "label": "プロンプト高度機能: 共通チャットスタイル",
+        "description": "2Dチャットで共通適用するCSSを事前に指定します。first_scene や各応答ごとに style ブロックを繰り返す代わりに、ここで再利用クラスを定義し、本文ではそのクラスを使い回してください。",
+        "note": "style タグは入れず、CSS本文だけを貼り付けてください。このスタイルは2Dチャット描画に共通適用され、プロンプトでも既に読み込まれた共有スタイルとして案内されます。",
+        "placeholder": ".px-dialogue { ... }\n\n.px-narration { ... }",
+        "previewButton": "スタイルをプレビュー",
+        "previewKicker": "first_scene リアルタイムプレビュー",
+        "previewTitle": "現在のスタイル適用結果",
+        "previewDescription": "現在編集中の first_scene と共有チャットスタイルをそのまま確認します。",
+        "previewEmpty": "first_scene が空のため、デフォルトのサンプルシーンを表示しています。",
+        "closePreview": "スタイルプレビューを閉じる",
+        "previewSample": "<say speaker=\"{{char}}\">スタイルプレビュー用のサンプル台詞です。</say>\n\nこの領域では、現在入力している共有スタイルが first_scene にどう適用されるかを確認できます。"
+      },
       "interactiveUi": {
         "label": "インタラクティブUI",
         "description": "ボタンや入力欄などのインタラクティブUI出力を許可します。ストーリー型コンテンツ専用の設定です。",
@@ -1330,7 +1330,7 @@
   },
   "hubBanner": {
     "discord": {
-      "title": "PersonaXi 公式コミュニティ",
+      "title": "{{PUBLIC_BRAND_NAME}} 公式コミュニティ",
       "subtitle": "クリエイターとヒントを共有し、新しいペルソナに会いましょう。",
       "action": "コミュニティに参加"
     },
@@ -1340,7 +1340,7 @@
       "action": "コンテンツを作成する"
     },
     "guide": {
-      "title": "PersonaXi ガイドブック",
+      "title": "{{PUBLIC_BRAND_NAME}} ガイドブック",
       "subtitle": "アプリのご利用は初めてですか？初心者のための詳細なガイドをご確認ください。",
       "action": "ガイドを見る"
     }

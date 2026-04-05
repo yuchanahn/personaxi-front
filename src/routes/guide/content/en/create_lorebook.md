@@ -18,3 +18,4 @@ A Lorebook (or World Info) is a dynamic memory system that allows your AI charac
 *   **Token Budget**: Approx 2000 tokens per turn
 
 *(Detailed guide coming soon)*
+

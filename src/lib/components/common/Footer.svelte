@@ -2,6 +2,7 @@
     import { locale, t } from "svelte-i18n";
     import Icon from "@iconify/svelte";
     import { getLocalizedStaticDocHref } from "$lib/utils/localePaths";
+    import { branding } from "$lib/branding/config";
 </script>
 
 <footer
@@ -64,7 +65,7 @@
             </div>
 
             <p class="opacity-40 ml-auto text-[9px]">
-                © 2026 PersonaXi. All Rights Reserved.
+                © 2026 {branding.copyrightName}. All Rights Reserved.
             </p>
         </div>
     </div>

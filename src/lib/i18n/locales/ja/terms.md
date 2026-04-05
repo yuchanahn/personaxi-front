@@ -1,16 +1,16 @@
-# Terms of Service for personaxi
+# Terms of Service for {{LEGAL_SERVICE_NAME}}
 
 **Effective Date:** March 30, 2026  
-**Operator:** PersonaXI (Sole Proprietorship, Republic of Korea)  
+**Operator:** {{LEGAL_ENTITY_NAME}} (Sole Proprietorship, Republic of Korea)  
 **Address:** 충청남도 천안시 서북구 번영로 306-15, 104-101, Republic of Korea  
-**Support:** support@personaxi.com
+**Support:** {{SUPPORT_EMAIL}}
 
 ---
 
 ## Chapter 1: General Provisions
 
 ### Article 1: Acceptance of Terms
-By accessing or using personaxi ("Service"), operated by PersonaXI ("Company"), you agree to be bound by these Terms of Service. If you do not agree to these terms, you may not access the Service.
+By accessing or using {{LEGAL_SERVICE_NAME}} ("Service"), operated by {{LEGAL_ENTITY_NAME}} ("Company"), you agree to be bound by these Terms of Service. If you do not agree to these terms, you may not access the Service.
 
 ### Article 2: Definitions
 1. **Member:** A person who has entered into a service agreement under these Terms and uses the Service.
@@ -36,7 +36,7 @@ By accessing or using personaxi ("Service"), operated by PersonaXI ("Company"), 
 3. Account registration is deemed complete when the Company approves the application and the Service is launched on the Member's device.
 
 ### Article 5: Account Termination (Withdrawal)
-1. A Member may request account termination at any time through the account settings within the Service or by contacting support@personaxi.com.
+1. A Member may request account termination at any time through the account settings within the Service or by contacting {{SUPPORT_EMAIL}}.
 2. The Company shall process the termination request within **5 business days** and notify the Member upon completion.
 3. Upon termination, the Member's personal data and service usage data shall be handled in accordance with the Privacy Policy. Data required to be retained under applicable laws shall be kept for the relevant statutory period.
 4. Once an account is terminated, the Member will no longer be able to log in with that account. All Neurons and Creator Contribution held shall be forfeited immediately.
@@ -60,8 +60,8 @@ By accessing or using personaxi ("Service"), operated by PersonaXI ("Company"), 
 
 ### Article 7: Fair Use Policy and Account Restrictions
 1. **Fair Use Policy ("FUP"):** To ensure stable operation, the Company may temporarily or permanently restrict access to a Member's account if usage significantly exceeds the system average or if abnormal usage patterns are detected.
-2. **Notification:** When the Company restricts a Member's account, it shall notify the Member of the reason for the restriction via email (support@personaxi.com). In cases of immediate security risks, the Company may restrict the account first and notify afterward.
-3. **Right to Appeal:** A Member may submit an appeal within **14 days** of receiving the restriction notification by contacting support@personaxi.com. The Company shall review the appeal and communicate the result within **10 business days**.
+2. **Notification:** When the Company restricts a Member's account, it shall notify the Member of the reason for the restriction via email ({{SUPPORT_EMAIL}}). In cases of immediate security risks, the Company may restrict the account first and notify afterward.
+3. **Right to Appeal:** A Member may submit an appeal within **14 days** of receiving the restriction notification by contacting {{SUPPORT_EMAIL}}. The Company shall review the appeal and communicate the result within **10 business days**.
 4. If no appeal is filed within the specified period, the restriction shall be considered final.
 
 ### Article 8: Intellectual Property and UGC Licensing
@@ -87,7 +87,7 @@ By accessing or using personaxi ("Service"), operated by PersonaXI ("Company"), 
 
 ### Article 10: Minor Protection Officer
 - **Name:** An Yu-chan (Representative)
-- **Contact:** support@personaxi.com
+- **Contact:** {{SUPPORT_EMAIL}}
 
 ---
 
@@ -99,7 +99,7 @@ By accessing or using personaxi ("Service"), operated by PersonaXI ("Company"), 
 3. **Refund Policy:**
    - Refunds are available within **7 days** of purchase, provided that **zero (0) Neurons** have been used.
    - Partial refunds are not available due to the nature of digital content.
-   - Refund requests shall be submitted to support@personaxi.com. The Company shall process the refund within **5–10 business days** of receipt.
+   - Refund requests shall be submitted to {{SUPPORT_EMAIL}}. The Company shall process the refund within **5–10 business days** of receipt.
 4. **Expiration:**
    - Paid Neurons expire **1 year** from the date of purchase in accordance with applicable commercial laws.
    - Free Neurons (Creator Contribution and promotional credits) expire in accordance with the notice period set by the Company (a minimum of **30 days** advance notice).
@@ -162,7 +162,7 @@ By accessing or using personaxi ("Service"), operated by PersonaXI ("Company"), 
 2. The Company shall not be liable for service interruptions caused by third-party providers (e.g., Google Gemini, Oracle) or by Force Majeure events beyond the Company's control.
 
 #### Article 20 (Dispute Resolution and Customer Support)
-1. Members may contact the Company regarding any issues related to the use of the Service at support@personaxi.com.
+1. Members may contact the Company regarding any issues related to the use of the Service at {{SUPPORT_EMAIL}}.
 2. The Company shall review any disputes or complaints and communicate the result within **5–10 business days** of receipt.
 3. If a dispute related to payment remains unresolved through the above process, the Member may escalate the matter to the relevant consumer dispute resolution authority.
 4. Upon a rights-holder complaint or a reasonable suspicion of infringement, the Company may temporarily disable access to the relevant asset or Persona and request supporting documentation from the Member.
@@ -174,8 +174,11 @@ These Terms shall be governed by and construed in accordance with the laws of th
 
 ---
 
-**Company:** PersonaXI  
+**Company:** {{LEGAL_ENTITY_NAME}}  
 **Address:** 충청남도 천안시 서북구 번영로 306-15, 104-101, Republic of Korea  
-**Customer Support:** support@personaxi.com
+**Customer Support:** {{SUPPORT_EMAIL}}
 
 **Effective Date:** March 30, 2026
+
+
+

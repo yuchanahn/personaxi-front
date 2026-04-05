@@ -17,3 +17,4 @@ The **1st Creator Challenge** begins now!
 *   🥉 **3rd Place**: 10,000 Neurons
 
 Show off your creativity!
+

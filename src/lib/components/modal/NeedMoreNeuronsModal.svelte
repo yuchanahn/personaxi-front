@@ -9,13 +9,13 @@
     import { st_user } from "$lib/stores/user";
     import { toast } from "$lib/stores/toast";
     import { pricingStore } from "$lib/stores/pricing";
-    import { marked } from "marked";
     import { locale } from "svelte-i18n";
     import { slide, fly, fade } from "svelte/transition";
     import { page } from "$app/stores";
     import { v4 as uuidv4 } from "uuid";
     import { api } from "$lib/api";
     import { env } from "$env/dynamic/public";
+    import { renderBrandedMarkdown } from "$lib/branding/markdown";
 
     // --- IP-based country detection ---
     let isKorean: boolean | null = null; // null = loading
@@ -276,7 +276,7 @@
 
         loadPromise
             .then(async (module) => {
-                noticeContent = await marked(module.default);
+                noticeContent = await renderBrandedMarkdown(module.default);
             })
             .catch((e) => {
                 console.error(e);

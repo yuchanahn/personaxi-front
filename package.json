@@ -4,13 +4,14 @@
 	"version": "0.0.1",
 	"type": "module",
 	"scripts": {
-		"dev": "vite dev --host",
-		"sync:legal-docs": "pwsh -File ./scripts/generate-static-legal-docs.ps1",
-		"build": "npm run sync:legal-docs && vite build",
+		"dev": "npm run sync:branding && vite dev --host",
+		"sync:branding": "pwsh -File ./scripts/generate-static-legal-docs.ps1",
+		"sync:legal-docs": "npm run sync:branding",
+		"build": "npm run sync:branding && vite build",
 		"preview": "vite preview",
 		"prepare": "svelte-kit sync || echo ''",
-		"check": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
-		"check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch"
+		"check": "npm run sync:branding && svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
+		"check:watch": "npm run sync:branding && svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch"
 	},
 	"devDependencies": {
 		"@pixiv/three-vrm": "^3.4.1",

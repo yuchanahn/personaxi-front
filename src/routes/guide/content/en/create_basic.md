@@ -34,3 +34,4 @@ After saving, you can continue tuning in `edit` (prompt, variables, advanced set
 
 > [!NOTE]
 > Live2D/VRM linking can be done right after creation and updated any time later.
+

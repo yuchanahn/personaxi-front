@@ -1,5 +1,5 @@
 {
-    "name": "Personaxi",
+    "name": "PersonaXi",
     "short_name": "PXI",
     "description": "디지털 생명체와 진정한 감정교류!",
     "start_url": "/",
@@ -458,3 +458,4 @@
     ],
     "scope": "/"
 }
+

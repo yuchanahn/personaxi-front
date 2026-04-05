@@ -10,6 +10,7 @@
     import type { ImageMetadata } from "$lib/types";
     import Icon from "@iconify/svelte";
     import { createEventDispatcher, onDestroy, onMount } from "svelte";
+    import { branding } from "$lib/branding/config";
 
 export let asset: ImageMetadata;
 export let showVideoPosterFallback: boolean = false;
@@ -224,7 +225,7 @@ export let useSimpleVideoLayout: boolean = false;
                         <div class="brand-corner bl"></div>
                         <div class="brand-corner br"></div>
                         <div class="brand-loading-inner">
-                            <img class="brand-loading-logo flicker" src="/logo.png" alt="PersonaXi" />
+                            <img class="brand-loading-logo flicker" src="/logo.png" alt={branding.legalServiceName} />
                             <div class="brand-loading-ring"></div>
                             <div class="brand-loading-title">LOADING</div>
                             <div class="brand-loading-subtitle">Syncing visual layer</div>
@@ -251,7 +252,7 @@ export let useSimpleVideoLayout: boolean = false;
                         <div class="brand-corner bl"></div>
                         <div class="brand-corner br"></div>
                         <div class="brand-loading-inner">
-                            <img class="brand-loading-logo flicker" src="/logo.png" alt="PersonaXi" />
+                            <img class="brand-loading-logo flicker" src="/logo.png" alt={branding.legalServiceName} />
                             <div class="brand-loading-ring"></div>
                             <div class="brand-loading-title">LOADING</div>
                             <div class="brand-loading-subtitle">Syncing visual layer</div>
@@ -352,7 +353,7 @@ export let useSimpleVideoLayout: boolean = false;
                 <div class="brand-corner bl"></div>
                 <div class="brand-corner br"></div>
                 <div class="brand-loading-inner">
-                    <img class="brand-loading-logo flicker" src="/logo.png" alt="PersonaXi" />
+                    <img class="brand-loading-logo flicker" src="/logo.png" alt={branding.legalServiceName} />
                     <div class="brand-loading-ring"></div>
                     <div class="brand-loading-title">LOADING</div>
                     <div class="brand-loading-subtitle">Syncing visual layer</div>
