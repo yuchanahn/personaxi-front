@@ -48,7 +48,9 @@
                 class="text-foreground/80 hover:text-foreground underline decoration-border/50 underline-offset-2 transition-colors"
                 >{$t("legal.termsOfService")}</a
             >
-            <a href="/licenses" class="hover:text-foreground transition-colors"
+            <a
+                href={getLocalizedStaticDocHref($locale, "licenses")}
+                class="hover:text-foreground transition-colors"
                 >{$t("legal.licensesAndCredits")}</a
             >
 

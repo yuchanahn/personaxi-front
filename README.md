@@ -35,12 +35,13 @@ npm run dev
 
 ## Static Document Notes
 
-Static locale documents are generated and copied into both flat and locale-path forms.
+Static locale documents are generated as locale-path HTML only.
 
 Examples:
 
-- `/welcome.html`
-- `/faq-en.html`
+- `/ko/terms/`
+- `/en/privacy/`
+- `/ja/licenses/`
 - `/ko/privacy/`
 - `/en/terms/`
 

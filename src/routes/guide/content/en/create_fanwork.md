@@ -22,7 +22,7 @@ However, whether such content can remain public on the Service is judged under t
    * We may also request proof of license, permission, or source attribution from the creator.
 
 > [!NOTE]
-> For baseline notices related to uploaded Live2D or VRM assets, also review [Licenses & Credits](/licenses).
+> For baseline notices related to uploaded Live2D or VRM assets, also review [Licenses & Credits](/en/licenses/).
 
 ## Examples Generally Allowed
 

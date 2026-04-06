@@ -118,29 +118,7 @@ function Get-LangMeta {
     }
 }
 
-function New-AlternateLinks {
-    param(
-        [string]$BaseName,
-        [hashtable]$SuffixMap
-    )
-
-    $langs = @("ko", "en", "ja")
-    $lines = foreach ($lang in $langs) {
-        $suffix = $SuffixMap[$lang]
-        $href = if ([string]::IsNullOrWhiteSpace($suffix)) {
-            "$publicOrigin/$BaseName.html"
-        } else {
-            "$publicOrigin/$BaseName-$suffix.html"
-        }
-
-        "    <link rel=`"alternate`" hreflang=`"$lang`" href=`"$href`" />"
-    }
-
-    $defaultHref = "$publicOrigin/$BaseName-en.html"
-    return ($lines + "    <link rel=`"alternate`" hreflang=`"x-default`" href=`"$defaultHref`" />") -join "`n"
-}
-
-function New-PathAlternateLinks {
+function New-LocalizedAlternateLinks {
     param([string]$BaseName)
 
     $langs = @("ko", "en", "ja")
@@ -169,9 +147,9 @@ function New-StaticLegalDoc {
     $markdown = ConvertFrom-Markdown -InputObject (Apply-BrandingText $markdownSource)
     $contentHtml = $markdown.Html
 
-    $navTermsHref = if ($Lang -eq "ko") { "/terms.html" } else { "/terms-$Lang.html" }
-    $navPrivacyHref = if ($Lang -eq "ko") { "/privacy.html" } else { "/privacy-$Lang.html" }
-    $navLicensesHref = if ($Lang -eq "ko") { "/licenses.html" } else { "/licenses-$Lang.html" }
+    $navTermsHref = "/$Lang/terms/"
+    $navPrivacyHref = "/$Lang/privacy/"
+    $navLicensesHref = "/$Lang/licenses/"
 
     $html = @"
 <!doctype html>
@@ -324,7 +302,6 @@ $Alternates
             <p class="lead">$Description</p>
             <nav class="nav">
                 <a href="/">$($meta.HomeLabel)</a>
-                <a href="/faq.html">$($meta.FaqLabel)</a>
                 <a href="$navTermsHref">$($meta.TermsLabel)</a>
                 <a href="$navPrivacyHref">$($meta.PrivacyLabel)</a>
                 <a href="$navLicensesHref">$($meta.LicensesLabel)</a>
@@ -347,112 +324,98 @@ $contentHtml
     Set-Content -Path $OutputPath -Value $html -Encoding utf8
 }
 
-$termsAlternates = New-AlternateLinks -BaseName "terms" -SuffixMap @{
-    ko = ""
-    en = "en"
-    ja = "ja"
-}
-
-$privacyAlternates = New-AlternateLinks -BaseName "privacy" -SuffixMap @{
-    ko = ""
-    en = "en"
-    ja = "ja"
-}
-
-$licensesAlternates = New-AlternateLinks -BaseName "licenses" -SuffixMap @{
-    ko = ""
-    en = "en"
-    ja = "ja"
-}
+$termsAlternates = New-LocalizedAlternateLinks -BaseName "terms"
+$privacyAlternates = New-LocalizedAlternateLinks -BaseName "privacy"
+$licensesAlternates = New-LocalizedAlternateLinks -BaseName "licenses"
 
 $docs = @(
     @{
         MarkdownPath = Join-Path $localesRoot "ko\terms.md"
-        OutputPath   = Join-Path $staticRoot "terms.html"
+        OutputPath   = Join-Path $staticRoot "ko\terms\index.html"
         Title        = "$legalServiceName 이용약관"
         Description  = "$legalServiceName 서비스 이용약관 정적 문서."
         Lang         = "ko"
-        CanonicalUrl = "$publicOrigin/terms.html"
+        CanonicalUrl = "$publicOrigin/ko/terms/"
         Alternates   = $termsAlternates
         DocType      = "Terms"
     },
     @{
         MarkdownPath = Join-Path $localesRoot "en\terms.md"
-        OutputPath   = Join-Path $staticRoot "terms-en.html"
+        OutputPath   = Join-Path $staticRoot "en\terms\index.html"
         Title        = "$legalServiceName Terms of Service"
         Description  = "Static Terms of Service document for $legalServiceName."
         Lang         = "en"
-        CanonicalUrl = "$publicOrigin/terms-en.html"
+        CanonicalUrl = "$publicOrigin/en/terms/"
         Alternates   = $termsAlternates
         DocType      = "Terms"
     },
     @{
         MarkdownPath = Join-Path $localesRoot "ja\terms.md"
-        OutputPath   = Join-Path $staticRoot "terms-ja.html"
+        OutputPath   = Join-Path $staticRoot "ja\terms\index.html"
         Title        = "$legalServiceName Terms of Service"
         Description  = "Static Terms of Service document for $legalServiceName."
         Lang         = "ja"
-        CanonicalUrl = "$publicOrigin/terms-ja.html"
+        CanonicalUrl = "$publicOrigin/ja/terms/"
         Alternates   = $termsAlternates
         DocType      = "Terms"
     },
     @{
         MarkdownPath = Join-Path $localesRoot "ko\policy.md"
-        OutputPath   = Join-Path $staticRoot "privacy.html"
+        OutputPath   = Join-Path $staticRoot "ko\privacy\index.html"
         Title        = "$legalServiceName 개인정보처리방침"
         Description  = "$legalServiceName 개인정보처리방침 정적 문서."
         Lang         = "ko"
-        CanonicalUrl = "$publicOrigin/privacy.html"
+        CanonicalUrl = "$publicOrigin/ko/privacy/"
         Alternates   = $privacyAlternates
         DocType      = "Privacy"
     },
     @{
         MarkdownPath = Join-Path $localesRoot "en\policy.md"
-        OutputPath   = Join-Path $staticRoot "privacy-en.html"
+        OutputPath   = Join-Path $staticRoot "en\privacy\index.html"
         Title        = "$legalServiceName Privacy Policy"
         Description  = "Static Privacy Policy document for $legalServiceName."
         Lang         = "en"
-        CanonicalUrl = "$publicOrigin/privacy-en.html"
+        CanonicalUrl = "$publicOrigin/en/privacy/"
         Alternates   = $privacyAlternates
         DocType      = "Privacy"
     },
     @{
         MarkdownPath = Join-Path $localesRoot "ja\policy.md"
-        OutputPath   = Join-Path $staticRoot "privacy-ja.html"
+        OutputPath   = Join-Path $staticRoot "ja\privacy\index.html"
         Title        = "$legalServiceName Privacy Policy"
         Description  = "Static Privacy Policy document for $legalServiceName."
         Lang         = "ja"
-        CanonicalUrl = "$publicOrigin/privacy-ja.html"
+        CanonicalUrl = "$publicOrigin/ja/privacy/"
         Alternates   = $privacyAlternates
         DocType      = "Privacy"
     },
     @{
         MarkdownPath = Join-Path $localesRoot "ko\licenses.md"
-        OutputPath   = Join-Path $staticRoot "licenses.html"
+        OutputPath   = Join-Path $staticRoot "ko\licenses\index.html"
         Title        = "$legalServiceName 라이선스 및 권리 고지"
         Description  = "$legalServiceName 라이선스 및 2차 창작 권리 고지 정적 문서."
         Lang         = "ko"
-        CanonicalUrl = "$publicOrigin/licenses.html"
+        CanonicalUrl = "$publicOrigin/ko/licenses/"
         Alternates   = $licensesAlternates
         DocType      = "Licenses"
     },
     @{
         MarkdownPath = Join-Path $localesRoot "en\licenses.md"
-        OutputPath   = Join-Path $staticRoot "licenses-en.html"
+        OutputPath   = Join-Path $staticRoot "en\licenses\index.html"
         Title        = "$legalServiceName Licenses and Rights Notice"
         Description  = "Static licenses and derivative-work rights notice for $legalServiceName."
         Lang         = "en"
-        CanonicalUrl = "$publicOrigin/licenses-en.html"
+        CanonicalUrl = "$publicOrigin/en/licenses/"
         Alternates   = $licensesAlternates
         DocType      = "Licenses"
     },
     @{
         MarkdownPath = Join-Path $localesRoot "ja\licenses.md"
-        OutputPath   = Join-Path $staticRoot "licenses-ja.html"
+        OutputPath   = Join-Path $staticRoot "ja\licenses\index.html"
         Title        = "$legalServiceName Licenses and Rights Notice"
         Description  = "Static licenses and derivative-work rights notice for $legalServiceName."
         Lang         = "ja"
-        CanonicalUrl = "$publicOrigin/licenses-ja.html"
+        CanonicalUrl = "$publicOrigin/ja/licenses/"
         Alternates   = $licensesAlternates
         DocType      = "Licenses"
     }
@@ -462,134 +425,52 @@ foreach ($doc in $docs) {
     New-StaticLegalDoc @doc
 }
 
-Copy-Item -Path (Join-Path $staticRoot "privacy.html") -Destination (Join-Path $staticRoot "policy.html") -Force
-Copy-Item -Path (Join-Path $staticRoot "privacy-en.html") -Destination (Join-Path $staticRoot "policy-en.html") -Force
-Copy-Item -Path (Join-Path $staticRoot "privacy-ja.html") -Destination (Join-Path $staticRoot "policy-ja.html") -Force
+function Remove-ObsoleteStaticOutputs {
+    param([string[]]$RelativePaths)
 
-foreach ($dirName in @("terms", "privacy", "policy", "licenses")) {
-    $dirPath = Join-Path $staticRoot $dirName
-    if (-not (Test-Path $dirPath)) {
-        New-Item -ItemType Directory -Path $dirPath -Force | Out-Null
+    foreach ($relativePath in $RelativePaths) {
+        $targetPath = Join-Path $staticRoot $relativePath
+        if (Test-Path $targetPath) {
+            Remove-Item -LiteralPath $targetPath -Force -Recurse
+        }
     }
 }
 
-Copy-Item -Path (Join-Path $staticRoot "terms.html") -Destination (Join-Path $staticRoot "terms\index.html") -Force
-Copy-Item -Path (Join-Path $staticRoot "privacy.html") -Destination (Join-Path $staticRoot "privacy\index.html") -Force
-Copy-Item -Path (Join-Path $staticRoot "policy.html") -Destination (Join-Path $staticRoot "policy\index.html") -Force
-Copy-Item -Path (Join-Path $staticRoot "licenses.html") -Destination (Join-Path $staticRoot "licenses\index.html") -Force
-
-function Convert-LegacyHtmlToLocalizedPath {
-    param(
-        [string]$SourcePath,
-        [string]$OutputPath,
-        [string]$BaseName,
-        [string]$Lang
-    )
-
-    $html = Get-Content -Path $SourcePath -Raw -Encoding utf8
-    $canonicalUrl = "$publicOrigin/$Lang/$BaseName/"
-    $alternateLinks = New-PathAlternateLinks -BaseName $BaseName
-
-    $html = [regex]::Replace(
-        $html,
-        '<link rel="canonical" href="[^"]+" />',
-        "    <link rel=`"canonical`" href=`"$canonicalUrl`" />"
-    )
-    $html = [regex]::Replace(
-        $html,
-        '<link rel="alternate" hreflang="ko" href="[^"]+" />\s*<link rel="alternate" hreflang="en" href="[^"]+" />\s*<link rel="alternate" hreflang="ja" href="[^"]+" />\s*<link rel="alternate" hreflang="x-default" href="[^"]+" />',
-        $alternateLinks
-    )
-    $html = [regex]::Replace(
-        $html,
-        '<meta property="og:url" content="[^"]+" />',
-        "    <meta property=`"og:url`" content=`"$canonicalUrl`" />"
-    )
-
-    $legacyDocs = @("terms", "privacy", "policy", "licenses", "faq", "welcome")
-    $langs = @("ko", "en", "ja")
-
-    foreach ($doc in $legacyDocs) {
-        foreach ($docLang in $langs) {
-            $legacySuffix = if ($docLang -eq "ko") { "" } else { "-$docLang" }
-            $legacyRelative = "/$doc$legacySuffix.html"
-            $legacyAbsolute = "$publicOrigin/$doc$legacySuffix.html"
-            $localizedRelative = "/$docLang/$doc/"
-            $localizedAbsolute = "$publicOrigin/$docLang/$doc/"
-
-            $html = $html.Replace($legacyAbsolute, $localizedAbsolute)
-            $html = $html.Replace($legacyRelative, $localizedRelative)
-        }
-    }
-
-    $dir = Split-Path -Parent $OutputPath
-    if ($dir -and -not (Test-Path $dir)) {
-        New-Item -ItemType Directory -Path $dir -Force | Out-Null
-    }
-
-    Set-Content -Path $OutputPath -Value $html -Encoding utf8
-}
-
-$localizedStaticDocs = @(
-    @{
-        BaseName = "terms"
-        Sources = @{
-            ko = "terms.html"
-            en = "terms-en.html"
-            ja = "terms-ja.html"
-        }
-    },
-    @{
-        BaseName = "privacy"
-        Sources = @{
-            ko = "privacy.html"
-            en = "privacy-en.html"
-            ja = "privacy-ja.html"
-        }
-    },
-    @{
-        BaseName = "policy"
-        Sources = @{
-            ko = "policy.html"
-            en = "policy-en.html"
-            ja = "policy-ja.html"
-        }
-    },
-    @{
-        BaseName = "licenses"
-        Sources = @{
-            ko = "licenses.html"
-            en = "licenses-en.html"
-            ja = "licenses-ja.html"
-        }
-    },
-    @{
-        BaseName = "faq"
-        Sources = @{
-            ko = "faq.html"
-            en = "faq-en.html"
-            ja = "faq-ja.html"
-        }
-    },
-    @{
-        BaseName = "welcome"
-        Sources = @{
-            ko = "welcome.html"
-            en = "welcome-en.html"
-            ja = "welcome-ja.html"
-        }
-    }
+Remove-ObsoleteStaticOutputs -RelativePaths @(
+    "terms.html",
+    "terms-en.html",
+    "terms-ja.html",
+    "privacy.html",
+    "privacy-en.html",
+    "privacy-ja.html",
+    "licenses.html",
+    "licenses-en.html",
+    "licenses-ja.html",
+    "policy.html",
+    "policy-en.html",
+    "policy-ja.html",
+    "terms",
+    "privacy",
+    "licenses",
+    "policy",
+    "faq",
+    "welcome",
+    "faq.html",
+    "faq-en.html",
+    "faq-ja.html",
+    "welcome.html",
+    "welcome-en.html",
+    "welcome-ja.html",
+    "ko\faq",
+    "en\faq",
+    "ja\faq",
+    "ko\welcome",
+    "en\welcome",
+    "ja\welcome",
+    "ko\policy",
+    "en\policy",
+    "ja\policy"
 )
-
-foreach ($doc in $localizedStaticDocs) {
-    foreach ($lang in @("ko", "en", "ja")) {
-        Convert-LegacyHtmlToLocalizedPath `
-            -SourcePath (Join-Path $staticRoot $doc.Sources[$lang]) `
-            -OutputPath (Join-Path $staticRoot "$lang\$($doc.BaseName)\index.html") `
-            -BaseName $doc.BaseName `
-            -Lang $lang
-    }
-}
 
 Write-BrandedTemplateFile `
     -TemplatePath $appTemplatePath `

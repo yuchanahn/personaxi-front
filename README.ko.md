@@ -33,12 +33,13 @@ npm run dev
 
 ## 정적 문서 관련
 
-정적 locale 문서는 flat 경로와 locale 경로를 함께 생성합니다.
+정적 locale 문서는 locale 경로 기준으로 생성합니다.
 
 예:
 
-- `/welcome.html`
-- `/faq-en.html`
+- `/ko/terms/`
+- `/en/privacy/`
+- `/ja/licenses/`
 - `/ko/privacy/`
 - `/en/terms/`
 

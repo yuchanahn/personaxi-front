@@ -17,9 +17,6 @@ export default {
 				'/',
 				'/hub',
 				'/feed',
-				'/terms',
-				'/policy',
-				'/licenses',
 				'/tutorial',
 				'/login'
 			]
