@@ -2,6 +2,12 @@
     import { t } from "svelte-i18n";
     import Icon from "@iconify/svelte";
     import { settings } from "$lib/stores/settings";
+    import {
+        formatWeightedCharCount,
+        getWeightedRawMaxLength,
+        getWeightedCharCount,
+        isWeightedLimitReached,
+    } from "$lib/utils/weightedText";
     import type { Persona } from "$lib/types";
 
     export let persona: Persona;
@@ -55,14 +61,14 @@
             class="field-input"
             bind:value={persona.one_liner}
             placeholder={$t("editPage.oneLinerPlaceholder")}
-            maxlength="60"
+            maxlength={getWeightedRawMaxLength(persona.one_liner, 60)}
         />
         <div
             class="char-counter"
-            class:warning={(persona.one_liner || "").length > 50}
-            class:error={(persona.one_liner || "").length > 60}
+            class:warning={getWeightedCharCount(persona.one_liner) > 50}
+            class:error={isWeightedLimitReached(persona.one_liner, 60)}
         >
-            {(persona.one_liner || "").length}/60
+            {formatWeightedCharCount(persona.one_liner)}/60
         </div>
     </div>
 
@@ -79,15 +85,15 @@
             class="field-textarea"
             bind:value={persona.greeting}
             placeholder={$t("editPage.greetingPlaceholder")}
-            maxlength="200"
+            maxlength={getWeightedRawMaxLength(persona.greeting, 200)}
             rows="3"
         ></textarea>
         <div
             class="char-counter"
-            class:warning={persona.greeting.length > 160}
-            class:error={persona.greeting.length >= 200}
+            class:warning={getWeightedCharCount(persona.greeting) > 160}
+            class:error={isWeightedLimitReached(persona.greeting, 200)}
         >
-            {persona.greeting.length} / 200
+            {formatWeightedCharCount(persona.greeting)} / 200
         </div>
     </div>
 

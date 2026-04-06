@@ -52,7 +52,7 @@
             requiresAuth: true,
         },
         {
-            href: "/edit3",
+            href: "/edit",
             icon: "ph:plus-circle-duotone",
             label: $t("nav.create"),
             requiresAuth: true,

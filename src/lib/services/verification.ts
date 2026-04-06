@@ -6,6 +6,7 @@ import { toastError } from "$lib/utils/errorMapper";
 import type { User } from "$lib/types";
 import { t } from "svelte-i18n";
 import { get } from "svelte/store";
+import { branding } from "$lib/branding/config";
 
 export interface VerificationOptions {
     onSuccess?: () => void;
@@ -37,7 +38,7 @@ function submitVerificationForm(
 ): void {
     const doc = popup.document;
     doc.open();
-    doc.write(`<!doctype html><html lang="ko"><head><meta charset="utf-8"><title>PersonaXi Verification</title></head><body></body></html>`);
+    doc.write(`<!doctype html><html lang="ko"><head><meta charset="utf-8"><title>${branding.legalServiceName} Verification</title></head><body></body></html>`);
     doc.close();
 
     const form = doc.createElement("form");

@@ -57,18 +57,30 @@
 }
 
 .chat2d-surface .narration-block.px-narration.px-narration--html {
-  padding: 0;
-  color: inherit;
-  font-size: inherit;
-  line-height: inherit;
-  letter-spacing: normal;
-  font-style: normal;
+  padding-left: 0.95rem;
 }
 
-.chat2d-surface .narration-block.px-narration.px-narration--html p {
-  margin: 1em 0;
+.chat2d-surface .narration-block.px-narration.px-narration--html > :is(
+  div,
+  section,
+  article,
+  header,
+  footer,
+  main,
+  aside,
+  blockquote,
+  ul,
+  ol,
+  table,
+  figure
+) {
+  margin: 0.7rem 0;
 }
 
-.chat2d-surface .narration-block.px-narration.px-narration--html p+p {
-  margin-top: 1em;
+.chat2d-surface .narration-block.px-narration.px-narration--html > :first-child {
+  margin-top: 0;
+}
+
+.chat2d-surface .narration-block.px-narration.px-narration--html > :last-child {
+  margin-bottom: 0;
 }

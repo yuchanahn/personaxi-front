@@ -70,7 +70,6 @@
     const sessionId = $page.url.searchParams.get("c");
     lastSessionId = sessionId;
     const currentLoad = ++loadSequence;
-
     if (sessionId) {
       // 1. Clear previous state immediately (Fixes race condition & ghosting)
       messages.set([]);
@@ -78,9 +77,22 @@
       showModelSelector = false;
 
       try {
+        console.log("[2D] before requireAuth", {
+          href: window.location.href,
+          sessionId,
+          lastSessionId,
+        });
+
         const canAccessChat = await requireAuth({
           source: "page",
           reason: "chat-2d-access",
+        });
+
+        console.log("[2D] after requireAuth", {
+          canAccessChat,
+          href: window.location.href,
+          sessionId,
+          lastSessionId,
         });
         const historyPromise = canAccessChat
           ? loadChatHistory(sessionId ?? "").catch((error) => {
@@ -96,6 +108,14 @@
         persona = p;
 
         if (!canAccessChat) {
+          $messages = [
+            {
+              role: "assistant",
+              content: "<first_scene>",
+              done: true,
+              key: "first-scene",
+            },
+          ];
           return;
         }
 
@@ -118,7 +138,9 @@
   $: {
     const sessionId = $page.url.searchParams.get("c");
     if (sessionId !== lastSessionId) {
+      console.log(`1 sessionId : ${sessionId} | ${lastSessionId}`);
       loadChatData();
+      console.log(`2 sessionId : ${sessionId} | ${lastSessionId}`);
     }
   }
 

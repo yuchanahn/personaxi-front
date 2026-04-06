@@ -16,22 +16,6 @@
     <changefreq>daily</changefreq>
     <priority>0.8</priority>
   </url>
-  <url>
-    <loc>https://personaxi.com/ko/faq/</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.5</priority>
-  </url>
-  <url>
-    <loc>https://personaxi.com/en/faq/</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.4</priority>
-  </url>
-  <url>
-    <loc>https://personaxi.com/ja/faq/</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.4</priority>
-  </url>
-  
   <!-- Legal Pages -->
   <url>
     <loc>https://personaxi.com/ko/terms/</loc>
@@ -64,7 +48,17 @@
     <priority>0.2</priority>
   </url>
   <url>
-    <loc>https://personaxi.com/licenses</loc>
+    <loc>https://personaxi.com/ko/licenses/</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.3</priority>
+  </url>
+  <url>
+    <loc>https://personaxi.com/en/licenses/</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.2</priority>
+  </url>
+  <url>
+    <loc>https://personaxi.com/ja/licenses/</loc>
     <changefreq>monthly</changefreq>
     <priority>0.2</priority>
   </url>

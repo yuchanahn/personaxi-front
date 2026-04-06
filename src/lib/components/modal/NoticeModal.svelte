@@ -6,6 +6,7 @@
     import { t } from "svelte-i18n";
     import AssetPreview from "../AssetPreview.svelte";
     import type { ImageMetadata } from "$lib/types";
+    import { branding } from "$lib/branding/config";
 
     const dispatch = createEventDispatcher();
 
@@ -29,7 +30,7 @@
     });
 
     let asset: ImageMetadata = {
-        description: "PXI",
+        description: branding.publicBrandName,
         url: "/event_01.mp4",
         type: "video",
     };

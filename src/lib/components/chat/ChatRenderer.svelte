@@ -35,6 +35,9 @@
 
         containsStructuralHtml = structuralHtmlRegex.test(cleanContent);
         containsMarkdownSyntax = markdownSyntaxRegex.test(cleanContent);
+        // For narration blocks, raw HTML collapses plain-text newlines into a flat
+        // string when mixed with block tags like <div>. Keep markdown parsing on so
+        // text segments still become paragraphs while HTML tags remain intact.
         shouldPreferRawHtml = containsStructuralHtml && !containsMarkdownSyntax;
 
         if (shouldPreferRawHtml) {

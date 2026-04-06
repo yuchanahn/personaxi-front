@@ -1,10 +1,10 @@
 <script lang="ts">
     import { createEventDispatcher, onMount } from "svelte";
-    import { marked } from "marked";
     import { locale, t } from "svelte-i18n";
     import Icon from "@iconify/svelte";
     import { get } from "svelte/store";
     import { toast } from "$lib/stores/toast";
+    import { renderBrandedMarkdown } from "$lib/branding/markdown";
 
     export let isOpen: boolean = false;
     const dispatch = createEventDispatcher();
@@ -74,8 +74,12 @@
                     termsPromise,
                     policyPromise,
                 ]);
-                termsOfServiceContent = marked(termsModule.default) as string;
-                privacyPolicyContent = marked(policyModule.default) as string;
+                termsOfServiceContent = await renderBrandedMarkdown(
+                    termsModule.default,
+                );
+                privacyPolicyContent = await renderBrandedMarkdown(
+                    policyModule.default,
+                );
             } catch (e) {
                 console.error("Failed to load consent documents:", e);
             }

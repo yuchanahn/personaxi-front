@@ -21,6 +21,7 @@
     import { toast } from "$lib/stores/toast";
     import ReportModal from "$lib/components/modal/ReportModal.svelte";
     import { AuthRequiredError } from "$lib/stores/authGate";
+    import { branding, buildPublicUrl } from "$lib/branding/config";
 
     let persona: Persona | null = null;
     let comments: Comment[] = [];
@@ -740,34 +741,38 @@
 
 <svelte:head>
     {#if persona}
-        <title>{persona.name} - PXI</title>
+        <title>{persona.name} - {branding.publicBrandName}</title>
         <meta
             name="description"
             content={getProfileMetaDescription()}
         />
-        <meta property="og:title" content="{persona.name} - PXI" />
+        <meta
+            property="og:title"
+            content={`${persona.name} - ${branding.publicBrandName}`}
+        />
         <meta
             property="og:description"
             content={getProfileMetaDescription()}
         />
         <meta
             property="og:image"
-            content={persona.portrait_url ||
-                "https://personaxi.com/og-image-v3.png"}
+            content={persona.portrait_url || branding.ogImageUrl}
         />
         <meta
             property="og:url"
-            content="https://personaxi.com/profile?c={persona.id}"
+            content={buildPublicUrl(`/profile?c=${persona.id}`)}
         />
         <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:title" content="{persona.name} - PXI" />
+        <meta
+            name="twitter:title"
+            content={`${persona.name} - ${branding.publicBrandName}`}
+        />
         <meta
             name="twitter:image"
-            content={persona.portrait_url ||
-                "https://personaxi.com/og-image-v3.png"}
+            content={persona.portrait_url || branding.ogImageUrl}
         />
     {:else}
-        <title>Profile - PXI</title>
+        <title>Profile - {branding.publicBrandName}</title>
     {/if}
 </svelte:head>
 

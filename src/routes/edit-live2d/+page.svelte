@@ -16,7 +16,7 @@
 
     let persona: Persona | null = null;
     let isLoading = false;
-    let returnPath = "/edit3";
+    let returnPath = "/edit";
 
     const LIVE2D_EDITOR_BRIDGE_PREFIX = "live2d_editor_config_bridge:";
 

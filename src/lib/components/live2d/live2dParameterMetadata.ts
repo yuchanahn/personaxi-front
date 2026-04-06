@@ -46,6 +46,8 @@ export interface Live2DResolvedParameterMetadata {
     bodyPhysicsLinks: Live2DBodyPhysicsLinkSummary;
 }
 
+const live2DJsonCache = new Map<string, Promise<any>>();
+
 function normalizeName(value: string): string {
     return value
         .normalize("NFKC")
@@ -77,21 +79,34 @@ function createEmptyBodyPhysicsLinks(): Live2DBodyPhysicsLinkSummary {
 }
 
 async function loadMaybeEncryptedJson(url: string): Promise<any> {
-    const response = await fetch(url);
-    if (!response.ok) {
-        throw new Error(`Failed to fetch ${url}`);
+    const cached = live2DJsonCache.get(url);
+    if (cached) {
+        return await cached;
     }
 
-    const buffer = await response.arrayBuffer();
-    const decoder = new TextDecoder();
+    const loadTask = (async () => {
+        const response = await fetch(url);
+        if (!response.ok) {
+            throw new Error(`Failed to fetch ${url}`);
+        }
 
-    try {
-        return JSON.parse(decoder.decode(buffer));
-    } catch {
-        const cryptoModule = await import("$lib/utils/crypto");
-        const decrypted = await cryptoModule.xorEncryptDecrypt(buffer);
-        return JSON.parse(decoder.decode(decrypted));
-    }
+        const buffer = await response.arrayBuffer();
+        const decoder = new TextDecoder();
+
+        try {
+            return JSON.parse(decoder.decode(buffer));
+        } catch {
+            const cryptoModule = await import("$lib/utils/crypto");
+            const decrypted = await cryptoModule.xorEncryptDecrypt(buffer);
+            return JSON.parse(decoder.decode(decrypted));
+        }
+    })().catch((error) => {
+        live2DJsonCache.delete(url);
+        throw error;
+    });
+
+    live2DJsonCache.set(url, loadTask);
+    return await loadTask;
 }
 
 function getRawSettingsJson(settings: any) {
@@ -136,6 +151,21 @@ function resolveResourceUrl(modelUrl: string, resourcePath: string): string {
         resourcePath,
         modelUrl.substring(0, modelUrl.lastIndexOf("/") + 1),
     ).href;
+}
+
+async function loadDisplayInfoParameters(
+    modelUrl: string,
+    model: any,
+): Promise<DisplayInfoParameter[]> {
+    const displayInfoPath = getDisplayInfoPath(model);
+    if (!displayInfoPath) {
+        return [];
+    }
+
+    const displayInfo = await loadMaybeEncryptedJson(
+        resolveResourceUrl(modelUrl, displayInfoPath),
+    );
+    return Array.isArray(displayInfo?.Parameters) ? displayInfo.Parameters : [];
 }
 
 function buildAliasHints(parameters: DisplayInfoParameter[]): Live2DParameterAliasHints {
@@ -266,16 +296,11 @@ export async function resolveLive2DParameterMetadata(
     modelUrl: string,
     model: any,
 ): Promise<Live2DResolvedParameterMetadata> {
-    const displayInfoPath = getDisplayInfoPath(model);
     const physicsPath = getPhysicsPath(model);
 
     try {
-        const [displayInfo, physics] = await Promise.all([
-            displayInfoPath
-                ? loadMaybeEncryptedJson(
-                      resolveResourceUrl(modelUrl, displayInfoPath),
-                  ).catch(() => null)
-                : Promise.resolve(null),
+        const [parameters, physics] = await Promise.all([
+            loadDisplayInfoParameters(modelUrl, model).catch(() => []),
             physicsPath
                 ? loadMaybeEncryptedJson(
                       resolveResourceUrl(modelUrl, physicsPath),
@@ -283,9 +308,6 @@ export async function resolveLive2DParameterMetadata(
                 : Promise.resolve(null),
         ]);
 
-        const parameters = Array.isArray(displayInfo?.Parameters)
-            ? displayInfo.Parameters
-            : [];
         const aliasHints = buildAliasHints(parameters);
         const bodyPhysicsLinks = physics
             ? buildBodyPhysicsLinks(physics, aliasHints)
@@ -308,6 +330,11 @@ export async function resolveLive2DParameterAliasHints(
     modelUrl: string,
     model: any,
 ): Promise<Live2DParameterAliasHints> {
-    const metadata = await resolveLive2DParameterMetadata(modelUrl, model);
-    return metadata.aliasHints;
+    try {
+        const parameters = await loadDisplayInfoParameters(modelUrl, model);
+        return buildAliasHints(parameters);
+    } catch (error) {
+        console.warn("Failed to resolve Live2D parameter alias hints:", error);
+        return {};
+    }
 }

@@ -680,7 +680,10 @@
                         >{$t("legal.termsOfService")}</a
                     >
                     ·
-                    <a href="/licenses" target="_blank" rel="noreferrer"
+                    <a
+                        href={getLocalizedStaticDocHref($locale, "licenses")}
+                        target="_blank"
+                        rel="noreferrer"
                         >{$t("legal.licensesAndCredits")}</a
                     >
                 </p>

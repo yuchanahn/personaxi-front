@@ -421,27 +421,27 @@
     "checkedAndAgree": " "
   },
   "footer": {
-    "companyName": "페르소나엑스아이",
+    "companyName": "{{LEGAL_ENTITY_NAME}}",
     "address": "충청남도 천안시 서북구 번영로 306-15, 104 - 101",
     "ceo": "대표자: 안유찬",
     "bizLicense": "사업자등록번호: 628-14-02633 (간이과세자)",
     "mailOrder": "통신판매업신고번호: 2025-충남천안-2452",
     "phone": "전화번호: 070-8064-0436",
-    "email": "이메일: contact@personaxi.com",
-    "liability": "모든 거래에 대한 책임과 환불, 민원 등은 페르소나엑스아이에서 진행합니다.",
+    "email": "이메일: {{CONTACT_EMAIL}}",
+    "liability": "모든 거래에 대한 책임과 환불, 민원 등은 {{LEGAL_ENTITY_NAME}}에서 진행합니다.",
     "grievance": "민원담당자: 안유찬 (070-8064-0436)"
   },
   "licenses": {
     "loadError": "라이선스 정보를 불러오는 데 실패했습니다.",
-    "pageTitle": "라이선스 및 뉴런 - PersonaXi"
+    "pageTitle": "라이선스 및 뉴런 - {{LEGAL_SERVICE_NAME}}"
   },
   "policy": {
     "loadError": "개인정보처리방침을 불러오는 데 실패했습니다.",
-    "pageTitle": "개인정보처리방침 - PersonaXi"
+    "pageTitle": "개인정보처리방침 - {{LEGAL_SERVICE_NAME}}"
   },
   "terms": {
     "loadError": "이용약관을 불러오는 데 실패했습니다.",
-    "pageTitle": "이용약관 - PersonaXi"
+    "pageTitle": "이용약관 - {{LEGAL_SERVICE_NAME}}"
   },
   "tutorial": {
     "title": "튜토리얼",
@@ -479,7 +479,7 @@
     "unexpectedError": "An unexpected error occurred. Please try again."
   },
   "hub": {
-    "metaTitle": "탐색 - PersonaXi",
+    "metaTitle": "탐색 - {{PUBLIC_BRAND_NAME}}",
     "metaDescription": "다양한 AI 페르소나를 탐색하고 대화하세요. 2D, 3D, Live2D 캐릭터들이 기다립니다.",
     "metaOgDescription": "다양한 AI 페르소나를 탐색하고 대화하세요.",
     "feedbackButtonLabel": "피드백 보내기",
@@ -497,8 +497,8 @@
     "placeholder": "여기에 피드백을 입력해 주세요..."
   },
   "welcomeModal": {
-    "title": "PersonaXI에 오신 것을 환영합니다!",
-    "message": "PersonaXI에 가입해주셔서 감사합니다. 즐거운 시간 되시길 바랍니다!",
+    "title": "{{PUBLIC_BRAND_NAME}}에 오신 것을 환영합니다!",
+    "message": "{{PUBLIC_BRAND_NAME}}에 가입해주셔서 감사합니다. 즐거운 시간 되시길 바랍니다!",
     "neuronReward": "환영 선물로 {amount} 뉴런이 지급되었습니다!",
     "confirmButton": "탐험 시작하기"
   },
@@ -566,7 +566,7 @@
     "confirm": "확인"
   },
   "profilePage": {
-    "pageTitle": "페르소나 - PersonaXi",
+    "pageTitle": "페르소나 - {{PUBLIC_BRAND_NAME}}",
     "translating": "콘텐츠를 번역하고 있어요. 잠시 후 새로고침하면 확인하실 수 있습니다.",
     "loadingPersona": "캐릭터 정보를 불러오는 중...",
     "restrictedOrMissing": "해당 캐릭터를 불러올 수 없습니다. 성인 콘텐츠이거나 접근 권한이 없는 링크일 수 있습니다.",
@@ -1123,9 +1123,9 @@
     "emptyState": "항목을 선택해주세요.",
     "noticeListTitle": "공지사항",
     "guideListTitle": "가이드 목차",
-    "poweredBy": "Powered by PersonaXi Team",
+    "poweredBy": "Powered by {{PUBLIC_BRAND_NAME}} Team",
     "categories": {
-      "start": "PersonaXi 시작",
+      "start": "{{PUBLIC_BRAND_NAME}} 시작",
       "account": "계정 설정",
       "enjoy": "캐릭터 즐기기",
       "create": "캐릭터 제작하기",
@@ -1133,7 +1133,7 @@
       "policy": "약관 및 정책"
     },
     "articles": {
-      "start_intro": "PersonaXi 소개",
+      "start_intro": "{{PUBLIC_BRAND_NAME}} 소개",
       "account_signup": "회원가입",
       "account_login": "로그인/본인인증",
       "account_mypage": "내 계정/크리에이터 정보 관리",
@@ -1145,24 +1145,25 @@
       "enjoy_options": "채팅방 옵션",
       "enjoy_summary": "자동 요약",
       "enjoy_virtual_character": "버추얼 캐릭터",
-      "enjoy_story": "PersonaXi 스토리",
+      "enjoy_story": "{{PUBLIC_BRAND_NAME}} 스토리",
       "create_rules": "캐릭터 제작 규정",
+      "create_fanwork": "2차 창작 가이드",
       "create_original": "오리지널 캐릭터란?",
-      "create_incentive": "PersonaXi 인센티브",
+      "create_incentive": "{{PUBLIC_BRAND_NAME}} 인센티브",
       "create_basic": "캐릭터 기본 제작 방법",
       "create_virtual_character": "버추얼 캐릭터 제작 방법",
       "create_expert": "전문가 모드 사용 방법",
       "create_lorebook": "로어북(Lorebook) 시스템 가이드",
-      "payment_guide": "PersonaXi 뉴런 및 결제 가이드",
-      "payment_member": "PersonaXi 멤버십",
-      "payment_refund": "PersonaXi 환불 정책",
+      "payment_guide": "{{PUBLIC_BRAND_NAME}} 뉴런 및 결제 가이드",
+      "payment_member": "{{PUBLIC_BRAND_NAME}} 멤버십",
+      "payment_refund": "{{PUBLIC_BRAND_NAME}} 환불 정책",
       "policy_terms": "서비스 이용약관",
       "policy_privacy": "개인정보 처리방침",
       "policy_marketing": "마케팅 이용 동의"
     },
     "notices": {
-      "launch_title": "🎉 PersonaXi 정식 오픈 안내",
-      "launch_desc": "PersonaXi가 드디어 정식 오픈했습니다! 새로운 기능들을 만나보세요.",
+      "launch_title": "🎉 {{PUBLIC_BRAND_NAME}} 정식 오픈 안내",
+      "launch_desc": "{{PUBLIC_BRAND_NAME}}가 드디어 정식 오픈했습니다! 새로운 기능들을 만나보세요.",
       "maintenance_title": "🛠️ 서버 점검 안내 (1/30)",
       "maintenance_desc": "더 안정적인 서비스를 위해 서버 점검이 진행될 예정입니다.",
       "event_title": "🎁 오픈 기념 이벤트",
@@ -1228,22 +1229,22 @@
       "firstScenePlaceholder": "예: 학교 옥상에서 바람이 불어오는 오후. {char}가 난간에 기대어 하늘을 바라보고 있다.",
       "instructionHint": "캐릭터의 성격, 말투, 행동 규칙 등을 자유롭게 작성하세요.",
       "lorebookHint": "특정 키워드가 등장할 때 AI에게 추가 정보를 제공합니다.",
-        "sharedStyle": {
-          "tabLabel": "스타일 (고급)",
-          "kicker": "스타일 미리지정",
-          "sectionTitle": "공통 채팅 스타일",
-          "label": "프롬프트 고급 기능: 채팅 공통 스타일",
-          "description": "2D 채팅에서 공통으로 적용할 CSS를 미리 지정합니다. 퍼스트씬이나 응답마다 스타일 블록을 반복해서 넣지 말고, 여기서 클래스 스타일을 정의한 뒤 본문에서는 그 클래스를 재사용하세요.",
-          "note": "style 태그 없이 CSS 본문만 넣으세요. 이 스타일은 2D 채팅 렌더에 공통 적용되고, 프롬프트에도 이미 로드된 스타일로 안내됩니다.",
-          "placeholder": ".px-dialogue { ... }\n\n.px-narration { ... }",
-          "previewButton": "스타일 미리보기",
-          "previewKicker": "퍼스트씬 실시간 미리보기",
-          "previewTitle": "현재 스타일 적용 결과",
-          "previewDescription": "현재 편집 중인 first_scene와 공통 채팅 스타일을 바로 확인합니다.",
-          "previewEmpty": "first_scene가 비어 있어 기본 예시 장면으로 미리보기를 표시합니다.",
-          "closePreview": "스타일 미리보기 닫기",
-          "previewSample": "<say speaker=\"{{char}}\">스타일 미리보기용 대사입니다.</say>\n\n이 영역에서 현재 입력한 공통 스타일이 실제 퍼스트씬에 어떻게 적용되는지 확인할 수 있습니다."
-        },
+      "sharedStyle": {
+        "tabLabel": "스타일 (고급)",
+        "kicker": "스타일 미리지정",
+        "sectionTitle": "공통 채팅 스타일",
+        "label": "프롬프트 고급 기능: 채팅 공통 스타일",
+        "description": "2D 채팅에서 공통으로 적용할 CSS를 미리 지정합니다. 퍼스트씬이나 응답마다 스타일 블록을 반복해서 넣지 말고, 여기서 클래스 스타일을 정의한 뒤 본문에서는 그 클래스를 재사용하세요.",
+        "note": "style 태그 없이 CSS 본문만 넣으세요. 이 스타일은 2D 채팅 렌더에 공통 적용되고, 프롬프트에도 이미 로드된 스타일로 안내됩니다.",
+        "placeholder": ".px-dialogue { ... }\n\n.px-narration { ... }",
+        "previewButton": "스타일 미리보기",
+        "previewKicker": "퍼스트씬 실시간 미리보기",
+        "previewTitle": "현재 스타일 적용 결과",
+        "previewDescription": "현재 편집 중인 first_scene와 공통 채팅 스타일을 바로 확인합니다.",
+        "previewEmpty": "first_scene가 비어 있어 기본 예시 장면으로 미리보기를 표시합니다.",
+        "closePreview": "스타일 미리보기 닫기",
+        "previewSample": "<say speaker=\"{{char}}\">스타일 미리보기용 대사입니다.</say>\n\n이 영역에서 현재 입력한 공통 스타일이 실제 퍼스트씬에 어떻게 적용되는지 확인할 수 있습니다."
+      },
       "interactiveUi": {
         "label": "인터랙티브 UI",
         "description": "버튼, 입력창 같은 인터랙티브 UI 출력을 허용합니다. 스토리형 콘텐츠에서만 사용하는 옵션입니다.",
@@ -1272,7 +1273,7 @@
   },
   "hubBanner": {
     "discord": {
-      "title": "PersonaXi 공식 커뮤니티",
+      "title": "{{PUBLIC_BRAND_NAME}} 공식 커뮤니티",
       "subtitle": "크리에이터들과 팁을 교환하고 새로운 페르소나들을 만나보세요.",
       "action": "커뮤니티 참여하기"
     },
@@ -1282,7 +1283,7 @@
       "action": "콘텐츠 만들기"
     },
     "guide": {
-      "title": "PersonaXi 가이드북",
+      "title": "{{PUBLIC_BRAND_NAME}} 가이드북",
       "subtitle": "앱 사용이 처음이신가요? 초보자를 위한 상세한 가이드를 확인해보세요.",
       "action": "가이드 보기"
     }

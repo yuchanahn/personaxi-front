@@ -49,7 +49,8 @@
     };
 
     let isAgeVerificationModalOpen = false;
-    let safetyModalMode: "kr_verification" | "overseas_birthdate" = "overseas_birthdate";
+    let safetyModalMode: "kr_verification" | "overseas_birthdate" =
+        "overseas_birthdate";
     let overseasBirthDate = "";
     let isUpdatingSafety = false;
 
@@ -76,7 +77,7 @@
             title: $t("hubBanner.event.title"),
             subtitle: $t("hubBanner.event.subtitle"),
             imageUrl: "/images/hub_banner_event_anime.png",
-            linkUrl: "/edit3",
+            linkUrl: "/edit",
             actionText: $t("hubBanner.event.action"),
             bgColor:
                 "linear-gradient(to right, rgba(0,0,0,0.9) 0%, rgba(99,102,241,0) 80%)",
@@ -149,7 +150,8 @@
                                           ...current.data,
                                           safetyFilterOn: result.safetyFilterOn,
                                           isVerified:
-                                              result.isVerified ?? current.data?.isVerified,
+                                              result.isVerified ??
+                                              current.data?.isVerified,
                                       },
                                   }
                                 : current,
@@ -186,7 +188,8 @@
                                   ...current.data,
                                   safetyFilterOn: result.safetyFilterOn,
                                   isVerified:
-                                      result.isVerified ?? current.data?.isVerified,
+                                      result.isVerified ??
+                                      current.data?.isVerified,
                               },
                           }
                         : current,
@@ -480,9 +483,11 @@
     }
 
     function shouldPaginateMainList() {
-        return selectedCategory !== "following" &&
+        return (
+            selectedCategory !== "following" &&
             selectedCategory !== "liked" &&
-            selectedCategory !== "search";
+            selectedCategory !== "search"
+        );
     }
 
     async function fetchMainListPage(pageNum: number): Promise<PersonaDTO[]> {
@@ -583,7 +588,8 @@
         if (target instanceof Window) {
             const doc = document.documentElement;
             const body = document.body;
-            const scrollTop = window.scrollY || doc.scrollTop || body.scrollTop || 0;
+            const scrollTop =
+                window.scrollY || doc.scrollTop || body.scrollTop || 0;
             const clientHeight = window.innerHeight;
             const scrollHeight = Math.max(
                 body.scrollHeight,
@@ -775,20 +781,23 @@
 
         try {
             const sectionConfigs = await loadHubSections();
-            const sectionViews: HubHomeSection[] = sectionConfigs.map((section) => ({
-                id: section.id,
-                sectionKey: section.section_key,
-                title: section.title,
-                contentType: section.content_type || "character",
-                queryMode: section.query_mode || "latest",
-                queryTags: section.query_tags ?? [],
-                excludeTags: section.exclude_tags ?? [],
-                limit: section.limit || 10,
-                contents: section.items ?? [],
-                isLoading: false,
-                hasMore: (section.items?.length ?? 0) >= (section.limit || 10),
-                page: 1,
-            }));
+            const sectionViews: HubHomeSection[] = sectionConfigs.map(
+                (section) => ({
+                    id: section.id,
+                    sectionKey: section.section_key,
+                    title: section.title,
+                    contentType: section.content_type || "character",
+                    queryMode: section.query_mode || "latest",
+                    queryTags: section.query_tags ?? [],
+                    excludeTags: section.exclude_tags ?? [],
+                    limit: section.limit || 10,
+                    contents: section.items ?? [],
+                    isLoading: false,
+                    hasMore:
+                        (section.items?.length ?? 0) >= (section.limit || 10),
+                    page: 1,
+                }),
+            );
 
             if (requestId !== featuredRequestId) return;
             homeSections.set(sectionViews);
@@ -811,12 +820,16 @@
     }
 
     async function handleLoadMore(sectionKey: string) {
-        const section = $homeSections.find((item) => item.sectionKey === sectionKey);
+        const section = $homeSections.find(
+            (item) => item.sectionKey === sectionKey,
+        );
         if (!section || section.isLoading || !section.hasMore) return;
 
         homeSections.update((items) =>
             items.map((item) =>
-                item.sectionKey === sectionKey ? { ...item, isLoading: true } : item
+                item.sectionKey === sectionKey
+                    ? { ...item, isLoading: true }
+                    : item,
             ),
         );
 
@@ -842,7 +855,7 @@
                 items.map((item) =>
                     item.sectionKey === sectionKey
                         ? { ...item, isLoading: false }
-                        : item
+                        : item,
                 ),
             );
         }
@@ -1166,7 +1179,7 @@
                     <div class="tab-separator">|</div>
                     <div class="companion-group">
                         <button
-                            class="nav-label-btn"
+                            class="nav-tab"
                             class:active={activeTab === "2d" ||
                                 activeTab === "3d"}
                             on:click={() => setActiveTab("2d")}
@@ -1316,7 +1329,9 @@
                                             class="skeleton-card"
                                             class:is-dim={cardIndex >= 4}
                                         >
-                                            <div class="skeleton-card-media"></div>
+                                            <div
+                                                class="skeleton-card-media"
+                                            ></div>
                                         </div>
                                     {/each}
                                 </div>
@@ -1332,7 +1347,8 @@
                                 isLoading={section.isLoading}
                                 hasMore={section.hasMore}
                                 on:select={(e) => handleCardClick(e.detail)}
-                                on:loadMore={() => handleLoadMore(section.sectionKey)}
+                                on:loadMore={() =>
+                                    handleLoadMore(section.sectionKey)}
                             />
                         {/if}
                     {/each}
@@ -1593,13 +1609,12 @@
         max-width: 70%;
         height: 1.35rem;
         border-radius: 999px;
-        background:
-            linear-gradient(
-                90deg,
-                color-mix(in srgb, var(--card) 82%, transparent) 0%,
-                color-mix(in srgb, var(--muted) 70%, transparent) 50%,
-                color-mix(in srgb, var(--card) 82%, transparent) 100%
-            );
+        background: linear-gradient(
+            90deg,
+            color-mix(in srgb, var(--card) 82%, transparent) 0%,
+            color-mix(in srgb, var(--muted) 70%, transparent) 50%,
+            color-mix(in srgb, var(--card) 82%, transparent) 100%
+        );
         background-size: 200% 100%;
         animation: skeleton-shimmer 1.4s ease-in-out infinite;
     }
@@ -1629,13 +1644,12 @@
         width: 100%;
         aspect-ratio: 9 / 11;
         border-radius: var(--radius-card);
-        background:
-            linear-gradient(
-                120deg,
-                color-mix(in srgb, var(--card) 90%, transparent) 0%,
-                color-mix(in srgb, var(--muted) 74%, transparent) 52%,
-                color-mix(in srgb, var(--card) 90%, transparent) 100%
-            );
+        background: linear-gradient(
+            120deg,
+            color-mix(in srgb, var(--card) 90%, transparent) 0%,
+            color-mix(in srgb, var(--muted) 74%, transparent) 52%,
+            color-mix(in srgb, var(--card) 90%, transparent) 100%
+        );
         background-size: 220% 100%;
         box-shadow: var(--media-card-shadow);
         animation: skeleton-shimmer 1.4s ease-in-out infinite;
@@ -2013,4 +2027,3 @@
         }
     }
 </style>
-

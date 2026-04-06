@@ -1,8 +1,25 @@
+import fs from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { sveltekit } from '@sveltejs/kit/vite';
 import { defineConfig } from 'vite';
 import tailwindcss from '@tailwindcss/vite';
 import https from 'https'; // ❗ 이 한 줄을 추가해주세요
 
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const brandingConfigPath = path.resolve(
+  __dirname,
+  'src/lib/branding/branding.config.json',
+);
+const branding = JSON.parse(
+  fs.readFileSync(brandingConfigPath, 'utf8'),
+) as {
+  publicBrandName: string;
+  publicOrigin: string;
+  apiOrigin: string;
+};
+
+const apiOrigin = branding.apiOrigin.replace(/\/+$/, '');
 
 export default defineConfig({
   // SSR 비활성화
@@ -42,19 +59,19 @@ export default defineConfig({
     proxy: {
       // '/api'로 시작하는 모든 요청을 실제 API 서버로 전달합니다.
       '/api': {
-        target: 'https://api.personaxi.com',
+        target: apiOrigin,
         changeOrigin: true,
         agent: new https.Agent({ keepAlive: true }),
       },
 
       '/ws': {
-        target: 'https://api.personaxi.com',
+        target: apiOrigin,
         ws: true,
         secure: false,
         changeOrigin: true,
       },
       'health': {
-        target: 'https://api.personaxi.com',
+        target: apiOrigin,
         changeOrigin: true,
         agent: new https.Agent({ keepAlive: true }),
       },

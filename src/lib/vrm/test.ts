@@ -34,7 +34,6 @@ export function test(
     let m = viewer.loadModel(vrmUrl, onProgress);
     m.then(m => {
         current_model = m;
-        if (viewer) viewer.start();
     })
     return m;
 }

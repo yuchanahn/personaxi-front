@@ -36,4 +36,7 @@ In the event of pricing or information errors due to typos or other reasons, we 
 
 ### 3. Contact
 
-If you have additional questions or need assistance regarding this Refund Policy, please contact our Customer Support Center (contact@personaxi.com).
+If you have additional questions or need assistance regarding this Refund Policy, please contact our Customer Support Center ({{CONTACT_EMAIL}}).
+
+
+

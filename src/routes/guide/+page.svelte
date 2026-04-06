@@ -7,6 +7,8 @@
     import DOMPurify from "isomorphic-dompurify";
     import { onMount } from "svelte";
     import { api } from "$lib/api";
+    import { branding } from "$lib/branding/config";
+    import { renderBrandedMarkdown } from "$lib/branding/markdown";
 
     // Configure Marked with Alerts
     marked.use(markedAlert());
@@ -184,6 +186,12 @@
                             fileName: "create_rules",
                         },
                         {
+                            id: "create_fanwork",
+                            titleKey: "guide.articles.create_fanwork",
+                            fileName: "create_fanwork",
+                            date: "2026.03.30",
+                        },
+                        {
                             id: "create_original",
                             titleKey: "guide.articles.create_original",
                             fileName: "create_original",
@@ -332,7 +340,9 @@
                     contentRaw =
                         activeNotice.content_ja || activeNotice.content_ko;
 
-                const html = await marked.parse(contentRaw || "No content.");
+                const html = await renderBrandedMarkdown(
+                    contentRaw || "No content.",
+                );
                 if (currentReqId === requestId) {
                     noticeContentHtml = DOMPurify.sanitize(html);
                 }
@@ -370,7 +380,7 @@
         }
 
         if (typeof rawMd === "string") {
-            return await marked.parse(rawMd);
+            return await renderBrandedMarkdown(rawMd);
         } else {
             return `<div class="p-8 text-center text-muted-foreground bg-muted/20 rounded-xl my-8">
                 <p class="font-medium">Content is being prepared...</p>
@@ -432,7 +442,7 @@
                     </div>
                     <span
                         class="text-lg font-bold tracking-tight hidden sm:block"
-                        >PXI</span
+                        >{branding.publicBrandName}</span
                     >
                 </a>
                 <div class="h-4 w-px bg-border mx-2 hidden sm:block"></div>
@@ -645,7 +655,7 @@
                                         <h1
                                             class="text-2xl md:text-3xl font-bold mb-2"
                                         >
-                                            PXI
+                                            {branding.publicBrandName}
                                         </h1>
                                         <p
                                             class="text-white/80 text-sm font-medium tracking-wide"

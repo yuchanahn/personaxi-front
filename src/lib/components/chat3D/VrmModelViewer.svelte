@@ -36,6 +36,16 @@
   let isModelLoading = true;
   let loadingPhase: "network" | "decrypt" | "parse" = "network";
   let loadingProgress = 0;
+  let showDebugUI = false;
+  let isLocalDebugHost = false;
+
+  function isLocalTestHost(): boolean {
+    if (typeof window === "undefined") return false;
+    const host = window.location.hostname;
+    return host === "localhost" || host === "127.0.0.1" || host === "::1";
+  }
+
+  $: isLocalDebugHost = isLocalTestHost();
 
   // Autoplay Start Voice (VRM)
   $: if (
@@ -77,6 +87,8 @@
   let isSpeaking = false;
   let speechText = "";
   let showSpeech = false;
+  let thought2RevealTimeout: ReturnType<typeof setTimeout> | null = null;
+  let thought2HideTimeout: ReturnType<typeof setTimeout> | null = null;
 
   // Parse thoughts from the last message
   $: if ($messages.length > 0) {
@@ -110,17 +122,65 @@
     }
   }
 
+  function updateSpeechTextFromLastAssistantMessage(): boolean {
+    const lastMsg = $messages[$messages.length - 1];
+    if (!lastMsg || lastMsg.role !== "assistant") {
+      return false;
+    }
+
+    let content = lastMsg.content;
+    content = content.replace(/\([^)]*\)/g, "");
+    content = content.replace(/\[[^\]]*\]/g, "");
+    speechText = content.trim();
+    return !!speechText;
+  }
+
+  function startSpeechFallback(): void {
+    if (!updateSpeechTextFromLastAssistantMessage()) {
+      return;
+    }
+
+    model?.stateManager?.onAssistantSpeechStarted();
+    showSpeech = true;
+  }
+
+  export function fallbackToTextSpeech(): void {
+    startSpeechFallback();
+  }
+
+  function clearThought2Timers(): void {
+    if (thought2RevealTimeout) {
+      clearTimeout(thought2RevealTimeout);
+      thought2RevealTimeout = null;
+    }
+    if (thought2HideTimeout) {
+      clearTimeout(thought2HideTimeout);
+      thought2HideTimeout = null;
+    }
+  }
+
+  function scheduleThought2Flow(): void {
+    clearThought2Timers();
+    showThought2 = true;
+
+    if (!thought2) {
+      return;
+    }
+
+    const delay = Math.floor(Math.random() * 1000) + 2000;
+    thought2RevealTimeout = setTimeout(() => {
+      showThought2 = true;
+      thought2HideTimeout = setTimeout(() => {
+        showThought2 = false;
+        thought2HideTimeout = null;
+      }, 8000);
+      thought2RevealTimeout = null;
+    }, delay);
+  }
+
   function handleThoughtEnded(): void {
     if ($ttsState == "connected") return;
-    const lastMsg = $messages[$messages.length - 1];
-    if (lastMsg.role === "assistant") {
-      let content = lastMsg.content;
-      content = content.replace(/\([^)]*\)/g, "");
-      content = content.replace(/\[[^\]]*\]/g, "");
-      console.log("content: ", content);
-      speechText = content;
-    }
-    showSpeech = true;
+    startSpeechFallback();
     setTimeout(() => {
       showThought1 = false;
     }, 2000);
@@ -129,10 +189,9 @@
   function handleSpeechEnded(): void {
     showSpeech = false;
     showThought1 = false;
-    showThought2 = true;
-    setTimeout(() => {
-      showThought2 = false;
-    }, 8000);
+    isSpeaking = false;
+    model?.stateManager?.onAssistantSpeechFinished();
+    scheduleThought2Flow();
   }
 
   let cfg = {
@@ -149,6 +208,7 @@
   onDestroy(() => {
     unload();
     clearTimeout(listeningTimeout);
+    clearThought2Timers();
   });
 
   function loadVrm() {
@@ -165,6 +225,17 @@
             model = m;
             model?.setCanvas(canvas);
             viewer = getViewer();
+
+            if (viewer) {
+              renderScale = viewer.getRenderScale();
+              usePostProcessing = viewer.getUsePostProcessing();
+              cameraFov = viewer.camera.fov;
+              const lightState = viewer.getKeyLightState();
+              lightIntensity = lightState.intensity;
+              lightX = lightState.x;
+              lightY = lightState.y;
+              lightZ = lightState.z;
+            }
 
             updateCameraPosition();
             if (model) model.cfg = cfg;
@@ -218,17 +289,17 @@
   }
 
   function handleInputChange(text: string) {
-    model?.stateManager?.setListening(true);
-
     clearTimeout(listeningTimeout);
 
     if (text === "") {
-      model?.stateManager?.setListening(false);
+      model?.stateManager?.onUserInputChanged(false);
       return;
     }
 
+    model?.stateManager?.onUserInputChanged(true);
+
     listeningTimeout = setTimeout(() => {
-      model?.stateManager?.setListening(false);
+      model?.stateManager?.onUserInputChanged(false);
     }, 3000);
   }
 
@@ -252,7 +323,7 @@
     if (!model || !persona) return;
 
     clearTimeout(listeningTimeout);
-    model.stateManager?.setListening(false);
+    model.stateManager?.beginAssistantResponse();
     //model.doGesture('Listening Intro.fbx');
 
     // Reset thoughts
@@ -260,6 +331,7 @@
     thought2 = "";
     showThought1 = false;
     showThought2 = false;
+    clearThought2Timers();
 
     try {
       isLoading = true;
@@ -278,33 +350,22 @@
 
   export function speek(audio: ArrayBuffer) {
     if (model) {
-      model.stateManager?.setSpeaking(true);
+      model.stateManager?.onAssistantSpeechStarted();
 
       isSpeaking = true;
-      // Keep thought1 visible for a bit longer into speech, then fade
-      // setTimeout(() => {
-      //   showThought1 = false;
-      // }, 2000); // 2 seconds overlap
-
+      showThought1 = false;
       showThought2 = false;
       showSpeech = false;
+      clearThought2Timers();
 
       model
         .speak(audio)
         .then(() => {
-          model!.stateManager?.setSpeaking(false);
-          isSpeaking = false;
-          showThought1 = false; // Ensure thought1 is gone
-
-          if (thought2) {
-            showThought2 = true;
-            setTimeout(() => {
-              showThought2 = false;
-            }, 8000);
-          }
+          handleSpeechEnded();
         })
         .catch((error) => {
           console.error("Error speaking:", error);
+          model?.stateManager?.onAssistantSpeechFinished();
           isSpeaking = false;
         });
     } else {
@@ -326,15 +387,41 @@
   let cameraHeightOffset = -0.45;
   let cameraRotationOffsetY = -8;
   let cameraRotationOffsetX = 14;
+  let cameraFov = 25;
+
+  let renderScale = 1;
+  let usePostProcessing = false;
+  let lightIntensity = 2.1;
+  let lightX = 0.9;
+  let lightY = 1.9;
+  let lightZ = 0.9;
+  let backgroundOpacity = 1;
 
   // Trigger update when internal debug offsets change (if they still exist)
-  $: if (
-    cameraDistanceOffset ||
-    cameraHeightOffset ||
-    cameraRotationOffsetY ||
-    cameraRotationOffsetX
-  ) {
-    updateCameraPosition();
+  $: {
+    cameraDistanceOffset;
+    cameraHeightOffset;
+    cameraRotationOffsetY;
+    cameraRotationOffsetX;
+    if (viewer) {
+      updateCameraPosition();
+    }
+  }
+
+  $: if (viewer) {
+    viewer.setRenderScale(renderScale);
+  }
+
+  $: if (viewer) {
+    viewer.setUsePostProcessing(usePostProcessing);
+  }
+
+  $: if (viewer) {
+    viewer.setCameraFov(cameraFov);
+  }
+
+  $: if (viewer) {
+    viewer.setKeyLight(lightIntensity, lightX, lightY, lightZ);
   }
 
   function updateCameraPosition() {
@@ -382,6 +469,38 @@
     viewer.camera.lookAt(new THREE.Vector3(center.x, lookAtHeight, center.z));
     viewer.camera.updateProjectionMatrix();
   }
+
+  function resetGraphicsDebugSettings() {
+    renderScale = 1;
+    usePostProcessing = false;
+    cameraFov = 25;
+    lightIntensity = 2.1;
+    lightX = 0.9;
+    lightY = 1.9;
+    lightZ = 0.9;
+    backgroundOpacity = 1;
+  }
+
+  function resetCameraDebugSettings() {
+    cameraDistanceOffset = 0.2;
+    cameraHeightOffset = -0.45;
+    cameraRotationOffsetY = -8;
+    cameraRotationOffsetX = 14;
+    closeupScale = 1.0;
+    closeupOffset = 0.0;
+    isCloseup = false;
+  }
+
+  function resetHitDebugSettings() {
+    cfg = {
+      rotImpulseHead: 30,
+      halfRotHead: 0.5,
+      rotImpulseBody: 12,
+      halfRotBody: 0.25,
+      rotImpulseLimb: 10,
+      halfRotLimb: 0.3,
+    };
+  }
 </script>
 
 <!-- svelte-ignore a11y_no_static_element_interactions -->
@@ -407,6 +526,7 @@
       src={backgroundImage}
       alt="background"
       class="vrm-bg"
+      style:opacity={backgroundOpacity}
       draggable="false"
     />
   {/if}
@@ -449,6 +569,294 @@
           {/if}
         </small>
       </div>
+    </div>
+  {/if}
+
+  {#if isLocalDebugHost}
+    <div class="debug-controls">
+      <button
+        class="debug-btn"
+        type="button"
+        on:click={() => (showDebugUI = !showDebugUI)}
+      >
+        VRM Debug
+      </button>
+
+      {#if showDebugUI}
+        <div class="vrm-debug-panel">
+          <section class="vrm-debug-section">
+            <div class="vrm-debug-title-row">
+              <strong>Graphics</strong>
+              <button
+                type="button"
+                class="debug-reset-btn"
+                on:click={resetGraphicsDebugSettings}
+              >
+                Reset
+              </button>
+            </div>
+
+            <div class="debug-static-row">
+              <span>Render Scale</span>
+              <strong>1.00 Fixed</strong>
+            </div>
+
+            <label class="debug-field checkbox">
+              <input type="checkbox" bind:checked={usePostProcessing} />
+              <span>Use PostProcessing</span>
+            </label>
+
+            <label class="debug-field">
+              <span>Camera FOV</span>
+              <input
+                type="range"
+                min="15"
+                max="45"
+                step="1"
+                bind:value={cameraFov}
+              />
+              <strong>{cameraFov.toFixed(0)}</strong>
+            </label>
+
+            <label class="debug-field">
+              <span>Light Intensity</span>
+              <input
+                type="range"
+                min="0"
+                max="3"
+                step="0.05"
+                bind:value={lightIntensity}
+              />
+              <strong>{lightIntensity.toFixed(2)}</strong>
+            </label>
+
+            <label class="debug-field">
+              <span>Light X</span>
+              <input
+                type="range"
+                min="-4"
+                max="4"
+                step="0.1"
+                bind:value={lightX}
+              />
+              <strong>{lightX.toFixed(1)}</strong>
+            </label>
+
+            <label class="debug-field">
+              <span>Light Y</span>
+              <input
+                type="range"
+                min="-1"
+                max="5"
+                step="0.1"
+                bind:value={lightY}
+              />
+              <strong>{lightY.toFixed(1)}</strong>
+            </label>
+
+            <label class="debug-field">
+              <span>Light Z</span>
+              <input
+                type="range"
+                min="-4"
+                max="5"
+                step="0.1"
+                bind:value={lightZ}
+              />
+              <strong>{lightZ.toFixed(1)}</strong>
+            </label>
+
+            {#if backgroundImage}
+              <label class="debug-field">
+                <span>BG Opacity</span>
+                <input
+                  type="range"
+                  min="0"
+                  max="1"
+                  step="0.01"
+                  bind:value={backgroundOpacity}
+                />
+                <strong>{backgroundOpacity.toFixed(2)}</strong>
+              </label>
+            {/if}
+          </section>
+
+          <section class="vrm-debug-section">
+            <div class="vrm-debug-title-row">
+              <strong>Camera</strong>
+              <button
+                type="button"
+                class="debug-reset-btn"
+                on:click={resetCameraDebugSettings}
+              >
+                Reset
+              </button>
+            </div>
+
+            <label class="debug-field checkbox">
+              <input type="checkbox" bind:checked={isCloseup} />
+              <span>Closeup</span>
+            </label>
+
+            <label class="debug-field">
+              <span>Closeup Scale</span>
+              <input
+                type="range"
+                min="0.8"
+                max="2.8"
+                step="0.05"
+                bind:value={closeupScale}
+              />
+              <strong>{closeupScale.toFixed(2)}</strong>
+            </label>
+
+            <label class="debug-field">
+              <span>Closeup Offset</span>
+              <input
+                type="range"
+                min="-0.5"
+                max="0.5"
+                step="0.01"
+                bind:value={closeupOffset}
+              />
+              <strong>{closeupOffset.toFixed(2)}</strong>
+            </label>
+
+            <label class="debug-field">
+              <span>Distance</span>
+              <input
+                type="range"
+                min="-2"
+                max="2"
+                step="0.05"
+                bind:value={cameraDistanceOffset}
+              />
+              <strong>{cameraDistanceOffset.toFixed(2)}</strong>
+            </label>
+
+            <label class="debug-field">
+              <span>Height</span>
+              <input
+                type="range"
+                min="-1.2"
+                max="1.2"
+                step="0.05"
+                bind:value={cameraHeightOffset}
+              />
+              <strong>{cameraHeightOffset.toFixed(2)}</strong>
+            </label>
+
+            <label class="debug-field">
+              <span>Yaw</span>
+              <input
+                type="range"
+                min="-180"
+                max="180"
+                step="1"
+                bind:value={cameraRotationOffsetY}
+              />
+              <strong>{cameraRotationOffsetY.toFixed(0)}°</strong>
+            </label>
+
+            <label class="debug-field">
+              <span>Pitch</span>
+              <input
+                type="range"
+                min="-45"
+                max="45"
+                step="1"
+                bind:value={cameraRotationOffsetX}
+              />
+              <strong>{cameraRotationOffsetX.toFixed(0)}°</strong>
+            </label>
+          </section>
+
+          <section class="vrm-debug-section">
+            <div class="vrm-debug-title-row">
+              <strong>Hit Reaction</strong>
+              <button
+                type="button"
+                class="debug-reset-btn"
+                on:click={resetHitDebugSettings}
+              >
+                Reset
+              </button>
+            </div>
+
+            <label class="debug-field">
+              <span>Head Impulse</span>
+              <input
+                type="range"
+                min="5"
+                max="60"
+                step="0.5"
+                bind:value={cfg.rotImpulseHead}
+              />
+              <strong>{cfg.rotImpulseHead.toFixed(1)}</strong>
+            </label>
+
+            <label class="debug-field">
+              <span>Head Half-life</span>
+              <input
+                type="range"
+                min="0.05"
+                max="0.8"
+                step="0.01"
+                bind:value={cfg.halfRotHead}
+              />
+              <strong>{cfg.halfRotHead.toFixed(2)}</strong>
+            </label>
+
+            <label class="debug-field">
+              <span>Body Impulse</span>
+              <input
+                type="range"
+                min="5"
+                max="40"
+                step="0.5"
+                bind:value={cfg.rotImpulseBody}
+              />
+              <strong>{cfg.rotImpulseBody.toFixed(1)}</strong>
+            </label>
+
+            <label class="debug-field">
+              <span>Body Half-life</span>
+              <input
+                type="range"
+                min="0.05"
+                max="0.8"
+                step="0.01"
+                bind:value={cfg.halfRotBody}
+              />
+              <strong>{cfg.halfRotBody.toFixed(2)}</strong>
+            </label>
+
+            <label class="debug-field">
+              <span>Limb Impulse</span>
+              <input
+                type="range"
+                min="5"
+                max="40"
+                step="0.5"
+                bind:value={cfg.rotImpulseLimb}
+              />
+              <strong>{cfg.rotImpulseLimb.toFixed(1)}</strong>
+            </label>
+
+            <label class="debug-field">
+              <span>Limb Half-life</span>
+              <input
+                type="range"
+                min="0.05"
+                max="0.8"
+                step="0.01"
+                bind:value={cfg.halfRotLimb}
+              />
+              <strong>{cfg.halfRotLimb.toFixed(2)}</strong>
+            </label>
+          </section>
+        </div>
+      {/if}
     </div>
   {/if}
 
@@ -649,7 +1057,7 @@
     height: 100vh;
     height: 100dvh;
     overflow: hidden;
-    background-color: #000;
+    background-color: transparent;
   }
 
   .vrm-bg {
@@ -660,7 +1068,7 @@
     height: 100%;
     object-fit: cover;
     z-index: 0;
-    opacity: 0.6;
+    opacity: 1;
   }
 
   .vrm-canvas {
@@ -711,6 +1119,103 @@
     z-index: 10;
 
     background-color: rgba(255, 255, 255, 0); /* 배경색을 반투명하게 설정 */
+  }
+
+  .debug-controls {
+    position: fixed;
+    top: 16px;
+    right: 16px;
+    z-index: 9999;
+    pointer-events: auto;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 10px;
+  }
+
+  .debug-btn {
+    background: rgba(0, 0, 0, 0.82);
+    color: #8cff8c;
+    border: 1px solid rgba(140, 255, 140, 0.35);
+    padding: 10px 14px;
+    border-radius: 10px;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 700;
+    backdrop-filter: blur(10px);
+  }
+
+  .vrm-debug-panel {
+    width: min(360px, calc(100vw - 32px));
+    max-height: calc(100dvh - 88px);
+    overflow: auto;
+    padding: 14px;
+    border-radius: 14px;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: rgba(10, 12, 16, 0.92);
+    box-shadow: 0 18px 40px rgba(0, 0, 0, 0.45);
+    backdrop-filter: blur(14px);
+    color: #f3f6fb;
+  }
+
+  .vrm-debug-section + .vrm-debug-section {
+    margin-top: 18px;
+    padding-top: 18px;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+  }
+
+  .vrm-debug-title-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 10px;
+  }
+
+  .debug-static-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 12px;
+    padding: 10px 12px;
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.04);
+    font-size: 12px;
+  }
+
+  .debug-reset-btn {
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: rgba(255, 255, 255, 0.06);
+    color: #fff;
+    border-radius: 999px;
+    padding: 5px 10px;
+    font-size: 12px;
+    cursor: pointer;
+  }
+
+  .debug-field {
+    display: grid;
+    grid-template-columns: 90px 1fr auto;
+    align-items: center;
+    gap: 10px;
+    margin-top: 10px;
+    font-size: 12px;
+  }
+
+  .debug-field.checkbox {
+    grid-template-columns: auto 1fr;
+  }
+
+  .debug-field input[type="range"] {
+    width: 100%;
+  }
+
+  .debug-field strong {
+    min-width: 52px;
+    text-align: right;
+    color: #9dff9d;
+    font-variant-numeric: tabular-nums;
   }
 
   .camera-controls {

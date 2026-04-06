@@ -8,6 +8,12 @@
         encodedSoftList,
         decodeSafe,
     } from "$lib/utils/encodedBannedWords";
+    import {
+        formatWeightedCharCount,
+        getWeightedRawMaxLength,
+        getWeightedCharCount,
+        isWeightedLimitReached,
+    } from "$lib/utils/weightedText";
     import { toast } from "$lib/stores/toast";
 
     export let persona: Persona;
@@ -109,15 +115,15 @@
                 ? $t("editPage.oneLinerPlaceholder")
                 : $t("editPage.oneLinerPlaceholder")}
             bind:value={persona.one_liner}
-            maxlength="60"
+            maxlength={getWeightedRawMaxLength(persona.one_liner, 60)}
             class="input-field"
         />
         <div
-            class="char-counter {(persona.one_liner || '').length > 60
+            class="char-counter {isWeightedLimitReached(persona.one_liner, 60)
                 ? 'error'
                 : ''}"
         >
-            {(persona.one_liner || "").length}/60
+            {formatWeightedCharCount(persona.one_liner)}/60
         </div>
     </div>
     <div class="form-group">
@@ -138,14 +144,14 @@
                 default: $t("editPage.greetingPlaceholderDefault"),
             })}
             rows="3"
-            maxlength="200"
+            maxlength={getWeightedRawMaxLength(persona.greeting, 200)}
         ></textarea>
         <div
             class="char-counter"
-            class:warning={persona.greeting.length > 160}
-            class:error={persona.greeting.length >= 200}
+            class:warning={getWeightedCharCount(persona.greeting) > 160}
+            class:error={isWeightedLimitReached(persona.greeting, 200)}
         >
-            {persona.greeting.length} / 200
+            {formatWeightedCharCount(persona.greeting)} / 200
         </div>
     </div>
     <div class="form-group">

@@ -1,7 +1,8 @@
 <script>
     import { t, locale } from "svelte-i18n";
-    import { marked } from "marked";
     import { get } from "svelte/store";
+    import { branding } from "$lib/branding/config";
+    import { renderBrandedMarkdown } from "$lib/branding/markdown";
 
     let licensesContent = "";
 
@@ -14,7 +15,7 @@
           : import(`$lib/i18n/locales/en/licenses.md?raw`)
     )
         .then(async (module) => {
-            licensesContent = await marked(module.default);
+            licensesContent = await renderBrandedMarkdown(module.default);
         })
         .catch((error) => {
             console.error("Error loading licenses.md:", error);
@@ -23,7 +24,7 @@
 </script>
 
 <svelte:head>
-    <title>Licenses & Neurons - PersonaXi</title>
+    <title>Licenses & Neurons - {branding.legalServiceName}</title>
 </svelte:head>
 
 <div class="licenses-container">

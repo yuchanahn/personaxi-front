@@ -2,6 +2,7 @@
     import { locale, t } from "svelte-i18n";
     import Icon from "@iconify/svelte";
     import { getLocalizedStaticDocHref } from "$lib/utils/localePaths";
+    import { branding } from "$lib/branding/config";
 </script>
 
 <footer
@@ -47,7 +48,9 @@
                 class="text-foreground/80 hover:text-foreground underline decoration-border/50 underline-offset-2 transition-colors"
                 >{$t("legal.termsOfService")}</a
             >
-            <a href="/licenses" class="hover:text-foreground transition-colors"
+            <a
+                href={getLocalizedStaticDocHref($locale, "licenses")}
+                class="hover:text-foreground transition-colors"
                 >{$t("legal.licensesAndCredits")}</a
             >
 
@@ -64,7 +67,7 @@
             </div>
 
             <p class="opacity-40 ml-auto text-[9px]">
-                © 2026 PersonaXi. All Rights Reserved.
+                © 2026 {branding.copyrightName}. All Rights Reserved.
             </p>
         </div>
     </div>

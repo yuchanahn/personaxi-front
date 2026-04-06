@@ -27,3 +27,4 @@ You will soon be able to request review by checking `Original Character` during 
 > [!NOTE]
 > **Preparation**
 > Having **setting documents**, **worldview descriptions**, and **original illustrations** ready will help pass the review!
+

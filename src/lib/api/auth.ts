@@ -5,7 +5,7 @@ import { t as $t, locale as $locale, locale } from "svelte-i18n";
 import { get } from "svelte/store";
 import { accessToken } from "$lib/stores/auth";
 import { st_user } from "$lib/stores/user";
-import { settings } from "$lib/stores/settings";
+import { branding } from "$lib/branding/config";
 
 
 export function getBaseUrl(): string {
@@ -13,7 +13,7 @@ export function getBaseUrl(): string {
   if (host === 'localhost' || host === '127.0.0.1') {
     return 'http://localhost:5173/';
   } else {
-    return 'https://personaxi.com/';
+    return `${branding.publicOrigin}/`;
   }
 }
 
@@ -44,10 +44,6 @@ export async function getCurrentUser(): Promise<any | null> {
 
   if (res.ok) {
     st_user.set(user);
-    settings.update((current) => ({
-      ...current,
-      safetyFilterOn: user?.data?.safetyFilterOn ?? true,
-    }));
   }
 
   return res.ok ? user : null;

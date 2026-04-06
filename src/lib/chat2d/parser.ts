@@ -19,7 +19,8 @@ const ALL_TAGS_REGEX =
 const FIRST_SCENE_TAG_REGEX = /<first_scene>/g;
 const VARS_TAG_REGEX = /(?:\s*)<vars\b[^>]*>[\s\S]*?<\/vars>(?:\s*)/gi;
 const RAW_HTML_IMG_REGEX = /<img\b[^>]*>/i;
-const GAME_UI_GROUP_OPEN_REGEX = /<div\b[^>]*class=(["'])[^"']*\bgame-ui-group\b[^"']*\1[^>]*>/i;
+const BLOCK_HTML_OPEN_REGEX =
+    /<(div|section|article|header|footer|main|aside|table|ul|ol|form|figure|figcaption|details|blockquote)\b[^>]*>/i;
 
 export function parseChat2DMessages(
     messages: Message[],
@@ -305,13 +306,9 @@ function splitNarrationHtmlSegments(content: string) {
 
     while (cursor < content.length) {
         const nextImageIndex = findNextMatchIndex(RAW_HTML_IMG_REGEX, content, cursor);
-        const nextGameUiIndex = findNextMatchIndex(
-            GAME_UI_GROUP_OPEN_REGEX,
-            content,
-            cursor,
-        );
+        const nextBlockMatch = execFrom(BLOCK_HTML_OPEN_REGEX, content, cursor);
 
-        const candidates = [nextImageIndex, nextGameUiIndex].filter(
+        const candidates = [nextImageIndex, nextBlockMatch?.index ?? -1].filter(
             (value): value is number => value >= 0,
         );
 
@@ -334,8 +331,13 @@ function splitNarrationHtmlSegments(content: string) {
             continue;
         }
 
-        if (nextIndex === nextGameUiIndex) {
-            const extracted = extractBalancedDiv(content, nextIndex);
+        if (nextBlockMatch && nextIndex === nextBlockMatch.index) {
+            const tagName = nextBlockMatch[0]
+                ?.match(/^<([a-z0-9]+)/i)?.[1]
+                ?.toLowerCase();
+            const extracted = tagName
+                ? extractBalancedElement(content, nextIndex, tagName)
+                : null;
             if (!extracted) {
                 segments.push({ type: "text", content: content.slice(nextIndex) });
                 break;
@@ -364,13 +366,19 @@ function execFrom(regex: RegExp, content: string, from: number) {
     };
 }
 
-function extractBalancedDiv(content: string, startIndex: number) {
+function extractBalancedElement(
+    content: string,
+    startIndex: number,
+    tagName: string,
+) {
     let depth = 0;
     let cursor = startIndex;
+    const openRegex = new RegExp(`<${tagName}\\b[^>]*>`, "i");
+    const closeRegex = new RegExp(`</${tagName}>`, "i");
 
     while (cursor < content.length) {
-        const nextOpen = content.slice(cursor).match(/<div\b[^>]*>/i);
-        const nextClose = content.slice(cursor).match(/<\/div>/i);
+        const nextOpen = content.slice(cursor).match(openRegex);
+        const nextClose = content.slice(cursor).match(closeRegex);
 
         const openIndex =
             nextOpen && nextOpen.index != null ? cursor + nextOpen.index : -1;

@@ -2,7 +2,7 @@
 
 **Last Updated: 2026-02-04**
 
-PXI adheres to a fair refund policy.
+{{PUBLIC_BRAND_NAME}} adheres to a fair refund policy.
 
 ## 1. Neuron Payment Cancellation
 
@@ -29,7 +29,8 @@ Need a refund? Please contact support with the following info:
 
 > [!IMPORTANT]
 > **Contact Channels**
-> *   📧 Email: [support@PXI.com](mailto:support@PXI.com)
+> *   📧 Email: [{{SUPPORT_EMAIL}}](mailto:{{SUPPORT_EMAIL}})
 > *   💬 Discord: [#support-ticket](https://discord.gg/v88p26Fpmc) channel
+
 
 

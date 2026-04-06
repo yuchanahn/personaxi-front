@@ -1,6 +1,6 @@
 # Notification Settings
 
-Don't miss out on important news from PXI. 🔔
+Don't miss out on important news from {{PUBLIC_BRAND_NAME}}. 🔔
 
 ## 📢 Notification Types
 
@@ -18,4 +18,5 @@ Don't miss out on important news from PXI. 🔔
 > [!NOTE]
 > **Web Push**
 > Notifications use browser push technology. You must **Allow** notifications in your browser settings to receive them.
+
 
