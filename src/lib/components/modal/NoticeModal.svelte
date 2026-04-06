@@ -3,10 +3,10 @@
     import { fade } from "svelte/transition";
     import { onMount, onDestroy } from "svelte";
     import Icon from "@iconify/svelte";
-    import { t } from "svelte-i18n";
+    import { locale, t } from "svelte-i18n";
     import AssetPreview from "../AssetPreview.svelte";
     import type { ImageMetadata } from "$lib/types";
-    import { branding } from "$lib/branding/config";
+    import { getBranding } from "$lib/branding/config";
 
     const dispatch = createEventDispatcher();
 
@@ -28,6 +28,9 @@
     onDestroy(() => {
         window.removeEventListener("keydown", handleKeydown);
     });
+
+    let branding = getBranding();
+    $: branding = getBranding($locale);
 
     let asset: ImageMetadata = {
         description: branding.publicBrandName,

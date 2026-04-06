@@ -5,17 +5,17 @@ import { applyBrandingMessages } from '$lib/branding/placeholders';
 
 register('en', () =>
     import('$lib/i18n/locales/en.json').then((module) =>
-        applyBrandingMessages(module.default),
+        applyBrandingMessages(module.default, 'en'),
     ),
 );
 register('ko', () =>
     import('$lib/i18n/locales/ko.json').then((module) =>
-        applyBrandingMessages(module.default),
+        applyBrandingMessages(module.default, 'ko'),
     ),
 );
 register('ja', () =>
     import('$lib/i18n/locales/ja.json').then((module) =>
-        applyBrandingMessages(module.default),
+        applyBrandingMessages(module.default, 'ja'),
     ),
 );
 

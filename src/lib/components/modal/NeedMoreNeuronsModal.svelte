@@ -276,7 +276,7 @@
 
         loadPromise
             .then(async (module) => {
-                noticeContent = await renderBrandedMarkdown(module.default);
+                noticeContent = await renderBrandedMarkdown(module.default, loc);
             })
             .catch((e) => {
                 console.error(e);

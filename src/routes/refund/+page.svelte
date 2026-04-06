@@ -1,12 +1,14 @@
 <script>
     import { locale, t } from "svelte-i18n";
     import { get } from "svelte/store";
-    import { branding } from "$lib/branding/config";
+    import { getBranding } from "$lib/branding/config";
     import { renderBrandedMarkdown } from "$lib/branding/markdown";
 
     let refundContent = "";
 
     let loc = get(locale) || "en";
+    let branding = getBranding();
+    $: branding = getBranding($locale);
 
     // Load refund.md based on locale
     (loc === "ko"
@@ -16,7 +18,7 @@
           : import(`$lib/i18n/locales/en/refund.md?raw`)
     )
         .then(async (module) => {
-            refundContent = await renderBrandedMarkdown(module.default);
+            refundContent = await renderBrandedMarkdown(module.default, loc);
         })
         .catch((error) => {
             console.error("Error loading refund.md:", error);

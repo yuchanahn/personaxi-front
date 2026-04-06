@@ -7,7 +7,7 @@
     import DOMPurify from "isomorphic-dompurify";
     import { onMount } from "svelte";
     import { api } from "$lib/api";
-    import { branding } from "$lib/branding/config";
+    import { getBranding } from "$lib/branding/config";
     import { renderBrandedMarkdown } from "$lib/branding/markdown";
 
     // Configure Marked with Alerts
@@ -50,6 +50,8 @@
     // 🗂️ Data Structure
     let currentTab: TabType = "guide";
     let isLangMenuOpen = false;
+    let branding = getBranding();
+    $: branding = getBranding($locale);
 
     // Load MD files eagerly as raw text
     const mdModules = import.meta.glob("./content/**/*.md", {
@@ -342,6 +344,7 @@
 
                 const html = await renderBrandedMarkdown(
                     contentRaw || "No content.",
+                    $locale,
                 );
                 if (currentReqId === requestId) {
                     noticeContentHtml = DOMPurify.sanitize(html);
@@ -380,7 +383,7 @@
         }
 
         if (typeof rawMd === "string") {
-            return await renderBrandedMarkdown(rawMd);
+            return await renderBrandedMarkdown(rawMd, lang);
         } else {
             return `<div class="p-8 text-center text-muted-foreground bg-muted/20 rounded-xl my-8">
                 <p class="font-medium">Content is being prepared...</p>

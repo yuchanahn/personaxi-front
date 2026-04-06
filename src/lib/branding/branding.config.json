@@ -1,6 +1,16 @@
 {
-  "publicBrandName": "PXI",
-  "legalServiceName": "PersonaXi",
+  "publicBrandName": {
+    "default": "페로챗",
+    "ko": "페로챗",
+    "en": "PERO CHAT",
+    "ja": "ペロチャット"
+  },
+  "legalServiceName": {
+    "default": "페로챗",
+    "ko": "페로챗",
+    "en": "PERO CHAT",
+    "ja": "ペロチャット"
+  },
   "legalEntityName": "PersonaXI",
   "serviceSlug": "personaxi",
   "publicOrigin": "https://personaxi.com",
@@ -8,5 +18,10 @@
   "supportEmail": "support@personaxi.com",
   "privacyEmail": "privacy@personaxi.com",
   "contactEmail": "contact@personaxi.com",
-  "copyrightName": "PersonaXi"
+  "copyrightName": {
+    "default": "페로챗",
+    "ko": "페로챗",
+    "en": "PERO CHAT",
+    "ja": "ペロチャット"
+  }
 }

@@ -12,29 +12,78 @@ $manifestTemplatePath = Join-Path $staticRoot "manifest.template.json"
 $manifestPath = Join-Path $staticRoot "manifest.json"
 $brandingConfigPath = Join-Path $projectRoot "src\lib\branding\branding.config.json"
 $branding = Get-Content -Path $brandingConfigPath -Raw -Encoding utf8 | ConvertFrom-Json
+
+function Resolve-BrandingValue {
+    param(
+        $Value,
+        [string]$Locale = ""
+    )
+
+    if ($Value -is [string]) {
+        return [string]$Value
+    }
+
+    if ($null -eq $Value) {
+        return ""
+    }
+
+    $candidates = @()
+    if ($Locale) {
+        $candidates += $Locale
+    }
+    $candidates += @("default", "ko", "en", "ja")
+
+    foreach ($candidate in ($candidates | Select-Object -Unique)) {
+        if ($Value.PSObject.Properties.Name -contains $candidate) {
+            $resolved = [string]$Value.$candidate
+            if ($resolved) {
+                return $resolved
+            }
+        }
+    }
+
+    foreach ($property in $Value.PSObject.Properties) {
+        $resolved = [string]$property.Value
+        if ($resolved) {
+            return $resolved
+        }
+    }
+
+    return ""
+}
+
 $publicOrigin = $branding.publicOrigin.TrimEnd("/")
 $apiOrigin = $branding.apiOrigin.TrimEnd("/")
 $publicHost = ([uri]$publicOrigin).Host
 $apiHost = ([uri]$apiOrigin).Host
-$publicBrandName = [string]$branding.publicBrandName
-$legalServiceName = [string]$branding.legalServiceName
+$publicBrandName = Resolve-BrandingValue $branding.publicBrandName
+$legalServiceName = Resolve-BrandingValue $branding.legalServiceName
 $legalEntityName = [string]$branding.legalEntityName
 $serviceSlug = [string]$branding.serviceSlug
 $supportEmail = [string]$branding.supportEmail
 $privacyEmail = [string]$branding.privacyEmail
 $contactEmail = [string]$branding.contactEmail
-$copyrightName = [string]$branding.copyrightName
+$copyrightName = Resolve-BrandingValue $branding.copyrightName
 $appTitle = "$publicBrandName - AI Chat, Your Way"
 $appDescription = "From status panels to Live2D and VRM, $publicBrandName is the only AI chat platform where you can design how characters appear."
 $ogImageUrl = "$publicOrigin/og-image-v3.png"
 
 function Apply-BrandingText {
-    param([string]$Text)
+    param(
+        [string]$Text,
+        [string]$Locale = ""
+    )
+
+    $localizedPublicBrandName = Resolve-BrandingValue $branding.publicBrandName $Locale
+    $localizedLegalServiceName = Resolve-BrandingValue $branding.legalServiceName $Locale
+    $localizedCopyrightName = Resolve-BrandingValue $branding.copyrightName $Locale
+    $localizedAppTitle = "$localizedPublicBrandName - AI Chat, Your Way"
+    $localizedAppDescription = "From status panels to Live2D and VRM, $localizedPublicBrandName is the only AI chat platform where you can design how characters appear."
 
     $result = $Text
     $replacements = @(
-        @("{{PUBLIC_BRAND_NAME}}", $publicBrandName),
-        @("{{LEGAL_SERVICE_NAME}}", $legalServiceName),
+        @("{{PUBLIC_BRAND_NAME}}", $localizedPublicBrandName),
+        @("{{LEGAL_SERVICE_NAME}}", $localizedLegalServiceName),
         @("{{LEGAL_ENTITY_NAME}}", $legalEntityName),
         @("{{SERVICE_SLUG}}", $serviceSlug),
         @("{{PUBLIC_ORIGIN}}", $publicOrigin),
@@ -44,9 +93,9 @@ function Apply-BrandingText {
         @("{{SUPPORT_EMAIL}}", $supportEmail),
         @("{{PRIVACY_EMAIL}}", $privacyEmail),
         @("{{CONTACT_EMAIL}}", $contactEmail),
-        @("{{COPYRIGHT_NAME}}", $copyrightName),
-        @("{{APP_TITLE}}", $appTitle),
-        @("{{APP_DESCRIPTION}}", $appDescription),
+        @("{{COPYRIGHT_NAME}}", $localizedCopyrightName),
+        @("{{APP_TITLE}}", $localizedAppTitle),
+        @("{{APP_DESCRIPTION}}", $localizedAppDescription),
         @("{{OG_IMAGE_URL}}", $ogImageUrl)
     )
 
@@ -65,11 +114,12 @@ function Write-BrandedTemplateFile {
     param(
         [string]$TemplatePath,
         [string]$OutputPath,
-        [string]$GeneratedComment = ""
+        [string]$GeneratedComment = "",
+        [string]$Locale = ""
     )
 
     $template = Get-Content -Path $TemplatePath -Raw -Encoding utf8
-    $output = Apply-BrandingText $template
+    $output = Apply-BrandingText $template $Locale
 
     if ($GeneratedComment) {
         $output = $GeneratedComment + "`r`n" + $output
@@ -143,8 +193,11 @@ function New-StaticLegalDoc {
     )
 
     $meta = Get-LangMeta -Lang $Lang
+    $localizedLegalServiceName = Resolve-BrandingValue $branding.legalServiceName $Lang
+    $localizedTitle = Apply-BrandingText $Title $Lang
+    $localizedDescription = Apply-BrandingText $Description $Lang
     $markdownSource = Get-Content -Path $MarkdownPath -Raw -Encoding utf8
-    $markdown = ConvertFrom-Markdown -InputObject (Apply-BrandingText $markdownSource)
+    $markdown = ConvertFrom-Markdown -InputObject (Apply-BrandingText $markdownSource $Lang)
     $contentHtml = $markdown.Html
 
     $navTermsHref = "/$Lang/terms/"
@@ -157,21 +210,21 @@ function New-StaticLegalDoc {
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>$Title</title>
-    <meta name="description" content="$Description" />
+    <title>$localizedTitle</title>
+    <meta name="description" content="$localizedDescription" />
     <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
     <link rel="canonical" href="$CanonicalUrl" />
 $Alternates
     <meta property="og:type" content="article" />
     <meta property="og:url" content="$CanonicalUrl" />
-    <meta property="og:title" content="$Title" />
-    <meta property="og:description" content="$Description" />
+    <meta property="og:title" content="$localizedTitle" />
+    <meta property="og:description" content="$localizedDescription" />
     <meta property="og:image" content="$ogImageUrl" />
-    <meta property="og:site_name" content="$legalServiceName" />
+    <meta property="og:site_name" content="$localizedLegalServiceName" />
     <meta property="og:locale" content="$($meta.Locale)" />
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="$Title" />
-    <meta name="twitter:description" content="$Description" />
+    <meta name="twitter:title" content="$localizedTitle" />
+    <meta name="twitter:description" content="$localizedDescription" />
     <meta name="twitter:image" content="$ogImageUrl" />
     <link rel="icon" href="/favicon.png" />
     <style>
@@ -298,8 +351,8 @@ $Alternates
 <body>
     <main>
         <div class="doc">
-            <p class="eyebrow">$legalServiceName $DocType</p>
-            <p class="lead">$Description</p>
+            <p class="eyebrow">$localizedLegalServiceName $DocType</p>
+            <p class="lead">$localizedDescription</p>
             <nav class="nav">
                 <a href="/">$($meta.HomeLabel)</a>
                 <a href="$navTermsHref">$($meta.TermsLabel)</a>
@@ -332,8 +385,8 @@ $docs = @(
     @{
         MarkdownPath = Join-Path $localesRoot "ko\terms.md"
         OutputPath   = Join-Path $staticRoot "ko\terms\index.html"
-        Title        = "$legalServiceName 이용약관"
-        Description  = "$legalServiceName 서비스 이용약관 정적 문서."
+        Title        = "{{LEGAL_SERVICE_NAME}} 이용약관"
+        Description  = "{{LEGAL_SERVICE_NAME}} 서비스 이용약관 정적 문서."
         Lang         = "ko"
         CanonicalUrl = "$publicOrigin/ko/terms/"
         Alternates   = $termsAlternates
@@ -342,8 +395,8 @@ $docs = @(
     @{
         MarkdownPath = Join-Path $localesRoot "en\terms.md"
         OutputPath   = Join-Path $staticRoot "en\terms\index.html"
-        Title        = "$legalServiceName Terms of Service"
-        Description  = "Static Terms of Service document for $legalServiceName."
+        Title        = "{{LEGAL_SERVICE_NAME}} Terms of Service"
+        Description  = "Static Terms of Service document for {{LEGAL_SERVICE_NAME}}."
         Lang         = "en"
         CanonicalUrl = "$publicOrigin/en/terms/"
         Alternates   = $termsAlternates
@@ -352,8 +405,8 @@ $docs = @(
     @{
         MarkdownPath = Join-Path $localesRoot "ja\terms.md"
         OutputPath   = Join-Path $staticRoot "ja\terms\index.html"
-        Title        = "$legalServiceName Terms of Service"
-        Description  = "Static Terms of Service document for $legalServiceName."
+        Title        = "{{LEGAL_SERVICE_NAME}} Terms of Service"
+        Description  = "Static Terms of Service document for {{LEGAL_SERVICE_NAME}}."
         Lang         = "ja"
         CanonicalUrl = "$publicOrigin/ja/terms/"
         Alternates   = $termsAlternates
@@ -362,8 +415,8 @@ $docs = @(
     @{
         MarkdownPath = Join-Path $localesRoot "ko\policy.md"
         OutputPath   = Join-Path $staticRoot "ko\privacy\index.html"
-        Title        = "$legalServiceName 개인정보처리방침"
-        Description  = "$legalServiceName 개인정보처리방침 정적 문서."
+        Title        = "{{LEGAL_SERVICE_NAME}} 개인정보처리방침"
+        Description  = "{{LEGAL_SERVICE_NAME}} 개인정보처리방침 정적 문서."
         Lang         = "ko"
         CanonicalUrl = "$publicOrigin/ko/privacy/"
         Alternates   = $privacyAlternates
@@ -372,8 +425,8 @@ $docs = @(
     @{
         MarkdownPath = Join-Path $localesRoot "en\policy.md"
         OutputPath   = Join-Path $staticRoot "en\privacy\index.html"
-        Title        = "$legalServiceName Privacy Policy"
-        Description  = "Static Privacy Policy document for $legalServiceName."
+        Title        = "{{LEGAL_SERVICE_NAME}} Privacy Policy"
+        Description  = "Static Privacy Policy document for {{LEGAL_SERVICE_NAME}}."
         Lang         = "en"
         CanonicalUrl = "$publicOrigin/en/privacy/"
         Alternates   = $privacyAlternates
@@ -382,8 +435,8 @@ $docs = @(
     @{
         MarkdownPath = Join-Path $localesRoot "ja\policy.md"
         OutputPath   = Join-Path $staticRoot "ja\privacy\index.html"
-        Title        = "$legalServiceName Privacy Policy"
-        Description  = "Static Privacy Policy document for $legalServiceName."
+        Title        = "{{LEGAL_SERVICE_NAME}} Privacy Policy"
+        Description  = "Static Privacy Policy document for {{LEGAL_SERVICE_NAME}}."
         Lang         = "ja"
         CanonicalUrl = "$publicOrigin/ja/privacy/"
         Alternates   = $privacyAlternates
@@ -392,8 +445,8 @@ $docs = @(
     @{
         MarkdownPath = Join-Path $localesRoot "ko\licenses.md"
         OutputPath   = Join-Path $staticRoot "ko\licenses\index.html"
-        Title        = "$legalServiceName 라이선스 및 권리 고지"
-        Description  = "$legalServiceName 라이선스 및 2차 창작 권리 고지 정적 문서."
+        Title        = "{{LEGAL_SERVICE_NAME}} 라이선스 및 권리 고지"
+        Description  = "{{LEGAL_SERVICE_NAME}} 라이선스 및 2차 창작 권리 고지 정적 문서."
         Lang         = "ko"
         CanonicalUrl = "$publicOrigin/ko/licenses/"
         Alternates   = $licensesAlternates
@@ -402,8 +455,8 @@ $docs = @(
     @{
         MarkdownPath = Join-Path $localesRoot "en\licenses.md"
         OutputPath   = Join-Path $staticRoot "en\licenses\index.html"
-        Title        = "$legalServiceName Licenses and Rights Notice"
-        Description  = "Static licenses and derivative-work rights notice for $legalServiceName."
+        Title        = "{{LEGAL_SERVICE_NAME}} Licenses and Rights Notice"
+        Description  = "Static licenses and derivative-work rights notice for {{LEGAL_SERVICE_NAME}}."
         Lang         = "en"
         CanonicalUrl = "$publicOrigin/en/licenses/"
         Alternates   = $licensesAlternates
@@ -412,8 +465,8 @@ $docs = @(
     @{
         MarkdownPath = Join-Path $localesRoot "ja\licenses.md"
         OutputPath   = Join-Path $staticRoot "ja\licenses\index.html"
-        Title        = "$legalServiceName Licenses and Rights Notice"
-        Description  = "Static licenses and derivative-work rights notice for $legalServiceName."
+        Title        = "{{LEGAL_SERVICE_NAME}} Licenses and Rights Notice"
+        Description  = "Static licenses and derivative-work rights notice for {{LEGAL_SERVICE_NAME}}."
         Lang         = "ja"
         CanonicalUrl = "$publicOrigin/ja/licenses/"
         Alternates   = $licensesAlternates

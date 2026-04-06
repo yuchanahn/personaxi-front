@@ -1,12 +1,14 @@
 <script>
     import { t, locale } from "svelte-i18n";
     import { get } from "svelte/store";
-    import { branding } from "$lib/branding/config";
+    import { getBranding } from "$lib/branding/config";
     import { renderBrandedMarkdown } from "$lib/branding/markdown";
 
     let licensesContent = "";
 
     let loc = get(locale) || "en";
+    let branding = getBranding();
+    $: branding = getBranding($locale);
 
     (loc === "ko"
         ? import(`$lib/i18n/locales/ko/licenses.md?raw`)
@@ -15,7 +17,7 @@
           : import(`$lib/i18n/locales/en/licenses.md?raw`)
     )
         .then(async (module) => {
-            licensesContent = await renderBrandedMarkdown(module.default);
+            licensesContent = await renderBrandedMarkdown(module.default, loc);
         })
         .catch((error) => {
             console.error("Error loading licenses.md:", error);

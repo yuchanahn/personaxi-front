@@ -1,6 +1,10 @@
 <script lang="ts">
     import ContentHub from "$lib/components/portal/ContentHub.svelte";
-    import { branding } from "$lib/branding/config";
+    import { locale } from "svelte-i18n";
+    import { getBranding } from "$lib/branding/config";
+
+    let branding = getBranding();
+    $: branding = getBranding($locale);
 </script>
 
 <svelte:head>

@@ -2,7 +2,16 @@
     import { locale, t } from "svelte-i18n";
     import Icon from "@iconify/svelte";
     import { getLocalizedStaticDocHref } from "$lib/utils/localePaths";
-    import { branding } from "$lib/branding/config";
+    import { getBranding } from "$lib/branding/config";
+
+    const koreanBusinessName = "페르소나엑스아이";
+    let branding = getBranding();
+
+    $: footerCompanyName =
+        $locale === "ko" ? koreanBusinessName : String($t("footer.companyName"));
+    $: branding = getBranding($locale);
+    $: footerCopyrightName =
+        $locale === "ko" ? koreanBusinessName : branding.copyrightName;
 </script>
 
 <footer
@@ -10,7 +19,7 @@
 >
     <div class="max-w-screen-xl mx-auto w-full flex flex-col gap-2 text-left">
         <h3 class="text-xs font-bold text-foreground opacity-90">
-            {$t("footer.companyName")}
+            {footerCompanyName}
         </h3>
 
         <div
@@ -67,7 +76,7 @@
             </div>
 
             <p class="opacity-40 ml-auto text-[9px]">
-                © 2026 {branding.copyrightName}. All Rights Reserved.
+                © 2026 {footerCopyrightName}. All Rights Reserved.
             </p>
         </div>
     </div>
