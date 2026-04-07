@@ -1334,11 +1334,13 @@
         width: 100%;
         margin: 0 auto;
         padding: 0 1rem;
+        box-sizing: border-box;
         min-height: 100vh;
         display: flex;
         flex-direction: column;
         gap: 1.5rem;
         padding-bottom: 3rem;
+        overflow-x: hidden;
     }
 
     /* ============================================
@@ -1545,6 +1547,10 @@
         background: var(--background);
         color: var(--foreground);
         font-size: 0.95rem;
+        width: 100%;
+        min-width: 0;
+        max-width: 100%;
+        box-sizing: border-box;
     }
 
     .input-field:focus {
@@ -1731,6 +1737,7 @@
         display: flex;
         flex-direction: column;
         flex: 1;
+        min-width: 0;
     }
 
     .tabs-header {
@@ -1740,11 +1747,13 @@
         gap: 1rem;
         padding: 0 0 1rem;
         border-bottom: 2px solid var(--border);
+        min-width: 0;
     }
 
     .tabs-nav {
         display: flex;
         gap: 0.5rem;
+        min-width: 0;
     }
 
     .tab-item {
@@ -1814,6 +1823,7 @@
         padding: 1.5rem 0;
         flex: 1;
         overflow-y: auto;
+        min-width: 0;
     }
 
     .profile-tab-content {
@@ -2022,8 +2032,10 @@
         }
 
         .tabs-nav {
-            flex: 1;
-            overflow-x: auto;
+            flex: 1 1 auto;
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            overflow-x: hidden;
         }
 
         .tab-label,
@@ -2033,10 +2045,10 @@
         }
 
         .tab-item {
-            flex: 1;
             justify-content: center;
             padding: 0.75rem 0.5rem;
-            min-width: fit-content;
+            min-width: 0;
+            width: 100%;
         }
 
         .content-grid {
@@ -2046,6 +2058,11 @@
 
         .content-area {
             padding-bottom: 80px;
+        }
+
+        .enhanced-actions {
+            flex-wrap: wrap;
+            gap: 0.5rem;
         }
     }
 
@@ -2143,6 +2160,8 @@
         display: flex;
         align-items: center;
         justify-content: space-between;
+        gap: 0.75rem;
+        flex-wrap: wrap;
         margin-bottom: 0.75rem;
     }
 
@@ -2183,12 +2202,23 @@
     .user-persona-editor {
         display: grid;
         gap: 0.5rem;
+        min-width: 0;
+    }
+
+    .user-persona-editor > * {
+        min-width: 0;
+    }
+
+    .user-persona-editor textarea.input-field {
+        resize: vertical;
     }
 
     .user-persona-actions {
         display: flex;
         gap: 0.5rem;
         justify-content: flex-end;
+        flex-wrap: wrap;
+        min-width: 0;
     }
 
     .small-outline-btn,
