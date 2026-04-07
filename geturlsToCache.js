@@ -2,7 +2,7 @@ import { readdirSync, statSync } from 'fs';
 import { join } from 'path';
 
 const buildDir = 'build';
-const urlsToCache = ['/', '/index.html', '/manifest.json'];
+const urlsToCache = ['/', '/index.html', '/site.webmanifest'];
 
 function collectFiles(dir, prefix = '') {
     readdirSync(dir).forEach((file) => {

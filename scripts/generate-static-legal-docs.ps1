@@ -8,8 +8,9 @@ $appTemplatePath = Join-Path $projectRoot "src\app.template.html"
 $appHtmlPath = Join-Path $projectRoot "src\app.html"
 $offlineTemplatePath = Join-Path $staticRoot "offline.template.html"
 $offlineHtmlPath = Join-Path $staticRoot "offline.html"
-$manifestTemplatePath = Join-Path $staticRoot "manifest.template.json"
-$manifestPath = Join-Path $staticRoot "manifest.json"
+$manifestTemplatePath = Join-Path $staticRoot "site.webmanifest.template"
+$manifestPath = Join-Path $staticRoot "site.webmanifest"
+$legacyManifestPath = Join-Path $staticRoot "manifest.json"
 $brandingConfigPath = Join-Path $projectRoot "src\lib\branding\branding.config.json"
 $branding = Get-Content -Path $brandingConfigPath -Raw -Encoding utf8 | ConvertFrom-Json
 
@@ -226,7 +227,8 @@ $Alternates
     <meta name="twitter:title" content="$localizedTitle" />
     <meta name="twitter:description" content="$localizedDescription" />
     <meta name="twitter:image" content="$ogImageUrl" />
-    <link rel="icon" href="/favicon.png" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="shortcut icon" href="/favicon.ico" />
     <style>
         :root {
             color-scheme: light;
@@ -538,4 +540,8 @@ Write-BrandedTemplateFile `
 Write-BrandedTemplateFile `
     -TemplatePath $manifestTemplatePath `
     -OutputPath $manifestPath
+
+if (Test-Path -LiteralPath $legacyManifestPath) {
+    Remove-Item -LiteralPath $legacyManifestPath -Force
+}
 
