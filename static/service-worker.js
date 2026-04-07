@@ -1,4 +1,4 @@
-const VERSION = 'v0.4.0';                            // ← 버전만 올리면 배포된 SW가 교체됨
+const VERSION = 'v0.5.0';                            // ← 버전만 올리면 배포된 SW가 교체됨
 const PRECACHE = `precache-${VERSION}`;          // 정적 자산
 const RUNTIME = `runtime-${VERSION}`;           // 동적 캐시
 const MAX_RUNTIME_ENTRIES = 200;                 // RUNTIME 캐시 최대 항목 수
@@ -8,8 +8,8 @@ const API_CACHE_TTL_MS = 5 * 60 * 1000;          // API 캐시 TTL: 5분
 const PRECACHE_URLS = [
     '/',                        // index.html 대체
     '/offline.html',            // 네트워크 실패 시 폴백
-    '/icons/icon-192.png',
-    '/icons/icon-512.png'
+    '/web-app-manifest-192x192.png',
+    '/web-app-manifest-512x512.png'
 ];
 
 /* ---------- Helpers ---------- */

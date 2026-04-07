@@ -1,10 +1,11 @@
 import type { CapacitorConfig } from "@capacitor/cli";
+import { getBranding } from "./src/lib/branding/config";
 
 const externalServerUrl = process.env.CAP_SERVER_URL?.trim();
 
 const config: CapacitorConfig = {
   appId: "com.personaxi.app",
-  appName: "PXI",
+  appName: getBranding().publicBrandName,
   webDir: "build",
   bundledWebRuntime: false,
   plugins: {

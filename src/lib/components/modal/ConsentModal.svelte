@@ -76,9 +76,11 @@
                 ]);
                 termsOfServiceContent = await renderBrandedMarkdown(
                     termsModule.default,
+                    loc,
                 );
                 privacyPolicyContent = await renderBrandedMarkdown(
                     policyModule.default,
+                    loc,
                 );
             } catch (e) {
                 console.error("Failed to load consent documents:", e);

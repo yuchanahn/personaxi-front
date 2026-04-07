@@ -7,15 +7,16 @@
         getCachedAssetType,
         resolveAssetType,
     } from "$lib/api/edit_persona";
+    import { locale } from "svelte-i18n";
     import type { ImageMetadata } from "$lib/types";
     import Icon from "@iconify/svelte";
     import { createEventDispatcher, onDestroy, onMount } from "svelte";
-    import { branding } from "$lib/branding/config";
+    import { getBranding } from "$lib/branding/config";
 
-export let asset: ImageMetadata;
-export let showVideoPosterFallback: boolean = false;
-export let enableVideoPlayback: boolean = true;
-export let useSimpleVideoLayout: boolean = false;
+    export let asset: ImageMetadata;
+    export let showVideoPosterFallback: boolean = false;
+    export let enableVideoPlayback: boolean = true;
+    export let useSimpleVideoLayout: boolean = false;
 
     const dispatch = createEventDispatcher();
     const EMPTY_ASSET: ImageMetadata = {
@@ -34,6 +35,9 @@ export let useSimpleVideoLayout: boolean = false;
     let videoReady = false;
     let lastAssetUrl = "";
     let unknownPreviewMode: "image" | "video" | "fallback" = "image";
+    let branding = getBranding();
+
+    $: branding = getBranding($locale);
 
     function dispatchAssetLoad(
         loadedUrl: string,

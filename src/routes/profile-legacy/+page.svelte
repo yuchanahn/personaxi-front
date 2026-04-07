@@ -11,7 +11,7 @@
     import { PORTRAIT_URL, allCategories } from "$lib/constants";
     import Icon from "@iconify/svelte";
     import { LikeBtn, loadlikesdata } from "$lib/api/content";
-    import { t } from "svelte-i18n";
+    import { locale, t } from "svelte-i18n";
     import { api } from "$lib/api";
     import { settings } from "$lib/stores/settings";
     import { get } from "svelte/store";
@@ -21,7 +21,7 @@
     import { st_user } from "$lib/stores/user";
     import { toast } from "$lib/stores/toast";
     import ReportModal from "$lib/components/modal/ReportModal.svelte";
-    import { branding, buildPublicUrl } from "$lib/branding/config";
+    import { buildPublicUrl, getBranding } from "$lib/branding/config";
 
     let persona: Persona | null = null;
     let comments: Comment[] = [];
@@ -33,6 +33,8 @@
     let galleryImages: ImageMetadata[] = [];
     let currentImageIndex = 0;
     let firstSceneFrame: HTMLIFrameElement | null = null;
+    let branding = getBranding();
+    $: branding = getBranding($locale);
 
     async function loadComments(personaId: string): Promise<Comment[]> {
         const response = await api.get2(`/api/comments?personaId=${personaId}`);

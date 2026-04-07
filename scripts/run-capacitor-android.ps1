@@ -42,6 +42,7 @@ $env:ANDROID_HOME = $sdkRoot
 $adbPath = Join-Path $sdkRoot "platform-tools\adb.exe"
 $gradleWrapperPath = Join-Path $projectRoot "android\gradlew.bat"
 $apkPath = Join-Path $projectRoot "android\app\build\outputs\apk\debug\app-debug.apk"
+$iconScriptPath = Join-Path $PSScriptRoot "generate-android-launcher-icons.ps1"
 $startScriptPath = Join-Path $PSScriptRoot "start-android-emulator.ps1"
 $externalServerUrl = $env:CAP_SERVER_URL
 
@@ -51,6 +52,10 @@ if (-not (Test-Path $adbPath)) {
 
 if (-not (Test-Path $gradleWrapperPath)) {
     throw "Gradle wrapper not found at $gradleWrapperPath"
+}
+
+if (-not (Test-Path $iconScriptPath)) {
+    throw "Android icon generator not found at $iconScriptPath"
 }
 
 $serial = Get-RunningEmulatorSerial -AdbPath $adbPath
@@ -71,6 +76,7 @@ try {
         Write-Output "Using external server: $externalServerUrl"
     }
 
+    & $iconScriptPath
     npx cap sync android
 
     Push-Location (Join-Path $projectRoot "android")

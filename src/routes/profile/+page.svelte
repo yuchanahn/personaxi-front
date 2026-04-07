@@ -11,7 +11,7 @@
     import { allCategories } from "$lib/constants";
     import Icon from "@iconify/svelte";
     import { loadlikesdata } from "$lib/api/content";
-    import { t } from "svelte-i18n";
+    import { locale, t } from "svelte-i18n";
     import { api } from "$lib/api";
     import { get } from "svelte/store";
     import { chatSessions } from "$lib/stores/chatSessions";
@@ -21,7 +21,7 @@
     import { toast } from "$lib/stores/toast";
     import ReportModal from "$lib/components/modal/ReportModal.svelte";
     import { AuthRequiredError } from "$lib/stores/authGate";
-    import { branding, buildPublicUrl } from "$lib/branding/config";
+    import { buildPublicUrl, getBranding } from "$lib/branding/config";
 
     let persona: Persona | null = null;
     let comments: Comment[] = [];
@@ -37,6 +37,8 @@
     let moreActionsEl: HTMLDivElement | null = null;
     let thumbnailAspectRatios: number[] = [];
     let thumbnailCenterKey = "";
+    let branding = getBranding();
+    $: branding = getBranding($locale);
 
     const DEFAULT_THUMB_RATIO = 0.78;
     const MIN_THUMB_RATIO = 0.62;
