@@ -82,6 +82,24 @@
             : undefined;
     }
 
+    function getMyPersonaPreviewAsset(persona: Persona) {
+        const optimizedStatic = getMyPersonaStaticThumb(
+            persona.static_portrait_url,
+        );
+        const hasSeparateStaticPortrait =
+            !!persona.static_portrait_url &&
+            persona.static_portrait_url !== persona.portrait_url;
+
+        return {
+            url: hasSeparateStaticPortrait
+                ? persona.portrait_url
+                : getMyPersonaPortraitThumb(persona.portrait_url) ||
+                  persona.portrait_url,
+            static_url: optimizedStatic,
+            description: "",
+        };
+    }
+
     function getOptimizedProfileImage(url?: string, size = 320) {
         return url
             ? getOptimizedSupabaseImageUrl(url, {
@@ -1140,16 +1158,7 @@
                                 on:click={() => handleStartChat(persona)}
                             >
                                 <AssetPreview
-                                    asset={{
-                                        url:
-                                            getMyPersonaPortraitThumb(
-                                                persona.portrait_url,
-                                            ) || persona.portrait_url,
-                                        static_url: getMyPersonaStaticThumb(
-                                            persona.static_portrait_url,
-                                        ),
-                                        description: "",
-                                    }}
+                                    asset={getMyPersonaPreviewAsset(persona)}
                                 />
                                 <div class="hover-overlay">
                                     <Icon
