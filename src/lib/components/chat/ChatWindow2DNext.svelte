@@ -9,7 +9,10 @@
   import type { Persona, ImageMetadata } from "$lib/types";
   import { messages, type Message } from "$lib/stores/messages";
   import { st_user } from "$lib/stores/user";
-  import { chatSessions } from "$lib/stores/chatSessions";
+  import {
+    chatSessions,
+    type DialogueRenderStyle,
+  } from "$lib/stores/chatSessions";
   import { interactiveChat } from "$lib/actions/interactiveChat";
   import { api } from "$lib/api";
   import { getCachedAssetType } from "$lib/api/edit_persona";
@@ -69,6 +72,7 @@
   let lastPreparedBackgroundKey = "";
   const loadedBackgroundImageUrls = new Set<string>();
   const loadedBackgroundVideoUrls = new Set<string>();
+  let dialogueRenderStyle: DialogueRenderStyle = "bubble";
 
   function getScrollContainer() {
     return scrollContainer;
@@ -860,6 +864,9 @@
   $: scrollContainer = scrollTarget ?? chatWindowEl ?? null;
 
   $: sharedChatStyleCSS = normalizeSharedChatStyleCSS(persona?.chat_style_css);
+  $: dialogueRenderStyle =
+    $chatSessions.find((s) => s.id === persona?.id)?.dialogueRenderStyle ||
+    "bubble";
 
   $: {
     const source = $messages;
@@ -987,16 +994,30 @@
     {:else if item.type === "narration"}
       <ChatRenderer content={item.content} wrapperClass="px-narration" />
     {:else if item.type === "dialogue"}
-      <div class="message assistant">
-        <div class="speaker-name">{item.speaker}</div>
-        <div class="dialogue-bubble px-dialogue">
-          <ChatRenderer
-            content={item.content}
-            isMessage={true}
-            wrapperClass="px-dialogue__content"
-          />
+      {#if dialogueRenderStyle === "inline-yellow"}
+        <div class="message assistant assistant-inline-yellow">
+          <div class="dialogue-inline-yellow px-dialogue-inline">
+            <span class="dialogue-inline-yellow__speaker">{item.speaker}</span>
+            <span class="dialogue-inline-yellow__separator">|</span>
+            <ChatRenderer
+              content={item.content}
+              isMessage={true}
+              wrapperClass="px-dialogue-inline__content"
+            />
+          </div>
         </div>
-      </div>
+      {:else}
+        <div class="message assistant">
+          <div class="speaker-name">{item.speaker}</div>
+          <div class="dialogue-bubble px-dialogue">
+            <ChatRenderer
+              content={item.content}
+              isMessage={true}
+              wrapperClass="px-dialogue__content"
+            />
+          </div>
+        </div>
+      {/if}
     {:else if item.type === "image" && showImage && !showBackground}
       <div class="image-block">
         <ChatImage
@@ -1186,6 +1207,52 @@
     align-self: flex-start;
     flex-direction: column;
     gap: 0.25rem;
+  }
+
+  .message.assistant.assistant-inline-yellow {
+    display: block;
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .dialogue-inline-yellow.px-dialogue-inline {
+    color: #facc15;
+    font-weight: 600;
+    line-height: 1.75;
+    text-shadow: 0 0 14px rgba(250, 204, 21, 0.14);
+  }
+
+  .dialogue-inline-yellow__speaker {
+    color: #fde68a;
+    font-weight: 800;
+  }
+
+  .dialogue-inline-yellow__separator {
+    display: inline-block;
+    margin: 0 0.35rem;
+    color: #facc15;
+  }
+
+  .dialogue-inline-yellow :global(.message.px-dialogue-inline__content) {
+    display: inline;
+    width: auto;
+    max-width: none;
+    margin: 0;
+    padding: 0;
+    background: transparent;
+    color: inherit;
+    line-height: inherit;
+    word-break: break-word;
+  }
+
+  .dialogue-inline-yellow :global(.message.px-dialogue-inline__content p) {
+    display: inline;
+    margin: 0;
+  }
+
+  .dialogue-inline-yellow
+    :global(.message.px-dialogue-inline__content p + p)::before {
+    content: " ";
   }
 
   .user-interaction {
