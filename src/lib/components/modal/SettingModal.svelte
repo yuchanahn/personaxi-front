@@ -8,8 +8,15 @@
     import { settings } from "$lib/stores/settings";
 
     import { api } from "$lib/api";
-    import type { Persona, User, UserPersona } from "$lib/types";
-    import { deleteChatHistory, resetChatHistory } from "$lib/api/chat";
+    import type { ChatSaveSlot, Persona, User, UserPersona } from "$lib/types";
+    import {
+        createChatSaveSlot,
+        deleteChatHistory,
+        deleteChatSaveSlot,
+        listChatSaveSlots,
+        loadChatSaveSlot,
+        resetChatHistory,
+    } from "$lib/api/chat";
     import { loadlikesdata } from "$lib/api/content";
     import { page } from "$app/stores";
     import { goto } from "$app/navigation";
@@ -18,6 +25,7 @@
         chatSessions,
         getDefaultDialogueRenderStyle,
         setSessionDialogueRenderStyle,
+        type ChatSession,
         type DialogueRenderStyle,
     } from "$lib/stores/chatSessions";
     import { getCurrentUser } from "$lib/api/auth";
@@ -74,6 +82,13 @@
     let isLoadingUserPersonas = false;
     let isLiked = false;
     let statusTimer: ReturnType<typeof setTimeout> | null = null;
+    let currentSession: ChatSession | null = null;
+    let saveSlots: ChatSaveSlot[] = [];
+    let saveSlotName = "";
+    let isLoadingSaveSlots = false;
+    let isSavingSaveSlot = false;
+    let loadingSaveSlotId = "";
+    let deletingSaveSlotId = "";
 
     // --- New Features State ---
     let userNote = "";
@@ -132,6 +147,11 @@
                   },
               })
             : "";
+    $: currentSession =
+        $chatSessions.find((s) => s.id === currentSessionId()) || null;
+    $: sessionEndingState = {
+        ended: !!currentSession?.ended,
+    };
 
     function toggleSection(section: "quick" | "display" | "reference" | "management") {
         if (section === "quick") openQuickSettings = !openQuickSettings;
@@ -301,6 +321,39 @@
                 console.error("Failed to load likes:", e);
             }
         }
+
+        if (mode === "2d") {
+            await loadSaveSlots();
+        }
+    }
+
+    async function loadSaveSlots() {
+        if (mode !== "2d") return;
+        const cssid = currentSessionId();
+        if (!cssid) {
+            saveSlots = [];
+            return;
+        }
+
+        isLoadingSaveSlots = true;
+        try {
+            saveSlots = await listChatSaveSlots(cssid);
+        } catch (error) {
+            console.error("Failed to load save slots:", error);
+            saveSlots = [];
+        } finally {
+            isLoadingSaveSlots = false;
+        }
+    }
+
+    function formatSaveSlotTimestamp(value: string) {
+        if (!value) return "";
+        const date = new Date(value);
+        if (Number.isNaN(date.getTime())) return value;
+        return new Intl.DateTimeFormat(undefined, {
+            dateStyle: "short",
+            timeStyle: "short",
+        }).format(date);
     }
 
     async function handleLLMChange() {
@@ -364,6 +417,8 @@
     }
 
     async function handleResetChat() {
+        const cssid = currentSessionId();
+        if (!cssid) return;
         if (
             !(await confirmStore.ask($t("settingModal.confirmReset"), {
                 type: "warning",
@@ -373,7 +428,9 @@
         isLoading = true;
         await showStatus("Resetting chat...", 0);
         try {
-            await resetChatHistory(persona.id);
+            await resetChatHistory(cssid);
+            await loadSaveSlots();
+            dispatch("historyreload");
             await showStatus("✅ Chat Reset!");
             setTimeout(() => dispatch("close"), 1000);
         } catch (error) {
@@ -385,17 +442,109 @@
     }
 
     async function handleDeleteChat() {
+        const cssid = currentSessionId();
+        if (!cssid) return;
         isLoading = true;
         await showStatus("Deleting chat...", 0);
         try {
             dispatch("close");
-            await deleteChatHistory(persona.id);
+            await deleteChatHistory(cssid);
         } catch (error) {
             console.error("Failed to delete chat:", error);
             await showStatus("❌ Error!");
         } finally {
             isLoading = false;
             isConfirmingDelete = false;
+        }
+    }
+
+    async function handleCreateSaveSlot() {
+        const cssid = currentSessionId();
+        const nextName = saveSlotName.trim();
+        if (!cssid) return;
+        if (!nextName) {
+            toast.warning($t("settingModal.saveSlotNameRequired"));
+            return;
+        }
+
+        isSavingSaveSlot = true;
+        try {
+            const slot = await createChatSaveSlot(cssid, nextName);
+            saveSlots = [slot, ...saveSlots.filter((item) => item.id !== slot.id)];
+            saveSlotName = "";
+            toast.success($t("settingModal.saveSlotCreated"));
+        } catch (error) {
+            console.error("Failed to create save slot:", error);
+            toast.error(
+                error instanceof Error
+                    ? error.message
+                    : $t("settingModal.saveSlotCreateFailed"),
+            );
+        } finally {
+            isSavingSaveSlot = false;
+        }
+    }
+
+    async function handleLoadSaveSlot(slot: ChatSaveSlot) {
+        const cssid = currentSessionId();
+        if (!cssid) return;
+        if (
+            !(await confirmStore.ask(
+                $t("settingModal.confirmLoadSaveSlot", {
+                    values: { name: slot.name },
+                }),
+                { type: "warning" },
+            ))
+        ) {
+            return;
+        }
+
+        loadingSaveSlotId = slot.id;
+        try {
+            await loadChatSaveSlot(cssid, slot.id);
+            await loadSaveSlots();
+            dispatch("historyreload");
+            toast.success($t("settingModal.saveSlotLoaded"));
+        } catch (error) {
+            console.error("Failed to load save slot:", error);
+            toast.error(
+                error instanceof Error
+                    ? error.message
+                    : $t("settingModal.saveSlotLoadFailed"),
+            );
+        } finally {
+            loadingSaveSlotId = "";
+        }
+    }
+
+    async function handleDeleteSaveSlot(slot: ChatSaveSlot) {
+        const cssid = currentSessionId();
+        if (!cssid) return;
+        if (
+            !(await confirmStore.ask(
+                $t("settingModal.confirmDeleteSaveSlot", {
+                    values: { name: slot.name },
+                }),
+                { type: "warning" },
+            ))
+        ) {
+            return;
+        }
+
+        deletingSaveSlotId = slot.id;
+        try {
+            await deleteChatSaveSlot(cssid, slot.id);
+            saveSlots = saveSlots.filter((item) => item.id !== slot.id);
+            toast.success($t("settingModal.saveSlotDeleted"));
+        } catch (error) {
+            console.error("Failed to delete save slot:", error);
+            toast.error(
+                error instanceof Error
+                    ? error.message
+                    : $t("settingModal.saveSlotDeleteFailed"),
+            );
+        } finally {
+            deletingSaveSlotId = "";
         }
     }
 
@@ -466,6 +615,10 @@
         showSessionImages = false;
         selectedImage = null;
         modalLoadKey = "";
+        saveSlots = [];
+        saveSlotName = "";
+        loadingSaveSlotId = "";
+        deletingSaveSlotId = "";
     } else {
         const session = $chatSessions.find((s) => s.id === persona.id);
         userNote = session?.userNote || "";
@@ -1023,6 +1176,140 @@
                         </button>
                         {#if openSessionManagement}
                             <div class="section-panel" transition:slide={{ duration: 180 }}>
+                                {#if mode === "2d"}
+                                    <div class="settings-card">
+                                        <div class="card-header">
+                                            <Icon icon="ph:flag-banner-duotone" />
+                                            <span>{$t("settingModal.endingStatusTitle")}</span>
+                                        </div>
+                                        <div class="ending-status-card">
+                                            <div class="ending-status-card__copy">
+                                                <strong>
+                                                    {#if sessionEndingState.ended}
+                                                        {$t("chat2d.defaultEndingTitle")}
+                                                    {:else}
+                                                        {$t("settingModal.endingStatusOpen")}
+                                                    {/if}
+                                                </strong>
+                                                <span>
+                                                    {#if sessionEndingState.ended}
+                                                        {$t("chat2d.endingLockedHard")}
+                                                    {:else}
+                                                        {$t("settingModal.endingStatusOpenDescription")}
+                                                    {/if}
+                                                </span>
+                                            </div>
+                                            <span
+                                                class="ending-status-badge"
+                                                class:ended={sessionEndingState.ended}
+                                            >
+                                                {sessionEndingState.ended
+                                                    ? $t("settingModal.endingStatusEnded")
+                                                    : $t("settingModal.endingStatusOpen")}
+                                            </span>
+                                        </div>
+                                    </div>
+
+                                    <div class="settings-card">
+                                        <div class="card-header">
+                                            <Icon icon="ph:floppy-disk-back-duotone" />
+                                            <span>{$t("settingModal.saveSlotsTitle")}</span>
+                                        </div>
+                                        <p class="section-description">
+                                            {$t("settingModal.saveSlotsDescription")}
+                                        </p>
+                                        <div class="save-slot-input-row">
+                                            <input
+                                                class="save-slot-input"
+                                                type="text"
+                                                bind:value={saveSlotName}
+                                                placeholder={$t(
+                                                    "settingModal.saveSlotNamePlaceholder",
+                                                )}
+                                                maxlength="80"
+                                            />
+                                            <button
+                                                type="button"
+                                                class="save-slot-primary"
+                                                on:click={handleCreateSaveSlot}
+                                                disabled={isSavingSaveSlot}
+                                            >
+                                                {#if isSavingSaveSlot}
+                                                    {$t("settingModal.savingSaveSlot")}
+                                                {:else}
+                                                    {$t("settingModal.saveCurrentProgress")}
+                                                {/if}
+                                            </button>
+                                        </div>
+
+                                        {#if isLoadingSaveSlots}
+                                            <div class="no-data">
+                                                {$t("settingModal.loadingSaveSlots")}
+                                            </div>
+                                        {:else if saveSlots.length === 0}
+                                            <div class="no-data">
+                                                {$t("settingModal.saveSlotsEmpty")}
+                                            </div>
+                                        {:else}
+                                            <div class="save-slot-list">
+                                                {#each saveSlots as slot (slot.id)}
+                                                    <div class="save-slot-item">
+                                                        <div class="save-slot-meta">
+                                                            <strong>{slot.name}</strong>
+                                                            <span>
+                                                                {$t(
+                                                                    "settingModal.saveSlotUpdatedAt",
+                                                                    {
+                                                                        values: {
+                                                                            date: formatSaveSlotTimestamp(
+                                                                                slot.updatedAt,
+                                                                            ),
+                                                                        },
+                                                                    },
+                                                                )}
+                                                            </span>
+                                                        </div>
+                                                        <div class="save-slot-actions">
+                                                            <button
+                                                                type="button"
+                                                                class="save-slot-action"
+                                                                on:click={() =>
+                                                                    handleLoadSaveSlot(slot)}
+                                                                disabled={loadingSaveSlotId ===
+                                                                    slot.id}
+                                                            >
+                                                                {loadingSaveSlotId === slot.id
+                                                                    ? $t(
+                                                                          "settingModal.loadingSaveSlot",
+                                                                      )
+                                                                    : $t(
+                                                                          "settingModal.loadSaveSlot",
+                                                                      )}
+                                                            </button>
+                                                            <button
+                                                                type="button"
+                                                                class="save-slot-action save-slot-action--danger"
+                                                                on:click={() =>
+                                                                    handleDeleteSaveSlot(slot)}
+                                                                disabled={deletingSaveSlotId ===
+                                                                    slot.id}
+                                                            >
+                                                                {deletingSaveSlotId === slot.id
+                                                                    ? $t(
+                                                                          "settingModal.deletingSaveSlot",
+                                                                      )
+                                                                    : $t(
+                                                                          "settingModal.deleteSaveSlot",
+                                                                      )}
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                {/each}
+                                            </div>
+                                        {/if}
+                                    </div>
+                                {/if}
+
                                 <div class="settings-card">
                                     <div class="card-header">
                                         <Icon icon="ph:warning-circle-duotone" />
@@ -1733,6 +2020,152 @@
         padding: 8px;
     }
 
+    .ending-status-card {
+        margin-top: 8px;
+        padding: 14px;
+        border-radius: 14px;
+        border: 1px solid color-mix(in srgb, var(--border) 78%, transparent);
+        background: color-mix(in srgb, var(--background) 88%, var(--primary) 12%);
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 12px;
+    }
+
+    .ending-status-card__copy {
+        min-width: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+    }
+
+    .ending-status-card__copy strong {
+        font-size: 14px;
+        font-weight: 800;
+        color: var(--foreground);
+    }
+
+    .ending-status-card__copy span {
+        font-size: 12px;
+        line-height: 1.55;
+        color: var(--muted-foreground);
+    }
+
+    .ending-status-badge {
+        flex-shrink: 0;
+        padding: 5px 10px;
+        border-radius: 999px;
+        background: color-mix(in srgb, var(--muted) 82%, transparent);
+        color: var(--muted-foreground);
+        font-size: 11px;
+        font-weight: 800;
+        letter-spacing: 0.03em;
+    }
+
+    .ending-status-badge.ended {
+        background: rgba(250, 204, 21, 0.14);
+        color: #fde68a;
+    }
+
+    .save-slot-input-row {
+        display: flex;
+        align-items: stretch;
+        gap: 8px;
+        margin-top: 10px;
+    }
+
+    .save-slot-input {
+        flex: 1;
+        min-width: 0;
+        padding: 10px 12px;
+        border-radius: 10px;
+        border: 1px solid var(--border);
+        background: var(--background);
+        color: var(--foreground);
+        font-size: 13px;
+    }
+
+    .save-slot-primary {
+        flex-shrink: 0;
+        padding: 0 14px;
+        border: 1px solid color-mix(in srgb, var(--primary) 70%, transparent);
+        border-radius: 10px;
+        background: color-mix(in srgb, var(--primary) 18%, var(--background));
+        color: var(--foreground);
+        font-size: 12px;
+        font-weight: 700;
+        cursor: pointer;
+    }
+
+    .save-slot-primary:disabled {
+        opacity: 0.7;
+        cursor: wait;
+    }
+
+    .save-slot-list {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        margin-top: 12px;
+    }
+
+    .save-slot-item {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 12px;
+        border-radius: 12px;
+        border: 1px solid color-mix(in srgb, var(--border) 82%, transparent);
+        background: color-mix(in srgb, var(--background) 94%, transparent);
+    }
+
+    .save-slot-meta {
+        min-width: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+    }
+
+    .save-slot-meta strong {
+        font-size: 13px;
+        font-weight: 700;
+        color: var(--foreground);
+    }
+
+    .save-slot-meta span {
+        font-size: 11px;
+        color: var(--muted-foreground);
+    }
+
+    .save-slot-actions {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        flex-shrink: 0;
+    }
+
+    .save-slot-action {
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        background: var(--background);
+        color: var(--foreground);
+        padding: 8px 10px;
+        font-size: 12px;
+        font-weight: 700;
+        cursor: pointer;
+    }
+
+    .save-slot-action:disabled {
+        opacity: 0.7;
+        cursor: wait;
+    }
+
+    .save-slot-action--danger {
+        color: var(--destructive);
+        border-color: color-mix(in srgb, var(--destructive) 50%, var(--border));
+    }
+
     .fullscreen-overlay {
         position: fixed;
         inset: 0;
@@ -1824,6 +2257,24 @@
         .section-toggle-summary {
             white-space: normal;
             line-height: 1.45;
+        }
+
+        .ending-status-card,
+        .save-slot-item,
+        .save-slot-input-row {
+            flex-direction: column;
+            align-items: stretch;
+        }
+
+        .save-slot-actions {
+            width: 100%;
+            justify-content: stretch;
+        }
+
+        .save-slot-action,
+        .save-slot-primary {
+            width: 100%;
+            text-align: center;
         }
     }
 

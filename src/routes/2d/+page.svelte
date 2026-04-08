@@ -1,10 +1,15 @@
 <script lang="ts">
   import { page } from "$app/stores";
-  import { loadChatHistory, sendPromptStream } from "$lib/api/chat";
+  import { t } from "svelte-i18n";
+  import {
+    createFirstSceneMessage,
+    fetch2DChatHistoryPage,
+    sendPromptStream,
+  } from "$lib/api/chat";
   import ChatWindow2DNext from "$lib/components/chat/ChatWindow2DNext.svelte";
   import ChatInput from "$lib/components/chat/ChatInput.svelte";
   import "$lib/styles/chat-input-position.css";
-  import { onMount } from "svelte";
+  import { onMount, tick } from "svelte";
   import SettingsButton from "$lib/components/common/SettingsButton.svelte";
   import { loadPersona } from "$lib/api/edit_persona";
   import type { Persona } from "$lib/types";
@@ -13,6 +18,8 @@
   import { st_user } from "$lib/stores/user";
   import { ChatSessionType, chatSessions } from "$lib/stores/chatSessions";
   import { get } from "svelte/store";
+  import { loadCharacterSessions } from "$lib/api/sessions";
+  import { toastError } from "$lib/utils/errorMapper";
 
   import ModelSelector from "$lib/components/chat/ModelSelector.svelte";
   import { messages } from "$lib/stores/messages";
@@ -65,40 +72,146 @@
 
   let showModelSelector = false;
   let loadSequence = 0;
+  const HISTORY_PAGE_LIMIT = 40;
+  const LOAD_OLDER_THRESHOLD = 96;
+  let hasMoreHistory = false;
+  let oldestLoadedIdx: number | null = null;
+  let isLoadingOlderHistory = false;
+  let isEnded = false;
+
+  function applySessionRuntime(session: {
+    ended?: boolean;
+  }) {
+    isEnded = !!session?.ended;
+
+    const cssid = currentSessionId();
+    if (!cssid) return;
+
+    chatSessions.update((sessions) =>
+      sessions.map((item) =>
+        item.id === cssid
+          ? {
+              ...item,
+              ended: isEnded,
+            }
+          : item,
+      ),
+    );
+  }
+
+  function syncCurrentSessionRuntime() {
+    const session = get(chatSessions).find((s) => s.id === currentSessionId());
+    applySessionRuntime({
+      ended: session?.ended,
+    });
+  }
+
+  function replaceHistoryMessages(historyMessages: typeof $messages) {
+    const nextMessages = [createFirstSceneMessage(), ...historyMessages];
+    messages.set(nextMessages);
+
+    const historyOnly = historyMessages.filter((message) => message.idx != null);
+    oldestLoadedIdx = historyOnly.length > 0 ? historyOnly[0].idx ?? null : null;
+    showModelSelector = historyOnly.length === 0;
+  }
+
+  function prependOlderMessages(historyMessages: typeof $messages) {
+    if (!historyMessages.length) {
+      hasMoreHistory = false;
+      return;
+    }
+
+    messages.update((current) => {
+      const firstScene = current[0] ?? createFirstSceneMessage();
+      const existing = current.slice(1);
+      const existingIdx = new Set(
+        existing
+          .map((message) => message.idx)
+          .filter((value): value is number => value != null),
+      );
+      const dedupedOlder = historyMessages.filter(
+        (message) => message.idx == null || !existingIdx.has(message.idx),
+      );
+      return [firstScene, ...dedupedOlder, ...existing];
+    });
+
+    const firstOlder = historyMessages.find((message) => message.idx != null);
+    if (firstOlder?.idx != null) {
+      oldestLoadedIdx = firstOlder.idx;
+    }
+  }
+
+  async function loadRecentHistory(sessionId: string) {
+    const result = await fetch2DChatHistoryPage(sessionId, {
+      limit: HISTORY_PAGE_LIMIT,
+    });
+    replaceHistoryMessages(result.messages);
+    hasMoreHistory = result.hasMore;
+    applySessionRuntime(result.session || {});
+  }
+
+  async function loadOlderHistory() {
+    if (
+      isLoadingOlderHistory ||
+      !hasMoreHistory ||
+      oldestLoadedIdx == null ||
+      !chatScrollContainer ||
+      !currentSessionId()
+    ) {
+      return;
+    }
+
+    isLoadingOlderHistory = true;
+    const previousScrollHeight = chatScrollContainer.scrollHeight;
+    const previousScrollTop = chatScrollContainer.scrollTop;
+
+    try {
+      const result = await fetch2DChatHistoryPage(currentSessionId(), {
+        beforeIdx: oldestLoadedIdx,
+        limit: HISTORY_PAGE_LIMIT,
+      });
+      prependOlderMessages(result.messages);
+      hasMoreHistory = result.hasMore;
+      await tick();
+
+      if (chatScrollContainer) {
+        const nextScrollHeight = chatScrollContainer.scrollHeight;
+        chatScrollContainer.scrollTop =
+          previousScrollTop + (nextScrollHeight - previousScrollHeight);
+      }
+    } catch (error) {
+      console.error("Failed to load older chat history:", error);
+      toastError(error as Error);
+    } finally {
+      isLoadingOlderHistory = false;
+    }
+  }
+
+  function handleChatScroll() {
+    if (!chatScrollContainer || isLoadingOlderHistory || !hasMoreHistory) return;
+    if (chatScrollContainer.scrollTop <= LOAD_OLDER_THRESHOLD) {
+      void loadOlderHistory();
+    }
+  }
 
   const loadChatData = async () => {
     const sessionId = $page.url.searchParams.get("c");
     lastSessionId = sessionId;
     const currentLoad = ++loadSequence;
     if (sessionId) {
-      // 1. Clear previous state immediately (Fixes race condition & ghosting)
       messages.set([]);
       persona = null;
       showModelSelector = false;
+      hasMoreHistory = false;
+      oldestLoadedIdx = null;
+      isEnded = false;
 
       try {
-        console.log("[2D] before requireAuth", {
-          href: window.location.href,
-          sessionId,
-          lastSessionId,
-        });
-
         const canAccessChat = await requireAuth({
           source: "page",
           reason: "chat-2d-access",
         });
 
-        console.log("[2D] after requireAuth", {
-          canAccessChat,
-          href: window.location.href,
-          sessionId,
-          lastSessionId,
-        });
-        const historyPromise = canAccessChat
-          ? loadChatHistory(sessionId ?? "").catch((error) => {
-              console.error("Failed to load chat history:", error);
-            })
-          : Promise.resolve();
         const p = await loadPersona(sessionId);
 
         if (currentLoad !== loadSequence || lastSessionId !== sessionId) {
@@ -108,29 +221,20 @@
         persona = p;
 
         if (!canAccessChat) {
-          $messages = [
-            {
-              role: "assistant",
-              content: "<first_scene>",
-              done: true,
-              key: "first-scene",
-            },
-          ];
+          $messages = [createFirstSceneMessage()];
           return;
         }
 
-        await historyPromise;
+        await loadRecentHistory(sessionId);
+        await loadCharacterSessions();
+        syncCurrentSessionRuntime();
 
         if (currentLoad !== loadSequence || lastSessionId !== sessionId) {
           return;
         }
-
-        // 4. Check for New Session state
-        if ($messages.length <= 1) {
-          showModelSelector = true;
-        }
       } catch (e) {
         console.error("Failed to load chat data:", e);
+        toastError(e as Error);
       }
     }
   };
@@ -147,7 +251,7 @@
   let isLoading = false;
   let isDisabled = false;
   const send = async (prompt: string, onError?: (error: any) => void) => {
-    if (isLoading || isDisabled) return;
+    if (isLoading || isDisabled || isEnded) return;
 
     const sessionId = $page.url.searchParams.get("c");
 
@@ -159,9 +263,18 @@
       return u;
     });
 
-    let ErrorHandler = (error: any) => {
+    let ErrorHandler = async (error: any) => {
       onError?.(error);
-      loadChatHistory(sessionId ?? "");
+      toastError(error instanceof Error ? error : new Error(String(error)));
+      if (sessionId) {
+        try {
+          await loadRecentHistory(sessionId);
+          await loadCharacterSessions();
+          syncCurrentSessionRuntime();
+        } catch (reloadError) {
+          console.error("Failed to reload 2D history after error:", reloadError);
+        }
+      }
     };
 
     isLoading = true;
@@ -170,7 +283,9 @@
       sessionId ?? "",
       prompt,
       "2d",
-      () => {
+      async () => {
+        await loadCharacterSessions();
+        syncCurrentSessionRuntime();
         isDisabled = false;
         isLoading = false;
       },
@@ -271,6 +386,13 @@
     bind:showBackground
     bind:showVariableStatus
     on:close={() => (isSettingsModalOpen = false)}
+    on:historyreload={async () => {
+      const sessionId = currentSessionId();
+      if (!sessionId) return;
+      await loadRecentHistory(sessionId);
+      await loadCharacterSessions();
+      syncCurrentSessionRuntime();
+    }}
   />
 {/if}
 
@@ -286,7 +408,27 @@
     <SettingsButton onClick={() => (isSettingsModalOpen = true)} />
   </div>
 
-  <div class="chat-container" bind:this={chatScrollContainer}>
+  <div
+    class="chat-container"
+    bind:this={chatScrollContainer}
+    on:scroll={handleChatScroll}
+  >
+    {#if hasMoreHistory || isLoadingOlderHistory}
+      <div class="history-loader">
+        <button
+          type="button"
+          class="history-loader__button"
+          on:click={() => loadOlderHistory()}
+          disabled={isLoadingOlderHistory}
+        >
+          {#if isLoadingOlderHistory}
+            {$t("chat2d.loadingOlder")}
+          {:else}
+            {$t("chat2d.loadOlder")}
+          {/if}
+        </button>
+      </div>
+    {/if}
     <ChatWindow2DNext
       {isLoading}
       {persona}
@@ -301,9 +443,15 @@
     />
   </div>
   <div class="chat-input-dock">
+    {#if isEnded}
+      <div class="ending-lock-banner">
+        <strong>{$t("chat2d.defaultEndingTitle")}</strong>
+        <span>{$t("chat2d.endingLockedHard")}</span>
+      </div>
+    {/if}
     <ChatInput
       onSend={send}
-      {isDisabled}
+      isDisabled={isDisabled || isEnded}
       placeholderName={persona?.name}
       mode="2d"
       neededNeurons={currentCost}
@@ -354,6 +502,40 @@
     );
   }
 
+  .history-loader {
+    display: flex;
+    justify-content: center;
+    padding: 0.85rem 1rem 0.45rem;
+  }
+
+  .history-loader__button {
+    appearance: none;
+    border: 1px solid color-mix(in srgb, var(--border) 72%, transparent);
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--card) 86%, transparent);
+    color: var(--muted-foreground);
+    padding: 0.55rem 0.9rem;
+    font-size: 0.82rem;
+    font-weight: 700;
+    cursor: pointer;
+    backdrop-filter: blur(8px);
+    transition:
+      background 0.18s ease,
+      border-color 0.18s ease,
+      color 0.18s ease;
+  }
+
+  .history-loader__button:hover:not(:disabled) {
+    color: var(--foreground);
+    border-color: color-mix(in srgb, var(--primary) 38%, var(--border));
+    background: color-mix(in srgb, var(--card) 92%, var(--primary) 8%);
+  }
+
+  .history-loader__button:disabled {
+    cursor: wait;
+    opacity: 0.8;
+  }
+
   .chat-input-dock {
     position: fixed;
     left: 0;
@@ -375,6 +557,34 @@
 
   .chat-input-dock :global(.chat-input-wrapper) {
     pointer-events: auto;
+  }
+
+  .ending-lock-banner {
+    pointer-events: auto;
+    width: min(720px, calc(100% - 1rem));
+    margin: 0 auto 0.65rem;
+    padding: 0.75rem 0.9rem;
+    border-radius: 16px;
+    border: 1px solid rgba(250, 204, 21, 0.38);
+    background:
+      linear-gradient(180deg, rgba(250, 204, 21, 0.13), rgba(250, 204, 21, 0.03)),
+      rgba(15, 23, 42, 0.92);
+    box-shadow: 0 10px 28px rgba(0, 0, 0, 0.2);
+    display: flex;
+    flex-direction: column;
+    gap: 0.24rem;
+  }
+
+  .ending-lock-banner strong {
+    color: #fff7cc;
+    font-size: 0.95rem;
+    font-weight: 800;
+  }
+
+  .ending-lock-banner span {
+    color: rgba(255, 251, 235, 0.8);
+    font-size: 0.82rem;
+    line-height: 1.5;
   }
 
   /* PC 화면 (768px 이상) */

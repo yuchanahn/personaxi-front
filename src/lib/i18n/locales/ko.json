@@ -130,6 +130,18 @@
     "messages": "채팅 메시지",
     "jumpToBottom": "맨 아래로 이동"
   },
+  "chat2d": {
+    "loadOlder": "이전 장면 더 보기",
+    "loadingOlder": "이전 장면을 불러오는 중...",
+    "defaultEndingTitle": "엔딩 도달",
+    "endingLockedHard": "이 세션은 엔딩에 도달해서 더 이상 진행되지 않습니다.",
+    "endingLockedSoft": "이 세션은 엔딩 상태입니다."
+  },
+  "chatEnding": {
+    "eyebrow": "Ending",
+    "defaultTitle": "엔딩 도달",
+    "hardDescription": "이 루트는 종료되었습니다. 세션 설정에서 저장한 시점으로 되돌리거나 대화를 초기화해 다시 진행할 수 있습니다."
+  },
   "sidebar": {
     "hide": "사이드바 숨기기",
     "show": "사이드바 보기",
@@ -302,6 +314,31 @@
     "dialogueRenderStylePreviewLine": "여긴 조용하네. 너도 그렇게 느껴?",
     "sessionManagementSectionTitle": "세션 관리",
     "sessionManagementSectionSummary": "초기화 · 삭제",
+    "endingStatusTitle": "엔딩 상태",
+    "endingStatusEnded": "종료됨",
+    "endingStatusOpen": "진행 중",
+    "endingStatusOpenDescription": "아직 엔딩에 도달하지 않았습니다. 현재 진행을 저장해 분기 지점으로 되돌아올 수 있습니다.",
+    "saveSlotsTitle": "세이브 슬롯",
+    "saveSlotsDescription": "현재 진행을 저장해 두고, 원하는 시점으로 다시 불러올 수 있습니다.",
+    "saveSlotsEmpty": "아직 저장된 진행이 없습니다.",
+    "loadingSaveSlots": "세이브 슬롯을 불러오는 중...",
+    "saveCurrentProgress": "현재 진행 저장",
+    "savingSaveSlot": "저장 중...",
+    "saveSlotNamePlaceholder": "예: 버섯 숲 분기 직전",
+    "saveSlotNameRequired": "세이브 슬롯 이름을 입력해주세요.",
+    "saveSlotUpdatedAt": "최근 저장: {date}",
+    "loadSaveSlot": "불러오기",
+    "loadingSaveSlot": "불러오는 중...",
+    "deleteSaveSlot": "삭제",
+    "deletingSaveSlot": "삭제 중...",
+    "saveSlotCreated": "세이브 슬롯을 저장했습니다.",
+    "saveSlotLoaded": "세이브 슬롯을 불러왔습니다.",
+    "saveSlotDeleted": "세이브 슬롯을 삭제했습니다.",
+    "saveSlotCreateFailed": "세이브 슬롯 저장에 실패했습니다.",
+    "saveSlotLoadFailed": "세이브 슬롯 불러오기에 실패했습니다.",
+    "saveSlotDeleteFailed": "세이브 슬롯 삭제에 실패했습니다.",
+    "confirmLoadSaveSlot": "'{name}' 시점으로 되돌아가시겠습니까? 현재 대화 내용은 해당 시점으로 복원됩니다.",
+    "confirmDeleteSaveSlot": "'{name}' 세이브 슬롯을 삭제하시겠습니까?",
     "noteExists": "메모 있음",
     "noteEmpty": "메모 없음",
     "sessionReferenceSummary": "{note} · 이미지 {count}장",
@@ -1257,6 +1294,16 @@
         "offDesc": "일반 텍스트 응답만 사용합니다.",
         "onTitle": "기능 활성화",
         "onDesc": "버튼, 입력창 등 상호작용 UI를 출력할 수 있습니다."
+      },
+      "ending": {
+        "label": "엔딩 사용",
+        "description": "이 2D 캐릭터가 이야기의 종료를 선언할 수 있게 합니다.",
+        "ruleHint": "체크를 켜면 시스템이 `<end>` 출력 규칙을 자동으로 주입합니다.",
+        "offTitle": "엔딩 없음",
+        "offDesc": "대화는 계속 이어지고, 종료 태그를 사용하지 않습니다.",
+        "onTitle": "엔딩 허용",
+        "onDesc": "제작자가 적은 조건이 충족되면 응답 맨 마지막에 `<end>`를 출력할 수 있습니다.",
+        "promptHint": "지시문에는 자연어 조건만 적으세요. 예: '마왕을 죽이면 이야기는 끝난다.' '플레이어 체력이 0이 되면 즉시 사망하고 이야기가 끝난다.'"
       }
     },
     "review": {

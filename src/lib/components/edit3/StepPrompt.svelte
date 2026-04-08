@@ -276,6 +276,53 @@
         {/if}
 
         {#if !isAvatarPersona}
+            <div class="field-group">
+                <label class="field-label">
+                    <Icon icon="ph:flag-banner-duotone" width="18" />
+                    {$t("edit3.prompt.ending.label")}
+                </label>
+                <p class="field-hint">
+                    {$t("edit3.prompt.ending.description")}
+                </p>
+                <p class="field-hint subtle">
+                    {$t("edit3.prompt.ending.ruleHint")}
+                </p>
+                <div class="visibility-toggle">
+                    <button
+                        type="button"
+                        class="vis-btn"
+                        class:active={!persona.endingEnabled}
+                        on:click={() => (persona.endingEnabled = false)}
+                    >
+                        <Icon icon="ph:chat-circle-text-duotone" width="20" />
+                        <div class="vis-text">
+                            <span class="vis-label">
+                                {$t("edit3.prompt.ending.offTitle")}
+                            </span>
+                            <span class="vis-desc">
+                                {$t("edit3.prompt.ending.offDesc")}
+                            </span>
+                        </div>
+                    </button>
+                    <button
+                        type="button"
+                        class="vis-btn"
+                        class:active={!!persona.endingEnabled}
+                        on:click={() => (persona.endingEnabled = true)}
+                    >
+                        <Icon icon="ph:flag-checkered-duotone" width="20" />
+                        <div class="vis-text">
+                            <span class="vis-label">
+                                {$t("edit3.prompt.ending.onTitle")}
+                            </span>
+                            <span class="vis-desc">
+                                {$t("edit3.prompt.ending.onDesc")}
+                            </span>
+                        </div>
+                    </button>
+                </div>
+            </div>
+
             <!-- Instructions -->
             <div class="field-group">
                 <label for="e3-instructions" class="field-label">
@@ -286,6 +333,11 @@
                 <p class="field-hint">
                     {$t("editPage.instructionsDescription")}
                 </p>
+                {#if persona.endingEnabled}
+                    <p class="field-hint subtle">
+                        {$t("edit3.prompt.ending.promptHint")}
+                    </p>
+                {/if}
                 <textarea
                     id="e3-instructions"
                     class="field-textarea"

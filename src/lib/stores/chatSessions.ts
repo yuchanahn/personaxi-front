@@ -23,6 +23,10 @@ export type ChatSession = {
     outputTokenMultiplier?: number;
     userPersonaId?: string;
     dialogueRenderStyle?: DialogueRenderStyle;
+    ended?: boolean;
+    endingId?: string;
+    endingTitle?: string;
+    endingMode?: string;
 };
 
 export type DialogueRenderStyle = 'bubble' | 'inline-yellow';

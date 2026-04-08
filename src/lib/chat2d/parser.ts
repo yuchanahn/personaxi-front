@@ -19,6 +19,7 @@ const ALL_TAGS_REGEX =
     /<((?:say|dialogue)) speaker="([^"]+)">([\s\S]*?)<\/(?:say|dialogue)>|<(img) (\d+)>|<(Action) type="([^"]+)" question="([^"]+)" variable="([^"]+)"(?: max="(\d+)")? \/>|!\[(.*?)\]\((.*?)\)/g;
 const FIRST_SCENE_TAG_REGEX = /<first_scene>/g;
 const VARS_TAG_REGEX = /(?:\s*)<vars\b[^>]*>[\s\S]*?<\/vars>(?:\s*)/gi;
+const END_TAG_REGEX = /(?:\s*<end>\s*|\s*<end\b[^>]*>[\s\S]*?<\/end>\s*)$/i;
 const RAW_HTML_IMG_REGEX = /<img\b[^>]*>/i;
 const BLOCK_HTML_OPEN_REGEX =
     /<(div|section|article|header|footer|main|aside|table|ul|ol|form|figure|figcaption|details|blockquote)\b[^>]*>/i;
@@ -129,7 +130,7 @@ function parseAssistantContent(
     baseId: string,
     context: Chat2DParseContext,
 ): Chat2DBlock[] {
-    const processedContent = content
+    const contentWithFirstScene = content
         .replace(VARS_TAG_REGEX, "")
         .replace(FIRST_SCENE_TAG_REGEX, () => {
             if (context.persona?.first_scene) {
@@ -138,6 +139,8 @@ function parseAssistantContent(
             return "";
         })
         .trim();
+    const { cleanedContent, endings } = extractEndingsFromContent(contentWithFirstScene);
+    const processedContent = cleanedContent.trim();
 
     const parts = processedContent.split(CODE_BLOCK_REGEX);
     const blocks: Chat2DBlock[] = [];
@@ -277,7 +280,22 @@ function parseAssistantContent(
         partIndex += 1;
     });
 
+    endings.forEach((ending, endingIndex) => {
+        void ending;
+        blocks.push({
+            type: "ending",
+            id: `${baseId}-ending-${endingIndex}`,
+        });
+    });
+
     return blocks;
+}
+
+function extractEndingsFromContent(content: string) {
+    const endings = END_TAG_REGEX.test(content) ? [true] : [];
+    const cleanedContent = content.replace(END_TAG_REGEX, "");
+
+    return { cleanedContent, endings };
 }
 
 function pushNarrationSegments(

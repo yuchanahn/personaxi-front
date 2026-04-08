@@ -4,6 +4,7 @@ export const INCOMPLETE_DIALOGUE_SENTINEL = "\uE000";
 
 const VARS_TAG_REGEX = /(?:\s*)<vars\b[^>]*>[\s\S]*?<\/vars>(?:\s*)/gi;
 const INCOMPLETE_VARS_TAG_REGEX = /(?:\s*)<vars\b[^>]*>[\s\S]*$/i;
+const END_TAG_REGEX = /(?:\s*<end>\s*|\s*<end\b[^>]*>[\s\S]*?<\/end>\s*)$/i;
 const DIALOGUE_OPEN_COMPLETE_RE = /<(?:dialogue|say)\b[^>]*>/g;
 const DIALOGUE_CLOSE_RE = /<\/(?:dialogue|say)>/g;
 const DIALOGUE_OPEN_PARTIAL_AT_END_RE = /<(?:dialogue|say)\b[^>]*$/;
@@ -72,7 +73,8 @@ export function assembleRenderableAssistantContent(
 ): StreamAssemblyResult {
     const withoutVars = raw
         .replace(VARS_TAG_REGEX, "")
-        .replace(INCOMPLETE_VARS_TAG_REGEX, "");
+        .replace(INCOMPLETE_VARS_TAG_REGEX, "")
+        .replace(END_TAG_REGEX, "");
 
     const cutIndex = findFirstUnsafeCutIndex(withoutVars);
     const safePrefix = cutIndex === -1 ? withoutVars : withoutVars.slice(0, cutIndex);

@@ -58,6 +58,7 @@ export interface Persona {
     status_template_css?: string;
     chat_style_css?: string;
     interactiveUIEnabled?: boolean;
+    endingEnabled?: boolean;
 
     // Commercial Rights (For Live2D & VRM Monetization)
     commercialRightsConfirmed?: boolean;
@@ -73,6 +74,21 @@ export interface ESFPrompt {
     last_prompt_tokens: number;
     recent_turns: string[];
     affection_score: number;
+}
+
+export interface ChatEnding {
+    id?: string;
+    title?: string;
+    mode?: string;
+    description?: string;
+}
+
+export interface ChatSaveSlot {
+    id: string;
+    cssid: string;
+    name: string;
+    createdAt: string;
+    updatedAt: string;
 }
 
 export interface PersonaDTO {

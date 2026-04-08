@@ -463,6 +463,7 @@
             chat_count: 0,
             chat_style_css: DEFAULT_SHARED_CHAT_STYLE_CSS,
             interactiveUIEnabled: false,
+            endingEnabled: false,
         };
     }
 

@@ -5,10 +5,10 @@ import { goto } from '$app/navigation';
 import { api } from '$lib/api';
 import { showNeedMoreNeuronsModal } from '$lib/stores/modal';
 import { get } from 'svelte/store';
-import type { ESFPrompt, Persona } from '$lib/types';
+import type { ChatSaveSlot, ESFPrompt, Persona } from '$lib/types';
 import { chatSessions, removeSession } from '$lib/stores/chatSessions';
 
-function createFirstSceneMessage(): Message {
+export function createFirstSceneMessage(): Message {
     return {
         role: "assistant",
         content: "<first_scene>",
@@ -58,6 +58,99 @@ function parseESFResponse(content: string): string {
         // Not JSON or parsing failed, return original content
         return content;
     }
+}
+
+export type ChatHistoryPageSession = {
+    id?: string;
+    ended?: boolean;
+    endingId?: string;
+    endingTitle?: string;
+    endingMode?: string;
+};
+
+type ChatHistoryPageApiResponse = {
+    messages?: Array<{ idx?: number; role: string; content: string }>;
+    hasMore?: boolean;
+    session?: ChatHistoryPageSession;
+};
+
+function mapHistoryEntryToMessage(entry: { idx?: number; role: string; content: string }): Message {
+    return {
+        idx: entry.idx,
+        role: entry.role as Message['role'],
+        content: entry.role === 'assistant' ? parseESFResponse(entry.content) : entry.content,
+        done: true,
+        key: entry.idx != null ? `history-${entry.idx}` : undefined,
+    };
+}
+
+export async function fetch2DChatHistoryPage(
+    sessionId: string,
+    options?: { beforeIdx?: number; limit?: number },
+) {
+    const params = new URLSearchParams({ CSSID: sessionId });
+    if (options?.beforeIdx != null) {
+        params.set('beforeIdx', String(options.beforeIdx));
+    }
+    if (options?.limit != null) {
+        params.set('limit', String(options.limit));
+    }
+
+    const res = await api.get(`/api/chat/history/page?${params.toString()}`);
+    if (!res.ok) {
+        throw new Error(await res.text());
+    }
+
+    const payload = (await res.json()) as ChatHistoryPageApiResponse;
+    return {
+        messages: Array.isArray(payload.messages)
+            ? payload.messages.map(mapHistoryEntryToMessage)
+            : [],
+        hasMore: !!payload.hasMore,
+        session: payload.session || {},
+    };
+}
+
+export async function listChatSaveSlots(sessionId: string): Promise<ChatSaveSlot[]> {
+    const res = await api.get(`/api/chat/char/sessions/save-slots?CSSID=${sessionId}`);
+    if (!res.ok) {
+        throw new Error(await res.text());
+    }
+    const payload = (await res.json()) as ChatSaveSlot[];
+    return Array.isArray(payload) ? payload : [];
+}
+
+export async function createChatSaveSlot(sessionId: string, name: string): Promise<ChatSaveSlot> {
+    const res = await api.post(`/api/chat/char/sessions/save-slots/create`, {
+        cssid: sessionId,
+        name,
+    });
+    if (!res.ok) {
+        throw new Error(await res.text());
+    }
+    return (await res.json()) as ChatSaveSlot;
+}
+
+export async function loadChatSaveSlot(sessionId: string, slotId: string) {
+    const res = await api.post(`/api/chat/char/sessions/save-slots/load`, {
+        cssid: sessionId,
+        slotId,
+    });
+    if (!res.ok) {
+        throw new Error(await res.text());
+    }
+    return res.json();
+}
+
+export async function deleteChatSaveSlot(sessionId: string, slotId: string) {
+    const res = await api.post(`/api/chat/char/sessions/save-slots/delete`, {
+        cssid: sessionId,
+        slotId,
+    });
+    if (!res.ok) {
+        throw new Error(await res.text());
+    }
+    return res.json();
 }
 
 export async function loadChatHistory(sessionId: string, callback?: (esfprompt: ESFPrompt) => void) {
@@ -260,6 +353,11 @@ export async function impl_sendPromptStream(
     if (response.status === 402) {
         showNeedMoreNeuronsModal()
         onError?.(new Error("Not enough neurons"));
+        return;
+    }
+    if (!response.ok) {
+        const errorText = (await response.text()).trim();
+        onError?.(new Error(errorText || `HTTP ${response.status}`));
         return;
     }
 

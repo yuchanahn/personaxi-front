@@ -541,6 +541,18 @@
     "messages": "Chat messages",
     "jumpToBottom": "Jump to bottom"
   },
+  "chat2d": {
+    "loadOlder": "Load older scenes",
+    "loadingOlder": "Loading older scenes...",
+    "defaultEndingTitle": "Ending reached",
+    "endingLockedHard": "This session has reached an ending and can no longer continue.",
+    "endingLockedSoft": "This session is currently in an ending state."
+  },
+  "chatEnding": {
+    "eyebrow": "Ending",
+    "defaultTitle": "Ending reached",
+    "hardDescription": "This route has ended. You can restore an earlier save slot from session settings or reset the conversation to start again."
+  },
   "interactiveChat": {
     "requiredInput": "Please fill in the required field first.",
     "requiredChoice": "Please choose the required option first."
@@ -589,6 +601,31 @@
     "dialogueRenderStylePreviewLine": "It's quiet here. You feel it too?",
     "sessionManagementSectionTitle": "Session Management",
     "sessionManagementSectionSummary": "Reset · Delete",
+    "endingStatusTitle": "Ending status",
+    "endingStatusEnded": "Ended",
+    "endingStatusOpen": "In progress",
+    "endingStatusOpenDescription": "No ending has been reached yet. Save the current progress so you can return to this branch later.",
+    "saveSlotsTitle": "Save slots",
+    "saveSlotsDescription": "Save the current progress and return to any stored point later.",
+    "saveSlotsEmpty": "No saved progress yet.",
+    "loadingSaveSlots": "Loading save slots...",
+    "saveCurrentProgress": "Save current progress",
+    "savingSaveSlot": "Saving...",
+    "saveSlotNamePlaceholder": "Example: Before the mushroom forest branch",
+    "saveSlotNameRequired": "Enter a save slot name.",
+    "saveSlotUpdatedAt": "Last saved: {date}",
+    "loadSaveSlot": "Load",
+    "loadingSaveSlot": "Loading...",
+    "deleteSaveSlot": "Delete",
+    "deletingSaveSlot": "Deleting...",
+    "saveSlotCreated": "Save slot created.",
+    "saveSlotLoaded": "Save slot loaded.",
+    "saveSlotDeleted": "Save slot deleted.",
+    "saveSlotCreateFailed": "Failed to create the save slot.",
+    "saveSlotLoadFailed": "Failed to load the save slot.",
+    "saveSlotDeleteFailed": "Failed to delete the save slot.",
+    "confirmLoadSaveSlot": "Return to '{name}'? The current conversation will be restored to that point.",
+    "confirmDeleteSaveSlot": "Delete the save slot '{name}'?",
     "noteExists": "Note saved",
     "noteEmpty": "No note",
     "sessionReferenceSummary": "{note} · {count} images",
@@ -1314,6 +1351,16 @@
         "offDesc": "Use plain text responses only.",
         "onTitle": "Enable feature",
         "onDesc": "Allow the model to output buttons, input fields, and other interactive UI."
+      },
+      "ending": {
+        "label": "Enable ending",
+        "description": "Allow this 2D persona to declare that the story has permanently ended.",
+        "ruleHint": "When enabled, the system automatically injects the `<end>` output rule.",
+        "offTitle": "No ending",
+        "offDesc": "The chat stays open and no ending tag is used.",
+        "onTitle": "Ending allowed",
+        "onDesc": "When the creator-defined conditions are met, the assistant may append `<end>` as the final token.",
+        "promptHint": "Write only natural-language conditions in the instructions. Example: 'If the Demon King dies, the story ends.' 'If the player's HP reaches 0, the player dies and the story ends immediately.'"
       }
     },
     "review": {

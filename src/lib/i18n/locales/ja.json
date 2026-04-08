@@ -134,6 +134,18 @@
     "messages": "チャットメッセージ",
     "jumpToBottom": "一番下へ移動"
   },
+  "chat2d": {
+    "loadOlder": "前のシーンをもっと見る",
+    "loadingOlder": "前のシーンを読み込み中...",
+    "defaultEndingTitle": "エンディング到達",
+    "endingLockedHard": "このセッションはエンディングに到達したため、これ以上進行できません。",
+    "endingLockedSoft": "このセッションはエンディング状態です。"
+  },
+  "chatEnding": {
+    "eyebrow": "Ending",
+    "defaultTitle": "エンディング到達",
+    "hardDescription": "このルートは終了しました。セッション設定で保存した地点に戻すか、会話を初期化して最初から進められます。"
+  },
   "sidebar": {
     "hide": "サイドバーを隠す",
     "show": "サイドバーを表示",
@@ -317,6 +329,31 @@
     "dialogueRenderStylePreviewLine": "ここ、静かだね。君もそう感じる？",
     "sessionManagementSectionTitle": "セッション管理",
     "sessionManagementSectionSummary": "初期化・削除",
+    "endingStatusTitle": "エンディング状態",
+    "endingStatusEnded": "終了",
+    "endingStatusOpen": "進行中",
+    "endingStatusOpenDescription": "まだエンディングに到達していません。現在の進行を保存して、あとでこの分岐に戻れます。",
+    "saveSlotsTitle": "セーブスロット",
+    "saveSlotsDescription": "現在の進行を保存し、好きな時点に戻れます。",
+    "saveSlotsEmpty": "まだ保存された進行がありません。",
+    "loadingSaveSlots": "セーブスロットを読み込み中...",
+    "saveCurrentProgress": "現在の進行を保存",
+    "savingSaveSlot": "保存中...",
+    "saveSlotNamePlaceholder": "例: キノコの森の分岐直前",
+    "saveSlotNameRequired": "セーブスロット名を入力してください。",
+    "saveSlotUpdatedAt": "最終保存: {date}",
+    "loadSaveSlot": "読み込む",
+    "loadingSaveSlot": "読み込み中...",
+    "deleteSaveSlot": "削除",
+    "deletingSaveSlot": "削除中...",
+    "saveSlotCreated": "セーブスロットを保存しました。",
+    "saveSlotLoaded": "セーブスロットを読み込みました。",
+    "saveSlotDeleted": "セーブスロットを削除しました。",
+    "saveSlotCreateFailed": "セーブスロットの保存に失敗しました。",
+    "saveSlotLoadFailed": "セーブスロットの読み込みに失敗しました。",
+    "saveSlotDeleteFailed": "セーブスロットの削除に失敗しました。",
+    "confirmLoadSaveSlot": "『{name}』の時点に戻りますか？ 現在の会話内容はその時点に復元されます。",
+    "confirmDeleteSaveSlot": "セーブスロット『{name}』を削除しますか？",
     "noteExists": "メモあり",
     "noteEmpty": "メモなし",
     "sessionReferenceSummary": "{note} ・ 画像 {count}枚",
@@ -1314,6 +1351,16 @@
         "offDesc": "通常のテキスト応答のみを使用します。",
         "onTitle": "機能を有効化",
         "onDesc": "ボタン、入力欄などのインタラクティブUIを出力できます。"
+      },
+      "ending": {
+        "label": "エンディング使用",
+        "description": "この2Dキャラクターが物語の終了を宣言できるようにします。",
+        "ruleHint": "有効にすると、システムが `<end>` 出力ルールを自動で注入します。",
+        "offTitle": "エンディングなし",
+        "offDesc": "会話は続行され、終了タグは使いません。",
+        "onTitle": "エンディング許可",
+        "onDesc": "制作者が書いた条件を満たすと、応答の最後に `<end>` を出力できます。",
+        "promptHint": "指示文には自然言語の条件だけを書いてください。例: 「魔王を倒したら物語は終わる。」 「プレイヤーの体力が0になったらその場で死亡し、物語は終わる。」"
       }
     },
     "review": {
