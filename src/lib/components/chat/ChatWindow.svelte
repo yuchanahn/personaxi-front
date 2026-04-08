@@ -28,6 +28,7 @@
   import { fade, slide } from "svelte/transition";
   import { api } from "$lib/api";
   import { json } from "@sveltejs/kit";
+  import { applyVarsFromContent } from "$lib/chat2d/vars";
 
   export let isLoading: boolean = false;
   export let showChat: boolean = true;
@@ -348,16 +349,11 @@
     for (let j = 0; j <= upTo && j < msgs.length; j++) {
       const msg = msgs[j];
       if (msg.role !== "assistant") continue;
-      const matches = msg.content.matchAll(/<vars>([\s\S]*?)<\/vars>/g);
-      for (const match of matches) {
-        const body = match[1].trim();
-        for (const line of body.split("\n")) {
-          const eq = line.indexOf("=");
-          if (eq > 0) {
-            state[line.slice(0, eq).trim()] = line.slice(eq + 1).trim();
-          }
-        }
-      }
+      applyVarsFromContent(
+        state,
+        msg.content,
+        persona?.variables?.map((variable) => variable.name),
+      );
     }
     return state;
   }
