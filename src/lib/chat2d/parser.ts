@@ -12,6 +12,7 @@ import {
 } from "$lib/components/saju/sajuPrompt";
 import type { Chat2DBlock, Chat2DParseContext } from "./types";
 import { INCOMPLETE_DIALOGUE_SENTINEL } from "./stream-assembler";
+import { applyVarsFromContent } from "./vars";
 
 const CODE_BLOCK_REGEX = /```(?<lang>\w*)\s*\n?(?<code>[\s\S]+?)\s*```/;
 const ALL_TAGS_REGEX =
@@ -431,18 +432,11 @@ function extractVarsUpToIndex(
     for (let j = 0; j <= upTo && j < msgs.length; j += 1) {
         const msg = msgs[j];
         if (msg.role !== "assistant") continue;
-        const matches = msg.content.matchAll(/<vars>([\s\S]*?)<\/vars>/g);
-        for (const match of matches) {
-            const body = match[1].trim();
-            for (const line of body.split("\n")) {
-                const eq = line.indexOf("=");
-                if (eq > 0) {
-                    state[line.slice(0, eq).trim()] = line
-                        .slice(eq + 1)
-                        .trim();
-                }
-            }
-        }
+        applyVarsFromContent(
+            state,
+            msg.content,
+            persona?.variables?.map((variable) => variable.name),
+        );
     }
 
     return state;
