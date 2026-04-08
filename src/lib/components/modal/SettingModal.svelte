@@ -14,7 +14,12 @@
     import { page } from "$app/stores";
     import { goto } from "$app/navigation";
     import { get } from "svelte/store";
-    import { chatSessions } from "$lib/stores/chatSessions";
+    import {
+        chatSessions,
+        getDefaultDialogueRenderStyle,
+        setSessionDialogueRenderStyle,
+        type DialogueRenderStyle,
+    } from "$lib/stores/chatSessions";
     import { getCurrentUser } from "$lib/api/auth";
     import { st_user } from "$lib/stores/user";
     import { toast } from "$lib/stores/toast";
@@ -75,6 +80,8 @@
     let showUserNote = false;
     let outputLength = 100; // Default UI value
     let selectedOutputTokenMultiplier = outputTokenMultiplier;
+    let selectedDialogueRenderStyle: DialogueRenderStyle =
+        getDefaultDialogueRenderStyle();
     let showSessionImages = false;
     let sessionImages: string[] = [];
     let selectedImage: string | null = null; // Full Screen Viewer State
@@ -92,9 +99,14 @@
         mode === "2d"
             ? `${selectedLLM?.name || "-"} · ${selectedOutputTokenMultiplier}x · ${selectedUserPersonaLabel || "-"}`
             : "";
+    $: selectedDialogueRenderStyleLabel =
+        selectedDialogueRenderStyle === "inline-yellow"
+            ? $t("settingModal.dialogueRenderStyleInlineYellow")
+            : $t("settingModal.dialogueRenderStyleBubble");
     $: displaySettingsSummary =
         mode === "2d"
             ? [
+                  selectedDialogueRenderStyleLabel,
                   autoScroll ? $t("settingModal.autoScroll") : null,
                   showBackground ? $t("settingModal.showBackground") : null,
                   showImage
@@ -344,6 +356,13 @@
         }
     }
 
+    function applyDialogueRenderStyle(style: DialogueRenderStyle) {
+        selectedDialogueRenderStyle = style;
+        const cssid = currentSessionId();
+        if (!cssid) return;
+        setSessionDialogueRenderStyle(cssid, style);
+    }
+
     async function handleResetChat() {
         if (
             !(await confirmStore.ask($t("settingModal.confirmReset"), {
@@ -458,6 +477,8 @@
                 session?.outputTokenMultiplier || outputTokenMultiplier || 1,
             ),
         );
+        selectedDialogueRenderStyle =
+            session?.dialogueRenderStyle || getDefaultDialogueRenderStyle();
     }
 
     $: {
@@ -894,6 +915,84 @@
                                         </button>
                                     </div>
                                 </div>
+
+                                {#if mode === "2d"}
+                                    <div class="settings-card">
+                                        <div class="card-header">
+                                            <Icon icon="ph:chat-text-duotone" />
+                                            <span
+                                                >{$t(
+                                                    "settingModal.dialogueRenderStyleTitle",
+                                                )}</span
+                                            >
+                                        </div>
+                                        <p class="section-description">
+                                            {$t(
+                                                "settingModal.dialogueRenderStyleDescription",
+                                            )}
+                                        </p>
+                                        <div class="dialogue-style-grid">
+                                            <button
+                                                type="button"
+                                                class="dialogue-style-card"
+                                                class:active={selectedDialogueRenderStyle ===
+                                                    "bubble"}
+                                                on:click={() =>
+                                                    applyDialogueRenderStyle(
+                                                        "bubble",
+                                                    )}
+                                            >
+                                                <div class="dialogue-style-card-label">
+                                                    {$t(
+                                                        "settingModal.dialogueRenderStyleBubble",
+                                                    )}
+                                                </div>
+                                                <div class="dialogue-style-preview dialogue-style-preview--bubble">
+                                                    <div class="preview-speaker">
+                                                        {persona?.name ||
+                                                            "Character"}
+                                                    </div>
+                                                    <div class="preview-bubble">
+                                                        {$t(
+                                                            "settingModal.dialogueRenderStylePreviewLine",
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            </button>
+
+                                            <button
+                                                type="button"
+                                                class="dialogue-style-card"
+                                                class:active={selectedDialogueRenderStyle ===
+                                                    "inline-yellow"}
+                                                on:click={() =>
+                                                    applyDialogueRenderStyle(
+                                                        "inline-yellow",
+                                                    )}
+                                            >
+                                                <div class="dialogue-style-card-label">
+                                                    {$t(
+                                                        "settingModal.dialogueRenderStyleInlineYellow",
+                                                    )}
+                                                </div>
+                                                <div class="dialogue-style-preview dialogue-style-preview--inline-yellow">
+                                                    <span class="preview-inline-name"
+                                                        >{persona?.name ||
+                                                            "Character"}</span
+                                                    >
+                                                    <span class="preview-inline-sep">
+                                                        |
+                                                    </span>
+                                                    <span class="preview-inline-text">
+                                                        {$t(
+                                                            "settingModal.dialogueRenderStylePreviewLine",
+                                                        )}
+                                                    </span>
+                                                </div>
+                                            </button>
+                                        </div>
+                                    </div>
+                                {/if}
                             </div>
                         {/if}
                     </div>
@@ -1422,6 +1521,93 @@
         flex-direction: column;
         gap: 10px;
     }
+
+    .dialogue-style-grid {
+        display: grid;
+        gap: 10px;
+    }
+
+    .dialogue-style-card {
+        width: 100%;
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        background: var(--background);
+        padding: 12px;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        text-align: left;
+        color: var(--foreground);
+        cursor: pointer;
+        transition:
+            border-color 0.18s ease,
+            background 0.18s ease,
+            transform 0.18s ease;
+    }
+
+    .dialogue-style-card:hover {
+        border-color: color-mix(in srgb, var(--primary) 48%, var(--border));
+        transform: translateY(-1px);
+    }
+
+    .dialogue-style-card.active {
+        border-color: var(--primary);
+        background: color-mix(in srgb, var(--background) 92%, var(--primary) 8%);
+        box-shadow: 0 0 0 1px color-mix(in srgb, var(--primary) 35%, transparent);
+    }
+
+    .dialogue-style-card-label {
+        font-size: 13px;
+        font-weight: 700;
+    }
+
+    .dialogue-style-preview {
+        min-width: 0;
+    }
+
+    .dialogue-style-preview--bubble {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 6px;
+    }
+
+    .preview-speaker {
+        font-size: 12px;
+        font-weight: 700;
+        color: var(--muted-foreground);
+    }
+
+    .preview-bubble {
+        padding: 10px 12px;
+        border-radius: 12px;
+        background: var(--secondary);
+        color: var(--secondary-foreground);
+        border: 1px solid var(--border);
+        line-height: 1.55;
+    }
+
+    .dialogue-style-preview--inline-yellow {
+        color: #facc15;
+        font-size: 14px;
+        line-height: 1.6;
+        word-break: break-word;
+    }
+
+    .preview-inline-name {
+        font-weight: 800;
+        color: #fde68a;
+    }
+
+    .preview-inline-sep {
+        margin: 0 0.2rem;
+        color: #facc15;
+    }
+
+    .preview-inline-text {
+        color: #facc15;
+    }
+
     .card-header {
         display: flex;
         align-items: center;
