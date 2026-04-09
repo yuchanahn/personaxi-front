@@ -206,7 +206,7 @@
                 class="template-textarea"
                 bind:value={persona.status_template}
                 placeholder={`<div class="stats">
-  <div>📍 Location: {"{{{location}}}"}</div>
+  <div>📍 Location: {"{{{current_location}}}"}</div>
   <div>❤️ HP: {"{{{hp}}}"}</div>
 </div>`}
                 rows="6"

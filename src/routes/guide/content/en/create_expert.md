@@ -61,6 +61,9 @@ Expert Mode is for prompt-level control, including output format and interaction
 ### Variable System (2D)
 - To update runtime state, include a `<vars>...</vars>` block in the response.
 - Inside the block, write one `key=value` pair per line.
+- Use English slug-style variable names like `current_location`, `companions`, or `hp`.
+- Use the exact same English variable names inside status HTML placeholders such as `{{{current_location}}}`.
+- Variable default values are user-facing text and may be translated per locale.
 - Example:
   - `<vars>`
   - `trust=12`

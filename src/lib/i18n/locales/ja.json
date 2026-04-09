@@ -943,10 +943,10 @@
     "variableEditor": {
       "advancedToggle": "詳細設定（変数システム）",
       "sectionTitle": "変数定義",
-      "sectionDesc": "プロンプトに{syntax}を使用すると動的に値が変わります。AIが毎ターン変数を更新します。",
+      "sectionDesc": "プロンプトに{syntax}を使用すると動的に値が変わります。AIが毎ターン変数を更新します。変数名は current_location のような英語 slug を推奨します。デフォルト値はユーザー向けテキストなので、ロケールごとに翻訳される場合があります。",
       "defaultLabel": "デフォルト：{value}",
       "deleteTooltip": "削除",
-      "namePlaceholder": "変数名（例：location）",
+      "namePlaceholder": "変数名（英語推奨、例：current_location）",
       "defaultPlaceholder": "デフォルト値",
       "typeText": "テキスト",
       "typeNumber": "数値",
@@ -956,7 +956,7 @@
       "minPlaceholder": "最小",
       "maxPlaceholder": "最大",
       "statusTitle": "ステータスウィンドウデザイン",
-      "statusDesc": "HTMLでステータスウィンドウをデザインしてください。{syntax}が実際の値に置換されます。",
+      "statusDesc": "HTMLでステータスウィンドウをデザインしてください。{syntax}が実際の値に置換されます。placeholderにも同じ英語の変数名をそのまま使ってください。",
       "cssTitle": "ステータスウィンドウCSS",
       "cssDesc": "ステータスウィンドウに適用するCSSを記述してください。"
     }

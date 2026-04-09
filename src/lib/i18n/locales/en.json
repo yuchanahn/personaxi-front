@@ -895,10 +895,10 @@
     "variableEditor": {
       "advancedToggle": "Advanced Settings (Variable System)",
       "sectionTitle": "Define Variables",
-      "sectionDesc": "Use {syntax} in prompts to dynamically substitute values. AI updates variables each turn.",
+      "sectionDesc": "Use {syntax} in prompts to dynamically substitute values. AI updates variables each turn. English slug names like current_location are recommended. Default values are user-facing text and may be translated per locale.",
       "defaultLabel": "Default: {value}",
       "deleteTooltip": "Delete",
-      "namePlaceholder": "Variable name (e.g. location)",
+      "namePlaceholder": "Variable name (English slug recommended, e.g. current_location)",
       "defaultPlaceholder": "Default value",
       "typeText": "Text",
       "typeNumber": "Number",
@@ -908,7 +908,7 @@
       "minPlaceholder": "Min",
       "maxPlaceholder": "Max",
       "statusTitle": "Status Panel Design",
-      "statusDesc": "Design the status panel with HTML. {syntax} will be replaced with actual values.",
+      "statusDesc": "Design the status panel with HTML. {syntax} will be replaced with actual values. Use the exact same English variable names inside placeholders.",
       "cssTitle": "Status Panel CSS",
       "cssDesc": "Write CSS to style the status panel."
     }
