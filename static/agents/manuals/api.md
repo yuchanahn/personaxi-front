@@ -23,6 +23,7 @@ Important:
 - Scene images are capped at `40` per persona.
 - If the agent has its own image-generation pipeline, it is strongly recommended to upload as many useful scene images as possible up to that `40` image cap.
 - Optional shared chat CSS can be supplied through `chat_style_css`.
+- Optional runtime state fields can be supplied through `variables`, `status_template`, `status_template_css`, `interactive_ui_enabled`, and `ending_enabled`.
 - Direct public publishing is not allowed.
 - External agents authenticate with their own agent key.
 - `greeting` must be plain text only and must not contain markup tags.
@@ -166,6 +167,20 @@ Request:
       "description": "Rainy station platform at night"
     }
   ],
+  "variables": [
+    {
+      "name": "health",
+      "var_type": "number",
+      "default_value": "100",
+      "min_value": "0",
+      "max_value": "100",
+      "description": "Player HP"
+    }
+  ],
+  "status_template": "<div class=\"status-box\">HP {{{health}}}</div>",
+  "status_template_css": ".status-box { padding: 12px; border-radius: 14px; }",
+  "interactive_ui_enabled": true,
+  "ending_enabled": true,
   "personaType": "2D",
   "contentType": "character",
   "language": "en"
@@ -217,7 +232,21 @@ Request:
   "instructions": [
     "Keep Ari's tone intimate, cutting, and deeply attentive to the user's emotional hesitations.\nMaintain a sense of unresolved history between Ari and the user.\nNever flatten the voice into generic assistant politeness."
   ],
+  "variables": [
+    {
+      "name": "trust",
+      "var_type": "number",
+      "default_value": "15",
+      "min_value": "0",
+      "max_value": "100",
+      "description": "Relationship progress"
+    }
+  ],
+  "status_template": "<div class=\"status-box\">Trust {{{trust}}}</div>",
+  "status_template_css": ".status-box { padding: 12px; border-radius: 14px; }",
   "chat_style_css": ".px-note { padding: 12px 14px; border-radius: 14px; background: rgba(12,16,28,0.78); border: 1px solid rgba(255,255,255,0.08); }",
+  "interactive_ui_enabled": true,
+  "ending_enabled": false,
   "language": "en"
 }
 ```
@@ -295,6 +324,11 @@ Image guidance:
 
 - maximum `40` scene images per persona
 - if your agent has its own image-generation process, prefer uploading many strong scene images instead of stopping at one or two
+- do not try to recreate a source work by copying its exact original screenshots or portraits; generate fresh assets that cover:
+  - key locations across the story
+  - each major character's neutral reference look
+  - each major character's emotional or situational variations
+- for anime-native PXI story content, keep the whole asset set in a unified subculture-anime style instead of mixing styles
 - if scene images exist, `first_scene` should usually reference them with `<img N>` beats when the scene meaningfully changes
 - in `first_scene`, usually keep image usage to `2` or `3` `<img N>` beats even if more assets exist
 - use descriptions that make each image's role obvious
@@ -372,6 +406,21 @@ Response on success:
   - It is not a writing instruction.
   - Omit it unless you intentionally need a model override.
   - Current accepted values are conservative. If the value is invalid, the server falls back internally.
+- `variables`
+  - Optional runtime state definitions for story or simulation personas.
+  - Use them when the persona needs tracked values such as HP, location, route state, or companion roster.
+- `status_template`
+  - Optional HTML template for a reusable state panel.
+  - Use `{{{var_name}}}` bindings that match your `variables`.
+- `status_template_css`
+  - Optional CSS for the state panel.
+  - Keep it focused and reusable.
+- `interactive_ui_enabled`
+  - Optional boolean.
+  - Enable when the persona deliberately uses interactive UI fragments as part of story play.
+- `ending_enabled`
+  - Optional boolean.
+  - Enable when the story has real fail, death, or route-ending outcomes and should terminate cleanly.
 - `instructions`
   - Send exactly one string item in the array.
   - Put the full persona rule block into `instructions[0]`.
@@ -390,6 +439,10 @@ Response on success:
   - Include at least `1` category tag and at most `3` category tags.
   - Keep the full tag array within `16` items.
   - Do not use adult tag `1003` in the external-agent flow.
+- `images`
+  - Think in sets, not single covers.
+  - Build a library of location images plus character-reference images plus expression/situation variants.
+  - For story content, this usually performs better than trying to mirror one original illustration exactly.
 
 ## Hard Rejections
 

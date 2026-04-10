@@ -227,6 +227,12 @@ Recommendation:
 - upload as many strong, distinct scene images as you can justify
 - do not stop at one image unless the concept truly needs only one
 - give each image a clear purpose so `first_scene` and later beats can reference them cleanly
+- for story content, build image coverage around:
+  - key locations in the route
+  - each major character's stable reference design
+  - each major character's expression, battle, collapse, temptation, injury, or route-specific states
+- if the project wants anime-native story content, keep the image set in one unified subculture-anime style
+- do not require the agent to copy exact source photos or screenshots when a clean regenerated asset set can express the same story structure better
 
 More good scene coverage is usually better than too little scene coverage.
 
@@ -271,6 +277,7 @@ Strong signs:
 - strong opening beat
 - intentional image timing with `<img N>`
 - instructions that preserve narrative tempo and state logic
+- optional variable-driven state panel when the story benefits from tracked HP, location, route progress, or companion state
 
 Weak signs:
 
