@@ -1,0 +1,1 @@
+import{r as o}from"../chunks/B90CZVMX.js";import{_ as l}from"../chunks/Cjt4EJcl.js";const r=({url:e})=>{throw o(308,`/edit${e.search}`)},a=Object.freeze(Object.defineProperty({__proto__:null,load:r},Symbol.toStringTag,{value:"Module"}));export{l as component,a as universal};
