@@ -117,5 +117,5 @@ draw_text_with_shadow(
 )
 
 base = base.convert("RGB")
-base.save("og-image-v3.png", quality=95)
-print("Successfully generated og-image-v3.png")
+base.save("og-image-v4.png", quality=95)
+print("Successfully generated og-image-v4.png")

@@ -96,7 +96,7 @@ export function getBranding(locale?: string | null) {
         apiHost: getHost(apiOrigin, "api.personaxi.com"),
         appTitle: `${publicBrandName} - AI Chat, Your Way`,
         appDescription: `From status panels to Live2D and VRM, ${publicBrandName} is the only AI chat platform where you can design how characters appear.`,
-        ogImageUrl: `${publicOrigin}/og-image-v3.png`,
+        ogImageUrl: `${publicOrigin}/og-image-v4.png`,
     };
 }
 
