@@ -100,6 +100,7 @@
 
     // Auto-save timer
     let autoSaveInterval: ReturnType<typeof setInterval>;
+    let previousPersonaType = "";
     const DEFAULT_LIVE2D_GESTURE_ANIM_LIST = `[NOD] : Nodding (Permission, Agreement)
 [SHAKE] : Shaking head (Denial, Refusal)
 [TILT] : Tilting head (Question, Doubt)
@@ -253,6 +254,61 @@
     // ── Functions ──
     function getLive2DBridgeKey(personaId: string): string {
         return `${LIVE2D_EDITOR_BRIDGE_PREFIX}${personaId}`;
+    }
+
+    function normalizePersonaType(type: string | undefined): string {
+        return (type || "").trim().toLowerCase();
+    }
+
+    function isAvatarPersonaType(type: string | undefined): boolean {
+        const normalized = normalizePersonaType(type);
+        return normalized === "2.5d" || normalized === "live2d" || normalized === "3d" || normalized === "vrm3d";
+    }
+
+    function looksLikeJsonObject(raw: string | undefined): boolean {
+        const trimmed = (raw || "").trim();
+        if (!trimmed.startsWith("{") || !trimmed.endsWith("}")) return false;
+
+        try {
+            const parsed = JSON.parse(trimmed);
+            return !!parsed && typeof parsed === "object" && !Array.isArray(parsed);
+        } catch {
+            return false;
+        }
+    }
+
+    function looksLikeLegacyInstructionJson(raw: string | undefined): boolean {
+        const trimmed = (raw || "").trim();
+        if (!looksLikeJsonObject(trimmed)) return false;
+
+        try {
+            const parsed = JSON.parse(trimmed);
+            const requiredKeys = [
+                "description",
+                "personality",
+                "userPersona",
+                "scenario",
+            ];
+            return requiredKeys.every((key) => key in parsed);
+        } catch {
+            return false;
+        }
+    }
+
+    function sanitizePlain2DFields() {
+        persona.live2d_model_url = "";
+        persona.vrm_url = "";
+        persona.live2d_config = {};
+        persona.model_background_url = "";
+
+        if (looksLikeJsonObject(persona.first_scene)) {
+            persona.first_scene = "";
+            firstSceneJson = "";
+        }
+
+        if (looksLikeLegacyInstructionJson(singleInstruction)) {
+            singleInstruction = "";
+        }
     }
 
     function mergeLive2DConfig(
@@ -465,6 +521,18 @@
             interactiveUIEnabled: false,
             endingEnabled: false,
         };
+    }
+
+    $: {
+        const currentPersonaType = persona.personaType || "";
+        if (previousPersonaType !== currentPersonaType) {
+            const wasAvatar = isAvatarPersonaType(previousPersonaType);
+            const isAvatar = isAvatarPersonaType(currentPersonaType);
+            if (wasAvatar && !isAvatar) {
+                sanitizePlain2DFields();
+            }
+            previousPersonaType = currentPersonaType;
+        }
     }
 
     function normalizeSharedChatStyleCSS(raw: string | undefined): string {
@@ -884,6 +952,9 @@
             singleInstruction = draft.singleInstruction || "";
             firstSceneJson = draft.firstSceneJson || "";
             selectedVoiceId = draft.selectedVoiceId || "";
+            if (!isAvatarPersonaType(persona.personaType)) {
+                sanitizePlain2DFields();
+            }
             currentStep = Math.max(0, Math.min(4, Math.floor(restoredStep)));
             if (draftKey !== AUTO_SAVE_KEY) {
                 localStorage.setItem(AUTO_SAVE_KEY, raw);

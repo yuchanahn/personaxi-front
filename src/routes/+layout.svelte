@@ -75,6 +75,73 @@
     let initializedNotificationUserId = "";
     let suppressSettingsSync = 0;
 
+    function isSupportedLanguage(value: unknown): value is Language {
+        return value === "ko" || value === "en" || value === "ja";
+    }
+
+    function detectBrowserLanguage(): Language {
+        if (!browser) return "en";
+
+        const candidates = [
+            navigator.language,
+            ...(navigator.languages || []),
+        ].filter((value): value is string => typeof value === "string");
+
+        for (const candidate of candidates) {
+            const normalized = candidate.toLowerCase();
+            if (normalized.startsWith("ko")) return "ko";
+            if (normalized.startsWith("ja")) return "ja";
+            if (normalized.startsWith("en")) return "en";
+        }
+
+        return "en";
+    }
+
+    function resolveLanguageFallback(currentSettings: AppSettings): Language {
+        if (isSupportedLanguage(currentSettings.language)) {
+            return currentSettings.language;
+        }
+
+        const currentLocale = get(locale);
+        if (isSupportedLanguage(currentLocale)) {
+            return currentLocale;
+        }
+
+        return detectBrowserLanguage();
+    }
+
+    async function persistUserSettings(
+        currentSettings: AppSettings,
+        user: User,
+        payloadKey?: string,
+    ) {
+        const settingRq = buildUserSettingsPayload(currentSettings, user);
+        const res = await api.post(`/api/user/edit`, settingRq);
+        if (!res.ok) {
+            return false;
+        }
+
+        const nextPayloadKey = payloadKey || JSON.stringify(settingRq);
+        lastSyncedSettingsPayload = nextPayloadKey;
+        st_user.update((currentUser) => {
+            if (!currentUser || currentUser.id !== user.id) {
+                return currentUser;
+            }
+
+            return {
+                ...currentUser,
+                data: {
+                    ...currentUser.data,
+                    nickname: settingRq.nickname,
+                    language: settingRq.language,
+                    safetyFilterOn: settingRq.safetyFilterOn,
+                },
+            };
+        });
+
+        return true;
+    }
+
     function buildUserSettingsPayload(
         currentSettings: AppSettings,
         user: User,
@@ -91,10 +158,10 @@
 
     function syncSettingsFromUser(user: User) {
         const currentSettings = get(settings);
-        const nextLanguage =
-            user.data.language === ""
-                ? (get(locale) as Language) || "en"
-                : (user.data.language as Language);
+        const shouldPersistLanguage = !isSupportedLanguage(user.data?.language);
+        const nextLanguage = shouldPersistLanguage
+            ? resolveLanguageFallback(currentSettings)
+            : (user.data.language as Language);
         const nextSafetyFilterOn =
             user.data?.safetyFilterOn ?? currentSettings.safetyFilterOn ?? true;
         const nextSettings: AppSettings = {
@@ -102,21 +169,34 @@
             language: nextLanguage,
             safetyFilterOn: nextSafetyFilterOn,
         };
-
-        lastSyncedSettingsPayload = JSON.stringify(
+        const payloadKey = JSON.stringify(
             buildUserSettingsPayload(nextSettings, user),
         );
+
+        if (!shouldPersistLanguage) {
+            lastSyncedSettingsPayload = payloadKey;
+        }
 
         if (
             currentSettings.language === nextSettings.language &&
             currentSettings.safetyFilterOn === nextSettings.safetyFilterOn
         ) {
-            return;
+            return {
+                nextSettings,
+                payloadKey,
+                shouldPersistLanguage,
+            };
         }
 
         suppressSettingsSync += 1;
         settings.set(nextSettings);
         suppressSettingsSync = Math.max(0, suppressSettingsSync - 1);
+
+        return {
+            nextSettings,
+            payloadKey,
+            shouldPersistLanguage,
+        };
     }
 
     function resetAuthenticatedBootstrap() {
@@ -145,7 +225,14 @@
                 if (user.state === "new") {
                     consentModal = true;
                 }
-                syncSettingsFromUser(user);
+                const syncResult = syncSettingsFromUser(user);
+                if (syncResult.shouldPersistLanguage) {
+                    await persistUserSettings(
+                        syncResult.nextSettings,
+                        user,
+                        syncResult.payloadKey,
+                    );
+                }
             }
             return user;
         })();
@@ -322,10 +409,7 @@
         }
 
         settingsSaveTimer = setTimeout(async () => {
-            const res = await api.post(`/api/user/edit`, settingRq);
-            if (res.ok) {
-                lastSyncedSettingsPayload = payloadKey;
-            }
+            await persistUserSettings(currentSettings, user, payloadKey);
         }, 300);
     });
 
