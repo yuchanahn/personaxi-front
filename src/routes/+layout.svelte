@@ -151,7 +151,6 @@
             nickname: user.data?.nickname || "",
             language:
                 currentSettings.language || (get(locale) as Language) || "en",
-            llmType: currentSettings.llmType,
             safetyFilterOn: currentSettings.safetyFilterOn,
         };
     }

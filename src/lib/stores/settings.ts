@@ -11,7 +11,6 @@ export interface AppSettings {
     fontSize: FontSize;
     enterToSend: boolean;
     soundVolume: number;
-    llmType: string;
     enableIdleTrigger: boolean;
     enableInteractionTrigger: boolean;
     showImage: boolean;
@@ -38,7 +37,6 @@ function initializeSettings(): AppSettings {
         fontSize: 'medium',
         enterToSend: true,
         soundVolume: 0.8,
-        llmType: 'gemini_flash', // Default LLM type
         enableIdleTrigger: false,
         enableInteractionTrigger: false,
         showImage: true,
