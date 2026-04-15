@@ -5,6 +5,7 @@
     import { fade, fly } from "svelte/transition";
     import { pricingStore } from "$lib/stores/pricing";
     import NeuronIcon from "$lib/components/icons/NeuronIcon.svelte";
+    import { st_user } from "$lib/stores/user";
     import {
         DEFAULT_2D_LLM_TYPE,
         normalizeVisibleLLMType,
@@ -73,6 +74,9 @@
         const mult = $pricingStore.model_multipliers[id] || fallbackMultiplier;
         return Math.round(base * mult);
     };
+    $: currentBalance = Math.max(0, Number($st_user?.credits || 0));
+    $: selectedCost = getCost(selectedModel);
+    $: hasEnoughBalance = currentBalance >= selectedCost;
 </script>
 
 <!-- svelte-ignore a11y_no_static_element_interactions -->
@@ -89,6 +93,20 @@
                 <button class="close-btn" on:click={close}>
                     <Icon icon="ph:x" width="20" />
                 </button>
+            </div>
+
+            <div class="balance-inline">
+                <span class="balance-inline-item">
+                    {$t("models.balance")}
+                    <strong>{currentBalance.toLocaleString()}</strong>
+                </span>
+                <span class="balance-divider">·</span>
+                <span class="balance-inline-item">
+                    {$t("models.estimatedCost")}
+                    <strong class:cost-danger={!hasEnoughBalance}
+                        >- {selectedCost.toLocaleString()}</strong
+                    >
+                </span>
             </div>
 
             <div class="models-list">
@@ -193,6 +211,37 @@
         margin-bottom: 1.5rem;
     }
 
+    .balance-inline {
+        margin-bottom: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        color: rgba(255, 255, 255, 0.72);
+        font-size: 0.9rem;
+        line-height: 1.4;
+    }
+
+    .balance-inline-item {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+        min-width: 0;
+    }
+
+    .balance-inline-item strong {
+        color: #fff;
+        font-size: 0.96rem;
+        font-weight: 700;
+    }
+
+    .balance-divider {
+        color: rgba(255, 255, 255, 0.28);
+    }
+
+    .cost-danger {
+        color: #fca5a5;
+    }
+
     .model-item {
         display: flex;
         align-items: center;
@@ -284,5 +333,11 @@
 
     .confirm-btn:active {
         transform: scale(0.98);
+    }
+
+    @media (max-width: 520px) {
+        .balance-inline {
+            flex-wrap: wrap;
+        }
     }
 </style>

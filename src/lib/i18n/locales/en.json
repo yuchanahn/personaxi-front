@@ -1175,6 +1175,10 @@
   },
   "models": {
     "title": "Response Mode",
+    "balance": "Current Balance",
+    "estimatedCost": "Estimated Cost",
+    "remainingAfterSend": "After One Send",
+    "insufficientBalance": "Your current balance may be too low.",
     "light": "Light",
     "standard": "Standard",
     "premium": "Premium"

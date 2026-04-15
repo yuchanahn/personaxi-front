@@ -1,6 +1,6 @@
 # Privacy Policy for {{LEGAL_SERVICE_NAME}}
 
-**Effective Date:** February 3, 2026  
+**Effective Date:** April 15, 2026  
 **Operator:** {{LEGAL_ENTITY_NAME}} (Sole Proprietorship, Republic of Korea)  
 **Address:** 충청남도 천안시 서북구 번영로 306-15, 104-101, Republic of Korea  
 **Data Protection Officer:** An Yu-chan (Representative) — {{PRIVACY_EMAIL}}
@@ -66,8 +66,6 @@ The Company shall process personal information only within the scope specified i
 | **Kakao Corp.** (South Korea) | Email, nickname, profile photo | Identity verification and login via Kakao account | Until account termination |
 
 2. The Company supervises entrusted parties to ensure that they process personal information safely in accordance with applicable laws at the time of signing the entrustment agreement.
-
-3. **Explicit Consent for International Transfer:** During the registration process, the Company shall explicitly inform the user via a separate consent box that "Your personal information will be transferred to overseas servers (USA - Google, Supabase, Oracle, etc.)" and shall only approve registration if the user acknowledges and consents to this via a checkbox. To withdraw consent, the data subject may request account termination through the account settings or by contacting {{SUPPORT_EMAIL}}.
 
 ---
 
@@ -174,7 +172,7 @@ Data subjects may contact the Data Protection Officer for any questions regardin
 
 ## Section 12: Changes to this Privacy Policy
 
-1. This Privacy Policy is effective as of **February 3, 2026**.
+1. This Privacy Policy is effective as of **April 15, 2026**.
 
 2. If the content of this Privacy Policy is added, modified, or changed, the Company shall provide notice through the Service prior to the effective date of the change.
 

@@ -1215,6 +1215,10 @@
   },
   "models": {
     "title": "応答モード",
+    "balance": "現在のニューロン",
+    "estimatedCost": "予想消費",
+    "remainingAfterSend": "送信後の残高",
+    "insufficientBalance": "現在の残高では不足する可能性があります。",
     "light": "ライト",
     "standard": "スタンダード",
     "premium": "プレミアム"
