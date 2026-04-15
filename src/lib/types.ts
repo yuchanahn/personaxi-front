@@ -174,7 +174,18 @@ export interface Comment {
     author_avatar_url: string;   // 작성자 프로필 사진 URL
 }
 
-export type NotificationType = 'comment' | 'like' | 'follow' | 'auction_bid' | 'auction_win' | 'system';
+export type NotificationType =
+    | 'comment'
+    | 'like'
+    | 'follow'
+    | 'auction_bid'
+    | 'auction_win'
+    | 'system'
+    | 'new_persona'
+    | 'info'
+    | 'warning'
+    | 'maintenance'
+    | 'update';
 
 export interface Notification {
     id: string;

@@ -1138,9 +1138,14 @@
   "notifications": {
     "title": "通知",
     "empty": "まだ通知がありません",
+    "emptyAnnouncements": "まだお知らせはありません",
+    "emptyActivity": "まだアクティビティ通知はありません",
     "loadMore": "もっと見る",
     "loading": "読み込み中...",
-    "markAllRead": "すべて既読にする"
+    "markAllRead": "すべて既読にする",
+    "tabAll": "すべて",
+    "tabAnnouncements": "お知らせ",
+    "tabActivity": "アクティビティ"
   },
   "shop": {
     "title": "ニューロンショップ",

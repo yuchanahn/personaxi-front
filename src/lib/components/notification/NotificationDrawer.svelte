@@ -5,10 +5,48 @@
     import NotificationList from "./NotificationList.svelte";
     import { t } from "svelte-i18n";
     import { notificationStore } from "$lib/stores/notification";
+    import type { NotificationFilter } from "$lib/utils/notification";
+    import {
+        isAnnouncementNotification,
+        matchesNotificationFilter,
+    } from "$lib/utils/notification";
 
     export let isOpen = false;
 
     const dispatch = createEventDispatcher();
+    let activeTab: NotificationFilter = "all";
+
+    $: notificationCounts = {
+        all: $notificationStore.length,
+        announcement: $notificationStore.filter((notification) =>
+            isAnnouncementNotification(notification),
+        ).length,
+        activity: $notificationStore.filter((notification) =>
+            matchesNotificationFilter(notification, "activity"),
+        ).length,
+    };
+
+    const tabs: Array<{
+        id: NotificationFilter;
+        labelKey: string;
+        countKey: keyof typeof notificationCounts;
+    }> = [
+        {
+            id: "all",
+            labelKey: "notifications.tabAll",
+            countKey: "all",
+        },
+        {
+            id: "announcement",
+            labelKey: "notifications.tabAnnouncements",
+            countKey: "announcement",
+        },
+        {
+            id: "activity",
+            labelKey: "notifications.tabActivity",
+            countKey: "activity",
+        },
+    ];
 
     function close() {
         dispatch("close");
@@ -60,20 +98,79 @@
             </div>
         </div>
 
+        <div class="drawer-tabs" style="border-color: var(--border);">
+            {#each tabs as tab}
+                <button
+                    type="button"
+                    class="drawer-tab"
+                    class:is-active={activeTab === tab.id}
+                    on:click={() => (activeTab = tab.id)}
+                >
+                    <span>{$t(tab.labelKey)}</span>
+                    <span class="drawer-tab__count">
+                        {notificationCounts[tab.countKey]}
+                    </span>
+                </button>
+            {/each}
+        </div>
+
         <!-- Content -->
         <div class="flex-1 overflow-y-auto drawer-content">
-            <NotificationList />
+            <NotificationList filter={activeTab} />
         </div>
     </div>
 {/if}
 
 <style>
+    .drawer-tabs {
+        display: flex;
+        gap: 0.5rem;
+        padding: 0.8rem 1rem 0.7rem;
+        border-bottom: 1px solid;
+    }
+
+    .drawer-tab {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.45rem;
+        padding: 0.48rem 0.8rem;
+        border-radius: 999px;
+        border: 1px solid transparent;
+        background: color-mix(in srgb, var(--muted) 72%, transparent);
+        color: var(--muted-foreground);
+        font-size: 0.82rem;
+        font-weight: 700;
+        transition:
+            background 0.18s ease,
+            border-color 0.18s ease,
+            color 0.18s ease;
+    }
+
+    .drawer-tab.is-active {
+        color: var(--foreground);
+        border-color: color-mix(in srgb, var(--primary) 38%, var(--border));
+        background: color-mix(in srgb, var(--primary) 10%, var(--card));
+    }
+
+    .drawer-tab__count {
+        min-width: 1.2rem;
+        text-align: center;
+        color: inherit;
+        opacity: 0.8;
+    }
+
     /* 하단 네비바 가림 방지 패딩 */
     .drawer-content {
         padding-bottom: 2rem; /* 데스크톱 기본값 */
     }
 
     @media (max-width: 768px) {
+        .drawer-tabs {
+            padding-left: 0.85rem;
+            padding-right: 0.85rem;
+            overflow-x: auto;
+        }
+
         .drawer-content {
             /* 네비바 높이(약 70px) + 여유공간 1rem */
             padding-bottom: calc(

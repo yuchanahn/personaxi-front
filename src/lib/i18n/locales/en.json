@@ -1098,9 +1098,14 @@
   "notifications": {
     "title": "Notifications",
     "empty": "No notifications yet",
+    "emptyAnnouncements": "No notices yet",
+    "emptyActivity": "No activity notifications yet",
     "loadMore": "Load More",
     "loading": "Loading...",
-    "markAllRead": "Mark all as read"
+    "markAllRead": "Mark all as read",
+    "tabAll": "All",
+    "tabAnnouncements": "Notices",
+    "tabActivity": "Activity"
   },
   "shop": {
     "title": "Neuron Shop",
