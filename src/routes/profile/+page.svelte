@@ -22,6 +22,7 @@
     import ReportModal from "$lib/components/modal/ReportModal.svelte";
     import { AuthRequiredError } from "$lib/stores/authGate";
     import { buildPublicUrl, getBranding } from "$lib/branding/config";
+    import { buildHubTagHref } from "$lib/utils/hubTagNavigation";
 
     let persona: Persona | null = null;
     let comments: Comment[] = [];
@@ -631,6 +632,17 @@
         return category ? $t(category.nameKey) : String(tagId);
     }
 
+    function handleTagClick(tag: string) {
+        if (!persona) return;
+        goto(
+            buildHubTagHref({
+                tag,
+                personaType: persona.personaType,
+                contentType: persona.contentType,
+            }),
+        );
+    }
+
     // ── UI Helpers ──
     $: normalizedPersonaType = (persona?.personaType || "")
         .trim()
@@ -942,14 +954,22 @@
                         {#if categoryTags.length > 0 || displayRegularTags.length > 0}
                             <div class="tags-container">
                                 {#each categoryTags as tag}
-                                    <span class="tag tag-category"
-                                        >{getTagName(tag)}</span
+                                    <button
+                                        type="button"
+                                        class="tag tag-category"
+                                        on:click={() => handleTagClick(tag)}
                                     >
+                                        {getTagName(tag)}
+                                    </button>
                                 {/each}
                                 {#each displayRegularTags as tag}
-                                    <span class="tag tag-regular"
-                                        >{getTagName(tag)}</span
+                                    <button
+                                        type="button"
+                                        class="tag tag-regular"
+                                        on:click={() => handleTagClick(tag)}
                                     >
+                                        {getTagName(tag)}
+                                    </button>
                                 {/each}
                             </div>
                         {/if}
@@ -1660,11 +1680,16 @@
         margin-bottom: 2rem;
     }
     .tag {
+        appearance: none;
+        border: 1px solid transparent;
+        background: transparent;
+        color: inherit;
         padding: 0.3rem 0.8rem;
         border-radius: 999px;
         font-size: 0.8rem;
         font-weight: 500;
         transition: all 0.2s;
+        cursor: pointer;
     }
     .tag-category {
         background-color: color-mix(in srgb, var(--primary) 12%, transparent);

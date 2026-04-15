@@ -1,6 +1,6 @@
 <script lang="ts">
     import { t } from "svelte-i18n";
-    import { allCategories } from "$lib/constants";
+    import { MAX_CATEGORY_TAGS, allCategories } from "$lib/constants";
     import { toast } from "$lib/stores/toast";
     import type { Persona } from "$lib/types";
 
@@ -15,10 +15,14 @@
                 (id) => parseInt(id) < 1000,
             ).length;
 
-            if (categoryTagsCount < 3) {
+            if (categoryTagsCount < MAX_CATEGORY_TAGS) {
                 persona.tags = [...persona.tags, tagId];
             } else {
-                toast.warning($t("editPage.validation.maxTags"));
+                toast.warning(
+                    $t("editPage.validation.maxTags", {
+                        values: { max: MAX_CATEGORY_TAGS },
+                    }),
+                );
             }
         }
     }
@@ -38,7 +42,7 @@
                 class="category-button"
                 class:active={persona.tags.includes(category.id.toString())}
                 class:disabled={persona.tags.filter((id) => parseInt(id) < 1000)
-                    .length >= 3 &&
+                    .length >= MAX_CATEGORY_TAGS &&
                     !persona.tags.includes(category.id.toString())}
                 on:click={() => toggleTag(category.id.toString())}
             >

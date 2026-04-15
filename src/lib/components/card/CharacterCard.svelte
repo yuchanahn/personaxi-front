@@ -7,6 +7,7 @@
     import { t } from "svelte-i18n";
     import AssetPreview from "$lib/components/AssetPreview.svelte";
     import { getOptimizedSupabaseImageUrl } from "$lib/utils/mediaTransform";
+    import { buildHubTagHref } from "$lib/utils/hubTagNavigation";
 
     export let content: PersonaDTO;
 
@@ -35,6 +36,17 @@
     function getTagLabel(tag: string) {
         return $t(
             `${allCategories.find((category) => category.id.toString() === tag)?.nameKey || "tags.untagged"}`,
+        );
+    }
+
+    function goToTagResults(event: MouseEvent, tag: string) {
+        event.stopPropagation();
+        goto(
+            buildHubTagHref({
+                tag,
+                personaType: content.personaType,
+                contentType: content.contentType,
+            }),
         );
     }
 
@@ -137,7 +149,13 @@
             {#if visibleTags.length > 0}
                 <div class="tags-line">
                     {#each visibleTags as tag}
-                        <span class="tag-chip">{getTagLabel(tag)}</span>
+                        <button
+                            type="button"
+                            class="tag-chip"
+                            on:click={(event) => goToTagResults(event, tag)}
+                        >
+                            {getTagLabel(tag)}
+                        </button>
                     {/each}
                 </div>
             {/if}
@@ -290,16 +308,18 @@
 
     .tags-line {
         display: flex;
-        flex-wrap: nowrap;
+        flex-wrap: wrap;
+        align-content: flex-start;
         gap: 0.24rem;
         margin-top: 0.25rem;
         overflow: hidden;
-        white-space: nowrap;
+        max-height: 4.8rem;
     }
 
     .tag-chip {
+        appearance: none;
         display: inline-flex;
-        flex: 0 0 auto;
+        flex: 0 1 auto;
         align-items: center;
         max-width: 100%;
         padding: 0.28rem 0.58rem;
@@ -312,8 +332,18 @@
         line-height: 1;
         text-shadow: var(--media-pill-text-shadow);
         white-space: nowrap;
+        cursor: pointer;
         backdrop-filter: blur(10px);
         -webkit-backdrop-filter: blur(10px);
+        transition:
+            border-color 0.2s ease,
+            background-color 0.2s ease,
+            transform 0.2s ease;
+    }
+
+    .tag-chip:hover {
+        border-color: rgba(255, 255, 255, 0.28);
+        transform: translateY(-1px);
     }
 
     .type-badge {
@@ -391,6 +421,7 @@
         .tags-line {
             gap: 0.18rem;
             margin-top: 0.2rem;
+            max-height: 4.3rem;
         }
 
         .tag-chip {
