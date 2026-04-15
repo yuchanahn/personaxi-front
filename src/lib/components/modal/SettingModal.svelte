@@ -36,6 +36,10 @@
     import { messages } from "$lib/stores/messages";
     import { ttsState } from "$lib/stores/ttsStore";
     import { hideBackButton } from "$lib/utils/LayoutUtils";
+    import {
+        DEFAULT_2D_LLM_TYPE,
+        normalizeVisibleLLMType,
+    } from "$lib/utils/llmType";
 
     export let isOpen: boolean = false;
     export let persona: Persona;
@@ -55,18 +59,6 @@
     export let impl_changeCamera: () => void | Promise<void> = () => {};
 
     const dispatch = createEventDispatcher();
-    const normalizeVisibleLLMType = (value: string) => {
-        switch (value) {
-            case "antigravity":
-                return "gemini-pro";
-            case "gemini-flash-lite":
-            case "gemini-flash":
-            case "gemini-pro":
-                return value;
-            default:
-                return "gemini-flash-lite";
-        }
-    };
     const currentSessionId = () =>
         get(page).url.searchParams.get("c") || persona?.id || "";
 
@@ -204,11 +196,14 @@
         cost: Math.round((baseCost || 10) * llm.multiplier),
     }));
 
-    let selectedLLM_id: string = normalizeVisibleLLMType(llmType);
+    let selectedLLM_id: string = normalizeVisibleLLMType(
+        llmType,
+        DEFAULT_2D_LLM_TYPE,
+    );
     let prevLLMType = llmType;
 
     $: if (llmType && llmType !== prevLLMType) {
-        selectedLLM_id = normalizeVisibleLLMType(llmType);
+        selectedLLM_id = normalizeVisibleLLMType(llmType, DEFAULT_2D_LLM_TYPE);
         prevLLMType = llmType;
     }
 

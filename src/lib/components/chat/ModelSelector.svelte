@@ -5,22 +5,13 @@
     import { fade, fly } from "svelte/transition";
     import { pricingStore } from "$lib/stores/pricing";
     import NeuronIcon from "$lib/components/icons/NeuronIcon.svelte";
+    import {
+        DEFAULT_2D_LLM_TYPE,
+        normalizeVisibleLLMType,
+    } from "$lib/utils/llmType";
 
     export let isOpen = false;
-    export let selectedModel = "gemini-flash-lite";
-
-    const normalizeVisibleLLMType = (value: string) => {
-        switch (value) {
-            case "antigravity":
-                return "gemini-pro";
-            case "gemini-flash-lite":
-            case "gemini-flash":
-            case "gemini-pro":
-                return value;
-            default:
-                return "gemini-flash-lite";
-        }
-    };
+    export let selectedModel = DEFAULT_2D_LLM_TYPE;
 
     const dispatch = createEventDispatcher();
 
@@ -49,11 +40,15 @@
         },
     ];
 
-    $: selectedModel = normalizeVisibleLLMType(selectedModel);
+    $: selectedModel = normalizeVisibleLLMType(
+        selectedModel,
+        DEFAULT_2D_LLM_TYPE,
+    );
 
     function selectModel(id: string) {
-        selectedModel = id;
-        dispatch("select", id);
+        const normalized = normalizeVisibleLLMType(id, DEFAULT_2D_LLM_TYPE);
+        selectedModel = normalized;
+        dispatch("select", normalized);
         // We don't close immediately here, user clicks "Start Chat" or we can Auto-close?
         // User said: "Default is flash lite selected, user chooses to change or close".
         // Let's assume clicking a model just updates selection, "Start" confirms.
@@ -71,7 +66,7 @@
 
     // Get cost display
     $: getCost = (id: string) => {
-        id = normalizeVisibleLLMType(id);
+        id = normalizeVisibleLLMType(id, DEFAULT_2D_LLM_TYPE);
         const base = $pricingStore.costs.chat_2d || 5;
         const fallbackMultiplier =
             id === "gemini-flash" ? 1.5 : id === "gemini-pro" ? 2.0 : 1.0;

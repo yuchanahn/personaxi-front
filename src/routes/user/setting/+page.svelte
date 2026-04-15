@@ -23,6 +23,7 @@
     import { getOptimizedSupabaseImageUrl } from "$lib/utils/mediaTransform";
     import { isInstalledAppShell } from "$lib/utils/appShell";
     import { AuthRequiredError, requireAuth } from "$lib/stores/authGate";
+    import { getDefaultLLMTypeForPersonaType } from "$lib/utils/llmType";
 
     const supabaseURL = "/storage/v1/object/public/personaxi-assets/";
 
@@ -591,7 +592,7 @@
     }
 
     function handleStartChat(persona: Persona) {
-        let llmType = "gemini-flash-lite";
+        let llmType: string = getDefaultLLMTypeForPersonaType(persona.personaType);
 
         chatSessions.update((sessions) => {
             const existingSession = sessions.find(

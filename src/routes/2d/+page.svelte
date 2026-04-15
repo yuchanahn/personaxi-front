@@ -25,21 +25,13 @@
   import { messages } from "$lib/stores/messages";
   import { api } from "$lib/api";
   import { requireAuth } from "$lib/stores/authGate";
+  import {
+    DEFAULT_2D_LLM_TYPE,
+    normalizeVisibleLLMType,
+  } from "$lib/utils/llmType";
 
   let lastSessionId: string | null = null;
   let persona: Persona | null = null;
-  const normalizeVisibleLLMType = (value: string) => {
-    switch (value) {
-      case "antigravity":
-        return "gemini-pro";
-      case "gemini-flash-lite":
-      case "gemini-flash":
-      case "gemini-pro":
-        return value;
-      default:
-        return "gemini-flash-lite";
-    }
-  };
   const currentSessionId = () => lastSessionId || persona?.id || "";
 
   $: llmType = $page.url.searchParams.get("llmType") || "Error";
@@ -50,7 +42,8 @@
     // But ideally we should find session to be safe, like live2d
     const session = $chatSessions.find((s) => s.id === lastSessionId);
     const effectiveType = normalizeVisibleLLMType(
-      session?.llmType || llmType || "gemini-flash-lite",
+      session?.llmType || llmType,
+      DEFAULT_2D_LLM_TYPE,
     );
 
     const baseCost = $pricingStore.costs.chat_2d || 10;
