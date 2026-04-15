@@ -4,6 +4,7 @@
     import { tick } from "svelte";
     import "$lib/styles/chat2d-shared-block-defaults.css";
     import FirstSceneBuilder from "$lib/components/FirstSceneBuilder.svelte";
+    import FirstSceneAuthorModal from "$lib/components/edit3/FirstSceneAuthorModal.svelte";
     import VariableEditor from "$lib/components/edit3/VariableEditor.svelte";
     import LoreLinker from "$lib/components/lore/LoreLinker.svelte";
     import ChatRenderer from "$lib/components/chat/ChatRenderer.svelte";
@@ -31,6 +32,7 @@
     let isAvatarPersona = false;
     let isStoryPersona = false;
     let showStylePreview = false;
+    let showFirstSceneComposer = false;
 
     function insertDialogueTag() {
         if (!firstSceneTextarea) return;
@@ -176,8 +178,17 @@
                     {$t("edit3.prompt.firstSceneHint")}
                 </p>
 
-                {#if persona.contentType !== "story"}
-                    <div class="tag-tools">
+                <div class="tag-tools">
+                    <button
+                        type="button"
+                        class="btn-util composer-open-btn"
+                        on:click={() => (showFirstSceneComposer = true)}
+                    >
+                        <Icon icon="ph:magic-wand-duotone" width="16" />
+                        {$t("edit3.prompt.firstSceneComposer.openButton")}
+                    </button>
+
+                    {#if persona.contentType !== "story"}
                         <div class="toggle-row">
                             <span
                                 class="toggle-label"
@@ -205,8 +216,8 @@
                             <Icon icon="ph:plus-bold" width="14" />
                             {$t("editPage.aiSettings.addDialogueTag")}
                         </button>
-                    </div>
-                {/if}
+                    {/if}
+                </div>
 
                 <textarea
                     id="e3-first-scene"
@@ -563,6 +574,13 @@
             </div>
         </div>
     </div>
+{/if}
+
+{#if showFirstSceneComposer && !isAvatarPersona}
+    <FirstSceneAuthorModal
+        {persona}
+        on:close={() => (showFirstSceneComposer = false)}
+    />
 {/if}
 
 <style>
@@ -1084,5 +1102,9 @@
     }
     .btn-util:hover {
         background: var(--secondary);
+    }
+
+    .composer-open-btn {
+        gap: 0.45rem;
     }
 </style>
