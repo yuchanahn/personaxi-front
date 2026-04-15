@@ -78,6 +78,14 @@
     return scrollContainer;
   }
 
+  function hasOnlyFirstScene(messageList: Message[] = get(messages)) {
+    return (
+      messageList.length === 1 &&
+      messageList[0]?.role === "assistant" &&
+      messageList[0]?.content?.trim() === "<first_scene>"
+    );
+  }
+
   function isNearBottom(container: HTMLElement) {
     const distance =
       container.scrollHeight - container.scrollTop - container.clientHeight;
@@ -152,7 +160,16 @@
     scrollResizeObserver.observe(container);
 
     tick().then(() => {
-      scrollController?.scrollToBottom(true);
+      if (hasOnlyFirstScene()) {
+        scrollController?.suspendByUserIntent();
+        container.scrollTo({
+          top: 0,
+          behavior: "auto",
+        });
+      } else {
+        scrollController?.scrollToBottom(true);
+      }
+
       syncJumpToBottomButton();
     });
   }
@@ -761,6 +778,7 @@
   }
 
   function handleVariablePanelRendered() {
+    if (hasOnlyFirstScene()) return;
     if (!autoScroll || !scrollController?.canAutoFollow()) return;
     tick().then(() => {
       const container = getScrollContainer();
@@ -813,6 +831,7 @@
       }
     }
 
+    if (hasOnlyFirstScene()) return;
     if (!autoScroll || !scrollController?.canAutoFollow()) return;
     tick().then(() => {
       const container = getScrollContainer();
@@ -894,6 +913,7 @@
   $: if (scrollContainer && autoScroll) {
     const source = $messages;
     const last = source[source.length - 1];
+    const firstSceneOnly = hasOnlyFirstScene(source);
 
     if (source.length !== lastAutoScrollMessageCount) {
       lastAutoScrollMessageCount = source.length;
@@ -901,7 +921,13 @@
       tick().then(() => {
         if (!scrollContainer || !scrollController) return;
 
-        if (last?.role === "user" || scrollController.canAutoFollow()) {
+        if (firstSceneOnly) {
+          scrollController.suspendByUserIntent();
+          scrollContainer.scrollTo({
+            top: 0,
+            behavior: "auto",
+          });
+        } else if (last?.role === "user" || scrollController.canAutoFollow()) {
           scrollContainer.scrollTo({
             top: scrollContainer.scrollHeight,
             behavior: "auto",
