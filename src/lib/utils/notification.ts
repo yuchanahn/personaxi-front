@@ -1,7 +1,7 @@
 import type { Notification } from "$lib/types";
 
 export type NotificationFilter = "all" | "announcement" | "activity";
-export type NotificationReadTarget = "notification" | "announcement";
+export type NotificationReadTarget = "notification" | "notice";
 
 export function isAnnouncementNotification(notification: Notification) {
     return !!notification.title?.trim();
@@ -11,7 +11,7 @@ export function getNotificationReadTarget(
     notification: Notification,
 ): NotificationReadTarget {
     return isAnnouncementNotification(notification)
-        ? "announcement"
+        ? "notice"
         : "notification";
 }
 

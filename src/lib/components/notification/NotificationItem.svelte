@@ -53,6 +53,10 @@
                 return "lucide:trophy";
             case "system":
                 return "lucide:info";
+            case "notice":
+                return "lucide:megaphone";
+            case "event":
+                return "lucide:party-popper";
             case "info":
                 return "lucide:info";
             case "warning":
@@ -72,6 +76,10 @@
                 return "text-red-500";
             case "auction_win":
                 return "text-yellow-500";
+            case "event":
+                return "text-violet-500";
+            case "notice":
+                return "text-sky-500";
             case "warning":
                 return "text-orange-500";
             case "maintenance":

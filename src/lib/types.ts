@@ -182,6 +182,8 @@ export type NotificationType =
     | 'auction_win'
     | 'system'
     | 'new_persona'
+    | 'notice'
+    | 'event'
     | 'info'
     | 'warning'
     | 'maintenance'
@@ -194,7 +196,7 @@ export interface Notification {
     type: NotificationType;
     resourceId?: string;
     resourceType?: string;
-    title?: string; // For announcements
+    title?: string; // For notices
     contentKey?: string;
     contentParams?: string;
     content: string;

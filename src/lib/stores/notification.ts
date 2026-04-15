@@ -1,10 +1,10 @@
-import { writable, derived, get } from 'svelte/store';
+import { writable, get } from 'svelte/store';
 import { supabase } from '$lib/supabase';
 import type { Notification } from '$lib/types';
 import { accessToken } from './auth';
-import { st_user } from './user'; // Assuming user store has the current user info
 import { toast } from '$lib/stores/toast';
 import { _ } from 'svelte-i18n';
+import { settings } from './settings';
 
 function createNotificationStore() {
     const { subscribe, set, update } = writable<Notification[]>([]);
@@ -12,7 +12,13 @@ function createNotificationStore() {
     const loading = writable<boolean>(false);
     const initialized = writable<boolean>(false);
 
-    let realtimeChannel: any = null;
+    let notificationChannel: any = null;
+    let noticeChannel: any = null;
+
+    function getCurrentLocale() {
+        const language = get(settings).language;
+        return language === 'ko' || language === 'ja' ? language : 'en';
+    }
 
     function formatNotificationParams(contentParams?: string) {
         if (!contentParams) return {};
@@ -37,7 +43,8 @@ function createNotificationStore() {
 
         loading.set(true);
         try {
-            const res = await fetch(`/api/notifications?limit=${limit}&offset=${offset}`, {
+            const locale = getCurrentLocale();
+            const res = await fetch(`/api/notifications?limit=${limit}&offset=${offset}&locale=${locale}`, {
                 headers: {
                     'Authorization': `Bearer ${token}`
                 }
@@ -89,7 +96,7 @@ function createNotificationStore() {
         }
     }
 
-    async function markAsRead(id: string, type: 'notification' | 'announcement' = 'notification') {
+    async function markAsRead(id: string, type: 'notification' | 'notice' = 'notification') {
         const token = get(accessToken);
         if (!token) return;
 
@@ -156,12 +163,15 @@ function createNotificationStore() {
     }
 
     function initRealtime(userId: string) {
-        if (realtimeChannel) {
-            supabase.removeChannel(realtimeChannel);
+        if (notificationChannel) {
+            supabase.removeChannel(notificationChannel);
+        }
+        if (noticeChannel) {
+            supabase.removeChannel(noticeChannel);
         }
 
         // Subscribe to INSERT events on notifications table for this user
-        realtimeChannel = supabase
+        notificationChannel = supabase
             .channel('public:notifications')
             .on(
                 'postgres_changes',
@@ -190,6 +200,29 @@ function createNotificationStore() {
 
                     // Show Toast
                     toast.success(newNotif.content);
+                }
+            )
+            .subscribe();
+
+        noticeChannel = supabase
+            .channel('public:notices')
+            .on(
+                'postgres_changes',
+                {
+                    event: '*',
+                    schema: 'public',
+                    table: 'notices'
+                },
+                (payload) => {
+                    const nextNotice = payload.new as { is_active?: boolean } | null;
+                    const prevNotice = payload.old as { is_active?: boolean } | null;
+
+                    if (nextNotice?.is_active === false && prevNotice?.is_active === false) {
+                        return;
+                    }
+
+                    fetchNotifications();
+                    fetchUnreadCount();
                 }
             )
             .subscribe();
