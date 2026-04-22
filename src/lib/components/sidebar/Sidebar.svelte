@@ -7,7 +7,7 @@
 
     const { unreadCount } = notificationStore;
 
-    export let showSidebar: boolean = true;
+    export let showSidebar: boolean = false;
     let isMobile: boolean = false;
 
     onMount(() => {
