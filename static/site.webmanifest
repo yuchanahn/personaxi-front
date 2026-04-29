@@ -1,7 +1,7 @@
 {
-    "name": "페로챗",
-    "short_name": "페로챗",
-    "description": "디지털 생명체와 진정한 감정교류!",
+    "name": "PeroChat",
+    "short_name": "PeroChat",
+    "description": "Expressive AI character chat with status panels, Live2D, and VRM.",
     "start_url": "/",
     "display": "standalone",
     "background_color": "#ffffff",

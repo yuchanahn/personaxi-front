@@ -127,7 +127,7 @@
             <span>{$t("guide.tabGuide")}</span>
         </a>
         <a
-            href="https://discord.gg/v88p26Fpmc"
+            href="https://discord.gg/hfgPAk8jhC"
             target="_blank"
             rel="noopener noreferrer"
             class="discord-link"
