@@ -1,0 +1,1 @@
+import{r as t}from"../chunks/B90CZVMX.js";const o=({url:r})=>{const e=new URL("/profile",r);throw e.search=r.search,t(308,`${e.pathname}${e.search}`)},c=Object.freeze(Object.defineProperty({__proto__:null,load:o},Symbol.toStringTag,{value:"Module"}));export{c as universal};
