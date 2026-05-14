@@ -1,7 +1,7 @@
 {
     "name": "{{PUBLIC_BRAND_NAME}}",
     "short_name": "{{PUBLIC_BRAND_NAME}}",
-    "description": "디지털 생명체와 진정한 감정교류!",
+    "description": "Expressive AI character chat with status panels, Live2D, and VRM.",
     "start_url": "/",
     "display": "standalone",
     "background_color": "#ffffff",

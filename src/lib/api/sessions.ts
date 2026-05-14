@@ -40,7 +40,13 @@ export async function loadCharacterSessions() {
                         "",
                     avatar: chatSession.avatar,
                     lastMessage: chatSession.lastMessage || chatSession.last_message,
-                    lastMessageAt: chatSession.lastMessageAt || chatSession.last_message_at
+                    lastMessageAt: chatSession.lastMessageAt || chatSession.last_message_at,
+                    ended: !!chatSession.ended,
+                    endingId: chatSession.endingId || chatSession.ending_id || "",
+                    endingTitle:
+                        chatSession.endingTitle || chatSession.ending_title || "",
+                    endingMode:
+                        chatSession.endingMode || chatSession.ending_mode || "",
                 });
             }
         }

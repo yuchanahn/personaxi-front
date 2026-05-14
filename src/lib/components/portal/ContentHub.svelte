@@ -1,5 +1,6 @@
 <script lang="ts">
     import { goto } from "$app/navigation";
+    import { page as appPage } from "$app/stores";
     import {
         loadContent,
         loadContentWithTags,
@@ -17,6 +18,11 @@
     import ContentCarousel from "./ContentCarousel.svelte";
     import Icon from "@iconify/svelte";
     import { allCategories } from "$lib/constants";
+    import {
+        normalizeHubTab,
+        normalizeHubTag,
+        type HubTab,
+    } from "$lib/utils/hubTagNavigation";
     import { slide } from "svelte/transition";
     import InstallPrompt from "$lib/components/common/InstallPrompt.svelte";
     import Footer from "$lib/components/common/Footer.svelte";
@@ -67,7 +73,7 @@
             title: $t("hubBanner.discord.title"),
             subtitle: $t("hubBanner.discord.subtitle"),
             imageUrl: "/images/hub_banner_discord_anime.png",
-            linkUrl: "https://discord.gg/v88p26Fpmc",
+            linkUrl: "https://discord.gg/hfgPAk8jhC",
             actionText: $t("hubBanner.discord.action"),
             bgColor:
                 "linear-gradient(to right, rgba(0,0,0,0.9) 0%, rgba(88,101,242,0) 80%)",
@@ -364,7 +370,10 @@
     let query = "";
     let searchType: "name" | "tags" = "name";
 
-    let selectedCategory: string | null = null;
+    type HubSpecialMode = "following" | "liked" | "search";
+
+    let selectedCategories: string[] = [];
+    let selectedSpecialMode: HubSpecialMode | null = null;
     let currentSort = "latest";
     let page = 1;
     const limit = 20;
@@ -376,10 +385,65 @@
     let isCategoryExpanded = false;
 
     // --- Tab Navigation ---
-    type HubTab = "home" | "character" | "story" | "companion" | "2d" | "3d";
     let activeTab: HubTab = "home";
+    let lastAppliedHubQueryKey = "";
 
     $: currentContentType = activeTab === "story" ? "story" : "character";
+
+    function getBaseTabTags(tab: HubTab = activeTab): string[] {
+        if (tab === "2d") return ["tags.live2d"];
+        if (tab === "3d") return ["tags.vrm"];
+        return [];
+    }
+
+    function getCombinedTagFilters(
+        categories: string[] = selectedCategories,
+        tab: HubTab = activeTab,
+    ): string[] {
+        return Array.from(new Set([...getBaseTabTags(tab), ...categories]));
+    }
+
+    function getTabExcludedTags(tab: HubTab = activeTab): string[] {
+        const next = [...excludedTags];
+        if (tab === "character") {
+            next.push("tags.live2d", "tags.vrm");
+        }
+        return Array.from(new Set(next));
+    }
+
+    function stripBaseTabTags(
+        categories: string[],
+        tab: HubTab = activeTab,
+    ): string[] {
+        const baseTags = new Set(getBaseTabTags(tab));
+        return categories.filter((category) => !baseTags.has(category));
+    }
+
+    function hasAnyActiveFilters() {
+        return selectedSpecialMode !== null || selectedCategories.length > 0;
+    }
+
+    function getSelectedFilterHeading() {
+        if (selectedSpecialMode === "search") {
+            return $t("contentHub.searchResult", {
+                values: { query },
+            });
+        }
+
+        if (selectedSpecialMode === "following") {
+            return $t("contentHub.following");
+        }
+
+        if (selectedSpecialMode === "liked") {
+            return $t("contentHub.liked");
+        }
+
+        if (selectedCategories.length > 0) {
+            return selectedCategories.map((category) => $t(category)).join(" · ");
+        }
+
+        return $t(`contentHub.nav.${activeTab}`);
+    }
 
     async function setActiveTab(tab: HubTab) {
         if (activeTab === tab) return;
@@ -388,16 +452,27 @@
 
         // Reset category/sort for list views
         if (tab === "character" || tab === "story") {
-            selectedCategory = null;
+            selectedCategories = [];
+            selectedSpecialMode = null;
             currentSort = "latest";
             page = 1;
             reloadAll(); // Reloads the main grid list
         } else if (tab === "home") {
+            selectedCategories = [];
+            selectedSpecialMode = null;
             loadFeaturedSections(); // Reload dashboard
         } else if (tab === "2d") {
-            filterByCategory("tags.live2d");
+            selectedCategories = [];
+            selectedSpecialMode = null;
+            currentSort = "latest";
+            page = 1;
+            reloadAll();
         } else if (tab === "3d") {
-            filterByCategory("tags.vrm");
+            selectedCategories = [];
+            selectedSpecialMode = null;
+            currentSort = "latest";
+            page = 1;
+            reloadAll();
         }
     }
 
@@ -450,29 +525,7 @@
     async function reloadAll() {
         isLoading.set(true);
         try {
-            // ... existing logic but using loadContent with excludedTags
-            // Wait, reloadAll used 'loadContent(page, limit, currentSort...)'
-            // We need to pass tags if selectedCategory exists.
-
-            let tags: string[] = [];
-            if (activeTab === "2d") tags.push("tags.live2d");
-            if (activeTab === "3d") tags.push("tags.vrm");
-            if (selectedCategory) tags.push(selectedCategory);
-
-            // Define excluded tags (merge with safety filter)
-            let tabExcludedTags: string[] = [...excludedTags];
-            if (activeTab === "character") {
-                tabExcludedTags.push("tags.live2d", "tags.vrm");
-            }
-
-            const data = await loadContent(
-                page,
-                limit,
-                currentSort,
-                activeTab === "story" ? "story" : "character",
-                tags,
-                tabExcludedTags,
-            );
+            const data = await fetchMainListPage(page);
             contents.set(data || []);
             hasMoreMain = (data?.length || 0) >= limit;
         } catch (e) {
@@ -483,49 +536,64 @@
     }
 
     function shouldPaginateMainList() {
-        return (
-            selectedCategory !== "following" &&
-            selectedCategory !== "liked" &&
-            selectedCategory !== "search"
-        );
+        return selectedSpecialMode !== "following" &&
+            selectedSpecialMode !== "liked" &&
+            selectedSpecialMode !== "search";
     }
 
-    async function fetchMainListPage(pageNum: number): Promise<PersonaDTO[]> {
-        let tags: string[] = [];
-        if (activeTab === "2d") tags.push("tags.live2d");
-        if (activeTab === "3d") tags.push("tags.vrm");
+    async function fetchMainListPage(
+        pageNum: number,
+        options?: {
+            sort?: string;
+            categories?: string[];
+            specialMode?: HubSpecialMode | null;
+            tab?: HubTab;
+        },
+    ): Promise<PersonaDTO[]> {
+        const nextSort = options?.sort ?? currentSort;
+        const nextCategories = options?.categories ?? selectedCategories;
+        const nextSpecialMode = options?.specialMode ?? selectedSpecialMode;
+        const nextTab = options?.tab ?? activeTab;
+        const nextContentType = nextTab === "story" ? "story" : "character";
 
-        if (
-            selectedCategory &&
-            selectedCategory !== "following" &&
-            selectedCategory !== "liked" &&
-            selectedCategory !== "search"
-        ) {
-            tags.push(selectedCategory);
+        if (nextSpecialMode === "following") {
+            return pageNum === 1 ? await loadFollowedContent() : [];
         }
 
-        let tabExcludedTags: string[] = [...excludedTags];
-        if (activeTab === "character") {
-            tabExcludedTags.push("tags.live2d", "tags.vrm");
+        if (nextSpecialMode === "liked") {
+            return pageNum === 1 ? await loadLikedContent() : [];
         }
 
-        if (selectedCategory === null && tags.length === 0) {
-            if (tabExcludedTags.length > 0) {
-                return await loadContentWithTags(
-                    [],
+        if (nextSpecialMode === "search") {
+            if (!query.trim()) {
+                return await loadContent(
                     pageNum,
                     limit,
-                    currentSort,
-                    currentContentType,
-                    tabExcludedTags,
+                    nextSort,
+                    nextContentType,
+                    getCombinedTagFilters(nextCategories, nextTab),
+                    getTabExcludedTags(nextTab),
                 );
             }
 
+            if (searchType === "name") {
+                return pageNum === 1 ? await loadContentWithName(query) : [];
+            }
+
+            return [];
+        }
+
+        const tags = getCombinedTagFilters(nextCategories, nextTab);
+        const tabExcludedTags = getTabExcludedTags(nextTab);
+
+        if (tags.length === 0) {
             return await loadContent(
                 pageNum,
                 limit,
-                currentSort,
-                currentContentType,
+                nextSort,
+                nextContentType,
+                [],
+                tabExcludedTags,
             );
         }
 
@@ -533,8 +601,8 @@
             tags,
             pageNum,
             limit,
-            currentSort,
-            currentContentType,
+            nextSort,
+            nextContentType,
             tabExcludedTags,
         );
     }
@@ -621,6 +689,92 @@
         });
     }
 
+    function getHubQueryState(url: URL) {
+        const rawTags =
+            url.searchParams.get("tags") || url.searchParams.get("tag") || "";
+        const tags = Array.from(
+            new Set(
+                rawTags
+                    .split(",")
+                    .map((tag) => normalizeHubTag(tag))
+                    .filter((tag): tag is string => Boolean(tag)),
+            ),
+        );
+        let tab = normalizeHubTab(url.searchParams.get("tab"));
+
+        if (!tab && tags.includes("tags.live2d")) {
+            tab = "2d";
+        } else if (!tab && tags.includes("tags.vrm")) {
+            tab = "3d";
+        } else if (!tab && tags.length > 0) {
+            tab = "character";
+        }
+
+        return { tags, tab };
+    }
+
+    function getHubQueryKey(url: URL) {
+        const { tags, tab } = getHubQueryState(url);
+        return `${tab || ""}|${tags.join(",")}`;
+    }
+
+    async function applyHubQueryState(url: URL, options?: { initial?: boolean }) {
+        const { tags, tab } = getHubQueryState(url);
+
+        if (tags.length > 0) {
+            if (tab && activeTab !== tab) {
+                activeTab = tab;
+            } else if (activeTab === "home") {
+                activeTab = "character";
+            }
+
+            selectedSpecialMode = null;
+            selectedCategories = stripBaseTabTags(tags, activeTab);
+            currentSort = "latest";
+            query = "";
+            searchType = "name";
+            page = 1;
+            hasMoreMain = true;
+            await tick();
+            await reloadAll();
+            return;
+        }
+
+        if (tab) {
+            activeTab = tab;
+            selectedCategories = [];
+            selectedSpecialMode = null;
+            currentSort = "latest";
+            query = "";
+            searchType = "name";
+            page = 1;
+            hasMoreMain = true;
+            await tick();
+
+            if (tab === "home") {
+                loadFeaturedSections();
+            } else {
+                await reloadAll();
+            }
+            return;
+        }
+
+        if (options?.initial) {
+            triggerSafetyFilterReload();
+        } else {
+            activeTab = "home";
+            selectedCategories = [];
+            selectedSpecialMode = null;
+            currentSort = "latest";
+            query = "";
+            searchType = "name";
+            page = 1;
+            hasMoreMain = true;
+            await tick();
+            loadFeaturedSections();
+        }
+    }
+
     onMount(async () => {
         // Check if running locally for testing purposes
         const isNativePlatform = Capacitor.isNativePlatform();
@@ -661,7 +815,13 @@
         lastSafetyFilterValue = $settings.safetyFilterOn;
         lastHubLanguage = $settings.language;
         bindHubScrollTarget();
-        triggerSafetyFilterReloadAfterPaint();
+        const initialUrl = get(appPage).url;
+        lastAppliedHubQueryKey = getHubQueryKey(initialUrl);
+        if (getHubQueryKey(initialUrl)) {
+            await applyHubQueryState(initialUrl, { initial: true });
+        } else {
+            triggerSafetyFilterReloadAfterPaint();
+        }
     });
 
     onDestroy(() => {
@@ -678,6 +838,14 @@
         lastSafetyFilterValue = $settings.safetyFilterOn;
         lastHubLanguage = $settings.language;
         triggerSafetyFilterReload();
+    }
+
+    $: if (hubInitialized) {
+        const nextHubQueryKey = getHubQueryKey($appPage.url);
+        if (nextHubQueryKey !== lastAppliedHubQueryKey) {
+            lastAppliedHubQueryKey = nextHubQueryKey;
+            void applyHubQueryState($appPage.url);
+        }
     }
 
     function handleHubScroll() {
@@ -862,75 +1030,41 @@
     }
 
     // --- 필터링 및 로직 ---
-    async function filterByCategory(category: string | null) {
-        selectedCategory = category;
+    async function setSelectedCategories(categories: string[]) {
+        selectedCategories = Array.from(new Set(categories));
+        selectedSpecialMode = null;
         page = 1;
         hasMoreMain = true;
         isLoading.set(true);
         let data: PersonaDTO[] = [];
 
-        // Determine additional tags based on activeTab
-        let tags: string[] = [];
-        if (activeTab === "2d") tags.push("tags.live2d");
-        if (activeTab === "3d") tags.push("tags.vrm");
-
-        if (category) tags.push(category);
-
-        // Define excluded tags (merge with safety filter)
-        let tabExcludedTags: string[] = [...excludedTags]; // Copy global exclusions (R18)
-        if (activeTab === "character") {
-            tabExcludedTags.push("tags.live2d", "tags.vrm");
+        try {
+            data = await fetchMainListPage(page, {
+                categories: selectedCategories,
+                specialMode: null,
+            });
+        } catch (error) {
+            if (!(error instanceof AuthRequiredError)) {
+                throw error;
+            }
+            data = [];
         }
 
-        if (category === null && tags.length === 0) {
-            if (tabExcludedTags.length > 0) {
-                data = await loadContentWithTags(
-                    tags,
-                    page,
-                    limit,
-                    currentSort,
-                    currentContentType,
-                    tabExcludedTags,
-                );
-            } else {
-                data = await loadContent(
-                    page,
-                    limit,
-                    currentSort,
-                    currentContentType,
-                );
-            }
-        } else if (category === "following") {
-            try {
-                data = await loadFollowedContent();
-            } catch (error) {
-                if (!(error instanceof AuthRequiredError)) {
-                    throw error;
-                }
-                data = [];
-            }
-        } else if (category === "liked") {
-            try {
-                data = await loadLikedContent();
-            } catch (error) {
-                if (!(error instanceof AuthRequiredError)) {
-                    throw error;
-                }
-                data = [];
-            }
-        } else {
-            data = await loadContentWithTags(
-                tags,
-                page,
-                limit,
-                currentSort,
-                currentContentType,
-                tabExcludedTags,
-            );
-        }
         contents.set(data);
         hasMoreMain = shouldPaginateMainList() && data.length >= limit;
         isLoading.set(false);
+    }
+
+    async function clearCategoryFilters() {
+        await setSelectedCategories([]);
+    }
+
+    async function toggleCategoryFilter(category: string) {
+        const nextCategories = selectedCategories.includes(category)
+            ? selectedCategories.filter((item) => item !== category)
+            : [...selectedCategories, category];
+
+        await setSelectedCategories(nextCategories);
     }
 
     async function changeSort(sort: string) {
@@ -941,73 +1075,15 @@
         isLoading.set(true);
         let data: PersonaDTO[] = [];
 
-        // Determine additional tags based on activeTab
-        let tags: string[] = [];
-        if (activeTab === "2d") tags.push("tags.live2d");
-        if (activeTab === "3d") tags.push("tags.vrm");
-
-        if (
-            selectedCategory &&
-            selectedCategory !== "following" &&
-            selectedCategory !== "liked" &&
-            selectedCategory !== "search"
-        ) {
-            tags.push(selectedCategory);
+        try {
+            data = await fetchMainListPage(page, { sort });
+        } catch (error) {
+            if (!(error instanceof AuthRequiredError)) {
+                throw error;
+            }
+            data = [];
         }
 
-        // Define excluded tags (merge with safety filter)
-        let tabExcludedTags: string[] = [...excludedTags]; // Copy global exclusions (R18)
-        if (activeTab === "character") {
-            tabExcludedTags.push("tags.live2d", "tags.vrm");
-        }
-
-        if (selectedCategory === null && tags.length === 0) {
-            if (tabExcludedTags.length > 0) {
-                data = await loadContentWithTags(
-                    tags, // empty
-                    page,
-                    limit,
-                    sort,
-                    currentContentType,
-                    tabExcludedTags,
-                );
-            } else {
-                data = await loadContent(page, limit, sort, currentContentType);
-            }
-        } else if (selectedCategory === "following") {
-            try {
-                data = await loadFollowedContent();
-            } catch (error) {
-                if (!(error instanceof AuthRequiredError)) {
-                    throw error;
-                }
-                data = [];
-            }
-        } else if (selectedCategory === "liked") {
-            try {
-                data = await loadLikedContent();
-            } catch (error) {
-                if (!(error instanceof AuthRequiredError)) {
-                    throw error;
-                }
-                data = [];
-            }
-        } else if (selectedCategory === "search") {
-            if (searchType === "name") {
-                data = await loadContentWithName(query);
-            } else {
-                data = await loadContent(page, limit, sort, currentContentType);
-            }
-        } else {
-            data = await loadContentWithTags(
-                tags,
-                page,
-                limit,
-                sort,
-                currentContentType,
-                tabExcludedTags,
-            );
-        }
         contents.set(data);
         hasMoreMain = shouldPaginateMainList() && data.length >= limit;
         isLoading.set(false);
@@ -1015,19 +1091,30 @@
 
     async function executeSearch() {
         isLoading.set(true);
-        selectedCategory = "search";
+        selectedSpecialMode = "search";
+        selectedCategories = [];
         isSearchModalOpen = false;
 
         let data: PersonaDTO[] = [];
         page = 1;
         hasMoreMain = false;
 
-        if (!query.trim()) {
-            data = await loadContent(page, limit, currentSort);
-            selectedCategory = null;
-        } else if (searchType === "name") {
-            data = await loadContentWithName(query);
+        try {
+            data = await fetchMainListPage(page, {
+                specialMode: "search",
+                categories: [],
+            });
+
+            if (!query.trim()) {
+                selectedSpecialMode = null;
+            }
+        } catch (error) {
+            if (!(error instanceof AuthRequiredError)) {
+                throw error;
+            }
+            data = [];
         }
+
         contents.set(data);
         isLoading.set(false);
     }
@@ -1203,7 +1290,7 @@
                     </div>
                 </div>
 
-                {#if selectedCategory}
+                {#if hasAnyActiveFilters()}
                     <div class="current-category">
                         <!-- filtered chips handled below -->
                     </div>
@@ -1287,16 +1374,19 @@
             <div class="category-grid max-w-screen-xl mx-auto w-full">
                 <button
                     class="cat-chip"
-                    class:active={selectedCategory === null}
-                    on:click={() => filterByCategory(null)}
+                    class:active={selectedSpecialMode === null &&
+                        selectedCategories.length === 0}
+                    on:click={clearCategoryFilters}
                 >
                     {$t("contentHub.all")}
                 </button>
                 {#each dynamicCategories as category (category.id)}
                     <button
                         class="cat-chip"
-                        class:active={selectedCategory === category.nameKey}
-                        on:click={() => filterByCategory(category.nameKey)}
+                        class:active={selectedCategories.includes(
+                            category.nameKey,
+                        )}
+                        on:click={() => toggleCategoryFilter(category.nameKey)}
                     >
                         {$t(`${category.nameKey}`)}
                     </button>
@@ -1312,7 +1402,7 @@
 
             <!-- HOME DASHBOARD VIEW -->
             <!-- If we are in home tab AND NOT searching/filtering, show dashboard -->
-            {#if activeTab === "home" && !selectedCategory}
+            {#if activeTab === "home" && !hasAnyActiveFilters()}
                 {#if isInitialHomeSectionsLoading && $homeSections.length === 0}
                     <div class="home-skeleton" aria-hidden="true">
                         {#each homeSkeletonSections as sectionIndex}
@@ -1357,21 +1447,7 @@
                 <!-- LIST VIEW (Character / Story / Filtered) -->
                 <section class="hub-section full-height">
                     <div class="section-header">
-                        <h3>
-                            {#if selectedCategory === "search"}
-                                {$t("contentHub.searchResult", {
-                                    values: { query },
-                                })}
-                            {:else if selectedCategory === "following"}
-                                {$t("contentHub.following")}
-                            {:else if selectedCategory === "liked"}
-                                {$t("contentHub.liked")}
-                            {:else if selectedCategory}
-                                {$t(selectedCategory)}
-                            {:else}
-                                {$t(`contentHub.nav.${activeTab}`)}
-                            {/if}
-                        </h3>
+                        <h3>{getSelectedFilterHeading()}</h3>
                         <div class="sort-controls">
                             <button
                                 class:active={currentSort === "latest"}

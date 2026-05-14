@@ -1,188 +1,191 @@
-# Privacy Policy for {{LEGAL_SERVICE_NAME}}
+# {{LEGAL_SERVICE_NAME}} プライバシーポリシー
 
-**Effective Date:** February 3, 2026  
-**Operator:** {{LEGAL_ENTITY_NAME}} (Sole Proprietorship, Republic of Korea)  
-**Address:** 충청남도 천안시 서북구 번영로 306-15, 104-101, Republic of Korea  
-**Data Protection Officer:** An Yu-chan (Representative) — {{PRIVACY_EMAIL}}
-
----
-
-This Privacy Policy is established in accordance with Article 30 of the Personal Information Protection Act (Republic of Korea) to protect the personal information of data subjects and to handle related grievances promptly and smoothly.
+**施行日:** 2026年4月15日  
+**運営者:** {{LEGAL_ENTITY_NAME}}（大韓民国 個人事業者）  
+**住所:** 충청남도 천안시 서북구 번영로 306-15, 104-101, Republic of Korea  
+**個人情報保護責任者:** アン・ユチャン（代表） — {{PRIVACY_EMAIL}}
 
 ---
 
-## Section 1: Purpose of Personal Information Processing
-
-The Company processes personal information for the following purposes. The personal information being processed shall not be used for any purpose other than those listed below. If the purpose of processing changes, the Company shall take necessary measures such as obtaining separate consent in accordance with Article 18 of the Personal Information Protection Act.
-
-1. **Account Registration and Management**
-   Registration intent confirmation via Google and Kakao social login, identity verification and authentication for membership services, maintenance and management of membership qualifications, prevention of service misuse, and handling of grievances.
-
-2. **Provision of Goods or Services**
-   Provision of AI character chat services, conversion of chat responses (text) to speech (TTS), storage and management of Persona settings, provision of file upload functionality (images, VRM, etc.), provision of personalized services, and payment processing.
-
-3. **Identity Verification and Age Verification**
-   Processing identity verification data through the integrated authentication service for identity checks, adult verification, age verification, duplicate account prevention, retention of authentication results, and compliance with applicable laws.
-
-4. **Service Improvement and Research**
-   User input data (prompts) and AI-generated responses shall be pseudonymized and used for the purpose of improving AI model performance, optimizing algorithms, and developing new features. The specific methods and protective measures for pseudonymization are specified in Section 10.
+本プライバシーポリシーは、大韓民国「個人情報保護法」第30条に基づき、情報主体の個人情報を保護し、これに関する苦情を迅速かつ円滑に処理するために定め、公表するものです。
 
 ---
 
-## Section 2: Retention Period of Personal Information
+## 第1条（個人情報の処理目的）
 
-1. The Company shall process and retain personal information within the retention period agreed upon with the data subject at the time of collection, or within the period required by law.
+会社は、次の目的のために個人情報を処理します。処理中の個人情報は、次の目的以外には利用されず、利用目的が変更される場合には、「個人情報保護法」第18条に従い、別途同意を得るなど必要な措置を履行する予定です。
 
-2. The specific retention periods are as follows:
+1. **ウェブサイト会員登録および管理**
+   Google および Kakao ソーシャルログインを通じた会員登録意思の確認、会員制サービス提供に伴う本人識別・認証、会員資格の維持・管理、不正利用防止、苦情処理を目的として個人情報を処理します。
 
-| Category | Retention Period | Legal Basis |
+2. **財貨またはサービスの提供**
+   AI キャラクターチャットサービスの提供、チャット応答（テキスト）の音声（TTS）変換、ペルソナ設定値の保存および管理、ファイルアップロード（画像、VRM、Live2D モデルおよび関連ファイル）機能の提供、個別化サービスの提供、決済処理を目的として個人情報を処理します。
+
+3. **本人確認および年齢確認**
+   統合認証サービスを通じた本人確認、成人認証、年齢確認、重複登録防止、認証結果の保管および法令上の義務履行を目的として個人情報を処理します。
+
+4. **サービス改善および研究**
+   利用者の入力データ（プロンプト）および AI 生成回答を仮名処理し、AI モデルの性能改善、アルゴリズム最適化および新機能開発研究の目的で活用します。仮名処理の具体的方法と保護措置は第10条に定めます。
+
+---
+
+## 第2条（個人情報の処理および保有期間）
+
+1. 会社は、法令に基づく個人情報の保有・利用期間、または情報主体から個人情報を収集する際に同意を得た保有・利用期間の範囲内で個人情報を処理・保有します。
+
+2. 各個人情報の処理および保有期間は次のとおりです。
+
+| 区分 | 保有期間 | 法的根拠 |
 |:---|:---|:---|
-| Account registration and management | Until account termination | Consent |
-| Provision of goods or services | Until service delivery and payment settlement are completed | Consent |
-| Records related to contracts or withdrawal of subscription | 5 years | Electronic Commerce Act, Art. 6 |
-| Records related to payment and supply of goods | 5 years | Electronic Commerce Act, Art. 6 |
-| Records related to consumer complaints or dispute resolution | 3 years | Electronic Commerce Act, Art. 7 |
-| Access logs (visit records) | 3 months | Act on Protection of Communications Secrets, Art. 2 |
+| 会員登録および管理 | 退会時まで | 同意 |
+| 財貨またはサービスの提供 | サービス提供完了および料金決済・精算完了時まで | 同意 |
+| 契約または申込み撤回等に関する記録 | 5年 | 電子商取引法 第6条 |
+| 代金決済および財貨等の供給に関する記録 | 5年 | 電子商取引法 第6条 |
+| 消費者の苦情または紛争処理に関する記録 | 3年 | 電子商取引法 第7条 |
+| 接続ログ（訪問記録） | 3か月 | 通信秘密保護法 第2条 |
 
 ---
 
-## Section 3: Provision of Personal Information to Third Parties
+## 第3条（個人情報の第三者提供に関する事項）
 
-The Company shall process personal information only within the scope specified in Section 1 and shall not, in principle, provide personal information to third parties without the consent of the data subject.
+会社は、情報主体の個人情報を第1条で明示した範囲内でのみ処理し、原則として情報主体の同意なく個人情報を外部に提供しません。
 
 ---
 
-## Section 4: Entrustment and International Transfer of Personal Information
+## 第4条（個人情報処理の委託および国際移転に関する事項）
 
-1. The Company entrusts and transfers personal information processing as follows for the smooth handling of personal information:
+1. 会社は、円滑な個人情報業務処理のため、次のとおり個人情報処理業務を委託し、国際移転しています。
 
-| Entrusted Party (Country) | Data Transferred | Purpose of Entrustment | Retention Period |
+| 受託者（国） | 移転項目 | 委託業務内容（移転目的） | 保有および利用期間 |
 |:---|:---|:---|:---|
-| **Google, LLC** (USA) | Email, chat records, Persona settings | AI response generation via Gemini LLM and infrastructure use | Until account termination or end of entrustment contract |
-| **Supabase, Inc.** (USA) | Member UID, email, uploaded files | User authentication (Auth), database and storage | Until account termination or end of entrustment contract |
-| **Oracle Corp.** (USA) | All service data | Web server hosting and cloud computing infrastructure | Until account termination or end of entrustment contract |
-| **Payment Processor** | Payment email, payment records | Payment processing, tax compliance, and fraud prevention | Until the end of the statutory retention period (5 years) |
-| **Fish Audio** (USA, etc.) | Chat text | AI character voice (TTS) generation and synthesis | Deleted immediately after the purpose is fulfilled |
-| **Kakao Corp.** (South Korea) | Email, nickname, profile photo | Identity verification and login via Kakao account | Until account termination |
+| **Google, LLC**（米国） | メールアドレス、チャット記録、ペルソナ設定値 | Gemini LLM を通じた AI 応答生成およびインフラ利用 | 退会または委託契約終了時まで |
+| **Supabase, Inc.**（米国） | 会員識別子（UID）、メールアドレス、アップロードファイル | ユーザー認証（Auth）、データベースおよびストレージ提供 | 退会または委託契約終了時まで |
+| **Oracle Corp.**（米国） | サービスデータ一切 | Web サーバーホスティングおよびクラウドコンピューティングインフラ | 退会または委託契約終了時まで |
+| **決済代行会社（PG）** | 決済用メールアドレス、決済記録 | 決済処理、税務履行および不正決済防止 | 法定保存期間（5年）終了時まで |
+| **Fish Audio**（米国等） | チャットテキスト | AI キャラクター音声（TTS）生成および合成 | 目的達成後ただちに破棄 |
+| **Kakao Corp.**（韓国） | メールアドレス、ニックネーム、プロフィール写真 | Kakao アカウントを利用した本人識別およびログイン | 退会時まで |
 
-2. The Company supervises entrusted parties to ensure that they process personal information safely in accordance with applicable laws at the time of signing the entrustment agreement.
-
-3. **Explicit Consent for International Transfer:** During the registration process, the Company shall explicitly inform the user via a separate consent box that "Your personal information will be transferred to overseas servers (USA - Google, Supabase, Oracle, etc.)" and shall only approve registration if the user acknowledges and consents to this via a checkbox. To withdraw consent, the data subject may request account termination through the account settings or by contacting {{SUPPORT_EMAIL}}.
+2. 会社は、委託契約締結時、関係法令に従い受託者が個人情報を安全に処理するかを監督しています。
 
 ---
 
-## Section 5: Rights of Data Subjects and How to Exercise Them
+## 第5条（情報主体の権利・義務およびその行使方法）
 
-1. Data subjects may exercise the following rights with respect to their personal information at any time: **access, correction, deletion, and suspension of processing**.
+1. 情報主体は、会社に対し、いつでも個人情報の閲覧、訂正、削除、処理停止要求等の権利を行使することができます。
 
-2. Rights may be exercised by contacting the Company via email at **{{PRIVACY_EMAIL}}**.
+2. 第1項による権利行使は、電子メール（{{PRIVACY_EMAIL}}）等を通じて行うことができます。
 
-3. The Company shall take the necessary action within **15 days** of receiving a request and notify the data subject of the result.
+3. 会社は、権利行使要求を受領した日から **15日以内** に措置を取り、その結果を情報主体に通知します。
 
-4. If the Company refuses a request, it shall communicate the specific reason for the refusal to the data subject.
+4. 会社が情報主体の要求を拒否する場合、その具体的理由をあわせて案内します。
 
-5. Data subjects may also directly inquire with the Company to confirm the existence of their personal information.
-
----
-
-## Section 6: Categories of Personal Information Processed
-
-1. **Social Login Account Information**
-   - **Google:** (Required) Email address, profile name, UID / (Optional) Gender, profile photo
-   - **Kakao:** (Required) Email address, nickname, UID / (Optional) Gender, profile photo
-
-2. **Identity Verification and Adult Verification Data**
-   - (Required) Name, date of birth, mobile phone number, telecom carrier, domestic/foreign status, encrypted user verification value (CI), duplicate registration verification information (DI)
-
-3. **Service Usage Data**
-   - (Required) Chat records, user prompts, Persona settings (instructions, background, etc.), uploaded files (images, VRM)
-
-4. **Automatically Collected Information**
-   - IP address, cookies, service usage records, browser/OS information, records of misuse
+5. 情報主体は、自身の個人情報の存在有無を確認するため、会社に直接問い合わせることができます。
 
 ---
 
-## Section 7: Security Measures for Personal Information
+## 第6条（処理する個人情報の項目）
 
-The Company takes the following measures to ensure the security of personal information:
+1. **ソーシャルログイン会員情報**
+   - **Google**: （必須）メールアドレス、プロフィール名、UID / （任意）性別、プロフィール画像
+   - **Kakao**: （必須）メールアドレス、ニックネーム、UID / （任意）性別、プロフィール画像
 
-1. **Administrative Measures:** Establishment and implementation of an internal management plan, regular security training for employees, and access privilege management for personnel handling personal information.
+2. **本人確認および成人認証情報**
+   - （必須）氏名、生年月日、携帯電話番号、通信会社、内外国人区分、暗号化された利用者確認値（CI）、重複加入確認情報（DI）
 
-2. **Technical Measures:** Access control, prevention of tampering with access records, encryption of key data (during storage and transmission), application of SSL secure servers, and regular security vulnerability assessments.
+3. **サービス利用データ**
+   - （必須）チャット記録、ユーザープロンプト、ペルソナ設定値（指示、背景等）、アップロードファイル（画像、VRM、Live2D モデルおよび関連ファイル）
 
-3. **Physical Measures:** Access control and lock management for locations where personal information is stored (e.g., personal PCs) to prevent unauthorized access.
-
----
-
-## Section 8: Use of Cookies
-
-1. The Company may use cookies to provide personalized services and analyze usage patterns.
-
-2. Data subjects may refuse the installation of cookies through browser settings. In such cases, some features of the Service may be restricted.
+4. **自動収集項目**
+   - IP アドレス、クッキー、サービス利用記録、ブラウザ / OS 情報、不正利用記録
 
 ---
 
-## Section 9: Data Protection Officer
+## 第7条（個人情報の安全性確保措置）
 
-The Company has appointed a Data Protection Officer to oversee all matters related to personal information processing.
+会社は、個人情報の安全性確保のため、次の措置を講じています。
+
+1. **管理的措置**: 内部管理計画の策定および施行、定期的なセキュリティ教育、個人情報処理担当職員に対する権限管理
+
+2. **技術的措置**: アクセス権限管理、接続記録の改ざん防止、主要データの暗号化（保存時および送信時）、SSL セキュアサーバー適用、定期的なセキュリティ脆弱性点検、リアルタイムレンダリング提供過程における通信区間保護およびアクセス統制
+
+3. **物理的措置**: 非認可者による個人情報保管場所（個人 PC 等）への出入り統制および施錠装置の運用
+
+---
+
+## 第8条（クッキーの使用）
+
+1. 会社は、個別化されたサービスの提供および利用パターン分析のため、クッキーを使用することがあります。
+
+2. 会員は、ブラウザ設定を通じてクッキーの保存を拒否することができ、この場合、サービスの一部機能が制限されることがあります。
+
+---
+
+## 第9条（個人情報保護責任者および担当部署）
+
+1. 会社は、個人情報処理業務を総括して管理し、個人情報処理過程において情報主体の権利が侵害された場合の責任を明確にするため、個人情報保護責任者を指定しています。
 
 | | |
 |:---|:---|
-| **Name** | An Yu-chan |
-| **Position** | Representative (Data Protection Officer, concurrent) |
-| **Contact** | {{PRIVACY_EMAIL}} |
-| **Address** | 충청남도 천안시 서북구 번영로 306-15, 104-101, Republic of Korea |
+| **氏名** | アン・ユチャン |
+| **職責** | 代表（個人情報保護責任者兼任） |
+| **連絡先** | {{PRIVACY_EMAIL}} |
+| **住所** | 충청남도 천안시 서북구 번영로 306-15, 104-101, Republic of Korea |
 
-Data subjects may contact the Data Protection Officer for any questions regarding this Privacy Policy or to exercise their rights.
+2. 情報主体は、本プライバシーポリシーに関する問い合わせや、個人情報閲覧等の要求を行う際、上記の個人情報保護責任者および担当部署を通じて迅速かつ適切な回答を受けることができます。
 
----
+3. 情報主体は、個人情報保護に関する被害を受けた場合、救済申請のため次の機関に申し立てることができます。
 
-## Section 10: Pseudonymization of Personal Information
-
-1. The Company may pseudonymize personal information for the purpose specified in Section 1, Paragraph 3 (Service Improvement and Research).
-
-2. The methods and procedures for pseudonymization are as follows:
-   - Directly identifiable information (e.g., email, UID) shall be removed or replaced with arbitrary values.
-   - Pseudonymized data shall be encrypted before storage to prevent re-identification.
-   - Management and security of pseudonymized information shall be handled separately in accordance with the Company's internal regulations.
-
-3. The Company shall systematically operate re-identification prevention and security measures to ensure the safe management of pseudonymized information.
-
-4. Research outputs utilizing pseudonymized information shall be verified to ensure that no personal information is included before publication.
+| 機関 | 連絡先 |
+|:---|:---|
+| 個人情報侵害申告センター | 1588-5678 |
+| 大検察庁サイバー捜査課 | 1301 |
+| 警察庁サイバー犯罪通報システム | 182 |
 
 ---
 
-## Section 11: GDPR and International Data Protection Laws
+## 第10条（個人情報の仮名処理）
 
-1. The Company complies with the **General Data Protection Regulation (GDPR)** of the European Union with respect to data subjects within the EU.
+1. 会社は、第1条第4号（サービス改善および研究）の目的のため、個人情報を仮名処理することがあります。
 
-2. Under the GDPR, EU data subjects have the following rights:
-   - **Right of Access** (Article 15)
-   - **Right to Rectification** (Article 16)
-   - **Right to Erasure ("Right to be Forgotten")** (Article 17)
-   - **Right to Restriction of Processing** (Article 18)
-   - **Right to Data Portability** (Article 20)
-   - **Right to Object** (Article 21)
+2. 仮名処理の方法および手続は次のとおりです。
+   - 直接識別可能な情報（メールアドレス、UID 等）は削除または任意値へ置換します。
+   - 仮名処理されたデータは再識別防止のため暗号化して保存します。
+   - 仮名情報の管理および保護措置は会社の内部規程に従って別途運用します。
 
-3. The Company also complies with the **California Consumer Privacy Act (CCPA)** and ensures the rights of data subjects to whom the Act applies.
+3. 会社は、仮名情報を安全に管理するため、再識別防止措置および保護措置を体系的に運営します。
 
-4. To exercise the above rights, please contact {{PRIVACY_EMAIL}}. The Company shall take the necessary action within **30 days** of receipt.
-
-5. **Supervisory Authority:** EU data subjects have the right to lodge a complaint with the relevant data protection supervisory authority in their EU Member State.
+4. 仮名情報を活用した研究成果を公開する場合、個人情報が含まれていないことを事前に確認します。
 
 ---
 
-## Section 12: Changes to this Privacy Policy
+## 第11条（GDPR 等の国際個人情報保護法令）
 
-1. This Privacy Policy is effective as of **February 3, 2026**.
+1. 会社は、EU 域内情報主体に対しては欧州連合の **一般データ保護規則（GDPR）** を遵守します。
 
-2. If the content of this Privacy Policy is added, modified, or changed, the Company shall provide notice through the Service prior to the effective date of the change.
+2. GDPR に基づき、EU 域内情報主体は次の権利を有します。
+   - **アクセス権**（第15条）
+   - **訂正権**（第16条）
+   - **削除権（忘れられる権利）**（第17条）
+   - **処理制限権**（第18条）
+   - **データポータビリティ権**（第20条）
+   - **異議申立権**（第21条）
+
+3. 会社は、**カリフォルニア州消費者プライバシー法（CCPA）** をはじめとする適用対象法令についても遵守します。
+
+4. 上記権利を行使するには {{PRIVACY_EMAIL}} までお問い合わせください。会社は要求受領後 **30日以内** に必要な措置を講じます。
+
+5. **監督機関**: EU 域内情報主体は、居住国または所在地を管轄する個人情報保護監督機関に苦情を申し立てることができます。
 
 ---
 
-**Company:** {{LEGAL_ENTITY_NAME}}  
-**Address:** 충청남도 천안시 서북구 번영로 306-15, 104-101, Republic of Korea  
-**Data Protection Officer:** An Yu-chan ({{PRIVACY_EMAIL}})
+## 第12条（プライバシーポリシーの変更）
 
+1. 本プライバシーポリシーは **2026年4月15日** から適用されます。
 
+2. 本プライバシーポリシーの内容に追加、修正または変更がある場合、会社は変更施行日前にサービス内のお知らせを通じて案内します。
 
+---
+
+**会社:** {{LEGAL_ENTITY_NAME}}  
+**住所:** 충청남도 천안시 서북구 번영로 306-15, 104-101, Republic of Korea  
+**個人情報保護責任者:** アン・ユチャン（{{PRIVACY_EMAIL}}）

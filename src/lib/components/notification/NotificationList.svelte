@@ -1,16 +1,28 @@
 <script lang="ts">
     import { notificationStore } from "$lib/stores/notification";
     import NotificationItem from "./NotificationItem.svelte";
-    import { onMount } from "svelte";
     import Icon from "@iconify/svelte";
     import { t } from "svelte-i18n";
+    import type { NotificationFilter } from "$lib/utils/notification";
+    import { matchesNotificationFilter } from "$lib/utils/notification";
 
     export let compact = false;
+    export let filter: NotificationFilter = "all";
 
     const { subscribe, loading, initialized } = notificationStore;
 
     let offset = 0;
     const limit = 20;
+
+    $: filteredNotifications = $notificationStore.filter((notification) =>
+        matchesNotificationFilter(notification, filter),
+    );
+    $: emptyKey =
+        filter === "announcement"
+            ? "notifications.emptyAnnouncements"
+            : filter === "activity"
+              ? "notifications.emptyActivity"
+              : "notifications.empty";
 
     function loadMore() {
         offset += limit;
@@ -28,16 +40,16 @@
         <div class="flex items-center justify-center p-8 text-gray-400">
             <Icon icon="lucide:loader-2" class="animate-spin w-6 h-6" />
         </div>
-    {:else if $notificationStore.length === 0 && $initialized}
+    {:else if filteredNotifications.length === 0 && $initialized}
         <div
             class="flex flex-col items-center justify-center p-8 text-gray-400 text-center"
         >
             <Icon icon="lucide:bell-off" class="w-12 h-12 mb-3 opacity-50" />
-            <p class="text-sm">{$t("notifications.empty")}</p>
+            <p class="text-sm">{$t(emptyKey)}</p>
         </div>
     {:else}
         <div class="flex-1 overflow-y-auto">
-            {#each $notificationStore as notification (notification.id)}
+            {#each filteredNotifications as notification (notification.id)}
                 <NotificationItem {notification} />
             {/each}
 

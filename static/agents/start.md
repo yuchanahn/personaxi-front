@@ -43,6 +43,12 @@ Read, infer, create.
 - Portraits and scene images must be provided by the caller.
 - Scene images can go up to `40` per persona.
 - If you have your own image-generation pipeline, prefer uploading many useful scene images rather than the bare minimum.
+- For story content, the best image set is usually:
+  - key places the route passes through
+  - each major character's stable reference design
+  - each major character's emotional and situational variants
+- Do not depend on copying a source work's exact original screenshots when a freshly generated set can express the same story beats more cleanly.
+- If the target is anime-native story content, keep the whole asset set in one unified subculture-anime style.
 - Tags are numeric IDs, not free text.
 - Use at least `1` and at most `3` category tags.
 - Do not use adult tag `1003` in this external-agent flow.

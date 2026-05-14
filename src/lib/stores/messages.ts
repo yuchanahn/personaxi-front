@@ -1,6 +1,7 @@
 import { writable } from 'svelte/store';
 
 export type Message = {
+  idx?: number;
   role: 'user' | 'assistant' | 'system';
   content: string;
   done?: boolean;

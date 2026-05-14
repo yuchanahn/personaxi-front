@@ -58,6 +58,7 @@ export interface Persona {
     status_template_css?: string;
     chat_style_css?: string;
     interactiveUIEnabled?: boolean;
+    endingEnabled?: boolean;
 
     // Commercial Rights (For Live2D & VRM Monetization)
     commercialRightsConfirmed?: boolean;
@@ -73,6 +74,21 @@ export interface ESFPrompt {
     last_prompt_tokens: number;
     recent_turns: string[];
     affection_score: number;
+}
+
+export interface ChatEnding {
+    id?: string;
+    title?: string;
+    mode?: string;
+    description?: string;
+}
+
+export interface ChatSaveSlot {
+    id: string;
+    cssid: string;
+    name: string;
+    createdAt: string;
+    updatedAt: string;
 }
 
 export interface PersonaDTO {
@@ -158,7 +174,20 @@ export interface Comment {
     author_avatar_url: string;   // 작성자 프로필 사진 URL
 }
 
-export type NotificationType = 'comment' | 'like' | 'follow' | 'auction_bid' | 'auction_win' | 'system';
+export type NotificationType =
+    | 'comment'
+    | 'like'
+    | 'follow'
+    | 'auction_bid'
+    | 'auction_win'
+    | 'system'
+    | 'new_persona'
+    | 'notice'
+    | 'event'
+    | 'info'
+    | 'warning'
+    | 'maintenance'
+    | 'update';
 
 export interface Notification {
     id: string;
@@ -167,7 +196,7 @@ export interface Notification {
     type: NotificationType;
     resourceId?: string;
     resourceType?: string;
-    title?: string; // For announcements
+    title?: string; // For notices
     contentKey?: string;
     contentParams?: string;
     content: string;

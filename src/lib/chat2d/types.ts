@@ -32,6 +32,7 @@ export type Chat2DBlock =
     | { type: "astro_chart"; id: string; input: Record<string, unknown> }
     | { type: "saju_chart"; id: string; input: Record<string, unknown> }
     | { type: "vars_status"; id: string; variables: Record<string, string> }
+    | { type: "ending"; id: string }
     | { type: "situation_trigger"; id: string };
 
 export interface StreamAssemblyResult {

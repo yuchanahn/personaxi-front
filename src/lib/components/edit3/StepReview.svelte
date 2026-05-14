@@ -1,7 +1,7 @@
 <script lang="ts">
     import { t } from "svelte-i18n";
     import Icon from "@iconify/svelte";
-    import { allCategories } from "$lib/constants";
+    import { MAX_CATEGORY_TAGS, allCategories } from "$lib/constants";
     import { toast } from "$lib/stores/toast";
     import AssetPreview from "$lib/components/AssetPreview.svelte";
     import type { Persona } from "$lib/types";
@@ -18,10 +18,14 @@
                 (id) => parseInt(id) < 1000,
             ).length;
 
-            if (categoryTagsCount < 3) {
+            if (categoryTagsCount < MAX_CATEGORY_TAGS) {
                 persona.tags = [...persona.tags, tagId];
             } else {
-                toast.warning($t("editPage.validation.maxTags"));
+                toast.warning(
+                    $t("editPage.validation.maxTags", {
+                        values: { max: MAX_CATEGORY_TAGS },
+                    }),
+                );
             }
         }
     }
@@ -60,7 +64,9 @@
             <span class="required">*</span>
         </h3>
         <p class="section-hint">
-            {$t("edit3.review.tagsHint", { values: { count: selectedCount } })}
+            {$t("edit3.review.tagsHint", {
+                values: { count: selectedCount, max: MAX_CATEGORY_TAGS },
+            })}
         </p>
         <div class="tags-grid">
             {#each categoryTags as category (category.id)}
@@ -68,7 +74,7 @@
                     type="button"
                     class="tag-chip"
                     class:active={persona.tags.includes(category.id.toString())}
-                    class:disabled={selectedCount >= 3 &&
+                    class:disabled={selectedCount >= MAX_CATEGORY_TAGS &&
                         !persona.tags.includes(category.id.toString())}
                     on:click={() => toggleTag(category.id.toString())}
                 >

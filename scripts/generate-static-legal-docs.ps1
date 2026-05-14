@@ -67,7 +67,7 @@ $contactEmail = [string]$branding.contactEmail
 $copyrightName = Resolve-BrandingValue $branding.copyrightName
 $appTitle = "$publicBrandName - AI Chat, Your Way"
 $appDescription = "From status panels to Live2D and VRM, $publicBrandName is the only AI chat platform where you can design how characters appear."
-$ogImageUrl = "$publicOrigin/og-image-v3.png"
+$ogImageUrl = "$publicOrigin/og-image-v4.png"
 
 function Apply-BrandingText {
     param(
@@ -407,8 +407,8 @@ $docs = @(
     @{
         MarkdownPath = Join-Path $localesRoot "ja\terms.md"
         OutputPath   = Join-Path $staticRoot "ja\terms\index.html"
-        Title        = "{{LEGAL_SERVICE_NAME}} Terms of Service"
-        Description  = "Static Terms of Service document for {{LEGAL_SERVICE_NAME}}."
+        Title        = "{{LEGAL_SERVICE_NAME}} 利用規約"
+        Description  = "{{LEGAL_SERVICE_NAME}} の利用規約に関する静的文書です。"
         Lang         = "ja"
         CanonicalUrl = "$publicOrigin/ja/terms/"
         Alternates   = $termsAlternates
@@ -437,8 +437,8 @@ $docs = @(
     @{
         MarkdownPath = Join-Path $localesRoot "ja\policy.md"
         OutputPath   = Join-Path $staticRoot "ja\privacy\index.html"
-        Title        = "{{LEGAL_SERVICE_NAME}} Privacy Policy"
-        Description  = "Static Privacy Policy document for {{LEGAL_SERVICE_NAME}}."
+        Title        = "{{LEGAL_SERVICE_NAME}} プライバシーポリシー"
+        Description  = "{{LEGAL_SERVICE_NAME}} のプライバシーポリシーに関する静的文書です。"
         Lang         = "ja"
         CanonicalUrl = "$publicOrigin/ja/privacy/"
         Alternates   = $privacyAlternates

@@ -23,6 +23,7 @@
     import { getOptimizedSupabaseImageUrl } from "$lib/utils/mediaTransform";
     import { isInstalledAppShell } from "$lib/utils/appShell";
     import { AuthRequiredError, requireAuth } from "$lib/stores/authGate";
+    import { getDefaultLLMTypeForPersonaType } from "$lib/utils/llmType";
 
     const supabaseURL = "/storage/v1/object/public/personaxi-assets/";
 
@@ -80,6 +81,24 @@
                   quality: 72,
               })
             : undefined;
+    }
+
+    function getMyPersonaPreviewAsset(persona: Persona) {
+        const optimizedStatic = getMyPersonaStaticThumb(
+            persona.static_portrait_url,
+        );
+        const hasSeparateStaticPortrait =
+            !!persona.static_portrait_url &&
+            persona.static_portrait_url !== persona.portrait_url;
+
+        return {
+            url: hasSeparateStaticPortrait
+                ? persona.portrait_url
+                : getMyPersonaPortraitThumb(persona.portrait_url) ||
+                  persona.portrait_url,
+            static_url: optimizedStatic,
+            description: "",
+        };
     }
 
     function getOptimizedProfileImage(url?: string, size = 320) {
@@ -586,7 +605,7 @@
     }
 
     function handleStartChat(persona: Persona) {
-        let llmType = "gemini-flash-lite";
+        let llmType: string = getDefaultLLMTypeForPersonaType(persona.personaType);
 
         chatSessions.update((sessions) => {
             const existingSession = sessions.find(
@@ -1150,16 +1169,7 @@
                                 on:click={() => handleStartChat(persona)}
                             >
                                 <AssetPreview
-                                    asset={{
-                                        url:
-                                            getMyPersonaPortraitThumb(
-                                                persona.portrait_url,
-                                            ) || persona.portrait_url,
-                                        static_url: getMyPersonaStaticThumb(
-                                            persona.static_portrait_url,
-                                        ),
-                                        description: "",
-                                    }}
+                                    asset={getMyPersonaPreviewAsset(persona)}
                                 />
                                 <div class="hover-overlay">
                                     <Icon

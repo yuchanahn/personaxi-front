@@ -11,6 +11,7 @@ export const ASSET_URL = "/storage/v1/object/public/personaxi-assets/persona_ima
     : "https://api.personaxi.com";
 */
 
+export const MAX_CATEGORY_TAGS = 5;
 
 export const allCategories = [
     { id: 1, nameKey: "tags.romance" },
@@ -36,6 +37,13 @@ export const allCategories = [
     { id: 21, nameKey: "tags.adventure" },
     { id: 22, nameKey: "tags.interactive" },
     { id: 23, nameKey: "tags.game" },
+    { id: 24, nameKey: "tags.healing" },
+    { id: 25, nameKey: "tags.office" },
+    { id: 26, nameKey: "tags.idol" },
+    { id: 27, nameKey: "tags.supernatural" },
+    { id: 28, nameKey: "tags.survival" },
+    { id: 29, nameKey: "tags.maleOriented" },
+    { id: 30, nameKey: "tags.femaleOriented" },
 
     // ---------------------------------
 

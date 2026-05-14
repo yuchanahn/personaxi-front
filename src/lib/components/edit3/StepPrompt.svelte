@@ -4,6 +4,7 @@
     import { tick } from "svelte";
     import "$lib/styles/chat2d-shared-block-defaults.css";
     import FirstSceneBuilder from "$lib/components/FirstSceneBuilder.svelte";
+    import FirstSceneAuthorModal from "$lib/components/edit3/FirstSceneAuthorModal.svelte";
     import VariableEditor from "$lib/components/edit3/VariableEditor.svelte";
     import LoreLinker from "$lib/components/lore/LoreLinker.svelte";
     import ChatRenderer from "$lib/components/chat/ChatRenderer.svelte";
@@ -31,6 +32,7 @@
     let isAvatarPersona = false;
     let isStoryPersona = false;
     let showStylePreview = false;
+    let showFirstSceneComposer = false;
 
     function insertDialogueTag() {
         if (!firstSceneTextarea) return;
@@ -176,8 +178,17 @@
                     {$t("edit3.prompt.firstSceneHint")}
                 </p>
 
-                {#if persona.contentType !== "story"}
-                    <div class="tag-tools">
+                <div class="tag-tools">
+                    <button
+                        type="button"
+                        class="btn-util composer-open-btn"
+                        on:click={() => (showFirstSceneComposer = true)}
+                    >
+                        <Icon icon="ph:magic-wand-duotone" width="16" />
+                        {$t("edit3.prompt.firstSceneComposer.openButton")}
+                    </button>
+
+                    {#if persona.contentType !== "story"}
                         <div class="toggle-row">
                             <span
                                 class="toggle-label"
@@ -205,8 +216,8 @@
                             <Icon icon="ph:plus-bold" width="14" />
                             {$t("editPage.aiSettings.addDialogueTag")}
                         </button>
-                    </div>
-                {/if}
+                    {/if}
+                </div>
 
                 <textarea
                     id="e3-first-scene"
@@ -276,6 +287,53 @@
         {/if}
 
         {#if !isAvatarPersona}
+            <div class="field-group">
+                <label class="field-label">
+                    <Icon icon="ph:flag-banner-duotone" width="18" />
+                    {$t("edit3.prompt.ending.label")}
+                </label>
+                <p class="field-hint">
+                    {$t("edit3.prompt.ending.description")}
+                </p>
+                <p class="field-hint subtle">
+                    {$t("edit3.prompt.ending.ruleHint")}
+                </p>
+                <div class="visibility-toggle">
+                    <button
+                        type="button"
+                        class="vis-btn"
+                        class:active={!persona.endingEnabled}
+                        on:click={() => (persona.endingEnabled = false)}
+                    >
+                        <Icon icon="ph:chat-circle-text-duotone" width="20" />
+                        <div class="vis-text">
+                            <span class="vis-label">
+                                {$t("edit3.prompt.ending.offTitle")}
+                            </span>
+                            <span class="vis-desc">
+                                {$t("edit3.prompt.ending.offDesc")}
+                            </span>
+                        </div>
+                    </button>
+                    <button
+                        type="button"
+                        class="vis-btn"
+                        class:active={!!persona.endingEnabled}
+                        on:click={() => (persona.endingEnabled = true)}
+                    >
+                        <Icon icon="ph:flag-checkered-duotone" width="20" />
+                        <div class="vis-text">
+                            <span class="vis-label">
+                                {$t("edit3.prompt.ending.onTitle")}
+                            </span>
+                            <span class="vis-desc">
+                                {$t("edit3.prompt.ending.onDesc")}
+                            </span>
+                        </div>
+                    </button>
+                </div>
+            </div>
+
             <!-- Instructions -->
             <div class="field-group">
                 <label for="e3-instructions" class="field-label">
@@ -286,6 +344,11 @@
                 <p class="field-hint">
                     {$t("editPage.instructionsDescription")}
                 </p>
+                {#if persona.endingEnabled}
+                    <p class="field-hint subtle">
+                        {$t("edit3.prompt.ending.promptHint")}
+                    </p>
+                {/if}
                 <textarea
                     id="e3-instructions"
                     class="field-textarea"
@@ -511,6 +574,13 @@
             </div>
         </div>
     </div>
+{/if}
+
+{#if showFirstSceneComposer && !isAvatarPersona}
+    <FirstSceneAuthorModal
+        {persona}
+        on:close={() => (showFirstSceneComposer = false)}
+    />
 {/if}
 
 <style>
@@ -1032,5 +1102,9 @@
     }
     .btn-util:hover {
         background: var(--secondary);
+    }
+
+    .composer-open-btn {
+        gap: 0.45rem;
     }
 </style>

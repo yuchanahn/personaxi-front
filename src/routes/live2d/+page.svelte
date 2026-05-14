@@ -73,10 +73,9 @@
 
     let currentCost = 0;
     $: if (lastSessionId) {
-        const session = $chatSessions.find((s) => s.id === lastSessionId);
-        const llmType = session?.llmType || "gemini-flash-lite"; // Default
         const baseCost = $pricingStore.costs.chat_live2d || 10;
-        const multiplier = $pricingStore.model_multipliers[llmType] || 1.0;
+        const multiplier =
+            $pricingStore.model_multipliers["gemini-flash-lite"] || 1.0;
         currentCost = Math.round(baseCost * multiplier);
     }
 

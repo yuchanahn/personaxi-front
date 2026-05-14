@@ -78,6 +78,14 @@
     return scrollContainer;
   }
 
+  function hasOnlyFirstScene(messageList: Message[] = get(messages)) {
+    return (
+      messageList.length === 1 &&
+      messageList[0]?.role === "assistant" &&
+      messageList[0]?.content?.trim() === "<first_scene>"
+    );
+  }
+
   function isNearBottom(container: HTMLElement) {
     const distance =
       container.scrollHeight - container.scrollTop - container.clientHeight;
@@ -152,7 +160,16 @@
     scrollResizeObserver.observe(container);
 
     tick().then(() => {
-      scrollController?.scrollToBottom(true);
+      if (hasOnlyFirstScene()) {
+        scrollController?.suspendByUserIntent();
+        container.scrollTo({
+          top: 0,
+          behavior: "auto",
+        });
+      } else {
+        scrollController?.scrollToBottom(true);
+      }
+
       syncJumpToBottomButton();
     });
   }
@@ -233,6 +250,7 @@
 
     const normalizedMessages = sourceMessages.map((msg) => {
       if (msg.role !== "assistant") return msg;
+      if (msg.done === true) return msg;
       return {
         ...msg,
         content: assembleRenderableAssistantContent(msg.content).content,
@@ -760,6 +778,7 @@
   }
 
   function handleVariablePanelRendered() {
+    if (hasOnlyFirstScene()) return;
     if (!autoScroll || !scrollController?.canAutoFollow()) return;
     tick().then(() => {
       const container = getScrollContainer();
@@ -812,6 +831,7 @@
       }
     }
 
+    if (hasOnlyFirstScene()) return;
     if (!autoScroll || !scrollController?.canAutoFollow()) return;
     tick().then(() => {
       const container = getScrollContainer();
@@ -893,6 +913,7 @@
   $: if (scrollContainer && autoScroll) {
     const source = $messages;
     const last = source[source.length - 1];
+    const firstSceneOnly = hasOnlyFirstScene(source);
 
     if (source.length !== lastAutoScrollMessageCount) {
       lastAutoScrollMessageCount = source.length;
@@ -900,7 +921,13 @@
       tick().then(() => {
         if (!scrollContainer || !scrollController) return;
 
-        if (last?.role === "user" || scrollController.canAutoFollow()) {
+        if (firstSceneOnly) {
+          scrollController.suspendByUserIntent();
+          scrollContainer.scrollTo({
+            top: 0,
+            behavior: "auto",
+          });
+        } else if (last?.role === "user" || scrollController.canAutoFollow()) {
           scrollContainer.scrollTo({
             top: scrollContainer.scrollHeight,
             behavior: "auto",
@@ -1045,6 +1072,12 @@
           on:rendered={handleVariablePanelRendered}
         />
       </div>
+    {:else if item.type === "ending"}
+      <div class="ending-card" role="status" aria-live="polite">
+        <div class="ending-card__eyebrow">{$t("chatEnding.eyebrow")}</div>
+        <div class="ending-card__title">{$t("chatEnding.defaultTitle")}</div>
+        <p class="ending-card__description">{$t("chatEnding.hardDescription")}</p>
+      </div>
     {:else if item.type === "astro_chart"}
       <div class="astro-chart-wrapper">
         <AstroChartInline input={item.input as any} blockId={item.id} />
@@ -1173,6 +1206,7 @@
   .message,
   .image-block,
   .code-block,
+  .ending-card,
   .situation-trigger-wrapper,
   .astro-chart-wrapper,
   .saju-chart-wrapper {
@@ -1282,6 +1316,41 @@
     border: 1px solid rgba(255, 255, 255, 0.08);
     border-radius: 16px;
     padding: 14px;
+  }
+
+  .ending-card {
+    width: 100%;
+    max-width: 100%;
+    margin: 0.25rem 0 0.5rem;
+    padding: 1rem 1.1rem;
+    border-radius: 16px;
+    border: 1px solid rgba(250, 204, 21, 0.4);
+    background:
+      linear-gradient(180deg, rgba(250, 204, 21, 0.12), rgba(250, 204, 21, 0.04)),
+      rgba(17, 24, 39, 0.92);
+    box-shadow: 0 14px 32px rgba(0, 0, 0, 0.22);
+  }
+
+  .ending-card__eyebrow {
+    font-size: 0.72rem;
+    font-weight: 800;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: #fde68a;
+    margin-bottom: 0.35rem;
+  }
+
+  .ending-card__title {
+    font-size: 1.05rem;
+    font-weight: 800;
+    color: #fff7cc;
+  }
+
+  .ending-card__description {
+    margin: 0.65rem 0 0;
+    font-size: 0.9rem;
+    line-height: 1.65;
+    color: rgba(255, 251, 235, 0.88);
   }
 
   .language-tag {

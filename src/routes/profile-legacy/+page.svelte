@@ -22,6 +22,7 @@
     import { toast } from "$lib/stores/toast";
     import ReportModal from "$lib/components/modal/ReportModal.svelte";
     import { buildPublicUrl, getBranding } from "$lib/branding/config";
+    import { getDefaultLLMTypeForPersonaType } from "$lib/utils/llmType";
 
     let persona: Persona | null = null;
     let comments: Comment[] = [];
@@ -193,8 +194,7 @@
     });
 
     function handleStartChat() {
-        // Default to Flash-Lite
-        let llmType = "gemini-flash-lite";
+        let llmType: string = getDefaultLLMTypeForPersonaType(persona?.personaType);
 
         // Check if user has a saved preference for this session
         chatSessions.update((sessions) => {
@@ -207,7 +207,7 @@
             return sessions;
         });
 
-        // Force Flash-Lite for 3D/Live2D modes (override saved preference)
+        // 3D/Live2D still force the lightweight model.
         if (persona?.personaType === "3D" || persona?.personaType === "2.5D") {
             llmType = "gemini-flash-lite";
         }

@@ -22,6 +22,8 @@
     import ReportModal from "$lib/components/modal/ReportModal.svelte";
     import { AuthRequiredError } from "$lib/stores/authGate";
     import { buildPublicUrl, getBranding } from "$lib/branding/config";
+    import { buildHubTagHref } from "$lib/utils/hubTagNavigation";
+    import { getDefaultLLMTypeForPersonaType } from "$lib/utils/llmType";
 
     let persona: Persona | null = null;
     let comments: Comment[] = [];
@@ -445,8 +447,7 @@
     function handleStartChat() {
         if (!persona) return;
 
-        // Default to Flash-Lite
-        let llmType = "gemini-flash-lite";
+        let llmType: string = getDefaultLLMTypeForPersonaType(persona.personaType);
 
         // Check if user has a saved preference for this session
         chatSessions.update((sessions) => {
@@ -459,7 +460,7 @@
             return sessions;
         });
 
-        // Force Flash-Lite for 3D/Live2D modes (override saved preference)
+        // 3D/Live2D still force the lightweight model.
         if (persona?.personaType === "3D" || persona?.personaType === "2.5D") {
             llmType = "gemini-flash-lite";
         }
@@ -629,6 +630,17 @@
         const id = parseTagId(tagId);
         const category = allCategories.find((c) => c.id === id);
         return category ? $t(category.nameKey) : String(tagId);
+    }
+
+    function handleTagClick(tag: string) {
+        if (!persona) return;
+        goto(
+            buildHubTagHref({
+                tag,
+                personaType: persona.personaType,
+                contentType: persona.contentType,
+            }),
+        );
     }
 
     // ── UI Helpers ──
@@ -942,14 +954,22 @@
                         {#if categoryTags.length > 0 || displayRegularTags.length > 0}
                             <div class="tags-container">
                                 {#each categoryTags as tag}
-                                    <span class="tag tag-category"
-                                        >{getTagName(tag)}</span
+                                    <button
+                                        type="button"
+                                        class="tag tag-category"
+                                        on:click={() => handleTagClick(tag)}
                                     >
+                                        {getTagName(tag)}
+                                    </button>
                                 {/each}
                                 {#each displayRegularTags as tag}
-                                    <span class="tag tag-regular"
-                                        >{getTagName(tag)}</span
+                                    <button
+                                        type="button"
+                                        class="tag tag-regular"
+                                        on:click={() => handleTagClick(tag)}
                                     >
+                                        {getTagName(tag)}
+                                    </button>
                                 {/each}
                             </div>
                         {/if}
@@ -1660,11 +1680,16 @@
         margin-bottom: 2rem;
     }
     .tag {
+        appearance: none;
+        border: 1px solid transparent;
+        background: transparent;
+        color: inherit;
         padding: 0.3rem 0.8rem;
         border-radius: 999px;
         font-size: 0.8rem;
         font-weight: 500;
         transition: all 0.2s;
+        cursor: pointer;
     }
     .tag-category {
         background-color: color-mix(in srgb, var(--primary) 12%, transparent);

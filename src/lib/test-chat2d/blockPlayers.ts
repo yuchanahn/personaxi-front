@@ -457,8 +457,12 @@ function getTrailingIncompleteFragment(html: string) {
 function splitInteractiveSuffix(content: string) {
   const groupMatch = GAME_UI_GROUP_RE.exec(content);
   const attrMatch = HTML_INTERACTIVE_ATTR_RE.exec(content);
+  const attrTagStart =
+    typeof attrMatch?.index === "number"
+      ? findContainingTagStart(content, attrMatch.index)
+      : -1;
 
-  const candidates = [groupMatch?.index, attrMatch?.index].filter(
+  const candidates = [groupMatch?.index, attrTagStart].filter(
     (value): value is number => typeof value === "number" && value >= 0,
   );
 
@@ -468,7 +472,24 @@ function splitInteractiveSuffix(content: string) {
   const prefix = content.slice(0, startIndex).trimEnd();
   const suffix = content.slice(startIndex).trimStart();
 
+  // If the prefix already contains HTML, splitting here would auto-close the
+  // existing structure during progressive typing and expose tag attributes as
+  // plain text in the chat room. In that case, render the whole block
+  // atomically instead of trying to type only the prefix.
+  if (ANY_HTML_RE.test(prefix)) return null;
   if (!prefix || !suffix) return null;
 
   return { prefix, suffix };
+}
+
+function findContainingTagStart(content: string, index: number) {
+  const tagStart = content.lastIndexOf("<", index);
+  if (tagStart === -1) return -1;
+
+  const lastTagClose = content.lastIndexOf(">", index);
+  if (lastTagClose > tagStart) {
+    return -1;
+  }
+
+  return tagStart;
 }

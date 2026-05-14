@@ -1,184 +1,154 @@
-# Terms of Service for {{LEGAL_SERVICE_NAME}}
-
-**Effective Date:** March 30, 2026  
-**Operator:** {{LEGAL_ENTITY_NAME}} (Sole Proprietorship, Republic of Korea)  
-**Address:** 충청남도 천안시 서북구 번영로 306-15, 104-101, Republic of Korea  
-**Support:** {{SUPPORT_EMAIL}}
+# {{LEGAL_SERVICE_NAME}} 利用規約
 
 ---
 
-## Chapter 1: General Provisions
+### 第1章 総則
 
-### Article 1: Acceptance of Terms
-By accessing or using {{LEGAL_SERVICE_NAME}} ("Service"), operated by {{LEGAL_ENTITY_NAME}} ("Company"), you agree to be bound by these Terms of Service. If you do not agree to these terms, you may not access the Service.
+#### 第1条（目的）
+本規約は、{{LEGAL_ENTITY_NAME}}（以下「会社」といいます）が運営する {{LEGAL_SERVICE_NAME}} およびこれに付随する諸サービス（以下「サービス」といいます）の利用条件、手続、権利、義務および責任事項を定めることを目的とします。
 
-### Article 2: Definitions
-1. **Member:** A person who has entered into a service agreement under these Terms and uses the Service.
-2. **Neuron:** Virtual credits purchased by Members to access paid features within the Service.
-3. **Persona:** The collection of AI character settings and assets created by a Member.
-4. **User-Generated Content ("UGC"):** All Personas, chat records, and other content created by a Member through the Service.
+#### 第2条（用語の定義）
+1. **会員**: 本規約に従って利用契約を締結し、サービスを利用する者
+2. **ニューロン（Neuron）**: サービス内の有料機能を利用するために購入する仮想データ（クレジット）
+3. **ペルソナ**: 会員が作成した AI キャラクター設定およびそのアセットの集合
+4. **ユーザー生成コンテンツ（UGC）**: 会員がサービスを利用しながら生成したペルソナ、チャット記録その他一切のコンテンツ
 
-### Article 3: Modification of Terms
-1. The Company shall post these Terms on the Service so that Members can easily access them.
-2. If the Company amends these Terms, it shall provide notice at least **7 days** prior to the effective date of the amendment (or **30 days** in the case of amendments unfavorable to Members). If a Member continues to use the Service after the amended Terms take effect, the Member is deemed to have agreed to the amended Terms.
-
----
-
-## Chapter 2: Account Management
-
-### Article 4: Account Registration
-1. Members may register for an account via social login using Google or Kakao.
-2. The Company may reject an account registration application in any of the following cases:
-   - The applicant uses another person's information.
-   - Inaccurate or incomplete information is provided.
-   - The application is from a country where the Service is not currently available.
-   - The applicant is under the age of **14** and has not obtained parental or guardian consent (in accordance with COPPA and global standards).
-3. Account registration is deemed complete when the Company approves the application and the Service is launched on the Member's device.
-
-### Article 5: Account Termination (Withdrawal)
-1. A Member may request account termination at any time through the account settings within the Service or by contacting {{SUPPORT_EMAIL}}.
-2. The Company shall process the termination request within **5 business days** and notify the Member upon completion.
-3. Upon termination, the Member's personal data and service usage data shall be handled in accordance with the Privacy Policy. Data required to be retained under applicable laws shall be kept for the relevant statutory period.
-4. Once an account is terminated, the Member will no longer be able to log in with that account. All Neurons and Creator Contribution held shall be forfeited immediately.
+#### 第3条（規約の効力および変更）
+1. 会社は、本規約の内容を会員が容易に確認できるよう、サービス画面に掲載します。
+2. 会社が本規約を改定する場合、適用日の7日前までに通知し、会員に不利益となる変更については30日前までに通知します。会員が改定後もサービスを継続利用した場合、当該改定に同意したものとみなします。
 
 ---
 
-## Chapter 3: Service Usage and Obligations
+### 第2章 会員管理
 
-### Article 6: Member Obligations and Prohibited Conduct
-1. Members shall not engage in any of the following activities:
-   - Creating Personas by impersonating or defaming real individuals.
-   - Generating or distributing illegal content, including sexually explicit material involving minors.
-   - Using automated tools (bots) to make unauthorized API calls or cause excessive load on the Service's servers.
-   - Collecting, storing, or exploiting another person's personal information without authorization.
-   - Infringing on the intellectual property rights of the Company or third parties.
-   - Engaging in any activity that interferes with the stable operation of the Service.
-   - Uploading, publishing, or monetizing derivative works or fan-made content beyond the scope permitted by the original creator or distributor.
-   - Presenting derivative works as official sequels, official collaborations, official accounts, or rights-holder-approved content when they are not.
-   - Re-uploading or redistributing original images, Live2D/VRM files, voice assets, logos, UI resources, or similar assets without substantial transformation.
-2. Members shall comply with all applicable laws and these Terms when using the Service.
+#### 第4条（会員登録）
+1. 会員は、Google または Kakao のソーシャルログインを通じて会員登録を申請することができます。
+2. 会社は、次の各号のいずれかに該当する場合、会員登録申請を拒否することができます。
+   1. 本人ではない第三者の情報を利用して申請した場合
+   2. 登録申請時に必須情報を不正確に提供した場合
+   3. 会社が現在サービスを提供していない国からの申請である場合
+   4. 満14歳未満の児童が法定代理人の同意なく申請した場合
+3. 会員登録は、会社が申請を承認し、本人の端末上でサービスが実行された時点で完了します。
 
-### Article 7: Fair Use Policy and Account Restrictions
-1. **Fair Use Policy ("FUP"):** To ensure stable operation, the Company may temporarily or permanently restrict access to a Member's account if usage significantly exceeds the system average or if abnormal usage patterns are detected.
-2. **Notification:** When the Company restricts a Member's account, it shall notify the Member of the reason for the restriction via email ({{SUPPORT_EMAIL}}). In cases of immediate security risks, the Company may restrict the account first and notify afterward.
-3. **Right to Appeal:** A Member may submit an appeal within **14 days** of receiving the restriction notification by contacting {{SUPPORT_EMAIL}}. The Company shall review the appeal and communicate the result within **10 business days**.
-4. If no appeal is filed within the specified period, the restriction shall be considered final.
-
-### Article 8: Intellectual Property and UGC Licensing
-1. **Ownership:** All intellectual property rights in UGC created by a Member belong to that Member.
-2. **License Grant:** The Member grants the Company a worldwide, royalty-free, non-exclusive license to host, store, reproduce, display, and distribute the UGC **strictly for the purposes of operating, promoting, and improving the Service**. This license remains valid after the Member's account termination, within the scope of the stated purposes. Content that has been specifically deleted by the Member is excluded from this license.
-3. The Company shall not use UGC for purposes other than those stated in paragraph 1 without obtaining separate consent from the Member.
-4. **GDPR Exception:** If a data subject within the EU requests deletion of their content under Article 17 of the GDPR, the Company shall delete the relevant content in accordance with its legal obligations, and the license granted under paragraph 2 shall be terminated for that content. Content that is required to be retained under applicable legal obligations shall be maintained for the relevant retention period.
-5. For Live2D models and related assets uploaded by a Member, the underlying copyright remains with the original rights holder. The Member represents and warrants that it holds or has lawfully obtained the copyrights, neighboring rights, publicity rights, trademark rights, and any other rights necessary to upload and use the asset within the Service.
-6. The Member grants the Company a non-exclusive, revocable license to store, encrypt-transmit, temporarily reproduce, cache, load into memory, render in real time, and display such assets only to the extent required to operate the Service.
-7. The license in the preceding paragraph is limited to technical processing for Service operation and does not authorize the Company to sell, re-license, redistribute, publish, or provide the asset as standalone content.
-8. If UGC is a derivative work or fan-made content, the Member is responsible for confirming that the original creator or distributor allows the derivative work, platform publication, scope of disclosure, and, where applicable, monetization.
-9. The Member shall clearly indicate in the title, description, credits, or similar disclosure that such derivative work is unofficial and not approved or endorsed by the rights holder, unless such approval actually exists.
-10. Upon a rights-holder complaint, platform inquiry, or reasonable claim of infringement involving derivative works or assets, the Company may, without prior notice, hide, delete, restrict visibility, reclaim Creator Contribution, restrict uploads, or take any other necessary action.
+#### 第5条（退会）
+1. 会員は、サービス内の設定画面または {{SUPPORT_EMAIL}} への問い合わせを通じて、いつでも退会を申請することができます。
+2. 会社は、退会申請後5営業日以内に退会処理を行い、処理完了時に会員へ案内します。
+3. 退会時、会員の個人情報およびサービス利用データはプライバシーポリシーに従って処理されます。ただし、関係法令により保存が必要な情報は、その保存期間まで維持されます。
+4. 退会後、当該アカウントでは再度ログインできず、保有中のニューロンおよびクリエイター貢献度は直ちに消滅します。
 
 ---
 
-## Chapter 4: Minor Protection Policy
+### 第3章 サービス利用および義務
 
-### Article 9: Protection of Minors
-1. The Company implements measures to block and manage harmful information to ensure that minors can develop into healthy individuals.
-2. In accordance with global standards (including COPPA), the Company verifies the consent of a parent or legal guardian when a user under the age of **14** attempts to register. Registration shall be denied if such consent is not obtained.
-3. The Company operates technical filtering systems to ensure that AI-generated responses do not contain content harmful to minors. Any harmful content discovered shall be deleted immediately.
+#### 第6条（会員の義務および禁止行為）
+1. 会員は、次の各号の行為をしてはなりません。
+   1. 実在人物の氏名や肖像を盗用してペルソナを作成したり、名誉を毀損する行為
+   2. わいせつ物、児童・青少年の性的搾取物など違法コンテンツを生成または流布する行為
+   3. 自動化ツール（ボット）を用いてサービス API を無断で呼び出したり、サーバーに過度な負荷を与える行為
+   4. 他人の個人情報を無断で収集、保存、利用する行為
+   5. 会社または第三者の著作権その他知的財産権を侵害する行為
+   6. サービスの安定的な運営を妨害する行為
+2. 会員は、サービス利用時に関係法令および本規約を遵守しなければなりません。
 
-### Article 10: Minor Protection Officer
-- **Name:** An Yu-chan (Representative)
-- **Contact:** {{SUPPORT_EMAIL}}
+#### 第7条（公正利用ポリシーおよびアカウント制限）
+1. **公正利用ポリシー（FUP）**: 会社は、特定会員の利用量がシステム平均を著しく超過した場合、または異常な利用パターンが検知された場合、安定的なサービス運営のため当該アカウントの利用を一時的または永久的に制限することができます。
+2. **アカウント制限時の手続**: 会社が会員のアカウントを制限する場合、その理由をメール（{{SUPPORT_EMAIL}}）で通知します。ただし、即時のセキュリティ上の危険がある場合には、制限後に通知することがあります。
+3. **異議申立て**: 会員は、制限通知日から14日以内に {{SUPPORT_EMAIL}} へ異議を申し立てることができます。会社は、異議申立てを受領した日から10営業日以内に検討結果を案内します。
+4. 異議申立て期間内に申立てがない場合、当該制限は最終確定とみなされます。
 
----
-
-## Chapter 5: Paid Services and Refunds
-
-### Article 11: Purchase of Neurons
-1. Members may purchase Neurons through the designated payment processor.
-2. **Delivery:** Neurons are credited to the Member's account immediately upon successful payment and are available for use right away.
-3. **Refund Policy:**
-   - Refunds are available within **7 days** of purchase, provided that **zero (0) Neurons** have been used.
-   - Partial refunds are not available due to the nature of digital content.
-   - Refund requests shall be submitted to {{SUPPORT_EMAIL}}. The Company shall process the refund within **5–10 business days** of receipt.
-4. **Expiration:**
-   - Paid Neurons expire **1 year** from the date of purchase in accordance with applicable commercial laws.
-   - Free Neurons (Creator Contribution and promotional credits) expire in accordance with the notice period set by the Company (a minimum of **30 days** advance notice).
-
-### Article 12: Right of Withdrawal
-1. In accordance with applicable consumer protection laws, Members may withdraw from a transaction within **7 days** from the date of service delivery.
-2. However, due to the nature of digital content, withdrawal may be restricted for content that has already been used after delivery.
-
-### Article 13: Payment and Taxes
-1. For international payments, the final amount may vary depending on the applicable tax rate (e.g., VAT) and exchange rates of the relevant country.
-2. The payment processor is responsible for the collection and remittance of applicable taxes. Detailed tax information is displayed on the payment page and in the receipt.
-
-### Article 14: Service Suspension or Closure — Refund of Paid Credits
-1. If the Company discontinues or suspends the Service for an extended period due to business reasons, it shall provide notice to Members at least **30 days** prior to the suspension date.
-2. Within the notice period, the remaining balance of **paid Neurons** held by each Member shall be refunded based on the original payment amount.
-3. Creator Contribution and promotional credits received free of charge are not subject to refund.
+#### 第8条（著作権およびコンテンツ利用）
+1. 会員がサービス内に掲載または生成した UGC の著作権は、当該会員に帰属します。
+2. 会員は、会社に対し、UGC を **サービスの運営、改善、広報および関連プロモーション目的** に限り、全世界的に無償の非独占的利用権（複製、展示、配布、編集等）として付与します。この権利は、会員が退会した後も当該目的の範囲内で有効です。ただし、会員が直接削除したコンテンツは利用対象から除外されます。
+3. 会社が第1項の目的以外で UGC を利用しようとする場合は、別途同意を得るものとします。
+4. **GDPR 例外**: EU 域内の情報主体が GDPR 第17条に基づき当該コンテンツの削除を要求した場合、会社は法的義務に従って当該コンテンツを削除し、第2項の利用権はそのコンテンツについて終了します。ただし、法令上保存義務がある場合には、その保存期間まで維持されます。
 
 ---
 
-## Chapter 6: Creator Contribution
+### 第4章 青少年保護方針
 
-### Article 15: Earning and Using Creator Contribution
-1. Members may earn Creator Contribution as rewards when other Members use their created Personas or through other activities within the Service.
-2. Earned Creator Contribution is managed as an internal creator-impact metric, and conversion into Neurons is currently not supported.
-3. The earning method and conditions of use for Creator Contribution may be changed in accordance with the Company's operational policies. The Company shall provide advance notice of such changes within the Service.
-4. Creator Contribution is available only where the Member owns the relevant rights or has lawful permission to publish the Persona or asset on the Service, including any commercial or real-time display rights required for the specific use case.
-5. The Company may request proof of rights. If the Member fails to substantiate the rights within a reasonable period, or if infringement concerns are identified, the Company may limit accrual, cancel previously accrued points, or restrict settlement or visibility.
-6. Derivative works and fan-made assets are eligible for Creator Contribution only within the scope expressly permitted by the original creator's license, including platform publication and commercial use where applicable.
+#### 第9条（青少年保護措置）
+1. 会社は、青少年が健全な人格体として成長できるよう、有害情報に対する遮断および管理措置を実施します。
+2. 会社は、グローバル基準に基づき、満14歳未満の児童の登録時に法定代理人の同意有無を確認し、同意がない場合は登録を拒否します。
+3. 会社は、AI が生成する回答に青少年に有害な内容が含まれないよう技術的フィルタリング装置を運用し、有害情報が発見された場合は直ちに削除します。
 
-### Article 16: Nature of Creator Contribution and Prohibition of Cashout
-1. Creator Contribution are free credits issued to encourage participation in the Service. Under no circumstances may they be cashed out or sold or transferred to a third party for value.
-2. The Company does not guarantee any cash value for Creator Contribution. If a Member is found to have attempted to cash out or trade Creator Contribution, the relevant points may be forfeited and the Member's account may be restricted.
-
-### Article 17: Expiration and Forfeiture of Creator Contribution
-1. If a Member voluntarily terminates their account or if the account is deleted due to a violation of these Terms, all Creator Contribution held shall be forfeited immediately and shall not be restored.
-2. If the Company suspends the Service including Creator Contribution for business reasons, it shall provide at least **30 days** advance notice. Creator Contribution may be forfeited in accordance with the announced policy.
+#### 第10条（青少年保護責任者および担当部署）
+- **氏名**: アン・ユチャン（代表）
+- **連絡先**: {{SUPPORT_EMAIL}}
 
 ---
 
-### 第7章 青少年保護およびセンシティブコンテンツ運用ポリシー
+### 第5章 有料サービスおよび返金
 
-#### 第18条 (センシティブコンテンツの管理と青少年保護)
-1. **センシティブコンテンツの定義:** 「センシティブコンテンツ」とは、合法的な範囲内において、成人向けの表現、暴力性、社会的な議論の要素を含む、年齢制限を要するコンテンツを意味します。ただし、児童ポルノ、児童の性的搾取物、違法な撮影物など、法令に違反する違法コンテンツは絶対に含まれず、本サービス内での作成および流通は厳重に禁止されます。
+#### 第11条（ニューロンの購入およびサービス提供）
+1. 会員は、決済代行会社（PG）を通じて「ニューロン」を購入することができます。
+2. **サービス提供時期**: 会社が購入完了を承認すると同時に、会員のアカウントへ「ニューロン」が支給され、直ちに利用可能となります。
+3. **返金ポリシー**:
+   1. 購入後7日以内であり、かつ1単位のニューロンも使用していない場合に限り返金が可能です。
+   2. デジタルコンテンツの性質上、部分返金は提供しません。
+   3. 返金申請は {{SUPPORT_EMAIL}} 宛に受け付け、会社は申請日から5～10営業日以内に処理します。
+4. **消滅時効**:
+   1. 有料購入した「ニューロン」は、購入日から1年が経過した場合、商法上の消滅時効により消滅することがあります。
+   2. 無償で付与された「クリエイター貢献度」およびイベント性の財貨は、会社が定める告知期間（最低30日）に従って消滅します。
 
-2. **年齢確認および認証:** センシティブコンテンツの年齢制限枠（19歳以上）にアクセスしたり、「セーフティフィルター」の設定を変更しようとする会員は、必ず実名に基づく本人認証機能（モバイル認証など）を通じて成人であることを証明しなければなりません。未成年アカウントからのアクセスはシステムにより根本的に遮断されます。また、他人の名義の盗用や認証の偽造が発覚した場合は、アカウントが直ちに永久停止されます。当社は、関連法令に従い、年齢認証情報およびアクセスログを最低6ヶ月間保存します。
+#### 第12条（契約撤回権）
+1. 会員は、電子商取引法および関係法令に基づき、財貨または役務の提供開始日から7日以内に契約を撤回することができます。
+2. ただし、デジタルコンテンツの性質上、提供開始後に使用された財貨については撤回が制限される場合があります。
 
-3. **フィルター設定の変更と利用者の責任:** 成人認証を完了した利用者は、本人の明示的な同意と自発的な意思に基づき、アクセス制限を緩和するための「セーフティフィルター」設定を変更することができます。この機能は、遮断ポリシーを単に違法に迂回するものではなく、自律的な評価システムにおける選択的な権限でのみ運用されます。利用者はフィルターの設定をいつでも元に戻すことができます。ただし、虚偽の情報による登録（VPNの不正利用など）、またはセンシティブコンテンツを故意に外部へ流出、再配布、クロールなどにより拡散させた場合、それに伴う一切の法的責任は利用者本人が負うものとします。
+#### 第13条（決済および税金）
+1. 海外決済時には、国別の税率（VAT など）および為替レートにより最終決済金額に差異が生じることがあります。
+2. 決済代行会社（PG）は Merchant of Record として当該税務行政を遂行し、税金に関する詳細情報は決済ページおよび領収書に表示されます。
 
-4. **プラットフォームの管理義務と技術的措置:** 当社は単なる免責を主張せず、違法コンテンツの流通を防止するため、以下の積極的な措置を講じます：
-   - **AIレベルでの事前/事後分類フィルター:** 違法コンテンツ（児童搾取物やディープフェイク等）の作成を根本から遮断する自動キーワード・文脈検閲システムを導入。
-   - **報告受付と即時対応措置:** 監視体制およびユーザーの報告受付時に、問題のあるコンテンツをただちに非公開（ブラインド処理）および削除。
-   - **法的措置と協力義務:** フィルターの強制的なバイパス（「ジェイルブレイク」プロンプトの入力等）を試みたユーザーに対しては、スリーストライク制度によりアカウントおよびIPを永久追放します。また、政府機関等からの適法な情報開示要求に対し、関連ログおよび提出可能なデータを提供する法的義務を果たします。
-
----
-
-### Chapter 8: Disclaimers and Other Matters
-
-#### Article 19 (Disclaimer of Liability)
-1. The Company does not guarantee the accuracy or truthfulness of AI-generated responses. Members are advised to verify the appropriateness of such content using their own judgment before relying on it.
-2. The Company shall not be liable for service interruptions caused by third-party providers (e.g., Google Gemini, Oracle) or by Force Majeure events beyond the Company's control.
-
-#### Article 20 (Dispute Resolution and Customer Support)
-1. Members may contact the Company regarding any issues related to the use of the Service at {{SUPPORT_EMAIL}}.
-2. The Company shall review any disputes or complaints and communicate the result within **5–10 business days** of receipt.
-3. If a dispute related to payment remains unresolved through the above process, the Member may escalate the matter to the relevant consumer dispute resolution authority.
-4. Upon a rights-holder complaint or a reasonable suspicion of infringement, the Company may temporarily disable access to the relevant asset or Persona and request supporting documentation from the Member.
-5. If the Member fails to adequately substantiate its rights within a reasonable period, the Company may delete the content and take measures such as reclaiming points or restricting the account.
-6. For derivative works, the Company may additionally require information about the source work, applicable fanwork rules, and the basis for any monetization claim. Failure to provide sufficient information may result in hiding or removal without prior notice.
-
-#### Article 21 (Governing Law and Jurisdiction)
-These Terms shall be governed by and construed in accordance with the laws of the **Republic of Korea**. Any disputes arising from the use of the Service shall be resolved in the court with jurisdiction over the location of the Company's principal place of business.
+#### 第14条（サービス中断または終了時の有料財貨の返還）
+1. 会社が経営上の理由によりサービスを終了または長期中断する場合、中断日の30日前までに会員へ通知します。
+2. 告知後、当該期間内に会員が保有する **有料購入したニューロン** の残高は、元の決済金額を基準として返還されます。
+3. 無償で付与されたクリエイター貢献度およびイベント性の財貨は返還対象から除外されます。
 
 ---
 
-**Company:** {{LEGAL_ENTITY_NAME}}  
-**Address:** 충청남도 천안시 서북구 번영로 306-15, 104-101, Republic of Korea  
-**Customer Support:** {{SUPPORT_EMAIL}}
+### 第6章 クリエイター貢献度
 
-**Effective Date:** March 30, 2026
+#### 第15条（ポイントの獲得および利用）
+1. 会員は、自ら作成したペルソナを他者が利用した場合や、サービス内活動に対する報酬として「クリエイター貢献度」を獲得することができます。
+2. 獲得したポイントは、サービス内部の創作貢献指標としてのみ管理され、ニューロンへの転換は現在サポートされていません。
+3. ポイントの付与方式および利用条件はサービス運営ポリシーに従って変更されることがあり、会社はこれをサービス内で事前告知します。
 
+#### 第16条（ポイントの性質および現金化禁止）
+1. 「クリエイター貢献度」は、サービス内活動を奨励するために付与される無償財貨であり、いかなる場合でも現金での返金（出金）や第三者への有償譲渡または販売はできません。
+2. 会社は、ポイントの現金還元性を保証せず、会員がポイントを現金化しようとした事実が発覚した場合、当該ポイントを没収し、アカウント利用を制限することができます。
 
+#### 第17条（ポイントの消滅および処理）
+1. 会員が自発的に退会した場合、または規約違反によりアカウントが削除された場合、保有中のすべての「クリエイター貢献度」は直ちに消滅し、復旧されません。
+2. 会社が経営上の理由によりポイントを含むサービスを中断する場合、中断日の30日前までにこれを通知し、当該ポイントは告知されたポリシーに従って自動的に消滅することがあります。
 
+---
+
+### 第7章 青少年保護およびセンシティブコンテンツポリシー
+
+#### 第18条（青少年保護およびセンシティブコンテンツ運営ポリシー）
+1. **センシティブコンテンツの定義**: 「センシティブコンテンツ」とは、年齢制限が要求されるコンテンツであり、成人向け表現、暴力性、社会的論争要素などを含む一方、関係法令に違反しない合法的範囲内のコンテンツを意味します。児童・青少年の性的搾取物、違法撮影物などの違法コンテンツは、決してセンシティブコンテンツに該当せず、サービス内での生成および流通が厳格に禁止されます。
+2. **年齢確認および認証**: サービス内でセンシティブコンテンツを含む年齢等級（19歳）機能を利用したり、セーフティフィルター設定を変更しようとする会員は、必ず実名ベースの本人認証（携帯電話本人確認等）手続を経て成人であることを証明しなければなりません。未成年アカウントのアクセスはシステム上で根本的に遮断され、他人名義の盗用など認証の偽造が発覚した場合、直ちに永久停止措置が取られます。会社は年齢認証および接続ログ記録を規定に従い最低6か月以上保存します。
+3. **フィルター等級設定および利用者責任**: 成人認証を完了した利用者は、本人の明示的な同意と自発的意思に基づき、センシティブコンテンツへのアクセス制限を緩和する「セーフティフィルター」設定を変更することができます。当該機能は、遮断ポリシーを単純に違法迂回するものではなく、自律的な青少年保護体系の下で年齢等級に応じて提供される選択的アクセス権であり、利用者はいつでも再有効化できます。ただし、アクセスが許可されたセンシティブコンテンツを VPN 等で迂回接続したり、故意に外部へ流出、再配布、またはクローリング拡散させた場合、それに伴う法的責任は利用者本人が負います。
+4. **プラットフォームの管理義務および技術的措置**: 会社は単に免責を主張するのではなく、違法情報および有害情報の流通防止のため、次の措置を実施します。
+   1. **AI 事前/事後分類体系**: AI モデルレベルで違法コンテンツ（児童搾取物、ディープフェイク等）の生成を常時遮断する自動キーワードフィルタリングシステムを運用します。
+   2. **通報受付および即時措置**: 有害情報の発見または通報受付時、直ちにブラインド処理および内部モニタリングを経て削除します。
+   3. **制裁措置および義務履行**: フィルター強制迂回の試み（いわゆる「脱獄」プロンプト等）が発覚した場合、累積三振制によりアカウントおよび IP を停止し、政府機関からの適法な要請時には保有資料およびログを提出する責任を果たします。
+
+---
+
+### 第8章 免責およびその他
+
+#### 第19条（会社の免責）
+1. 会社は AI が生成した結果物の正確性を保証しません。会員は、当該結果物を活用する前に、自らの判断で適切性を検証しなければなりません。
+2. 会社は、LLM 供給者（Google 等）の障害、天災地変など、会社の統制範囲を超える事由によるサービス中断について責任を負いません。
+
+#### 第20条（紛争処理および顧客支援）
+1. 会員がサービス利用に関連して問題を経験した場合、{{SUPPORT_EMAIL}} へ問い合わせることができます。
+2. 会社は、紛争および苦情申告を受領した日から5～10営業日以内に検討し、結果を案内します。
+3. 決済関連の紛争が上記手続を経ても解決しない場合、消費者紛争調整委員会等の機関に提起することができます。
+
+#### 第21条（準拠法および管轄裁判所）
+本規約は大韓民国法令に従って規律および解釈され、サービス利用に関連して生じる紛争については、会社本店所在地を管轄する裁判所を合意管轄裁判所とします。
+
+---
+
+**施行日:** 2026年4月15日

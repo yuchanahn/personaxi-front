@@ -30,7 +30,7 @@ Need a refund? Please contact support with the following info:
 > [!IMPORTANT]
 > **Contact Channels**
 > *   📧 Email: [{{SUPPORT_EMAIL}}](mailto:{{SUPPORT_EMAIL}})
-> *   💬 Discord: [#support-ticket](https://discord.gg/v88p26Fpmc) channel
+> *   💬 Discord: [#support-ticket](https://discord.gg/hfgPAk8jhC) channel
 
 
 
