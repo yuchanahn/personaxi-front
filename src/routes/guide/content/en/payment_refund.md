@@ -19,6 +19,10 @@
 *   You can schedule cancellation anytime; you won't be billed from the next cycle.
 *   Already paid periods are not pro-rated, but benefits remain until the end of the period.
 
+> [!NOTE]
+> **Android App Purchases**
+> Neuron purchases made inside the Android app distributed through Google Play are processed through Google Play billing. Google Play's payment and refund procedures may apply first, and {{PUBLIC_BRAND_NAME}} supports purchase-history confirmation and usage verification where needed.
+
 ## 3. How to Request Refund
 
 Need a refund? Please contact support with the following info:

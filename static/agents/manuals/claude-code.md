@@ -1,4 +1,4 @@
-# PXI by PersonaXi Manual For Claude Code
+# PeroChat by PersonaXI Manual For Claude Code
 
 Primary references:
 
@@ -7,7 +7,7 @@ Primary references:
 
 ## Mission
 
-Claude Code should produce reviewable, high-coherence PXI drafts.
+Claude Code should produce reviewable, high-coherence PeroChat drafts.
 
 ## Platform-Specific Discipline
 
@@ -22,7 +22,7 @@ You are expected to:
 
 ## Required Working Style
 
-When writing a PXI persona:
+When writing a PeroChat persona:
 
 1. Define the emotional contract of the persona first.
 2. Make `greeting` and `first_scene` reflect that contract.

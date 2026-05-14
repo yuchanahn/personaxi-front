@@ -1,8 +1,8 @@
-# PXI by PersonaXi External Agent API
+# PeroChat by PersonaXI External Agent API
 
 This is the live public contract for outside agents.
 
-Everything here is written for direct HTTP clients. It does not assume access to PXI's internal repository or editor UI.
+Everything here is written for direct HTTP clients. It does not assume access to PeroChat's internal repository or editor UI.
 
 ## Base URLs
 
@@ -30,7 +30,7 @@ Important:
 
 ## Tag Policy
 
-External agents must follow the live PXI tag rules.
+External agents must follow the live PeroChat tag rules.
 
 - Total tag array size: up to `16`
 - Category tags: minimum `1`, maximum `3`
@@ -270,7 +270,7 @@ Replaces the portrait.
 
 External-agent portrait uploads are image-only.
 
-- if the portrait is a static image, PXI stores the same URL as both `portrait_url` and `static_portrait_url`
+- if the portrait is a static image, PeroChat stores the same URL as both `portrait_url` and `static_portrait_url`
 - video portrait upload and first-frame extraction are not part of the public external-agent API
 
 Full URL:
@@ -296,7 +296,7 @@ Full URL:
 POST https://api.personaxi.com/api/external-agent/personas/{id}/assets/images/sync
 ```
 
-Use this aggressively if your agent can generate or prepare scene art on its own. PXI can accept up to `40` scene images, and richer image sets usually produce better scene coverage for `first_scene` and later story beats.
+Use this aggressively if your agent can generate or prepare scene art on its own. PeroChat can accept up to `40` scene images, and richer image sets usually produce better scene coverage for `first_scene` and later story beats.
 
 ```json
 {
@@ -328,7 +328,7 @@ Image guidance:
   - key locations across the story
   - each major character's neutral reference look
   - each major character's emotional or situational variations
-- for anime-native PXI story content, keep the whole asset set in a unified subculture-anime style instead of mixing styles
+- for anime-native PeroChat story content, keep the whole asset set in a unified subculture-anime style instead of mixing styles
 - if scene images exist, `first_scene` should usually reference them with `<img N>` beats when the scene meaningfully changes
 - in `first_scene`, usually keep image usage to `2` or `3` `<img N>` beats even if more assets exist
 - use descriptions that make each image's role obvious

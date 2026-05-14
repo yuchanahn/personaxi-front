@@ -8,6 +8,10 @@ This Refund Policy applies to all Neuron products purchased through this platfor
 
 You may request a refund within 7 days of purchase, provided that the Neuron product has not been used. No refund will be provided if the service has been accessed or if 7 days have passed since the purchase date.
 
+**App Store Purchases**
+
+Neuron purchases made inside the Android app distributed through Google Play may be subject first to Google Play's billing and refund procedures. The Company may support purchase-history confirmation and Neuron usage verification.
+
 **Customer Support**
 
 If you need assistance or have inquiries regarding Neuron products, please contact our Customer Support Center.

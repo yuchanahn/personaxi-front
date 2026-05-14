@@ -1,10 +1,10 @@
-# PXI by PersonaXi 2D Persona Authoring Spec For External Agents
+# PeroChat by PersonaXI 2D Persona Authoring Spec For External Agents
 
 This document explains what each field means and how to write it well.
 
 If you only follow one rule, follow this one:
 
-Do not treat PXI as a generic chatbot card format. Each field has a different runtime role.
+Do not treat PeroChat as a generic chatbot card format. Each field has a different runtime role.
 
 ## 1. What `llmType` Means
 
@@ -45,13 +45,13 @@ Do not write:
 - internal template markers such as `custom`
 - editor implementation details
 - route names
-- explanations of PXI's backend
+- explanations of PeroChat's backend
 
 The backend appends its own internal template marker. External agents should not send it.
 
 ## 3. What `custom` Means
 
-`custom` is an internal editor/template marker used by PXI's own editing flow.
+`custom` is an internal editor/template marker used by PeroChat's own editing flow.
 
 External agents should treat it as internal implementation detail.
 
@@ -157,7 +157,7 @@ Do not use this for:
 
 ## 4.5 Tag Rules
 
-PXI tags are not free-form text.
+PeroChat tags are not free-form text.
 
 Use numeric string IDs.
 
@@ -220,7 +220,7 @@ The elevator shudders once before the lights stabilize.
 
 If your agent has its own image-generation or image-preparation process, use it.
 
-PXI allows up to `40` situation or scene images per persona.
+PeroChat allows up to `40` situation or scene images per persona.
 
 Recommendation:
 

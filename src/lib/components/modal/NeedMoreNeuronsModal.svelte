@@ -16,17 +16,39 @@
     import { api } from "$lib/api";
     import { env } from "$env/dynamic/public";
     import { renderBrandedMarkdown } from "$lib/branding/markdown";
+    import { Capacitor } from "@capacitor/core";
 
     // --- IP-based country detection ---
     let isKorean: boolean | null = null; // null = loading
     let paypalContainerEl: HTMLDivElement;
     let lastRenderedOptionId: string | null = null;
-    let countryDetectionPromise: Promise<boolean> | null = null;
+    let countryDetectionPromise: Promise<boolean | null> | null = null;
     let portOneLoadPromise: Promise<void> | null = null;
     let paypalLoadPromise: Promise<void> | null = null;
     let paypalLoadCurrency: string | null = null;
+    let isAndroidNativeCheckout = false;
+
+    function detectAndroidNativeCheckout() {
+        if (typeof window === "undefined") return false;
+
+        try {
+            return (
+                Capacitor.isNativePlatform() &&
+                Capacitor.getPlatform() === "android"
+            );
+        } catch {
+            return false;
+        }
+    }
+
+    $: isAndroidNativeCheckout = detectAndroidNativeCheckout();
 
     async function detectCountry() {
+        if (isAndroidNativeCheckout) {
+            isKorean = null;
+            return isKorean;
+        }
+
         try {
             const res = await fetch("https://ipapi.co/json/");
             const data = await res.json();
@@ -244,6 +266,7 @@
 
     // Trigger PayPal render from explicit user actions (not $: reactive)
     function maybeRenderPayPal() {
+        if (isAndroidNativeCheckout) return;
         if (isKorean !== false) return;
         if (!selectedOption || !agreedToPolicies || !paypalContainerEl) return;
 
@@ -301,16 +324,18 @@
             pricingStore.fetchPricingPolicy();
         }
 
-        void ensureCountryDetected();
+        if (!isAndroidNativeCheckout) {
+            void ensureCountryDetected();
+        }
     }
 
-    $: if (isOpen && isKorean === true) {
+    $: if (isOpen && !isAndroidNativeCheckout && isKorean === true) {
         void ensurePortOneSDK().catch((error) => {
             console.error(error);
         });
     }
 
-    $: if (isOpen && isKorean === false) {
+    $: if (isOpen && !isAndroidNativeCheckout && isKorean === false) {
         void ensurePayPalSDK().catch((error) => {
             console.error(error);
         });
@@ -352,6 +377,11 @@
 
     // PortOne V2
     async function handleRecharge() {
+        if (isAndroidNativeCheckout) {
+            toast.error($t("needNeuronsModal.storeCheckoutUnavailable"));
+            return;
+        }
+
         if (!selectedOption) return;
         isPurchasing = true;
 
@@ -594,81 +624,99 @@
                     </div>
                 {/if}
 
-                <!-- Pricing Options List -->
-                <div class="pricing-list">
-                    {#each $pricingStore.purchase_options.filter((o) => isKorean === null || o.prices?.[getCurrentCurrency()] > 0) as option, i}
-                        {@const isSelected = selectedOption === option}
-                        {@const iconProps = getProductIconProps(i)}
-                        {@const bonusPercent = getBonusPercentage(option)}
-                        <!-- Calculate Standard Price based on total amount (neurons + bonus) -->
-                        {@const totalNeurons =
-                            option.neurons + (option.bonus_amount || 0)}
-                        {@const standardPrice = getStandardPrice(totalNeurons)}
+                {#if isAndroidNativeCheckout}
+                    <div class="store-checkout-notice">
+                        <div class="notice-icon">
+                            <Icon icon="ph:storefront-bold" width="22" />
+                        </div>
+                        <div>
+                            <h3>
+                                {$t("needNeuronsModal.storeCheckoutTitle")}
+                            </h3>
+                            <p>
+                                {$t(
+                                    "needNeuronsModal.storeCheckoutDescription",
+                                )}
+                            </p>
+                        </div>
+                    </div>
+                {:else}
+                    <!-- Pricing Options List -->
+                    <div class="pricing-list">
+                        {#each $pricingStore.purchase_options.filter((o) => isKorean === null || o.prices?.[getCurrentCurrency()] > 0) as option, i}
+                            {@const isSelected = selectedOption === option}
+                            {@const iconProps = getProductIconProps(i)}
+                            {@const bonusPercent = getBonusPercentage(option)}
+                            <!-- Calculate Standard Price based on total amount (neurons + bonus) -->
+                            {@const totalNeurons =
+                                option.neurons + (option.bonus_amount || 0)}
+                            {@const standardPrice = getStandardPrice(totalNeurons)}
 
-                        <button
-                            class="pricing-row"
-                            class:selected={isSelected}
-                            on:click={() => selectOption(option)}
-                        >
-                            <!-- Left: Icon & Info -->
-                            <div class="row-left">
-                                <div
-                                    class="icon-wrapper"
-                                    class:active={isSelected}
-                                >
-                                    <NeuronIcon
-                                        size={iconProps.size}
-                                        variant={iconProps.variant}
-                                        color={isSelected
-                                            ? "#fbbf24"
-                                            : "#525252"}
-                                    />
-                                </div>
-                                <div class="info-wrapper">
-                                    <div class="neurons-count">
-                                        {option.neurons.toLocaleString()}
-                                        <span class="unit">N</span>
+                            <button
+                                class="pricing-row"
+                                class:selected={isSelected}
+                                on:click={() => selectOption(option)}
+                            >
+                                <!-- Left: Icon & Info -->
+                                <div class="row-left">
+                                    <div
+                                        class="icon-wrapper"
+                                        class:active={isSelected}
+                                    >
+                                        <NeuronIcon
+                                            size={iconProps.size}
+                                            variant={iconProps.variant}
+                                            color={isSelected
+                                                ? "#fbbf24"
+                                                : "#525252"}
+                                        />
                                     </div>
-                                    {#if option.bonus_amount && option.bonus_amount > 0}
-                                        <span class="bonus-pill">
-                                            +{Math.floor(
-                                                option.bonus_amount,
-                                            ).toLocaleString()}
-                                            {$t("shop.bonus_label")}
-                                        </span>
-                                    {/if}
+                                    <div class="info-wrapper">
+                                        <div class="neurons-count">
+                                            {option.neurons.toLocaleString()}
+                                            <span class="unit">N</span>
+                                        </div>
+                                        {#if option.bonus_amount && option.bonus_amount > 0}
+                                            <span class="bonus-pill">
+                                                +{Math.floor(
+                                                    option.bonus_amount,
+                                                ).toLocaleString()}
+                                                {$t("shop.bonus_label")}
+                                            </span>
+                                        {/if}
+                                    </div>
                                 </div>
-                            </div>
 
-                            <!-- Right: Price & Badge -->
-                            <div class="row-right">
-                                <!-- Best Value Badge (Example Logic: highest bonus or index > 1) -->
-                                {#if bonusPercent >= 20}
-                                    <span class="best-badge"
-                                        >{$t("shop.best_value")}</span
-                                    >
-                                {/if}
-
-                                <div class="price-container">
-                                    <!-- Discount Logic matching shop page -->
-                                    {#if (option.prices?.[getCurrentCurrency()] || 0) > 0 && (option.prices?.[getCurrentCurrency()] || 0) < standardPrice}
-                                        <span class="old-price">
-                                            {getDisplayCurrency()}{standardPrice.toLocaleString()}
-                                        </span>
+                                <!-- Right: Price & Badge -->
+                                <div class="row-right">
+                                    <!-- Best Value Badge (Example Logic: highest bonus or index > 1) -->
+                                    {#if bonusPercent >= 20}
+                                        <span class="best-badge"
+                                            >{$t("shop.best_value")}</span
+                                        >
                                     {/if}
-                                    <span
-                                        class="current-price"
-                                        class:highlight={isSelected}
-                                    >
-                                        {getDisplayPrice(option)}
-                                    </span>
-                                </div>
-                            </div>
-                        </button>
-                    {/each}
-                </div>
 
-                {#if isKorean}
+                                    <div class="price-container">
+                                        <!-- Discount Logic matching shop page -->
+                                        {#if (option.prices?.[getCurrentCurrency()] || 0) > 0 && (option.prices?.[getCurrentCurrency()] || 0) < standardPrice}
+                                            <span class="old-price">
+                                                {getDisplayCurrency()}{standardPrice.toLocaleString()}
+                                            </span>
+                                        {/if}
+                                        <span
+                                            class="current-price"
+                                            class:highlight={isSelected}
+                                        >
+                                            {getDisplayPrice(option)}
+                                        </span>
+                                    </div>
+                                </div>
+                            </button>
+                        {/each}
+                    </div>
+                {/if}
+
+                {#if !isAndroidNativeCheckout && isKorean}
                     <!-- Precautions Toggle (Korean PG Compliance) -->
                     <div class="precautions-section">
                         <button
@@ -719,36 +767,42 @@
             <!-- Footer: Purchase Button -->
             <div class="modal-footer">
                 <!-- Policy Agreement Checkbox -->
-                <div class="policy-agreement">
-                    <label class="checkbox-label">
-                        <input
-                            type="checkbox"
-                            bind:checked={agreedToPolicies}
-                            on:change={() => maybeRenderPayPal()}
-                        />
-                        <span class="checkbox-custom">
-                            {#if agreedToPolicies}
-                                <Icon
-                                    icon="material-symbols:check-small-rounded"
-                                    width="16"
-                                />
-                            {/if}
-                        </span>
-                        <span class="agreement-text">
-                            {$t("legal.checkedAndAgree")}
-                            <a href="/refund" target="_blank"
-                                >{$t("legal.refundPolicy")}</a
-                            >
-                            {$t("legal.agreedToPolicies")}
-                        </span>
-                    </label>
-                </div>
+                {#if !isAndroidNativeCheckout}
+                    <div class="policy-agreement">
+                        <label class="checkbox-label">
+                            <input
+                                type="checkbox"
+                                bind:checked={agreedToPolicies}
+                                on:change={() => maybeRenderPayPal()}
+                            />
+                            <span class="checkbox-custom">
+                                {#if agreedToPolicies}
+                                    <Icon
+                                        icon="material-symbols:check-small-rounded"
+                                        width="16"
+                                    />
+                                {/if}
+                            </span>
+                            <span class="agreement-text">
+                                {$t("legal.checkedAndAgree")}
+                                <a href="/refund" target="_blank"
+                                    >{$t("legal.refundPolicy")}</a
+                                >
+                                {$t("legal.agreedToPolicies")}
+                            </span>
+                        </label>
+                    </div>
+                {/if}
 
                 <div class="current-balance">
                     <span>{$t("shop.current_neurons")}</span>
                     <strong>{current_neurons_count.toLocaleString()} N</strong>
                 </div>
-                {#if isKorean === null}
+                {#if isAndroidNativeCheckout}
+                    <button class="purchase-btn" disabled={true}>
+                        {$t("needNeuronsModal.storeCheckoutAction")}
+                    </button>
+                {:else if isKorean === null}
                     <!-- Loading country detection -->
                     <div class="loading-geo">
                         <Icon icon="svg-spinners:ring-resize" width="20" />
@@ -883,6 +937,40 @@
         flex: 1;
         overflow-y: auto;
         padding: 20px 24px;
+    }
+
+    .store-checkout-notice {
+        display: flex;
+        gap: 14px;
+        padding: 18px;
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        background: var(--secondary);
+        color: var(--foreground);
+    }
+
+    .store-checkout-notice .notice-icon {
+        width: 42px;
+        height: 42px;
+        border-radius: 50%;
+        display: grid;
+        place-items: center;
+        flex: 0 0 auto;
+        background: rgba(251, 191, 36, 0.14);
+        color: #fbbf24;
+    }
+
+    .store-checkout-notice h3 {
+        margin: 0 0 6px;
+        font-size: 0.98rem;
+        font-weight: 800;
+    }
+
+    .store-checkout-notice p {
+        margin: 0;
+        color: var(--muted-foreground);
+        font-size: 0.88rem;
+        line-height: 1.5;
     }
 
     /* Promo Box */

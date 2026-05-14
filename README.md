@@ -1,13 +1,13 @@
-# PXI Frontend
+# PeroChat Frontend
 
-This frontend powers the public PXI experience.
+This frontend powers the public PeroChat experience.
 
 ## Brand Summary
 
 - Main message: `원하는 대로 표현하는 AI 채팅`
 - Support line: `상태창, Live2D, VRM까지. 캐릭터가 보이는 방식을 직접 디자인할 수 있는 유일한 AI 채팅 플랫폼.`
-- Public brand: `PXI`
-- Legal / operational name: `PersonaXi`
+- Public brand: `PeroChat`
+- Legal / operational name: `PersonaXI`
 
 ## Stack
 
@@ -51,13 +51,13 @@ Generation script:
 
 ## Naming Rule
 
-Use `PXI` on:
+Use `PeroChat` on:
 
 - welcome / FAQ copy
 - global meta
 - brand-facing product descriptions
 
-Use `PersonaXi` on:
+Use `PersonaXI` on:
 
 - legal documents
 - operator identity
@@ -66,4 +66,5 @@ Use `PersonaXi` on:
 ## Related Docs
 
 - Root overview: [../README.md](../README.md)
+- Android store readiness: [docs/android-store-readiness.md](docs/android-store-readiness.md)
 - Branding guide: [../docs/branding-guide.md](../docs/branding-guide.md)

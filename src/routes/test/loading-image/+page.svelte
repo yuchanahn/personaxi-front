@@ -146,7 +146,7 @@
                         </div>
                     {:else if candidate.tone === "poster"}
                         <div class="poster-box">
-                            <div class="poster-mark">PXI</div>
+                            <div class="poster-mark">PeroChat</div>
                             <div class="copy">
                                 <strong>Loading Asset</strong>
                                 <span>video / motion / voice</span>

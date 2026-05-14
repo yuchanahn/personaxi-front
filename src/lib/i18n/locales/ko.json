@@ -553,7 +553,11 @@
     "rechargeSuccess": "구매가 완료되었습니다! 뉴런이 지급되었습니다.",
     "firstCreationReward": "페르소나 최초 생성 시 200 뉴런 지급!",
     "getFreeNeurons": "무료 뉴런 받기",
-    "currentNeurons": "현재 수량: {count} 뉴런"
+    "currentNeurons": "현재 수량: {count} 뉴런",
+    "storeCheckoutTitle": "스토어 결제 준비 중",
+    "storeCheckoutDescription": "Android 앱의 뉴런 구매는 Google Play 결제로 처리되어야 합니다. 현재 빌드에서는 스토어 결제 연동 전까지 앱 내 구매를 제공하지 않습니다.",
+    "storeCheckoutAction": "스토어 결제 준비 중",
+    "storeCheckoutUnavailable": "Android 앱 결제는 Google Play 결제 연동 후 사용할 수 있습니다."
   },
   "consentModal": {
     "title": "서비스 이용 동의",
@@ -1150,7 +1154,7 @@
       "3": "팝업에서 <strong>설치</strong>를 누르면 완료!"
     },
     "benefit": "앱 설치 혜택: 전체화면 몰입감, 더 빠른 로딩",
-    "notice": "📢 아직 공식 스토어에는 출시되지 않았습니다.<br>이 웹 앱(PWA)을 설치하면 <strong>스토어 수수료 없이</strong> 더 합리적인 가격으로 서비스를 이용하실 수 있습니다!",
+    "notice": "모바일 브라우저에서는 PWA로 설치해 전체화면과 더 빠른 로딩을 사용할 수 있습니다.",
     "promptTitle": "앱으로 더 쾌적하게!",
     "promptDesc": "전체화면으로 몰입감 있게 즐겨보세요.",
     "scanTitle": "모바일로 스캔",

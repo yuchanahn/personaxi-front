@@ -577,7 +577,11 @@
     "rechargeSuccess": "Recharge complete! Neurons have been added.",
     "firstCreationReward": "Get 200 Neurons for your first Persona creation!",
     "getFreeNeurons": "Get Free Neurons",
-    "currentNeurons": "Current: {count} Neurons"
+    "currentNeurons": "Current: {count} Neurons",
+    "storeCheckoutTitle": "Store checkout in progress",
+    "storeCheckoutDescription": "Neuron purchases in the Android app must be processed through Google Play billing. In-app purchases are disabled in this build until the store checkout is connected.",
+    "storeCheckoutAction": "Store checkout in progress",
+    "storeCheckoutUnavailable": "Android app checkout will be available after Google Play billing is connected."
   },
   "settingModal": {
     "title": "Settings",
@@ -1166,7 +1170,7 @@
       "3": "Tap <strong>Install</strong>"
     },
     "benefit": "Benefits: Fullscreen & Faster",
-    "notice": "📢 Not available on official stores yet.<br>Install this PWA to enjoy the service at a <strong>better price</strong> without store fees!",
+    "notice": "On mobile browsers, you can install the PWA for fullscreen use and faster loading.",
     "promptTitle": "Experience the App!",
     "promptDesc": "Install for fullscreen & better performance.",
     "scanTitle": "Scan with Mobile",

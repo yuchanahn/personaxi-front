@@ -90,7 +90,7 @@ except Exception as e:
     print("Font error:", e)
     font_brand = font_main = ImageFont.load_default()
 
-brand_text = "PXI"
+brand_text = "PeroChat"
 main_text = "AI Chat, Your Way"
 
 x_offset = 84

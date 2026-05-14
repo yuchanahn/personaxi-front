@@ -13,10 +13,11 @@ Inspired by brain cells, symbolizing connection with AI.
 *   **Creator Support (Coming Soon)**: Gift Neurons to your favorite creators.
 
 ## 💳 Charging & Methods
-You can purchase Neuron packages in the `Shop` tab.
+You can purchase Neuron packages in the `Shop` tab where supported.
 
-*   **Methods**: Supports major global payment methods via **PortOne** / **LemonSqueezy**.
-*   **Security**: Payments are processed securely by trusted third-party providers.
+* **Web/PWA**: Payments are processed through supported payment providers.
+* **Android app**: Purchases distributed through Google Play are processed through Google Play billing.
+* **Security**: Payments are processed securely by the relevant payment provider or app-store billing system.
 
 > [!TIP]
 > **Free Neurons**

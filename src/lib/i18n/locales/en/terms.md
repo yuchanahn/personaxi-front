@@ -80,12 +80,13 @@ These Terms are intended to define the conditions, procedures, rights, obligatio
 ### Chapter 5. Paid Services and Refunds
 
 #### Article 11. Purchase of Neurons and Provision of Service
-1. Members may purchase "Neurons" through the designated payment gateway.
+1. Members may purchase "Neurons" through the designated payment gateway on the web or PWA. In-app purchases in the Android app distributed through Google Play are processed through Google Play's billing system.
 2. **Timing of Service Provision**: Once the Company approves the completed purchase, the purchased Neurons shall be credited to the Member's account immediately and may be used at once.
 3. **Refund Policy**:
    1. A refund is available only within 7 days of purchase and only if not a single unit of Neuron has been used.
    2. Partial refunds are not provided due to the nature of digital content.
    3. Refund requests shall be submitted to {{SUPPORT_EMAIL}}, and the Company shall process them within 5 to 10 business days from the date of request.
+   4. Purchases made through Google Play may be subject first to Google Play's payment and refund procedures. The Company may support purchase-history confirmation and usage verification where necessary.
 4. **Extinctive Prescription**:
    1. Paid Neurons may expire under the applicable commercial-law prescription period if one year has elapsed from the date of purchase.
    2. Free Creator Contribution and promotional credits may expire according to the notice period set by the Company, which shall be at least 30 days.
@@ -96,7 +97,8 @@ These Terms are intended to define the conditions, procedures, rights, obligatio
 
 #### Article 13. Payment and Taxes
 1. For overseas payments, the final charged amount may differ depending on country-specific tax rates such as VAT and currency exchange rates.
-2. The payment processor serves as the Merchant of Record and handles the related tax administration. Detailed tax information is displayed on the payment page and receipt.
+2. For web or PWA payments, the payment processor serves as the Merchant of Record and handles the related tax administration. Detailed tax information is displayed on the payment page and receipt.
+3. For in-app purchases in the Android app distributed through Google Play, pricing, taxes, receipts, and refund presentation follow the Google Play billing interface and applicable Google Play policies.
 
 #### Article 14. Refund of Paid Credits upon Suspension or Closure of the Service
 1. If the Company closes or long-term suspends the Service for business reasons, it shall notify Members at least 30 days before the suspension date.

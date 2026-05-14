@@ -597,7 +597,11 @@
     "rechargeSuccess": "購入が完了しました！ニューロンが付与されました。",
     "firstCreationReward": "ペルソナ初回作成で200ニューロン付与！",
     "getFreeNeurons": "無料ニューロンをもらう",
-    "currentNeurons": "現在の数量：{count}ニューロン"
+    "currentNeurons": "現在の数量：{count}ニューロン",
+    "storeCheckoutTitle": "ストア決済準備中",
+    "storeCheckoutDescription": "Androidアプリ内のニューロン購入はGoogle Play決済で処理する必要があります。このビルドではストア決済連携が完了するまでアプリ内購入を提供しません。",
+    "storeCheckoutAction": "ストア決済準備中",
+    "storeCheckoutUnavailable": "Androidアプリ決済はGoogle Play決済連携後に利用できます。"
   },
   "notEnoughNeuronsModal": {
     "title": "ニューロンが不足しています！",
@@ -1209,7 +1213,7 @@
     "scanTitle": "モバイルでスキャン",
     "scanDesc": "カメラでQRコードを読み取ってください。",
     "notice_benefit": "アプリストアを開かずすぐにインストールできます。<br />自動アップデートにも対応しています。",
-    "notice": "📢 まだ公式ストアには出ていません。<br>このウェブアプリ（PWA）をインストールすると、<strong>ストア手数料なし</strong>でより合理的な価格でサービスをご利用いただけます！",
+    "notice": "モバイルブラウザではPWAとしてインストールし、フルスクリーン表示とより速い読み込みを利用できます。",
     "promptTitle": "アプリでもっと快適に！",
     "promptDesc": "フルスクリーンで没入感のある体験をお楽しみください。"
   },

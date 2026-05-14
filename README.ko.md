@@ -1,13 +1,13 @@
-# PXI 프론트엔드
+# PeroChat 프론트엔드
 
-이 프론트엔드는 공개 서비스 **PXI**를 구동합니다.
+이 프론트엔드는 공개 서비스 **PeroChat(페로챗)**을 구동합니다.
 
 ## 현재 브랜드 기준
 
 - 메인 문구: `원하는 대로 표현하는 AI 채팅`
 - 서브 문구: `상태창, Live2D, VRM까지. 캐릭터가 보이는 방식을 직접 디자인할 수 있는 유일한 AI 채팅 플랫폼.`
-- 공개 브랜드명: `PXI`
-- 법적 / 운영 명칭: `PersonaXi`
+- 공개 브랜드명: `PeroChat`
+- 법적 / 운영 명칭: `PersonaXI`
 
 ## 기술 스택
 
@@ -49,13 +49,13 @@ npm run dev
 
 ## 표기 원칙
 
-`PXI`를 쓰는 곳:
+`PeroChat`을 쓰는 곳:
 
 - 웰컴 / FAQ 카피
 - 전역 메타
 - 브랜드 소개 문구
 
-`PersonaXi`를 유지하는 곳:
+`PersonaXI`를 유지하는 곳:
 
 - 이용약관 / 개인정보처리방침 / 환불정책
 - 운영 주체 식별
@@ -64,4 +64,5 @@ npm run dev
 ## 관련 문서
 
 - 루트 개요: [../README.md](../README.md)
+- Android 스토어 제출 준비: [docs/android-store-readiness.md](docs/android-store-readiness.md)
 - 브랜딩 가이드: [../docs/branding-guide.md](../docs/branding-guide.md)

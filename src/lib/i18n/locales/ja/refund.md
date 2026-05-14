@@ -1,42 +1,43 @@
-## Refund Policy
+## 返金ポリシー
 
-This Refund Policy applies to all Neuron products purchased through this platform. By completing a purchase, you agree to the following conditions. Please review this policy carefully before purchasing.
+本返金ポリシーは、本プラットフォームを通じて購入されたすべてのニューロン商品に適用されます。購入を完了することで、以下の条件に同意したものとみなされます。購入前に必ず内容をご確認ください。
 
-### 1. Neuron Products
+### 1. ニューロン商品
 
-**Refund Conditions**
+**返金条件**
 
-You may request a refund within 7 days of purchase, provided that the Neuron product has not been used. No refund will be provided if the service has been accessed or if 7 days have passed since the purchase date.
+購入日から7日以内で、該当するニューロン商品を一切使用していない場合に限り、返金を申請できます。サービス利用が開始された場合、または購入日から7日を経過した場合、返金は提供されません。
 
-**Customer Support**
+**アプリストア決済**
 
-If you need assistance or have inquiries regarding Neuron products, please contact our Customer Support Center.
+Google Playを通じて配布されるAndroidアプリ内で購入されたニューロンについては、Google Playの決済および返金手続きが優先して適用される場合があります。会社は購入履歴の確認およびニューロン利用履歴の検証を支援します。
 
-### 2. General Terms
+**カスタマーサポート**
 
-**Refund Process**
+ニューロン商品に関するサポートやお問い合わせが必要な場合は、カスタマーサポートまでご連絡ください。
 
-Approved refunds will be processed using the same payment method used for the purchase (e.g., **Credit Card Cancellation**). The refund processing time may vary depending on the payment provider, and you will be notified once the refund is complete.
+### 2. 一般条件
 
-**Point Validity Period**
+**返金手続き**
 
-Paid Neurons are valid for **1 year** from the date of purchase. Points that have exceeded this validity period will automatically expire, and expired points cannot be refunded or restored.
+承認された返金は、購入時に使用された同一の決済手段（例：クレジットカード決済の取消）で処理されます。返金処理期間は決済事業者により異なる場合があり、返金完了後にご案内します。
 
-**Verification Process**
+**ポイントの有効期間**
 
-All refund requests undergo a verification process to ensure compliance with this Refund Policy. Requests that do not meet the conditions may be rejected.
+有償購入したニューロンの有効期間は購入日から1年です。有効期間を過ぎたポイントは自動的に失効し、失効したポイントの返金または復元はできません。
 
-**Payment Method Restrictions**
+**検証手続き**
 
-If the payment method used does not support refunds, this Refund Policy may not apply.
+すべての返金申請は、本返金ポリシーへの適合性を確認するための検証手続きを経ます。条件を満たさない申請は拒否される場合があります。
 
-**Errors and Discrepancies**
+**決済手段の制限**
 
-In the event of pricing or information errors due to typos or other reasons, we reserve the right to cancel or modify the order. If an order is canceled for these reasons and payment has already been completed, a refund will be processed to the original payment method.
+使用された決済手段が返金に対応していない場合、本返金ポリシーが適用されないことがあります。
 
-### 3. Contact
+**誤表示および不一致**
 
-If you have additional questions or need assistance regarding this Refund Policy, please contact our Customer Support Center ({{CONTACT_EMAIL}}).
+価格または商品情報に誤記その他の不一致がある場合、当社は注文を取消または修正する権利を有します。この理由により注文が取り消され、すでに決済が完了している場合、返金は元の決済手段に対して処理されます。
 
+### 3. お問い合わせ
 
-
+本返金ポリシーについて追加の質問やサポートが必要な場合は、カスタマーサポート（{{CONTACT_EMAIL}}）までご連絡ください。
