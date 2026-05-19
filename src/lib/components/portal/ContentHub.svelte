@@ -34,6 +34,7 @@
     import { requestIdentityVerification } from "$lib/services/verification";
     import { updateBirthDate, updateSafetyFilter } from "$lib/api/user";
     import HubBanner from "./HubBanner.svelte";
+    import { isLocalWebHost } from "$lib/utils/appShell";
     import { ensureAuthenticated } from "$lib/utils/authNavigation";
     import { AuthRequiredError } from "$lib/stores/authGate";
 
@@ -761,9 +762,7 @@
 
     onMount(async () => {
         // Check if running locally for testing purposes
-        isLocalhost =
-            window.location.hostname === "localhost" ||
-            window.location.hostname === "127.0.0.1";
+        isLocalhost = isLocalWebHost();
 
         // IP check runs concurrently — doesn't block hub rendering
         isCheckingIp = false;

@@ -1,15 +1,10 @@
 // src/lib/constants.ts
-const host = window.location.hostname;
 
 export const API_BASE_URL = "https://api.personaxi.com"
 export const PORTRAIT_URL = "/storage/v1/object/public/personaxi-assets/portraits/"
 export const VRM_URL = "/storage/v1/object/public/personaxi-assets/vrm-models/"
 export const ASSET_URL = "/storage/v1/object/public/personaxi-assets/persona_images/"
 //https://uohepkqmwbstbmnkoqju.supabase.co/storage/v1/object/public/vrm-models/
-/*host === "localhost" || host === "127.0.0.1"
-    ? "http://localhost:8080"
-    : "https://api.personaxi.com";
-*/
 
 export const MAX_CATEGORY_TAGS = 5;
 

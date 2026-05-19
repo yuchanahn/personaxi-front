@@ -9,6 +9,7 @@
   import { onDestroy, tick } from "svelte";
   import type { Viewer } from "$lib/vrm/core/viewer";
   import Icon from "@iconify/svelte";
+  import { isLocalWebHost } from "$lib/utils/appShell";
 
   import * as THREE from "three/webgpu";
   import { sparks } from "$lib/vrm/stores";
@@ -40,9 +41,7 @@
   let isLocalDebugHost = false;
 
   function isLocalTestHost(): boolean {
-    if (typeof window === "undefined") return false;
-    const host = window.location.hostname;
-    return host === "localhost" || host === "127.0.0.1" || host === "::1";
+    return isLocalWebHost();
   }
 
   $: isLocalDebugHost = isLocalTestHost();

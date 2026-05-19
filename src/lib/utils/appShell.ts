@@ -62,3 +62,18 @@ export function getAppShellKind(): AppShellKind {
 export function isInstalledAppShell() {
     return getAppShellKind() !== "web";
 }
+
+export function isLocalWebHost(hostname?: string) {
+    if (!browser || isNativeApp()) {
+        return false;
+    }
+
+    const resolvedHostname = (hostname ?? window.location.hostname).toLowerCase();
+    return (
+        resolvedHostname === "localhost" ||
+        resolvedHostname === "127.0.0.1" ||
+        resolvedHostname === "::1" ||
+        resolvedHostname === "0.0.0.0" ||
+        resolvedHostname === "10.0.2.2"
+    );
+}
