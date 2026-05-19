@@ -7,6 +7,7 @@ import { showNeedMoreNeuronsModal } from '$lib/stores/modal';
 import { get } from 'svelte/store';
 import type { ChatSaveSlot, ESFPrompt, Persona } from '$lib/types';
 import { chatSessions, removeSession } from '$lib/stores/chatSessions';
+import { isLocalWebHost } from '$lib/utils/appShell';
 
 export function createFirstSceneMessage(): Message {
     return {
@@ -18,9 +19,7 @@ export function createFirstSceneMessage(): Message {
 }
 
 function shouldUsePromptkitPreviewRoute(): boolean {
-    if (typeof window === 'undefined') return false;
-    const host = window.location.hostname.toLowerCase();
-    return host === 'localhost' || host === '127.0.0.1';
+    return isLocalWebHost();
 }
 
 /**

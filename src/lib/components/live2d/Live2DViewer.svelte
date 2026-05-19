@@ -11,6 +11,7 @@
     import { createLive2DDebugControl } from "$lib/components/live2d/useLive2DDebugControl";
     import { createLive2DCameraControl } from "$lib/components/live2d/useLive2DCameraControl";
     import { resolveLive2DParameterAliasHints } from "$lib/components/live2d/live2dParameterMetadata";
+    import { isLocalWebHost } from "$lib/utils/appShell";
     import {
         applyPermanentExpressions,
         collectAvailableExpressions,
@@ -94,9 +95,7 @@
     });
 
     function isLocalTestHost(): boolean {
-        if (typeof window === "undefined") return false;
-        const host = window.location.hostname;
-        return host === "localhost" || host === "127.0.0.1" || host === "::1";
+        return isLocalWebHost();
     }
 
     $: if (autonomy) {

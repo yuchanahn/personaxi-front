@@ -12,6 +12,7 @@
     import Icon from "@iconify/svelte";
     import { createEventDispatcher, onDestroy, onMount } from "svelte";
     import { getBranding } from "$lib/branding/config";
+    import { getOriginalSupabaseImageUrl } from "$lib/utils/mediaTransform";
 
     export let asset: ImageMetadata;
     export let showVideoPosterFallback: boolean = false;
@@ -66,11 +67,29 @@
     ) {
         const target = event.currentTarget as HTMLImageElement | null;
         dispatchAssetLoad(
-            url,
+            target?.currentSrc || url,
             target?.naturalWidth,
             target?.naturalHeight,
             resolvedType,
         );
+    }
+
+    function useOriginalImageFallback(event: Event, failedUrl: string | undefined) {
+        if (!failedUrl) return false;
+
+        const fallbackUrl = getOriginalSupabaseImageUrl(failedUrl);
+        if (!fallbackUrl || fallbackUrl === failedUrl) return false;
+
+        const target = event.currentTarget as HTMLImageElement | null;
+        if (!target || target.src === fallbackUrl) return false;
+
+        target.src = fallbackUrl;
+        return true;
+    }
+
+    function handleTypedImageError(event: Event, failedUrl: string | undefined) {
+        if (useOriginalImageFallback(event, failedUrl)) return;
+        dispatch("error", { url: failedUrl });
     }
 
     function handleVideoLoad(
@@ -101,7 +120,10 @@
         );
     }
 
-    function handleUnknownImageError() {
+    function handleUnknownImageError(event: Event) {
+        const previewUrl = asset.static_url || asset.url;
+        if (useOriginalImageFallback(event, previewUrl)) return;
+
         unknownPreviewMode = asset.url ? "video" : "fallback";
     }
 
@@ -184,7 +206,7 @@
         alt="asset"
         class="asset-preview-media"
         on:load={(event) => handleImageLoad(event, asset.url, "image")}
-        on:error={() => dispatch("error", { url: asset.url })}
+        on:error={(event) => handleTypedImageError(event, asset.url)}
     />
 {:else if asset.type === "video"}
     {#if useSimpleVideoLayout}
@@ -217,7 +239,8 @@
                         class="asset-preview-media"
                         on:load={(event) =>
                             handleImageLoad(event, asset.static_url!, "video")}
-                        on:error={() => dispatch("error", { url: asset.static_url })}
+                        on:error={(event) =>
+                            handleTypedImageError(event, asset.static_url)}
                     />
                 {:else}
                     <div class="brand-loading-card video-loading-layer" aria-hidden="true">
@@ -308,6 +331,8 @@
                     class="asset-preview-media video-poster-layer"
                     on:load={(event) =>
                         handleImageLoad(event, asset.static_url!, "video")}
+                    on:error={(event) =>
+                        handleTypedImageError(event, asset.static_url)}
                 />
             {/if}
             <video
@@ -346,6 +371,8 @@
                 alt="asset preview"
                 class="asset-preview-media"
                 on:load={(event) => handleImageLoad(event, asset.static_url!)}
+                on:error={(event) =>
+                    handleTypedImageError(event, asset.static_url)}
             />
         {:else}
             <div class="brand-loading-card">

@@ -1,5 +1,5 @@
 import { browser } from "$app/environment";
-import { isNativeApp } from "$lib/utils/appShell";
+import { isLocalWebHost, isNativeApp } from "$lib/utils/appShell";
 
 type WindowWithDataLayer = Window & {
     dataLayer?: Array<Record<string, unknown>>;
@@ -10,22 +10,13 @@ type WindowWithDataLayer = Window & {
     cancelIdleCallback?: (handle: number) => void;
 };
 
-function isLocalHost(hostname: string) {
-    return (
-        hostname === "localhost" ||
-        hostname === "127.0.0.1" ||
-        hostname === "0.0.0.0" ||
-        hostname === "10.0.2.2"
-    );
-}
-
 export function scheduleGoogleTagManager(containerId: string) {
     if (!browser || !containerId || isNativeApp()) {
         return () => {};
     }
 
     const win = window as WindowWithDataLayer;
-    if (isLocalHost(window.location.hostname)) {
+    if (isLocalWebHost()) {
         return () => {};
     }
 

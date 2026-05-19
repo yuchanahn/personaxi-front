@@ -6,11 +6,11 @@ import { get } from "svelte/store";
 import { accessToken } from "$lib/stores/auth";
 import { st_user } from "$lib/stores/user";
 import { branding } from "$lib/branding/config";
+import { isLocalWebHost } from "$lib/utils/appShell";
 
 
 export function getBaseUrl(): string {
-  const host = window.location.hostname;
-  if (host === 'localhost' || host === '127.0.0.1') {
+  if (isLocalWebHost()) {
     return 'http://localhost:5173/';
   } else {
     return `${branding.publicOrigin}/`;
