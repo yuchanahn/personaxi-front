@@ -1,5 +1,4 @@
 // src/lib/constants.ts
-
 export const API_BASE_URL = "https://api.personaxi.com"
 export const PORTRAIT_URL = "/storage/v1/object/public/personaxi-assets/portraits/"
 export const VRM_URL = "/storage/v1/object/public/personaxi-assets/vrm-models/"

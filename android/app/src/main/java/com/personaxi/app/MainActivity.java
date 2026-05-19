@@ -18,6 +18,7 @@ import ee.forgr.capacitor.social.login.SocialLoginPlugin;
 public class MainActivity extends BridgeActivity implements ModifiedMainActivityForSocialLoginPlugin {
     @Override
     public void onCreate(Bundle savedInstanceState) {
+        registerPlugin(GooglePlayBillingPlugin.class);
         super.onCreate(savedInstanceState);
 
         View root = findViewById(android.R.id.content);

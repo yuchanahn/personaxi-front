@@ -554,10 +554,15 @@
     "firstCreationReward": "페르소나 최초 생성 시 200 뉴런 지급!",
     "getFreeNeurons": "무료 뉴런 받기",
     "currentNeurons": "현재 수량: {count} 뉴런",
-    "storeCheckoutTitle": "스토어 결제 준비 중",
-    "storeCheckoutDescription": "Android 앱의 뉴런 구매는 Google Play 결제로 처리되어야 합니다. 현재 빌드에서는 스토어 결제 연동 전까지 앱 내 구매를 제공하지 않습니다.",
-    "storeCheckoutAction": "스토어 결제 준비 중",
-    "storeCheckoutUnavailable": "Android 앱 결제는 Google Play 결제 연동 후 사용할 수 있습니다."
+    "storeCheckoutTitle": "Google Play 결제",
+    "storeCheckoutDescription": "Android 앱의 뉴런 구매는 Google Play 결제로 처리됩니다. 가격은 사용자의 Play 국가/통화 기준으로 표시됩니다.",
+    "storeCheckoutAction": "Google Play로 구매",
+    "storeCheckoutUnavailable": "Google Play 상품을 불러오지 못했습니다.",
+    "storeCheckoutLoading": "불러오는 중",
+    "storeCheckoutProductUnavailable": "현재 구매할 수 없음",
+    "storeCheckoutPending": "결제가 대기 상태입니다. 결제가 완료되면 뉴런이 지급됩니다.",
+    "storeCheckoutNotConfigured": "서버의 Google Play 결제 검증 설정이 아직 완료되지 않았습니다.",
+    "storeCheckoutError": "Google Play 결제를 처리하지 못했습니다."
   },
   "consentModal": {
     "title": "서비스 이용 동의",

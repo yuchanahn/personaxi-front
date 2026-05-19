@@ -17,6 +17,11 @@
     import { env } from "$env/dynamic/public";
     import { renderBrandedMarkdown } from "$lib/branding/markdown";
     import { Capacitor } from "@capacitor/core";
+    import {
+        GooglePlayBilling,
+        type GooglePlayProduct,
+        type GooglePlayPurchase,
+    } from "$lib/native/googlePlayBilling";
 
     // --- IP-based country detection ---
     let isKorean: boolean | null = null; // null = loading
@@ -27,6 +32,11 @@
     let paypalLoadPromise: Promise<void> | null = null;
     let paypalLoadCurrency: string | null = null;
     let isAndroidNativeCheckout = false;
+    let googlePlayProducts: Record<string, GooglePlayProduct> = {};
+    let googlePlayProductLoadKey = "";
+    let googlePlayProductError = "";
+    let isLoadingGooglePlayProducts = false;
+    const androidPackageName = "com.personaxi.app";
 
     function detectAndroidNativeCheckout() {
         if (typeof window === "undefined") return false;
@@ -329,6 +339,14 @@
         }
     }
 
+    $: if (
+        isOpen &&
+        isAndroidNativeCheckout &&
+        $pricingStore.purchase_options.length > 0
+    ) {
+        void ensureGooglePlayProducts();
+    }
+
     $: if (isOpen && !isAndroidNativeCheckout && isKorean === true) {
         void ensurePortOneSDK().catch((error) => {
             console.error(error);
@@ -375,10 +393,193 @@
         maybeRenderPayPal();
     }
 
+    function getAndroidProductId(option: any): string {
+        return option?.android_product_id || option?.item_id || "";
+    }
+
+    function getGooglePlayProduct(option: any): GooglePlayProduct | null {
+        const productId = getAndroidProductId(option);
+        return productId ? googlePlayProducts[productId] || null : null;
+    }
+
+    async function ensureGooglePlayProducts() {
+        const productIds = Array.from(
+            new Set(
+                $pricingStore.purchase_options
+                    .map((option) => getAndroidProductId(option))
+                    .filter(Boolean),
+            ),
+        );
+        const key = productIds.join("|");
+
+        if (!key || isLoadingGooglePlayProducts) return;
+        if (googlePlayProductLoadKey === key && !googlePlayProductError) return;
+
+        isLoadingGooglePlayProducts = true;
+        googlePlayProductError = "";
+        googlePlayProductLoadKey = key;
+
+        try {
+            const response = await GooglePlayBilling.queryProducts({
+                productIds,
+            });
+            googlePlayProducts = Object.fromEntries(
+                response.products.map((product) => [
+                    product.productId,
+                    product,
+                ]),
+            );
+        } catch (error) {
+            console.error("[GooglePlay] Failed to load products:", error);
+            googlePlayProducts = {};
+            googlePlayProductError = $t(
+                "needNeuronsModal.storeCheckoutUnavailable",
+            );
+        } finally {
+            isLoadingGooglePlayProducts = false;
+        }
+    }
+
+    async function getPlayObfuscatedAccountId(userId: string): Promise<string> {
+        if (!window.crypto?.subtle) return userId;
+
+        const payload = new TextEncoder().encode(`personaxi:${userId}`);
+        const hash = await window.crypto.subtle.digest("SHA-256", payload);
+        return Array.from(new Uint8Array(hash))
+            .map((byte) => byte.toString(16).padStart(2, "0"))
+            .join("");
+    }
+
+    function findPurchaseForProduct(
+        purchases: GooglePlayPurchase[],
+        productId: string,
+    ): GooglePlayPurchase | null {
+        return (
+            purchases.find((purchase) =>
+                purchase.productIds?.includes(productId),
+            ) ||
+            purchases[0] ||
+            null
+        );
+    }
+
+    function mapGooglePlayError(errorCode: string): string {
+        if (errorCode === "ERR_GOOGLE_PLAY_NOT_CONFIGURED") {
+            return $t("needNeuronsModal.storeCheckoutNotConfigured");
+        }
+        if (errorCode === "ERR_GOOGLE_PLAY_UNKNOWN_PRODUCT") {
+            return $t("needNeuronsModal.storeCheckoutProductUnavailable");
+        }
+        return errorCode || $t("needNeuronsModal.storeCheckoutError");
+    }
+
+    async function verifyGooglePlayPurchase(
+        purchase: GooglePlayPurchase,
+        productId: string,
+    ) {
+        const response = await api.post("/api/google-play/verify-purchase", {
+            productId,
+            purchaseToken: purchase.purchaseToken,
+            packageName: androidPackageName,
+        });
+
+        if (response.status === 202) {
+            toast.info($t("needNeuronsModal.storeCheckoutPending"));
+            return null;
+        }
+
+        if (!response.ok) {
+            const error = await response.json().catch(() => ({}));
+            throw new Error(mapGooglePlayError(error.error));
+        }
+
+        const result = await response.json();
+        if (result.consumed === false) {
+            try {
+                await GooglePlayBilling.consumePurchase({
+                    purchaseToken: purchase.purchaseToken,
+                });
+            } catch (error) {
+                console.warn("[GooglePlay] Client consume fallback failed:", error);
+            }
+        }
+
+        return result;
+    }
+
+    async function handleGooglePlayRecharge() {
+        if (!selectedOption) return;
+
+        const productId = getAndroidProductId(selectedOption);
+        const product = getGooglePlayProduct(selectedOption);
+        if (!productId || !product) {
+            toast.error($t("needNeuronsModal.storeCheckoutProductUnavailable"));
+            return;
+        }
+
+        const p_user = get(st_user);
+        if (!p_user?.id) {
+            toast.error("Login is required.");
+            return;
+        }
+
+        isPurchasing = true;
+        try {
+            const purchaseResult = await GooglePlayBilling.purchase({
+                productId,
+                obfuscatedAccountId: await getPlayObfuscatedAccountId(
+                    p_user.id,
+                ),
+            });
+            const purchase = findPurchaseForProduct(
+                purchaseResult.purchases || [],
+                productId,
+            );
+
+            if (!purchase) {
+                throw new Error($t("needNeuronsModal.storeCheckoutError"));
+            }
+            if (purchase.purchaseState === "PENDING") {
+                toast.info($t("needNeuronsModal.storeCheckoutPending"));
+                return;
+            }
+            if (purchase.purchaseState !== "PURCHASED") {
+                throw new Error($t("needNeuronsModal.storeCheckoutError"));
+            }
+
+            const result = await verifyGooglePlayPurchase(purchase, productId);
+            if (!result) return;
+
+            const user = await getCurrentUser();
+            if (user) st_user.set(user);
+
+            toast.success(
+                $t("shop.neurons_charged", {
+                    values: {
+                        paid: result.paid ?? selectedOption.neurons,
+                        bonus:
+                            result.bonus ??
+                            selectedOption.bonus_amount ??
+                            0,
+                    },
+                }),
+            );
+
+            closeModal();
+        } catch (error: any) {
+            const message = String(error?.message || error || "");
+            if (!message.includes("ERR_USER_CANCELED")) {
+                toast.error(message || $t("needNeuronsModal.storeCheckoutError"));
+            }
+        } finally {
+            isPurchasing = false;
+        }
+    }
+
     // PortOne V2
     async function handleRecharge() {
         if (isAndroidNativeCheckout) {
-            toast.error($t("needNeuronsModal.storeCheckoutUnavailable"));
+            await handleGooglePlayRecharge();
             return;
         }
 
@@ -494,6 +695,9 @@
     }
 
     function getCurrentCurrency(): string {
+        if (isAndroidNativeCheckout && selectedOption) {
+            return getGooglePlayProduct(selectedOption)?.priceCurrencyCode || "PLAY";
+        }
         if (isKorean) return "KRW";
         if ($locale === "ja") return "JPY";
         return "USD";
@@ -507,6 +711,13 @@
     }
 
     function getDisplayPrice(option: any): string {
+        if (isAndroidNativeCheckout) {
+            return (
+                getGooglePlayProduct(option)?.formattedPrice ||
+                $t("needNeuronsModal.storeCheckoutLoading")
+            );
+        }
+
         const currency = getCurrentCurrency();
         const price = option.prices?.[currency];
         if (price == null) return "—";
@@ -639,6 +850,80 @@
                                 )}
                             </p>
                         </div>
+                    </div>
+
+                    {#if googlePlayProductError}
+                        <div class="store-checkout-error">
+                            {googlePlayProductError}
+                        </div>
+                    {/if}
+
+                    <div class="pricing-list android-pricing">
+                        {#each $pricingStore.purchase_options as option, i}
+                            {@const isSelected = selectedOption === option}
+                            {@const iconProps = getProductIconProps(i)}
+                            {@const playProduct = getGooglePlayProduct(option)}
+                            {@const isUnavailable =
+                                !isLoadingGooglePlayProducts && !playProduct}
+
+                            <button
+                                class="pricing-row"
+                                class:selected={isSelected}
+                                class:unavailable={isUnavailable}
+                                disabled={isUnavailable}
+                                on:click={() => selectOption(option)}
+                            >
+                                <div class="row-left">
+                                    <div
+                                        class="icon-wrapper"
+                                        class:active={isSelected}
+                                    >
+                                        <NeuronIcon
+                                            size={iconProps.size}
+                                            variant={iconProps.variant}
+                                            color={isSelected
+                                                ? "#fbbf24"
+                                                : "#525252"}
+                                        />
+                                    </div>
+                                    <div class="info-wrapper">
+                                        <div class="neurons-count">
+                                            {option.neurons.toLocaleString()}
+                                            <span class="unit">N</span>
+                                        </div>
+                                        {#if option.bonus_amount && option.bonus_amount > 0}
+                                            <span class="bonus-pill">
+                                                +{Math.floor(
+                                                    option.bonus_amount,
+                                                ).toLocaleString()}
+                                                {$t("shop.bonus_label")}
+                                            </span>
+                                        {/if}
+                                    </div>
+                                </div>
+
+                                <div class="row-right">
+                                    <div class="price-container">
+                                        <span
+                                            class="current-price"
+                                            class:highlight={isSelected}
+                                        >
+                                            {#if isLoadingGooglePlayProducts}
+                                                {$t(
+                                                    "needNeuronsModal.storeCheckoutLoading",
+                                                )}
+                                            {:else if playProduct}
+                                                {playProduct.formattedPrice}
+                                            {:else}
+                                                {$t(
+                                                    "needNeuronsModal.storeCheckoutProductUnavailable",
+                                                )}
+                                            {/if}
+                                        </span>
+                                    </div>
+                                </div>
+                            </button>
+                        {/each}
                     </div>
                 {:else}
                     <!-- Pricing Options List -->
@@ -799,8 +1084,21 @@
                     <strong>{current_neurons_count.toLocaleString()} N</strong>
                 </div>
                 {#if isAndroidNativeCheckout}
-                    <button class="purchase-btn" disabled={true}>
-                        {$t("needNeuronsModal.storeCheckoutAction")}
+                    <button
+                        class="purchase-btn"
+                        disabled={isPurchasing ||
+                            isLoadingGooglePlayProducts ||
+                            !selectedOption ||
+                            !getGooglePlayProduct(selectedOption)}
+                        on:click={handleRecharge}
+                    >
+                        {#if isPurchasing}
+                            <span class="spinner"></span>
+                        {:else if selectedOption}
+                            {$t("needNeuronsModal.storeCheckoutAction")}
+                        {:else}
+                            {$t("shop.select_option")}
+                        {/if}
                     </button>
                 {:else if isKorean === null}
                     <!-- Loading country detection -->
@@ -973,6 +1271,16 @@
         line-height: 1.5;
     }
 
+    .store-checkout-error {
+        margin-top: 10px;
+        padding: 10px 12px;
+        border-radius: 10px;
+        background: rgba(239, 68, 68, 0.12);
+        color: #ef4444;
+        font-size: 0.82rem;
+        line-height: 1.4;
+    }
+
     /* Promo Box */
     .promo-box {
         background: rgba(251, 191, 36, 0.1); /* Gold tint */
@@ -1013,6 +1321,10 @@
         gap: 12px;
     }
 
+    .android-pricing {
+        margin-top: 12px;
+    }
+
     .pricing-row {
         display: flex;
         justify-content: space-between;
@@ -1039,6 +1351,11 @@
 
     .pricing-row:hover {
         background: var(--border);
+    }
+
+    .pricing-row.unavailable {
+        cursor: not-allowed;
+        opacity: 0.62;
     }
 
     /* Selection State */

@@ -2034,6 +2034,10 @@
             padding: calc(env(safe-area-inset-top, 0px) + 1rem) 0.5rem 1rem;
         }
 
+        :global(.native-android) .header-section {
+            padding-top: 0.85rem;
+        }
+
         .hub-container {
             padding-bottom: calc(96px + env(safe-area-inset-bottom, 0px));
         }

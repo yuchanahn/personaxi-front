@@ -11,6 +11,7 @@ export interface PurchaseOption {
     neurons: number;
     prices: Record<string, number>;
     item_id: string;
+    android_product_id?: string;
     bonus_ratio?: number;
     bonus_amount?: number;
 }

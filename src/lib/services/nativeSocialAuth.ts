@@ -20,6 +20,8 @@ const KAKAO_TOKEN_URL = "https://kauth.kakao.com/oauth/token";
 const DEFAULT_KAKAO_NATIVE_REDIRECT_URL = `${ANDROID_APP_SCHEME}://oauth/kakao`;
 const DEFAULT_KAKAO_SCOPE = "openid profile_nickname profile_image account_email";
 const NATIVE_GOOGLE_LOGIN_TIMEOUT_MS = 60000;
+const ENABLE_NATIVE_GOOGLE_LOGIN =
+    env.PUBLIC_ENABLE_NATIVE_GOOGLE_LOGIN?.trim().toLowerCase() === "true";
 
 let nativeSocialLoginInitPromise: Promise<void> | null = null;
 let nativeOAuthListenerCleanup: (() => void) | null = null;
@@ -255,6 +257,21 @@ async function openNativeOAuthBrowser(url: string) {
     }
 }
 
+async function closeNativeOAuthBrowser() {
+    if (!isNativeAndroid() || !Capacitor.isPluginAvailable("Browser")) {
+        return;
+    }
+
+    try {
+        const { Browser } = await importCapacitorBrowser();
+        await Browser.close();
+    } catch (error) {
+        if (!isPluginNotImplementedError(error)) {
+            console.warn("Failed to close native OAuth browser.", error);
+        }
+    }
+}
+
 async function signInWithNativeWebOAuth(provider: SocialProvider) {
     const { data, error } = await supabase.auth.signInWithOAuth({
         provider,
@@ -443,10 +460,12 @@ export async function registerNativeOAuthRedirectHandler(options?: {
             try {
                 const handled = await exchangeNativeOAuthUrl(url);
                 if (handled) {
+                    await closeNativeOAuthBrowser();
                     options?.onSuccess?.();
                 }
                 return handled;
             } catch (error) {
+                await closeNativeOAuthBrowser();
                 const message = explainNativeOAuthFailure(error);
                 options?.onError?.(message);
                 return false;
@@ -477,7 +496,19 @@ export async function registerNativeOAuthRedirectHandler(options?: {
 
 export async function loginWithGoogle(): Promise<SocialLoginMode> {
     if (isNativeAndroid()) {
-        return loginWithNativeGoogle();
+        if (!ENABLE_NATIVE_GOOGLE_LOGIN) {
+            return signInWithNativeWebOAuth("google");
+        }
+
+        try {
+            return await loginWithNativeGoogle();
+        } catch (error) {
+            console.warn(
+                "Google native login failed. Falling back to browser OAuth.",
+                error,
+            );
+            return signInWithNativeWebOAuth("google");
+        }
     }
 
     return signInWithWebOAuth("google");

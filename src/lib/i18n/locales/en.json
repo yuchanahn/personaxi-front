@@ -578,10 +578,15 @@
     "firstCreationReward": "Get 200 Neurons for your first Persona creation!",
     "getFreeNeurons": "Get Free Neurons",
     "currentNeurons": "Current: {count} Neurons",
-    "storeCheckoutTitle": "Store checkout in progress",
-    "storeCheckoutDescription": "Neuron purchases in the Android app must be processed through Google Play billing. In-app purchases are disabled in this build until the store checkout is connected.",
-    "storeCheckoutAction": "Store checkout in progress",
-    "storeCheckoutUnavailable": "Android app checkout will be available after Google Play billing is connected."
+    "storeCheckoutTitle": "Google Play checkout",
+    "storeCheckoutDescription": "Neuron purchases in the Android app are processed through Google Play. Prices are shown for the user's Play country and currency.",
+    "storeCheckoutAction": "Buy with Google Play",
+    "storeCheckoutUnavailable": "Failed to load Google Play products.",
+    "storeCheckoutLoading": "Loading",
+    "storeCheckoutProductUnavailable": "Unavailable",
+    "storeCheckoutPending": "Payment is pending. Neurons will be granted after the payment is completed.",
+    "storeCheckoutNotConfigured": "Google Play purchase verification is not configured on the server yet.",
+    "storeCheckoutError": "Failed to process Google Play checkout."
   },
   "settingModal": {
     "title": "Settings",

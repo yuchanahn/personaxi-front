@@ -8,14 +8,15 @@ Last checked: 2026-05-14
 - Main branch has been merged into `feat/capacitor-android`.
 - Android debug APK and release AAB builds are possible.
 - Public brand is `PeroChat`; `PXI` is legacy naming and should not be used in public-facing copy.
-- Android native checkout currently blocks external PG/PayPal purchase UI until Google Play Billing is connected.
+- Android native checkout is wired to Google Play Billing at app/backend level. Console products, service account credentials, and tester validation are still required before release.
 
 ## Store Submission Blockers
 
 1. Google Play Billing
    - Neuron is an in-app virtual currency used inside the app, so Google Play builds must use Google Play Billing for Android in-app purchases.
    - Do not expose PortOne, PayPal, external checkout links, or external payment CTAs inside the Google Play-distributed Android app.
-   - Required next work: create Play Console in-app products, add an Android billing bridge/plugin, verify purchases server-side, and grant Neurons only after verified purchase tokens.
+   - App/backend scaffold is connected: Play Billing product lookup, purchase flow, token verification endpoint, token recording, credit grant, and purchase consumption.
+   - Required next work: create Play Console products, set fee-inclusive country prices, configure Google Play Developer API service account credentials, and run license tester purchases.
 
 2. Legal Documents
    - Privacy policy URL: `https://personaxi.com/ko/privacy/`
@@ -42,3 +43,4 @@ Last checked: 2026-05-14
 - Google Play User Data policy: https://support.google.com/googleplay/android-developer/answer/10144311
 - Google Play account deletion requirements: https://support.google.com/googleplay/android-developer/answer/13327111
 - Google Play Billing integration guide: https://developer.android.google.cn/google/play/billing
+- Google Play Billing plan: ./google-play-billing-plan.md

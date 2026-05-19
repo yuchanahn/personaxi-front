@@ -17,6 +17,10 @@ Thumbs.db
 .env.*
 !.env.example
 !.env.test
+key.properties
+android/key.properties
+*.jks
+*.keystore
 
 # Vite
 vite.config.js.timestamp-*
