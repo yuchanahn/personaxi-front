@@ -16,13 +16,13 @@ Last checked: 2026-05-15
 
 Use the same IDs in Play Console and pricing policy unless a specific Android override is needed.
 
-| Play product ID | Paid Neurons | Existing policy field |
-| --- | ---: | --- |
-| `neuron_1000` | 1,000 | `item_id` |
-| `neuron_5500` | 5,500 | `item_id` |
-| `neuron_12000` | 12,000 | `item_id` |
+| Play product ID | Paid Neurons | Bonus Neurons | Existing web policy field |
+| --- | ---: | ---: | --- |
+| `neuron_100` | 100 | 0 | `item_id: neuron_1000` |
+| `neuron_500` | 500 | 50 | `item_id: neuron_5500` |
+| `neuron_1000` | 1,000 | 150 | `item_id: neuron_12000` |
 
-If a Play product ID has to differ from the web `item_id`, add `android_product_id` to that purchase option in the pricing policy. The Android app and backend both prefer `android_product_id`, then fall back to `item_id`.
+The web `item_id` values are legacy identifiers. Keep them for existing web payment flows and add `android_product_id` to each purchase option. The Android app and backend both prefer `android_product_id`, then fall back to `item_id`.
 
 ## Play Console Setup
 
@@ -67,9 +67,9 @@ Seed-price examples from `sql/create_app_policies.sql`:
 
 | Product ID | Web/base KRW | 15% fee-inclusive KRW | 30% fee-inclusive KRW |
 | --- | ---: | ---: | ---: |
-| `neuron_1000` | 1,200 | 1,400 | 1,700 |
-| `neuron_5500` | 5,900 | 6,900 | 8,500 |
-| `neuron_12000` | 12,000 | 14,000 | 17,000 |
+| `neuron_100` | 1,100 | 1,300 | 1,600 |
+| `neuron_500` | 4,900 | 5,900 | 7,000 |
+| `neuron_1000` | 9,900 | 11,900 | 14,500 |
 
 These are console-entry starting points, not hardcoded app prices. Final Play prices should be chosen from valid Play price points and checked in each target country.
 

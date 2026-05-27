@@ -1832,7 +1832,7 @@
     .content-area {
         padding: 1.5rem 0;
         flex: 1;
-        overflow-y: auto;
+        overflow-y: visible;
         min-width: 0;
     }
 
@@ -2067,7 +2067,7 @@
         }
 
         .content-area {
-            padding-bottom: 80px;
+            padding-bottom: calc(80px + var(--px-native-safe-bottom, 0px));
         }
 
         .enhanced-actions {

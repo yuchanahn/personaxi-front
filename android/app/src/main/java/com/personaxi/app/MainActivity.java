@@ -1,13 +1,17 @@
 package com.personaxi.app;
 
+import android.graphics.Color;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.view.Window;
 import android.webkit.WebView;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowCompat;
 import androidx.core.view.WindowInsetsCompat;
+import androidx.core.view.WindowInsetsControllerCompat;
 import com.getcapacitor.BridgeActivity;
 import com.getcapacitor.Plugin;
 import com.getcapacitor.PluginHandle;
@@ -21,14 +25,23 @@ public class MainActivity extends BridgeActivity implements ModifiedMainActivity
         registerPlugin(GooglePlayBillingPlugin.class);
         super.onCreate(savedInstanceState);
 
+        Window window = getWindow();
+        WindowCompat.setDecorFitsSystemWindows(window, false);
+        window.setStatusBarColor(Color.TRANSPARENT);
+        window.setNavigationBarColor(Color.TRANSPARENT);
+        WindowInsetsControllerCompat controller =
+            WindowCompat.getInsetsController(window, window.getDecorView());
+        controller.setAppearanceLightStatusBars(false);
+        controller.setAppearanceLightNavigationBars(false);
+
         View root = findViewById(android.R.id.content);
         if (root == null) {
             return;
         }
 
         final int initialLeft = root.getPaddingLeft();
-        final int initialTop = root.getPaddingTop();
         final int initialRight = root.getPaddingRight();
+        final int initialTop = root.getPaddingTop();
         final int initialBottom = root.getPaddingBottom();
 
         ViewCompat.setOnApplyWindowInsetsListener(root, (view, windowInsets) -> {
@@ -38,7 +51,7 @@ public class MainActivity extends BridgeActivity implements ModifiedMainActivity
 
             view.setPadding(
                 initialLeft + bars.left,
-                initialTop + bars.top,
+                initialTop,
                 initialRight + bars.right,
                 initialBottom
             );

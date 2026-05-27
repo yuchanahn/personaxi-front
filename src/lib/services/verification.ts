@@ -7,6 +7,7 @@ import type { User } from "$lib/types";
 import { t } from "svelte-i18n";
 import { get } from "svelte/store";
 import { getBranding } from "$lib/branding/config";
+import { Capacitor } from "@capacitor/core";
 
 export interface VerificationOptions {
     onSuccess?: () => void;
@@ -17,6 +18,26 @@ interface InicisStartResponse {
     actionUrl: string;
     method: string;
     fields: Record<string, string>;
+    bridgeUrl?: string;
+}
+
+const ANDROID_APP_SCHEME = "com.personaxi.app";
+const NATIVE_VERIFICATION_RETURN_URL = `${ANDROID_APP_SCHEME}://identity-verification`;
+
+function isNativeAndroid(): boolean {
+    return (
+        typeof window !== "undefined" &&
+        Capacitor.isNativePlatform() &&
+        Capacitor.getPlatform() === "android"
+    );
+}
+
+async function importCapacitorBrowser() {
+    return await import("@capacitor/browser");
+}
+
+async function importCapacitorApp() {
+    return await import("@capacitor/app");
 }
 
 function openVerificationPopup(): Window | null {
@@ -57,8 +78,48 @@ function submitVerificationForm(
     form.submit();
 }
 
+async function readVerificationStartError(response: Response): Promise<string> {
+    const retryAfter = response.headers.get("Retry-After");
+    let rawText = "";
+
+    try {
+        rawText = await response.text();
+    } catch {
+        rawText = "";
+    }
+
+    let serverMessage = rawText.trim();
+    if (serverMessage.startsWith("{")) {
+        try {
+            const parsed = JSON.parse(serverMessage) as { error?: string; message?: string };
+            serverMessage = parsed.error || parsed.message || serverMessage;
+        } catch {
+            // Keep raw text.
+        }
+    }
+
+    if (response.status === 429) {
+        const seconds = Number(retryAfter || "0");
+        if (Number.isFinite(seconds) && seconds > 0) {
+            return `본인인증 요청이 너무 잦습니다. ${Math.ceil(seconds)}초 후 다시 시도해주세요.`;
+        }
+        return "본인인증 요청이 너무 잦습니다. 잠시 후 다시 시도해주세요.";
+    }
+
+    if (response.status === 401) {
+        return "로그인 후 본인인증을 다시 시도해주세요.";
+    }
+
+    return serverMessage || "본인인증 시작 중 오류가 발생했습니다.";
+}
+
 export async function requestIdentityVerification(options?: VerificationOptions) {
     if (typeof window === "undefined") return;
+
+    if (isNativeAndroid()) {
+        await requestNativeIdentityVerification(options);
+        return;
+    }
 
     const popup = openVerificationPopup();
     if (!popup) {
@@ -115,10 +176,10 @@ export async function requestIdentityVerification(options?: VerificationOptions)
         const response = await api.post("/api/identity-verifications/inicis/start", {});
         if (!response.ok) {
             cleanup();
-            const errorText = await response.text();
-            console.error("Inicis verification start failed:", response.status, errorText);
-            toastError("verificationError");
-            options?.onError?.(new Error(errorText || `HTTP ${response.status}`));
+            const errorMessage = await readVerificationStartError(response);
+            console.error("Inicis verification start failed:", response.status, errorMessage);
+            toast.error(errorMessage);
+            options?.onError?.(new Error(errorMessage || `HTTP ${response.status}`));
             return;
         }
 
@@ -141,6 +202,115 @@ export async function requestIdentityVerification(options?: VerificationOptions)
     } catch (error) {
         cleanup();
         console.error("Inicis verification start failed:", error);
+        toastError("verificationError");
+        options?.onError?.(error);
+    }
+}
+
+async function requestNativeIdentityVerification(options?: VerificationOptions) {
+    let completed = false;
+    let cleanup: (() => void) | null = null;
+
+    const finish = async (status: string, message: string) => {
+        if (completed) return;
+        completed = true;
+        cleanup?.();
+
+        if (Capacitor.isPluginAvailable("Browser")) {
+            try {
+                const { Browser } = await importCapacitorBrowser();
+                await Browser.close();
+            } catch {
+                // Android Browser.close is a no-op in Capacitor; appUrlOpen still brings the app forward.
+            }
+        }
+
+        if (status === "success") {
+            toast.success(get(t)("errors.verificationSuccess"));
+            const userRes = await getCurrentUser();
+            if (userRes) {
+                st_user.set(userRes as User);
+            }
+            options?.onSuccess?.();
+            return;
+        }
+
+        if (status === "failed") {
+            toastError(message || "verificationFailed");
+            options?.onError?.(new Error(message || "Verification failed"));
+            return;
+        }
+
+        toastError(message || "verificationError");
+        options?.onError?.(new Error(message || "Verification error"));
+    };
+
+    try {
+        const { App } = await importCapacitorApp();
+        const listener = await App.addListener("appUrlOpen", (event) => {
+            try {
+                const url = new URL(event.url);
+                if (
+                    url.protocol !== `${ANDROID_APP_SCHEME}:` ||
+                    url.host !== "identity-verification"
+                ) {
+                    return;
+                }
+
+                void finish(
+                    url.searchParams.get("status") || "error",
+                    url.searchParams.get("message") || "",
+                );
+            } catch (error) {
+                console.warn("Failed to parse identity verification callback URL.", error);
+            }
+        });
+
+        const timeout = window.setTimeout(() => {
+            if (completed) return;
+            cleanup?.();
+        }, 15 * 60 * 1000);
+
+        cleanup = () => {
+            window.clearTimeout(timeout);
+            void listener.remove();
+            cleanup = null;
+        };
+
+        const response = await api.post("/api/identity-verifications/inicis/start", {
+            returnUrl: NATIVE_VERIFICATION_RETURN_URL,
+        });
+        if (!response.ok) {
+            cleanup();
+            const errorMessage = await readVerificationStartError(response);
+            console.error("Inicis native verification start failed:", response.status, errorMessage);
+            toast.error(errorMessage);
+            options?.onError?.(new Error(errorMessage || `HTTP ${response.status}`));
+            return;
+        }
+
+        const payload = (await response.json()) as InicisStartResponse;
+        if (!payload.bridgeUrl) {
+            cleanup();
+            toastError("verificationError");
+            options?.onError?.(new Error("Verification bridge URL was not returned."));
+            return;
+        }
+
+        if (!Capacitor.isPluginAvailable("Browser")) {
+            cleanup();
+            window.location.assign(payload.bridgeUrl);
+            return;
+        }
+
+        const { Browser } = await importCapacitorBrowser();
+        await Browser.open({
+            url: payload.bridgeUrl,
+            toolbarColor: "#111827",
+        });
+    } catch (error) {
+        cleanup?.();
+        console.error("Inicis native verification failed:", error);
         toastError("verificationError");
         options?.onError?.(error);
     }

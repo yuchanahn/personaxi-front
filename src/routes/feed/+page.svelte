@@ -362,6 +362,15 @@
         background: color-mix(in srgb, var(--card) 24%, transparent);
     }
 
+    :global(.native-android) .feed-page,
+    :global(.native-android) .feed-item-wrapper {
+        height: calc(100dvh - var(--px-native-safe-top, 0px));
+    }
+
+    :global(.native-android) .sort-controls {
+        top: calc(var(--px-native-safe-top, 0px) + 16px);
+    }
+
     .loading-indicator {
         height: 100px;
         display: flex;

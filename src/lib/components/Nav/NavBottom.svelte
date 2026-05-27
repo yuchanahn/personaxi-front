@@ -160,7 +160,7 @@
         bottom: 0;
         left: 0;
         width: 100%;
-        height: 70px;
+        height: calc(70px + var(--px-native-safe-bottom, 0px));
         background: color-mix(in srgb, var(--card) 94%, var(--background) 6%);
         border-top: 1px solid color-mix(in srgb, var(--border) 88%, transparent);
         display: flex;
@@ -174,7 +174,7 @@
             0 -2px 8px rgba(0, 0, 0, 0.06);
         backdrop-filter: blur(16px);
         -webkit-backdrop-filter: blur(16px);
-        padding: 8px 0;
+        padding: 8px 0 calc(8px + var(--px-native-safe-bottom, 0px));
     }
 
     .nav-item {

@@ -1101,6 +1101,20 @@
       padding-bottom: env(safe-area-inset-bottom, 0px);
     }
   }
+
+  :global(.native-android) #character-view {
+    top: var(--px-native-safe-top, 0px);
+    height: calc(100dvh - var(--px-native-safe-top, 0px));
+  }
+
+  :global(.native-android) .chat-container {
+    height: calc(100dvh - var(--px-native-safe-top, 0px));
+  }
+
+  :global(.native-android) .debug-controls {
+    top: calc(var(--px-native-safe-top, 0px) + 16px);
+  }
+
   .chat-content {
     position: relative;
     display: flex;

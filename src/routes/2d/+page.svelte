@@ -479,6 +479,11 @@
     }
   }
 
+  :global(.native-android) .chat-layout {
+    top: var(--px-native-safe-top, 0px);
+    height: calc(100dvh - var(--px-native-safe-top, 0px));
+  }
+
   .chat-container {
     flex: 1; /* 남은 공간 모두 차지 */
     display: flex;

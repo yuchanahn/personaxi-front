@@ -537,13 +537,11 @@
     {/if}
 
     <!-- Global Charge Modal -->
-    {#if !isNativeShell}
-        <NeedMoreNeuronsModal
-            isOpen={$needMoreNeuronsModal.isOpen}
-            isNeedNeurons={$needMoreNeuronsModal.isNeedNeurons}
-            on:close={closeNeedMoreNeuronsModal}
-        />
-    {/if}
+    <NeedMoreNeuronsModal
+        isOpen={$needMoreNeuronsModal.isOpen}
+        isNeedNeurons={$needMoreNeuronsModal.isNeedNeurons}
+        on:close={closeNeedMoreNeuronsModal}
+    />
 
     <ToastContainer />
     <ConfirmModal />
@@ -567,6 +565,7 @@
         display: grid;
         overflow: hidden;
         height: 100dvh;
+        background: var(--background);
     }
 
     /* ────────────── 메인 영역 ────────────── */
@@ -579,7 +578,9 @@
         overflow-y: auto;
         -webkit-overflow-scrolling: touch;
         height: 100%;
+        box-sizing: border-box;
 
+        padding-top: var(--px-native-safe-top, 0px);
         padding-bottom: calc(env(safe-area-inset-bottom, 0px));
         /*padding-bottom: calc(85px + 100px);*/
     }
@@ -591,8 +592,8 @@
 
     .back-btn {
         position: absolute;
-        top: 10px;
-        left: 10px;
+        top: calc(var(--px-native-safe-top, 0px) + 10px);
+        left: calc(var(--px-native-safe-left, 0px) + 10px);
         background: none;
         border: none;
         font-size: 16px;

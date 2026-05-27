@@ -199,6 +199,11 @@
     }
   }
 
+  :global(.native-android) main {
+    top: var(--px-native-safe-top, 0px);
+    height: calc(100dvh - var(--px-native-safe-top, 0px));
+  }
+
   .vignette-overlay {
     position: absolute;
     inset: 0;

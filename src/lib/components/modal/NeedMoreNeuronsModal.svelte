@@ -836,22 +836,6 @@
                 {/if}
 
                 {#if isAndroidNativeCheckout}
-                    <div class="store-checkout-notice">
-                        <div class="notice-icon">
-                            <Icon icon="ph:storefront-bold" width="22" />
-                        </div>
-                        <div>
-                            <h3>
-                                {$t("needNeuronsModal.storeCheckoutTitle")}
-                            </h3>
-                            <p>
-                                {$t(
-                                    "needNeuronsModal.storeCheckoutDescription",
-                                )}
-                            </p>
-                        </div>
-                    </div>
-
                     {#if googlePlayProductError}
                         <div class="store-checkout-error">
                             {googlePlayProductError}
@@ -1235,40 +1219,6 @@
         flex: 1;
         overflow-y: auto;
         padding: 20px 24px;
-    }
-
-    .store-checkout-notice {
-        display: flex;
-        gap: 14px;
-        padding: 18px;
-        border: 1px solid var(--border);
-        border-radius: 16px;
-        background: var(--secondary);
-        color: var(--foreground);
-    }
-
-    .store-checkout-notice .notice-icon {
-        width: 42px;
-        height: 42px;
-        border-radius: 50%;
-        display: grid;
-        place-items: center;
-        flex: 0 0 auto;
-        background: rgba(251, 191, 36, 0.14);
-        color: #fbbf24;
-    }
-
-    .store-checkout-notice h3 {
-        margin: 0 0 6px;
-        font-size: 0.98rem;
-        font-weight: 800;
-    }
-
-    .store-checkout-notice p {
-        margin: 0;
-        color: var(--muted-foreground);
-        font-size: 0.88rem;
-        line-height: 1.5;
     }
 
     .store-checkout-error {
