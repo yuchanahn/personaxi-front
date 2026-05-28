@@ -4,10 +4,15 @@
 	"version": "0.0.1",
 	"type": "module",
 	"scripts": {
-		"dev": "npm run sync:branding && vite dev --host",
+		"dev": "granite dev",
+		"dev:web": "npm run sync:branding && vite dev --host",
 		"sync:branding": "pwsh -File ./scripts/generate-static-legal-docs.ps1",
 		"sync:legal-docs": "npm run sync:branding",
-		"build": "npm run sync:branding && vite build",
+		"build": "ait build",
+		"build:web": "npm run sync:branding && vite build",
+		"build:site": "npm run build:web",
+		"deploy": "ait deploy",
+		"deploy:toss": "ait deploy",
 		"preview": "vite preview",
 		"prepare": "svelte-kit sync || echo ''",
 		"check": "npm run sync:branding && svelte-kit sync && svelte-check --tsconfig ./tsconfig.json",
@@ -37,6 +42,7 @@
 		]
 	},
 	"dependencies": {
+		"@apps-in-toss/web-framework": "^2.6.1",
 		"@astrodraw/astrochart": "^3.0.2",
 		"@ffmpeg/ffmpeg": "^0.12.15",
 		"@ffmpeg/util": "^0.12.2",

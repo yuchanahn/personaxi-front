@@ -7,7 +7,6 @@ import { createVRMLoader } from '../loaders/vrmLoader';
 import { loadMixamoAnimation } from '../animation/mixamo_animation';
 import { VRM, VRMUtils } from '@pixiv/three-vrm';
 import * as THREE from 'three/webgpu';
-import { base } from '$app/paths';
 import { LipSync } from '../lip_sync/lip_sync';
 import { ExpressionController } from '../emote_controller/expression_controller';
 import { CharacterStateManager } from '../fsm/StateManager';
@@ -19,6 +18,7 @@ import {
     normalizeAnimationName,
     resolveAnimationAssetPath,
 } from '../animation/vrmAnimationCatalog';
+import { resolveStaticAssetPath } from '$lib/utils/staticAsset';
 
 
 //------------------------------------------------------------------
@@ -191,7 +191,7 @@ export class Model {
             onProgress?.('parse', 1);
         } catch (e) {
             console.warn('VRM load failed (or was decrypted incorrectly). Fallback to sample model.', e);
-            this.gltf = await loader.loadAsync('./AvatarSample_B.vrm');
+            this.gltf = await loader.loadAsync(resolveStaticAssetPath('/AvatarSample_B.vrm'));
             onProgress?.('parse', 1);
         }
 
@@ -272,7 +272,7 @@ export class Model {
         const data = await res.json();
 
         for (const name of data) {
-            loadMixamoAnimation(base + `/animations/${name}`, vrm).then((anim) => {
+            loadMixamoAnimation(resolveAnimationAssetPath(name), vrm).then((anim) => {
                 if (this.actions == null) this.actions = {};
                 if (this.actions && this.mixer) {
                     this.actions = { ...this.actions, [name]: this.mixer.clipAction(anim) };

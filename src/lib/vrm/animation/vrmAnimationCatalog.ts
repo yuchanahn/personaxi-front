@@ -1,3 +1,5 @@
+import { resolveStaticAssetPath } from '$lib/utils/staticAsset';
+
 export interface WeightedAnimation {
     clipName: string;
     weight: number;
@@ -123,5 +125,6 @@ export function resolveAnimationAssetName(name: string): string {
 
 export function resolveAnimationAssetPath(name: string): string {
     const assetName = resolveAnimationAssetName(name);
-    return assetName.startsWith('/animations/') ? assetName : `/animations/${assetName}`;
+    const localPath = assetName.startsWith('/animations/') ? assetName : `/animations/${assetName}`;
+    return resolveStaticAssetPath(localPath);
 }
