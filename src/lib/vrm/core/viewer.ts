@@ -4,6 +4,7 @@ import { v4 as uuidv4 } from 'uuid';
 
 import { PostProcessing, pass } from 'three/tsl';
 import { RGBELoader } from 'three/addons/loaders/RGBELoader.js';
+import { resolveStaticAssetPath } from '$lib/utils/staticAsset';
 
 export class Viewer {
   public model = new Model();
@@ -71,7 +72,7 @@ export class Viewer {
 
     // --- 3. HDRI 환경맵 설정 (사실적인 반사광) ---
     if (false)
-      new RGBELoader().load('/studio_small_03_1k.hdr', (texture) => {
+      new RGBELoader().load(resolveStaticAssetPath('/studio_small_03_1k.hdr'), (texture) => {
         texture.mapping = THREE.EquirectangularReflectionMapping;
         //this.scene.background = texture;
         this.scene.environment = texture;

@@ -22,6 +22,7 @@ import {
     normalizeAnimationName,
     resolveAnimationAssetPath,
 } from '../animation/vrmAnimationCatalog';
+import { resolveStaticAssetPath } from '$lib/utils/staticAsset';
 
 
 //------------------------------------------------------------------
@@ -194,7 +195,11 @@ export class Model {
             onProgress?.('parse', 1);
         } catch (e) {
             console.warn('VRM load failed (or was decrypted incorrectly). Fallback to sample model.', e);
+<<<<<<< HEAD
             this.gltf = await loader.loadAsync(`${CDN_BASE}/vrm/AvatarSample_B.vrm`);
+=======
+            this.gltf = await loader.loadAsync(resolveStaticAssetPath('/AvatarSample_B.vrm'));
+>>>>>>> 6a622daf (Prepare Apps in Toss build)
             onProgress?.('parse', 1);
         }
 
@@ -275,7 +280,7 @@ export class Model {
         const data = await res.json();
 
         for (const name of data) {
-            loadMixamoAnimation(`${CDN_BASE}/animations/${name}`, vrm).then((anim) => {
+            loadMixamoAnimation(resolveAnimationAssetPath(name), vrm).then((anim) => {
                 if (this.actions == null) this.actions = {};
                 if (this.actions && this.mixer) {
                     this.actions = { ...this.actions, [name]: this.mixer.clipAction(anim) };
