@@ -1,0 +1,309 @@
+{
+    "items": [
+        {
+            "_id": "536d3a5e000945adb7038665781a4aca",
+            "type": "tts",
+            "title": "Young Male - Explainer",
+            "description": "A curious and engaging voice perfect for explanations.",
+            "cover_image": "coverimage/536d3a5e000945adb7038665781a4aca",
+            "train_mode": "fast",
+            "state": "trained",
+            "tags": [],
+            "samples": [
+                {
+                    "title": "Default Sample",
+                    "text": "Is SpaceX's Starship really revolutionary for space travel? While the vehicle's fully reusable design and impressive payload capacity are groundbreaking, there are three major challenges to consider: 1. technical complexity, 2. operational costs, and 3. regulatory requirements.",
+                    "task_id": "bdd677ed767744fc91f166468786264b",
+                    "audio": "task/bdd677ed767744fc91f166468786264b.mp3"
+                }
+            ],
+            "created_at": "2025-08-09T07:51:40.366000Z",
+            "updated_at": "2025-08-09T07:51:40.366000Z",
+            "languages": [
+                "en"
+            ],
+            "visibility": "public",
+            "lock_visibility": false,
+            "default_text": "Is SpaceX's Starship really revolutionary for space travel? While the vehicle's fully reusable design and impressive payload capacity are groundbreaking, there are three major challenges to consider: 1. technical complexity, 2. operational costs, and 3. regulatory requirements.",
+            "like_count": 333,
+            "mark_count": 357,
+            "shared_count": 37,
+            "task_count": 29538,
+            "unliked": false,
+            "liked": false,
+            "marked": true,
+            "author": {
+                "_id": "d8b0991f96b44e489422ca2ddf0bd31d",
+                "nickname": "",
+                "avatar": "avatars/d8b0991f96b44e489422ca2ddf0bd31d"
+            }
+        },
+        {
+            "_id": "79d0bd3e4e5444b18f7b6d89b5927bf1",
+            "type": "tts",
+            "title": "Adult Male - Motivational",
+            "description": "A confident and inspiring voice for motivational speeches.",
+            "cover_image": "coverimage/79d0bd3e4e5444b18f7b6d89b5927bf1",
+            "train_mode": "fast",
+            "state": "trained",
+            "tags": [],
+            "samples": [
+                {
+                    "title": "Default Sample",
+                    "text": "Think about this: what's the difference between where you are now and where you want to be? It's not just knowledge or opportunity - it's the daily decisions you make. Your future is shaped by the choices you make in these small moments of truth.",
+                    "task_id": "edecbc0bdd4c46c39eda8520a0f729ef",
+                    "audio": "task/edecbc0bdd4c46c39eda8520a0f729ef.mp3"
+                }
+            ],
+            "created_at": "2025-08-09T07:47:34.687000Z",
+            "updated_at": "2025-08-09T07:48:28.676000Z",
+            "languages": [
+                "en"
+            ],
+            "visibility": "public",
+            "lock_visibility": true,
+            "default_text": "Think about this: what's the difference between where you are now and where you want to be? It's not just knowledge or opportunity - it's the daily decisions you make. Your future is shaped by the choices you make in these small moments of truth.",
+            "like_count": 195,
+            "mark_count": 147,
+            "shared_count": 29,
+            "task_count": 15088,
+            "unliked": false,
+            "liked": false,
+            "marked": true,
+            "author": {
+                "_id": "d8b0991f96b44e489422ca2ddf0bd31d",
+                "nickname": "",
+                "avatar": "avatars/d8b0991f96b44e489422ca2ddf0bd31d"
+            }
+        },
+        {
+            "_id": "7ddb576b1b5846f99d32a75d8adb0b14",
+            "type": "tts",
+            "title": "Young Female - Energetic (JP)",
+            "description": "A bright and cheerful Japanese girl's voice.",
+            "cover_image": "coverimage/7ddb576b1b5846f99d32a75d8adb0b14",
+            "train_mode": "fast",
+            "state": "trained",
+            "tags": [],
+            "samples": [
+                {
+                    "title": "Sample 1",
+                    "text": "こんにちは！これはモデルのテストです！楽しんでいただけると嬉しいです。今からおいしい食べ物を食べに行ってきます。",
+                    "task_id": "664ea8d644fd49a0b7fa595a8dc048c3",
+                    "audio": "task/664ea8d644fd49a0b7fa595a8dc048c3.wav"
+                }
+            ],
+            "created_at": "2024-07-21T05:00:26.716000Z",
+            "updated_at": "2024-07-21T05:00:26.713000Z",
+            "languages": [
+                "ja"
+            ],
+            "visibility": "public",
+            "lock_visibility": false,
+            "default_text": "",
+            "like_count": 19,
+            "mark_count": 27,
+            "shared_count": 0,
+            "task_count": 1099,
+            "unliked": false,
+            "liked": false,
+            "marked": true,
+            "author": {
+                "_id": "a585bbaef00d423bac8cea5f4da7b1cb",
+                "nickname": "Razer",
+                "avatar": "avatars/a585bbaef00d423bac8cea5f4da7b1cb"
+            }
+        },
+        {
+            "_id": "8ef4a238714b45718ce04243307c57a7",
+            "type": "tts",
+            "title": "Young Female - Whisper",
+            "description": "A soft, intimate, and seductive voice.",
+            "cover_image": "coverimage/8ef4a238714b45718ce04243307c57a7",
+            "train_mode": "fast",
+            "state": "trained",
+            "tags": [],
+            "samples": [
+                {
+                    "title": "Default Sample",
+                    "text": "Hey why are you sitting here all alone in the corner come on let me sit next to you what's wrong you're being way too quiet tonight I know you're not usually like this is it because of what happened earlier don't worry about that just relax with me",
+                    "task_id": "8093cbd0201449f79d356cc9d2f42156",
+                    "audio": "task/8093cbd0201449f79d356cc9d2f42156.mp3"
+                }
+            ],
+            "created_at": "2025-06-05T17:38:33.554000Z",
+            "updated_at": "2025-08-09T07:06:30.198000Z",
+            "languages": [
+                "en"
+            ],
+            "visibility": "public",
+            "lock_visibility": true,
+            "default_text": "Hey why are you sitting here all alone in the corner come on let me sit next to you what's wrong you're being way too quiet tonight I know you're not usually like this is it because of what happened earlier don't worry about that just relax with me",
+            "like_count": 838,
+            "mark_count": 1163,
+            "shared_count": 158,
+            "task_count": 76475,
+            "unliked": false,
+            "liked": false,
+            "marked": true,
+            "author": {
+                "_id": "a585bbaef00d423bac8cea5f4da7b1cb",
+                "nickname": "Razer",
+                "avatar": "avatars/a585bbaef00d423bac8cea5f4da7b1cb"
+            }
+        },
+        {
+            "_id": "bf322df2096a46f18c579d0baa36f41d",
+            "type": "tts",
+            "title": "Adult Male - Narrator",
+            "description": "A steady, deep, and calming voice for narration.",
+            "cover_image": "coverimage/bf322df2096a46f18c579d0baa36f41d",
+            "train_mode": "fast",
+            "state": "trained",
+            "tags": [],
+            "samples": [
+                {
+                    "title": "Default Sample",
+                    "text": "The morning brings little comfort - a handful of dried berries, a cup of water from yesterday's rain. The wooden bowl is cracked but clean, like everything else here. Sometimes, watching the sunrise through the window's dusty pane feels like a feast itself.",
+                    "task_id": "d730b09f4a484316a77ecc86137e85fb",
+                    "audio": "task/d730b09f4a484316a77ecc86137e85fb.mp3"
+                }
+            ],
+            "created_at": "2025-08-09T08:11:50.961000Z",
+            "updated_at": "2025-08-09T08:11:50.961000Z",
+            "languages": [
+                "en"
+            ],
+            "visibility": "public",
+            "lock_visibility": false,
+            "default_text": "The morning brings little comfort - a handful of dried berries, a cup of water from yesterday's rain. The wooden bowl is cracked but clean, like everything else here. Sometimes, watching the sunrise through the window's dusty pane feels like a feast itself.",
+            "like_count": 406,
+            "mark_count": 357,
+            "shared_count": 32,
+            "task_count": 29123,
+            "unliked": false,
+            "liked": false,
+            "marked": true,
+            "author": {
+                "_id": "d8b0991f96b44e489422ca2ddf0bd31d",
+                "nickname": "",
+                "avatar": "avatars/d8b0991f96b44e489422ca2ddf0bd31d"
+            }
+        },
+        {
+            "_id": "bf5634e34ee5489991fe687ad0d202c5",
+            "type": "tts",
+            "title": "Young Female - Sentimental (JP)",
+            "description": "A shy and emotional Japanese girl's voice.",
+            "cover_image": "coverimage/bf5634e34ee5489991fe687ad0d202c5",
+            "train_mode": "fast",
+            "state": "trained",
+            "tags": [],
+            "samples": [
+                {
+                    "title": "Sample 2",
+                    "text": "ずっと言えなかったけど…あなたのことが好きです。仕事も毎日も、あなたがいるから頑張れるんだ。これからも、ずっと一緒にいたい。だから…お願い、俺の気持ちを受け取ってください。",
+                    "task_id": "35e048662cad48f0a207cb590f4c587e",
+                    "audio": "task/35e048662cad48f0a207cb590f4c587e.mp3"
+                }
+            ],
+            "created_at": "2025-09-10T08:03:58.055000Z",
+            "updated_at": "2025-09-10T08:46:51.923000Z",
+            "languages": [
+                "ja"
+            ],
+            "visibility": "public",
+            "lock_visibility": true,
+            "default_text": "ずっと言えなかったけど…あなたのことが好きです。仕事も毎日も、あなたがいるから頑張れるんだ。これからも、ずっと一緒にいたい。だから…お願い、俺の気持ちを受け取ってください。",
+            "like_count": 34,
+            "mark_count": 61,
+            "shared_count": 2,
+            "task_count": 4937,
+            "unliked": false,
+            "liked": false,
+            "marked": true,
+            "author": {
+                "_id": "d8b0991f96b44e489422ca2ddf0bd31d",
+                "nickname": "",
+                "avatar": "avatars/d8b0991f96b44e489422ca2ddf0bd31d"
+            }
+        },
+        {
+            "_id": "c496c7d0e93640a59a0befd78b47f39e",
+            "type": "tts",
+            "title": "Young Male - Protagonist (JP)",
+            "description": "A determined and passionate anime boy voice.",
+            "cover_image": "coverimage/c496c7d0e93640a59a0befd78b47f39e",
+            "train_mode": "fast",
+            "state": "trained",
+            "tags": [],
+            "samples": [
+                {
+                    "title": "Sample 2",
+                    "text": "諦めない気持ちは誰にも負けない。どんな壁だって、一人じゃ越えられない時もある。でも仲間となら、必ず道が開ける。だから、最後まで走り抜けるんだ。俺はまだ終わらない。待ってろよ。",
+                    "task_id": "b90d3623f4a647969fe75e05ad2bca60",
+                    "audio": "task/b90d3623f4a647969fe75e05ad2bca60.mp3"
+                }
+            ],
+            "created_at": "2025-09-10T08:00:11.037000Z",
+            "updated_at": "2025-09-10T08:00:11.036000Z",
+            "languages": [
+                "ja"
+            ],
+            "visibility": "public",
+            "lock_visibility": false,
+            "default_text": "強くなりたいって気持ちは誰にも負けない。でも、一人じゃ限界があるんだ。仲間がいるから、ここまで来れた。もっと上を目指すぜ。今の俺には、できることが増えてるはずだから。待ってろよ。",
+            "like_count": 44,
+            "mark_count": 61,
+            "shared_count": 3,
+            "task_count": 4122,
+            "unliked": false,
+            "liked": false,
+            "marked": true,
+            "author": {
+                "_id": "d8b0991f96b44e489422ca2ddf0bd31d",
+                "nickname": "",
+                "avatar": "avatars/d8b0991f96b44e489422ca2ddf0bd31d"
+            }
+        },
+        {
+            "_id": "ff2945cbfd274c85b440bd39d8cb3729",
+            "type": "tts",
+            "title": "Adult Female - Calm (KO)",
+            "description": "A calm and professional Korean narration voice.",
+            "cover_image": "coverimage/ff2945cbfd274c85b440bd39d8cb3729",
+            "train_mode": "fast",
+            "state": "trained",
+            "tags": [],
+            "samples": [
+                {
+                    "title": "Default Sample",
+                    "text": "때로는 바쁜 일상 속에서 잠시 멈춰 서서 자신을 돌아보는 시간이 필요해요. 당신만의 특별한 순간을 만들어가는 여정, 그것이 바로 당신의 이야기가 되니까요. 오늘도 당신다운 하루를 살아가세요.",
+                    "task_id": "45d6206822f24ad68a79e9ee3be0b7a6",
+                    "audio": "task/45d6206822f24ad68a79e9ee3be0b7a6.mp3"
+                }
+            ],
+            "created_at": "2025-07-26T04:46:51.179000Z",
+            "updated_at": "2025-07-26T04:46:51.178000Z",
+            "languages": [
+                "ko"
+            ],
+            "visibility": "public",
+            "lock_visibility": false,
+            "default_text": "때로는 바쁜 일상 속에서 잠시 멈춰 서서 자신을 돌아보는 시간이 필요해요. 당신만의 특별한 순간을 만들어가는 여정, 그것이 바로 당신의 이야기가 되니까요. 오늘도 당신다운 하루를 살아가세요.",
+            "like_count": 16,
+            "mark_count": 28,
+            "shared_count": 3,
+            "task_count": 578,
+            "unliked": false,
+            "liked": true,
+            "marked": true,
+            "author": {
+                "_id": "961fd8eca6204dc0ade9ac06cd7fc6e9",
+                "nickname": "CJ Chang (쿠키아빠)",
+                "avatar": "avatars/961fd8eca6204dc0ade9ac06cd7fc6e9.jpg"
+            }
+        }
+    ],
+    "total": 8
+}
