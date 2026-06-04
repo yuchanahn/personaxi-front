@@ -1,5 +1,7 @@
 <script lang="ts">
     import Live2DViewer from "$lib/components/live2d/Live2DViewer.svelte";
+    import { env } from "$env/dynamic/public";
+    const CDN_BASE = env.PUBLIC_CDN_URL || 'https://uohepkqmwbstbmnkoqju.supabase.co/storage/v1/object/public/assets';
     import ChatControls3D from "$lib/components/chat3D/ChatControls3D.svelte";
     import ChatWindow from "$lib/components/chat/ChatWindow.svelte";
     import ChatInput from "$lib/components/chat/ChatInput.svelte";
@@ -1069,7 +1071,7 @@
                     bind:closeupOffset
                     bind:isCloseup
                     backgroundImage={persona.model_background_url?.trim() ||
-                        "/chat_bg.png"}
+                        `${CDN_BASE}/media/chat_bg.png`}
                     scale={modelScale}
                     x={modelX}
                     y={modelY}

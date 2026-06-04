@@ -1,3 +1,7 @@
+import { env } from '$env/dynamic/public';
+
+const CDN_BASE = env.PUBLIC_CDN_URL || 'https://uohepkqmwbstbmnkoqju.supabase.co/storage/v1/object/public/assets';
+
 export interface WeightedAnimation {
     clipName: string;
     weight: number;
@@ -123,5 +127,7 @@ export function resolveAnimationAssetName(name: string): string {
 
 export function resolveAnimationAssetPath(name: string): string {
     const assetName = resolveAnimationAssetName(name);
-    return assetName.startsWith('/animations/') ? assetName : `/animations/${assetName}`;
+    return assetName.startsWith('/animations/') 
+        ? `${CDN_BASE}${assetName}` 
+        : `${CDN_BASE}/animations/${assetName}`;
 }

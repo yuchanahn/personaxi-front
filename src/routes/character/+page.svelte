@@ -1,5 +1,7 @@
 <script lang="ts">
   import VrmModelViewer from "$lib/components/chat3D/VrmModelViewer.svelte";
+  import { env } from "$env/dynamic/public";
+  const CDN_BASE = env.PUBLIC_CDN_URL || 'https://uohepkqmwbstbmnkoqju.supabase.co/storage/v1/object/public/assets';
   import ChatControls3D from "$lib/components/chat3D/ChatControls3D.svelte"; // NEW: 3D 컨트롤 컴포넌트 임포트
   import { onDestroy, onMount } from "svelte";
   import { page } from "$app/stores";
@@ -142,7 +144,7 @@
     <VrmModelViewer
       bind:this={Viewer}
       {persona}
-      backgroundImage={persona.model_background_url?.trim() || "/chat_bg.png"}
+      backgroundImage={persona.model_background_url?.trim() || `${CDN_BASE}/media/chat_bg.png`}
       cssid={lastSessionId ?? ""}
       startVoiceUrl={isStartSpeech ? persona.start_voice_url : ""}
       bind:show={showChat}
