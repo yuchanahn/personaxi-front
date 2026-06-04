@@ -125,6 +125,8 @@ export function resolveAnimationAssetName(name: string): string {
 
 export function resolveAnimationAssetPath(name: string): string {
     const assetName = resolveAnimationAssetName(name);
-    const localPath = assetName.startsWith('/animations/') ? assetName : `/animations/${assetName}`;
-    return resolveStaticAssetPath(localPath);
+    const relativePath = assetName.startsWith('/animations/') 
+        ? assetName 
+        : `/animations/${assetName}`;
+    return resolveStaticAssetPath(relativePath);
 }

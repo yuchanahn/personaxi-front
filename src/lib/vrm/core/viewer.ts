@@ -72,7 +72,7 @@ export class Viewer {
 
     // --- 3. HDRI 환경맵 설정 (사실적인 반사광) ---
     if (false)
-      new RGBELoader().load(resolveStaticAssetPath('/studio_small_03_1k.hdr'), (texture) => {
+      new RGBELoader().load(resolveStaticAssetPath('/environment/studio_small_03_1k.hdr'), (texture) => {
         texture.mapping = THREE.EquirectangularReflectionMapping;
         //this.scene.background = texture;
         this.scene.environment = texture;

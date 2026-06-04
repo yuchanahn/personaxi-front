@@ -191,7 +191,7 @@ export class Model {
             onProgress?.('parse', 1);
         } catch (e) {
             console.warn('VRM load failed (or was decrypted incorrectly). Fallback to sample model.', e);
-            this.gltf = await loader.loadAsync(resolveStaticAssetPath('/AvatarSample_B.vrm'));
+            this.gltf = await loader.loadAsync(resolveStaticAssetPath('/vrm/AvatarSample_B.vrm'));
             onProgress?.('parse', 1);
         }
 
