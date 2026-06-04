@@ -18,8 +18,12 @@ export function resolveStaticAssetPath(path: string): string {
 		return normalizedPath;
 	}
 
+	// Prioritize PUBLIC_CDN_URL, fallback to STATIC/TOSS asset base, then use default Supabase CDN bucket
 	const assetBaseUrl = normalizeBaseUrl(
-		env.PUBLIC_STATIC_ASSET_BASE || env.PUBLIC_TOSS_ASSET_BASE,
+		env.PUBLIC_CDN_URL ||
+		env.PUBLIC_STATIC_ASSET_BASE ||
+		env.PUBLIC_TOSS_ASSET_BASE ||
+		'https://uohepkqmwbstbmnkoqju.supabase.co/storage/v1/object/public/assets'
 	);
 
 	if (!assetBaseUrl) {

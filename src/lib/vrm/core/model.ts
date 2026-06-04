@@ -7,10 +7,6 @@ import { createVRMLoader } from '../loaders/vrmLoader';
 import { loadMixamoAnimation } from '../animation/mixamo_animation';
 import { VRM, VRMUtils } from '@pixiv/three-vrm';
 import * as THREE from 'three/webgpu';
-import { base } from '$app/paths';
-import { env } from '$env/dynamic/public';
-
-const CDN_BASE = env.PUBLIC_CDN_URL || 'https://uohepkqmwbstbmnkoqju.supabase.co/storage/v1/object/public/assets';
 import { LipSync } from '../lip_sync/lip_sync';
 import { ExpressionController } from '../emote_controller/expression_controller';
 import { CharacterStateManager } from '../fsm/StateManager';
@@ -195,11 +191,7 @@ export class Model {
             onProgress?.('parse', 1);
         } catch (e) {
             console.warn('VRM load failed (or was decrypted incorrectly). Fallback to sample model.', e);
-<<<<<<< HEAD
-            this.gltf = await loader.loadAsync(`${CDN_BASE}/vrm/AvatarSample_B.vrm`);
-=======
-            this.gltf = await loader.loadAsync(resolveStaticAssetPath('/AvatarSample_B.vrm'));
->>>>>>> 6a622daf (Prepare Apps in Toss build)
+            this.gltf = await loader.loadAsync(resolveStaticAssetPath('/vrm/AvatarSample_B.vrm'));
             onProgress?.('parse', 1);
         }
 
