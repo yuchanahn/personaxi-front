@@ -1,4 +1,4 @@
-const VERSION = 'v0.5.0';                            // ← 버전만 올리면 배포된 SW가 교체됨
+const VERSION = 'v0.5.1';                            // ← 버전만 올리면 배포된 SW가 교체됨
 const PRECACHE = `precache-${VERSION}`;          // 정적 자산
 const RUNTIME = `runtime-${VERSION}`;           // 동적 캐시
 const MAX_RUNTIME_ENTRIES = 200;                 // RUNTIME 캐시 최대 항목 수
@@ -50,11 +50,25 @@ self.addEventListener('activate', event => {
 /* ---------- FETCH ---------- */
 self.addEventListener('fetch', event => {
     const { request } = event;
+    const requestUrl = new URL(request.url);
+
+    // Cross-origin API/font/CDN requests should stay on the browser's normal
+    // CORS path. Handling them here can turn a failed fetch into an invalid
+    // `undefined` respondWith response and break the page.
+    if (requestUrl.origin !== self.location.origin) {
+        return;
+    }
 
     // 1) 탐색 요청(HTML) → 네트워크 우선, 실패하면 offline.html
     if (request.mode === 'navigate') {
         event.respondWith(
-            fetch(request).catch(() => caches.match('/offline.html'))
+            fetch(request).catch(async () =>
+                (await caches.match('/offline.html')) ||
+                new Response('Offline', {
+                    status: 503,
+                    headers: { 'Content-Type': 'text/plain; charset=utf-8' }
+                })
+            )
         );
         return;
     }
@@ -65,7 +79,7 @@ self.addEventListener('fetch', event => {
         event.respondWith(
             caches.match(request).then(cached => {
                 const fetchPromise = fetch(request).then(resp => {
-                    if (resp.ok) {
+                    if (request.method === 'GET' && resp.ok) {
                         const cloned = resp.clone();
                         caches.open(RUNTIME).then(cache => {
                             cache.put(request, cloned);
@@ -73,7 +87,13 @@ self.addEventListener('fetch', event => {
                         });
                     }
                     return resp;
-                }).catch(() => cached);
+                }).catch(() =>
+                    cached ||
+                    new Response('', {
+                        status: 503,
+                        statusText: 'Service Unavailable'
+                    })
+                );
 
                 return cached || fetchPromise;
             })
@@ -82,29 +102,43 @@ self.addEventListener('fetch', event => {
     }
 
     // 3) API 호출 → 네트워크 우선, 5분 TTL 캐시 폴백
-    if (request.url.includes('/api/')) {
+    if (requestUrl.pathname.startsWith('/api/')) {
+        if (request.method !== 'GET') {
+            return;
+        }
+
         event.respondWith(
             fetch(request)
                 .then(resp => {
-                    const cloned = resp.clone();
-                    caches.open(RUNTIME).then(cache => {
-                        // Store response with timestamp header for TTL
-                        const headers = new Headers(cloned.headers);
-                        headers.set('sw-cache-time', Date.now().toString());
-                        const timedResp = new Response(cloned.body, {
-                            status: cloned.status,
-                            statusText: cloned.statusText,
-                            headers: headers
+                    if (resp.ok) {
+                        const cloned = resp.clone();
+                        caches.open(RUNTIME).then(cache => {
+                            // Store response with timestamp header for TTL
+                            const headers = new Headers(cloned.headers);
+                            headers.set('sw-cache-time', Date.now().toString());
+                            const timedResp = new Response(cloned.body, {
+                                status: cloned.status,
+                                statusText: cloned.statusText,
+                                headers: headers
+                            });
+                            cache.put(request, timedResp);
+                            trimCache(RUNTIME, MAX_RUNTIME_ENTRIES);
                         });
-                        cache.put(request, timedResp);
-                        trimCache(RUNTIME, MAX_RUNTIME_ENTRIES);
-                    });
+                    }
                     return resp;
                 })
                 .catch(async () => {
                     // Network failed → check cached response TTL
                     const cached = await caches.match(request);
-                    if (!cached) return cached;
+                    if (!cached) {
+                        return new Response(
+                            JSON.stringify({ error: 'Network unavailable' }),
+                            {
+                                status: 503,
+                                headers: { 'Content-Type': 'application/json' }
+                            }
+                        );
+                    }
 
                     const cacheTime = parseInt(cached.headers.get('sw-cache-time') || '0', 10);
                     if (Date.now() - cacheTime > API_CACHE_TTL_MS) {

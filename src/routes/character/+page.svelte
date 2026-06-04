@@ -1,5 +1,6 @@
 <script lang="ts">
   import VrmModelViewer from "$lib/components/chat3D/VrmModelViewer.svelte";
+  import { resolveStaticAssetPath } from "$lib/utils/staticAsset";
   import ChatControls3D from "$lib/components/chat3D/ChatControls3D.svelte"; // NEW: 3D 컨트롤 컴포넌트 임포트
   import { onDestroy, onMount } from "svelte";
   import { page } from "$app/stores";
@@ -142,7 +143,7 @@
     <VrmModelViewer
       bind:this={Viewer}
       {persona}
-      backgroundImage={persona.model_background_url?.trim() || "/chat_bg.png"}
+      backgroundImage={persona.model_background_url?.trim() || resolveStaticAssetPath('/media/chat_bg.png')}
       cssid={lastSessionId ?? ""}
       startVoiceUrl={isStartSpeech ? persona.start_voice_url : ""}
       bind:show={showChat}

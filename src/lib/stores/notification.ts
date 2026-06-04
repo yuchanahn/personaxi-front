@@ -5,6 +5,7 @@ import { accessToken } from './auth';
 import { toast } from '$lib/stores/toast';
 import { _ } from 'svelte-i18n';
 import { settings } from './settings';
+import { API_BASE_URL } from '$lib/api';
 
 function createNotificationStore() {
     const { subscribe, set, update } = writable<Notification[]>([]);
@@ -44,7 +45,7 @@ function createNotificationStore() {
         loading.set(true);
         try {
             const locale = getCurrentLocale();
-            const res = await fetch(`/api/notifications?limit=${limit}&offset=${offset}&locale=${locale}`, {
+            const res = await fetch(`${API_BASE_URL}/api/notifications?limit=${limit}&offset=${offset}&locale=${locale}`, {
                 headers: {
                     'Authorization': `Bearer ${token}`
                 }
@@ -82,7 +83,7 @@ function createNotificationStore() {
         if (!token) return;
 
         try {
-            const res = await fetch(`/api/notifications/unread-count`, {
+            const res = await fetch(`${API_BASE_URL}/api/notifications/unread-count`, {
                 headers: {
                     'Authorization': `Bearer ${token}`
                 }
@@ -117,7 +118,7 @@ function createNotificationStore() {
         }));
 
         try {
-            await fetch(`/api/notifications/${id}/read`, {
+            await fetch(`${API_BASE_URL}/api/notifications/${id}/read`, {
                 method: 'POST',
                 headers: {
                     'Authorization': `Bearer ${token}`,
@@ -139,7 +140,7 @@ function createNotificationStore() {
         update(n => n.filter(item => item.id !== id));
 
         try {
-            const res = await fetch(`/api/notifications/${id}`, {
+            const res = await fetch(`${API_BASE_URL}/api/notifications/${id}`, {
                 method: 'DELETE',
                 headers: {
                     'Authorization': `Bearer ${token}`

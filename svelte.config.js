@@ -1,6 +1,7 @@
 import adapter from '@sveltejs/adapter-static';
 
 const isAndroidBuild = process.env.npm_lifecycle_event === 'build:android';
+const precompress = process.env.SVELTE_PRECOMPRESS === 'true' && !isAndroidBuild;
 
 export default {
 	ssr: false, // 루트 수준에서 ssr 설정
@@ -8,7 +9,7 @@ export default {
 		adapter: adapter({
 			strict: false,
 			fallback: 'index.html',
-			precompress: !isAndroidBuild  // Android asset merge avoids .gz/.br duplicates
+			precompress
 		}),
 		paths: {
 			base: ''
