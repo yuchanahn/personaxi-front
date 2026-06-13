@@ -74,7 +74,10 @@
         );
     }
 
-    function useOriginalImageFallback(event: Event, failedUrl: string | undefined) {
+    function useOriginalImageFallback(
+        event: Event,
+        failedUrl: string | undefined,
+    ) {
         if (!failedUrl) return false;
 
         const fallbackUrl = getOriginalSupabaseImageUrl(failedUrl);
@@ -87,7 +90,10 @@
         return true;
     }
 
-    function handleTypedImageError(event: Event, failedUrl: string | undefined) {
+    function handleTypedImageError(
+        event: Event,
+        failedUrl: string | undefined,
+    ) {
         if (useOriginalImageFallback(event, failedUrl)) return;
         dispatch("error", { url: failedUrl });
     }
@@ -224,7 +230,8 @@
                     warmedVideoUrls.add(asset.url);
                 }
             }}
-            on:loadeddata={(event) => handleVideoLoad(event, asset.url, "video")}
+            on:loadeddata={(event) =>
+                handleVideoLoad(event, asset.url, "video")}
             on:error={() => dispatch("error", { url: asset.url })}
         >
             Your browser does not support the video tag.
@@ -243,7 +250,10 @@
                             handleTypedImageError(event, asset.static_url)}
                     />
                 {:else}
-                    <div class="brand-loading-card video-loading-layer" aria-hidden="true">
+                    <div
+                        class="brand-loading-card video-loading-layer"
+                        aria-hidden="true"
+                    >
                         <div class="brand-grid-layer"></div>
                         <div class="brand-vignette"></div>
                         <div class="brand-scan-bar"></div>
@@ -252,10 +262,16 @@
                         <div class="brand-corner bl"></div>
                         <div class="brand-corner br"></div>
                         <div class="brand-loading-inner">
-                            <img class="brand-loading-logo flicker" src="/logo.png" alt={branding.legalServiceName} />
+                            <img
+                                class="brand-loading-logo flicker"
+                                src="/logo.png"
+                                alt={branding.legalServiceName}
+                            />
                             <div class="brand-loading-ring"></div>
                             <div class="brand-loading-title">LOADING</div>
-                            <div class="brand-loading-subtitle">Syncing visual layer</div>
+                            <div class="brand-loading-subtitle">
+                                Syncing visual layer
+                            </div>
                             <div class="brand-loading-bar-wrap">
                                 <div class="brand-loading-bar-fill"></div>
                             </div>
@@ -270,7 +286,10 @@
                         class="asset-preview-media video-poster-layer"
                     />
                 {:else}
-                    <div class="brand-loading-card video-loading-layer" aria-hidden="true">
+                    <div
+                        class="brand-loading-card video-loading-layer"
+                        aria-hidden="true"
+                    >
                         <div class="brand-grid-layer"></div>
                         <div class="brand-vignette"></div>
                         <div class="brand-scan-bar"></div>
@@ -279,10 +298,16 @@
                         <div class="brand-corner bl"></div>
                         <div class="brand-corner br"></div>
                         <div class="brand-loading-inner">
-                            <img class="brand-loading-logo flicker" src="/logo.png" alt={branding.legalServiceName} />
+                            <img
+                                class="brand-loading-logo flicker"
+                                src="/logo.png"
+                                alt={branding.legalServiceName}
+                            />
                             <div class="brand-loading-ring"></div>
                             <div class="brand-loading-title">LOADING</div>
-                            <div class="brand-loading-subtitle">Syncing visual layer</div>
+                            <div class="brand-loading-subtitle">
+                                Syncing visual layer
+                            </div>
                             <div class="brand-loading-bar-wrap">
                                 <div class="brand-loading-bar-fill"></div>
                             </div>
@@ -384,10 +409,16 @@
                 <div class="brand-corner bl"></div>
                 <div class="brand-corner br"></div>
                 <div class="brand-loading-inner">
-                    <img class="brand-loading-logo flicker" src="/logo.png" alt={branding.legalServiceName} />
+                    <img
+                        class="brand-loading-logo flicker"
+                        src="/logo.png"
+                        alt={branding.legalServiceName}
+                    />
                     <div class="brand-loading-ring"></div>
                     <div class="brand-loading-title">LOADING</div>
-                    <div class="brand-loading-subtitle">Syncing visual layer</div>
+                    <div class="brand-loading-subtitle">
+                        Syncing visual layer
+                    </div>
                     <div class="brand-loading-bar-wrap">
                         <div class="brand-loading-bar-fill"></div>
                     </div>
@@ -473,9 +504,15 @@
     .brand-grid-layer {
         position: absolute;
         inset: 0;
-        background-image:
-            linear-gradient(rgba(130, 100, 255, 0.06) 1px, transparent 1px),
-            linear-gradient(90deg, rgba(130, 100, 255, 0.06) 1px, transparent 1px);
+        background-image: linear-gradient(
+                rgba(130, 100, 255, 0.06) 1px,
+                transparent 1px
+            ),
+            linear-gradient(
+                90deg,
+                rgba(130, 100, 255, 0.06) 1px,
+                transparent 1px
+            );
         background-size: 28px 28px;
         pointer-events: none;
     }
@@ -483,7 +520,11 @@
     .brand-vignette {
         position: absolute;
         inset: 0;
-        background: radial-gradient(ellipse at 50% 50%, transparent 40%, #030509 90%);
+        background: radial-gradient(
+            ellipse at 50% 50%,
+            transparent 40%,
+            #030509 90%
+        );
         pointer-events: none;
     }
 
@@ -493,7 +534,12 @@
         right: 0;
         height: 2px;
         z-index: 3;
-        background: linear-gradient(90deg, transparent, rgba(180, 130, 255, 0.5), transparent);
+        background: linear-gradient(
+            90deg,
+            transparent,
+            rgba(180, 130, 255, 0.5),
+            transparent
+        );
         animation: brandScanMove 3s linear infinite;
     }
 
@@ -511,14 +557,8 @@
     .brand-loading-logo {
         width: min(32%, 96px);
         object-fit: contain;
-        filter:
-            brightness(0)
-            saturate(100%)
-            invert(75%)
-            sepia(80%)
-            saturate(500%)
-            hue-rotate(260deg)
-            brightness(125%);
+        filter: brightness(0) saturate(100%) invert(75%) sepia(80%)
+            saturate(500%) hue-rotate(260deg) brightness(125%);
     }
 
     .brand-loading-ring {
@@ -536,7 +576,9 @@
         font-weight: 700;
         letter-spacing: 0.14em;
         color: #a78bfa;
-        text-shadow: 0 0 10px rgba(150, 100, 255, 0.6), 0 0 20px rgba(255, 100, 200, 0.25);
+        text-shadow:
+            0 0 10px rgba(150, 100, 255, 0.6),
+            0 0 20px rgba(255, 100, 200, 0.25);
     }
 
     .brand-loading-subtitle {
@@ -557,7 +599,13 @@
         width: 40%;
         height: 100%;
         border-radius: 2px;
-        background: linear-gradient(90deg, transparent, #a78bfa, #f472b6, transparent);
+        background: linear-gradient(
+            90deg,
+            transparent,
+            #a78bfa,
+            #f472b6,
+            transparent
+        );
         box-shadow: 0 0 7px #a78bfa;
         animation: brandBarMove 2.5s ease-in-out infinite;
     }
@@ -646,22 +694,48 @@
     }
 
     @keyframes brandScanMove {
-        0% { top: 5%; opacity: 0; }
-        10% { opacity: 1; }
-        90% { opacity: 1; }
-        100% { top: 95%; opacity: 0; }
+        0% {
+            top: 5%;
+            opacity: 0;
+        }
+        10% {
+            opacity: 1;
+        }
+        90% {
+            opacity: 1;
+        }
+        100% {
+            top: 95%;
+            opacity: 0;
+        }
     }
 
     @keyframes brandBarMove {
-        0% { transform: translateX(-200%); }
-        100% { transform: translateX(400%); }
+        0% {
+            transform: translateX(-200%);
+        }
+        100% {
+            transform: translateX(400%);
+        }
     }
 
     @keyframes brandFlicker {
-        0%, 88%, 100% { opacity: 1; }
-        90% { opacity: 0.35; }
-        91% { opacity: 1; }
-        94% { opacity: 0.55; }
-        95% { opacity: 1; }
+        0%,
+        88%,
+        100% {
+            opacity: 1;
+        }
+        90% {
+            opacity: 0.35;
+        }
+        91% {
+            opacity: 1;
+        }
+        94% {
+            opacity: 0.55;
+        }
+        95% {
+            opacity: 1;
+        }
     }
 </style>

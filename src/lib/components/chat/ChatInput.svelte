@@ -110,6 +110,26 @@
 
     return handle.destroy;
   });
+
+  function getPlaceholder() {
+    let pn = $t("chatInput.placeholder");
+
+    if (placeholderName) {
+      if (placeholderName.length > 10) {
+        return $t("chatInput.placeholder", {
+          values: { name: placeholderName.slice(0, 7) + "..." },
+        });
+      }
+
+      return $t("chatInput.placeholder", {
+        values: { name: placeholderName },
+      });
+    } else {
+      return $t("chatInput.placeholder", {
+        values: { name: $t("chatInput.defaultName") },
+      });
+    }
+  }
 </script>
 
 <div
@@ -136,9 +156,7 @@
         {#if !isKeyboardOpen}
           <textarea
             class="chat-input focus-override"
-            placeholder={$t("chatInput.placeholder", {
-              values: { name: placeholderName || $t("chatInput.defaultName") },
-            })}
+            placeholder={getPlaceholder()}
             bind:value={prompt}
             rows="1"
             maxlength={MAX_CHARS}
@@ -155,9 +173,7 @@
           maxlength={MAX_CHARS}
           disabled={isDisabled}
           use:autoResize={180}
-          placeholder={$t("chatInput.placeholder", {
-            values: { name: placeholderName || $t("chatInput.defaultName") },
-          })}
+          placeholder={getPlaceholder()}
           class="real-input focus-override"
           oninput={() => onChangeInput(prompt)}
           class:shown={isKeyboardOpen}
@@ -169,9 +185,7 @@
       {:else}
         <textarea
           bind:value={prompt}
-          placeholder={$t("chatInput.placeholder", {
-            values: { name: placeholderName || $t("chatInput.defaultName") },
-          })}
+          placeholder={getPlaceholder()}
           class="chat-input focus-override"
           class:over-limit={isOverLimit}
           rows="1"
