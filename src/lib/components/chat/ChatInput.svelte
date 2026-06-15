@@ -41,11 +41,13 @@
 
   // Dynamic cost calculation based on mode or prop
   const displayNeurons = $derived(
-    neededNeurons !== undefined
-      ? neededNeurons
-      : mode === "3d"
-        ? $pricingStore.costs.chat_3d
-        : $pricingStore.costs.chat_2d,
+    $pricingStore.billing_mode === "token"
+      ? "Token Billing"
+      : neededNeurons !== undefined
+        ? neededNeurons
+        : mode === "3d"
+          ? $pricingStore.costs.chat_3d
+          : $pricingStore.costs.chat_2d,
   );
 
   function SendPrompt() {
@@ -147,7 +149,11 @@
   {/if}
   {#if !isListening && charCount > 0}
     <div class="neuron-indicator">
-      {displayNeurons} / {$st_user?.credits ?? 0}
+      {#if $pricingStore.billing_mode === 'token'}
+        🔋 Token billing / {$st_user?.credits ?? 0}
+      {:else}
+        {displayNeurons} / {$st_user?.credits ?? 0}
+      {/if}
     </div>
   {/if}
   <div class="input-container" class:listening={isListening}>

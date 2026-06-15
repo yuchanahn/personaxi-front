@@ -318,8 +318,7 @@
                     <div class="balance-value neuron">
                         <NeuronIcon size={24} color="currentColor" />
 
-                        <span>{$st_user?.credits?.toLocaleString() || "0"}</span
-                        >
+                        <span>{((Number($st_user?.credits) || 0) / 1000000).toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 4 })}</span>
                     </div>
                 </div>
                 <div class="balance-card">
@@ -530,7 +529,7 @@
                                                 >
                                                     {item.amount > 0
                                                         ? "+"
-                                                        : ""}{item.amount.toLocaleString()}
+                                                        : ""}{(item.amount / 1000000).toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 4 })}
                                                     <NeuronIcon
                                                         size={14}
                                                         color="currentColor"

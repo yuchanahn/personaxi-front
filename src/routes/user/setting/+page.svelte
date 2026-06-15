@@ -992,8 +992,7 @@
                                             color={"#a0a0a0"}
                                         />
                                         <span class="stat-value-large"
-                                            >{$st_user?.credits ||
-                                                user.credits}</span
+                                            >{((Number($st_user?.credits || user.credits) || 0) / 1000000).toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 4 })}</span
                                         >
                                     </div>
                                     <button

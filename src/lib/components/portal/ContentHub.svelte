@@ -1282,7 +1282,7 @@
                 >
                     <NeuronIcon size={20} color="#fbbf24" variant="standard" />
                     <span class="balance-text">
-                        {$st_user?.credits?.toLocaleString() || 0}
+                        {((Number($st_user?.credits) || 0) / 1000000).toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 4 })}
                     </span>
                 </button>
 

@@ -11,16 +11,18 @@
         normalizeVisibleLLMType,
     } from "$lib/utils/llmType";
 
+    import { onMount } from "svelte";
+    import { api } from "$lib/api";
+
     export let isOpen = false;
-    export let selectedModel = DEFAULT_2D_LLM_TYPE;
+    export let selectedModel: string = DEFAULT_2D_LLM_TYPE;
 
     const dispatch = createEventDispatcher();
 
-    // Available models (matching SettingModal.svelte) with renamed "Modes"
-    $: models = [
+    const legacyModels = [
         {
             id: "gemini-flash-lite",
-            name: $t("models.light"),
+            name: $t("models.fast"),
             description: "Fast, efficient, and cost-effective.",
             icon: "ph:lightning-fill",
             color: "#fbbf24",
@@ -41,18 +43,22 @@
         },
     ];
 
-    $: selectedModel = normalizeVisibleLLMType(
-        selectedModel,
-        DEFAULT_2D_LLM_TYPE,
-    );
+    $: dynamicModels = $pricingStore.available_models || [];
+    $: models = $pricingStore.billing_mode === "token" ? dynamicModels : legacyModels;
+
+    $: selectedModel = $pricingStore.billing_mode === "token" 
+        ? selectedModel 
+        : normalizeVisibleLLMType(selectedModel, DEFAULT_2D_LLM_TYPE);
 
     function selectModel(id: string) {
-        const normalized = normalizeVisibleLLMType(id, DEFAULT_2D_LLM_TYPE);
-        selectedModel = normalized;
-        dispatch("select", normalized);
-        // We don't close immediately here, user clicks "Start Chat" or we can Auto-close?
-        // User said: "Default is flash lite selected, user chooses to change or close".
-        // Let's assume clicking a model just updates selection, "Start" confirms.
+        if ($pricingStore.billing_mode === "token") {
+            selectedModel = id;
+            dispatch("select", id);
+        } else {
+            const normalized = normalizeVisibleLLMType(id, DEFAULT_2D_LLM_TYPE);
+            selectedModel = normalized;
+            dispatch("select", normalized);
+        }
     }
 
     function confirm() {
@@ -67,16 +73,50 @@
 
     // Get cost display
     $: getCost = (id: string) => {
-        id = normalizeVisibleLLMType(id, DEFAULT_2D_LLM_TYPE);
-        const base = $pricingStore.costs.chat_2d || 5;
-        const fallbackMultiplier =
-            id === "gemini-flash" ? 1.5 : id === "gemini-pro" ? 2.0 : 1.0;
+        const base = $pricingStore.costs.chat_2d || 5000000;
+        const fallbackMultiplier = id.includes("flash") ? 1.5 : id.includes("pro") ? 2.0 : 1.0;
         const mult = $pricingStore.model_multipliers[id] || fallbackMultiplier;
         return Math.round(base * mult);
     };
-    $: currentBalance = Math.max(0, Number($st_user?.credits || 0));
-    $: selectedCost = getCost(selectedModel);
-    $: hasEnoughBalance = currentBalance >= selectedCost;
+
+    $: getTokenCostInfo = (id: string) => {
+        const model = dynamicModels.find(m => m.id === id);
+        if (model) {
+            return {
+                input_cost_per_1k: model.input_cost_per_1k,
+                output_cost_per_1k: model.output_cost_per_1k
+            };
+        }
+        return $pricingStore.token_pricing?.[id] || {
+            input_cost_per_1k: 2000000,
+            output_cost_per_1k: 6000000,
+        };
+    };
+
+    let isLocalhost = false;
+    onMount(() => {
+        isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+    });
+
+    let isToggling = false;
+    async function toggleBillingMode() {
+        if (isToggling) return;
+        isToggling = true;
+        try {
+            const res = await api.post("/api/policy/dev-toggle-billing-mode", {});
+            if (res.ok) {
+                await pricingStore.fetchPricingPolicy();
+            }
+        } catch (err) {
+            console.error("Failed to toggle billing mode:", err);
+        } finally {
+            isToggling = false;
+        }
+    }
+
+    $: currentBalance = Math.max(0, Number($st_user?.credits || 0)) / 1000000;
+    $: selectedCost = $pricingStore.billing_mode === "token" ? 10 : (getCost(selectedModel) / 1000000);
+    $: hasEnoughBalance = Math.max(0, Number($st_user?.credits || 0)) >= ($pricingStore.billing_mode === "token" ? 10000000 : getCost(selectedModel));
 </script>
 
 <!-- svelte-ignore a11y_no_static_element_interactions -->
@@ -98,14 +138,17 @@
             <div class="balance-inline">
                 <span class="balance-inline-item">
                     {$t("models.balance")}
-                    <strong>{currentBalance.toLocaleString()}</strong>
+                    <strong>{currentBalance.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 4 })}</strong>
                 </span>
                 <span class="balance-divider">·</span>
                 <span class="balance-inline-item">
-                    {$t("models.estimatedCost")}
-                    <strong class:cost-danger={!hasEnoughBalance}
-                        >- {selectedCost.toLocaleString()}</strong
-                    >
+                    {#if $pricingStore.billing_mode === 'token'}
+                        {$t("models.preDeductCost", { default: "Pre-deduct" })}
+                        <strong class:cost-danger={!hasEnoughBalance}>- 10</strong>
+                    {:else}
+                        {$t("models.estimatedCost")}
+                        <strong class:cost-danger={!hasEnoughBalance}>- {selectedCost.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 4 })}</strong>
+                    {/if}
                 </span>
             </div>
 
@@ -130,24 +173,44 @@
                                         icon="ph:check-circle-fill"
                                         class="check-icon"
                                     />
-                                {/if}
+                                  {/if}
                             </div>
                             <span class="desc">{model.description}</span>
                         </div>
-                        <div class="cost">
-                            <span class="neurons">
-                                {getCost(model.id)}
-                                <NeuronIcon size={12} color="currentColor" />
-                            </span>
+                        <div class="cost" style="display: flex; flex-direction: column; align-items: flex-end; gap: 0.15rem;">
+                            {#if $pricingStore.billing_mode === 'token'}
+                                {@const tok = getTokenCostInfo(model.id)}
+                                <span class="neurons" style="font-size: 0.82rem; white-space: nowrap;">
+                                    In: {(tok.input_cost_per_1k / 1000000).toLocaleString(undefined, { maximumFractionDigits: 4 })}🔋 / Out: {(tok.output_cost_per_1k / 1000000).toLocaleString(undefined, { maximumFractionDigits: 4 })}🔋
+                                </span>
+                                <span style="font-size: 0.65rem; color: #9ca3af; white-space: nowrap;">(per 1K tokens)</span>
+                            {:else}
+                                <span class="neurons">
+                                    {(getCost(model.id) / 1000000).toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 4 })}
+                                    <NeuronIcon size={12} color="currentColor" />
+                                </span>
+                            {/if}
                         </div>
                     </button>
                 {/each}
             </div>
 
+            {#if isLocalhost}
+                <div class="dev-panel" style="margin-bottom: 1rem; padding: 0.75rem; background: rgba(239, 68, 68, 0.1); border: 1px dashed rgba(239, 68, 68, 0.3); border-radius: 8px; display: flex; justify-content: space-between; align-items: center;">
+                    <span style="font-size: 0.8rem; color: #fca5a5;">DEV ONLY Billing Mode: <strong>{$pricingStore.billing_mode}</strong></span>
+                    <button 
+                        style="background: #ef4444; color: white; border: none; padding: 0.35rem 0.75rem; border-radius: 6px; font-size: 0.75rem; font-weight: 600; cursor: pointer;"
+                        on:click={toggleBillingMode}
+                        disabled={isToggling}
+                    >
+                        {isToggling ? "Toggling..." : "Toggle Mode"}
+                    </button>
+                </div>
+            {/if}
+
             <div class="footer">
                 <button class="confirm-btn" on:click={confirm}>
-                    Start Chat with {models.find((m) => m.id === selectedModel)
-                        ?.name}
+                    Start Chat with {models.find((m) => m.id === selectedModel)?.name || "Selected Model"}
                 </button>
             </div>
         </div>

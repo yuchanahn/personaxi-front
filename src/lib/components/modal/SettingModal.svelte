@@ -654,7 +654,7 @@
                     <h2>{$t("settingModal.title")}</h2>
                     <span class="neuron-balance">
                         {$t("settingModal.neuronBalance")}
-                        {user?.credits ?? 0}
+                        {((Number(user?.credits) || 0) / 1000000).toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 4 })}
                         <NeuronIcon size={14} />
                     </span>
                 </div>
