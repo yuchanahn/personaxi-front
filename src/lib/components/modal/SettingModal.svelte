@@ -174,17 +174,16 @@
             ? $pricingStore.costs.chat_3d
             : $pricingStore.costs.chat_2d;
 
-    $: availableLLMs = [
+    const legacyLLMs = [
+        {
+            id: "gemini-flash-lite",
+            name: $t("models.fast"),
+            multiplier: $pricingStore.model_multipliers["gemini-flash-lite"] || 1.0,
+        },
         {
             id: "gemini-flash",
             name: $t("models.standard"),
             multiplier: $pricingStore.model_multipliers["gemini-flash"] || 1.5,
-        },
-        {
-            id: "gemini-flash-lite",
-            name: $t("models.light"),
-            multiplier:
-                $pricingStore.model_multipliers["gemini-flash-lite"] || 1.0,
         },
         {
             id: "gemini-pro",
@@ -196,26 +195,59 @@
         cost: Math.round((baseCost || 10) * llm.multiplier),
     }));
 
-    let selectedLLM_id: string = normalizeVisibleLLMType(
-        llmType,
-        DEFAULT_2D_LLM_TYPE,
-    );
+    $: dynamicLLMs = ($pricingStore.available_models || []).map(m => {
+        const fallbackMultiplier = m.id.includes("flash") ? 1.5 : m.id.includes("pro") ? 2.0 : 1.0;
+        const mult = $pricingStore.model_multipliers[m.id] || fallbackMultiplier;
+        const baseCostValue = baseCost || 5000000;
+        return {
+            id: m.id,
+            name: m.name,
+            cost: Math.round(baseCostValue * mult),
+            input_cost_per_1k: m.input_cost_per_1k,
+            output_cost_per_1k: m.output_cost_per_1k
+        };
+    });
+
+    $: availableLLMs = $pricingStore.billing_mode === "token" ? dynamicLLMs : legacyLLMs;
+
+    let selectedLLM_id: string = llmType;
     let prevLLMType = llmType;
 
     $: if (llmType && llmType !== prevLLMType) {
-        selectedLLM_id = normalizeVisibleLLMType(llmType, DEFAULT_2D_LLM_TYPE);
+        selectedLLM_id = llmType;
         prevLLMType = llmType;
     }
 
+    $: selectedLLM_id = $pricingStore.billing_mode === "token"
+        ? selectedLLM_id
+        : normalizeVisibleLLMType(selectedLLM_id, DEFAULT_2D_LLM_TYPE);
+
     $: selectedLLM =
         availableLLMs.find((llm) => llm.id === selectedLLM_id) ||
-        availableLLMs[1];
+        availableLLMs[0] ||
+        { id: "", name: "", cost: 0 };
+
     $: selectedOutputTokenMultiplier = Math.min(
         3,
         Math.max(1, Number(selectedOutputTokenMultiplier) || 1),
     );
+
     $: maxCostWithOutputMultiplier =
         selectedLLM.cost * selectedOutputTokenMultiplier;
+
+    $: getTokenCostInfo = (id: string) => {
+        const model = ($pricingStore.available_models || []).find(m => m.id === id);
+        if (model) {
+            return {
+                input_cost_per_1k: model.input_cost_per_1k,
+                output_cost_per_1k: model.output_cost_per_1k
+            };
+        }
+        return $pricingStore.token_pricing?.[id] || {
+            input_cost_per_1k: 2000000,
+            output_cost_per_1k: 6000000,
+        };
+    };
 
     function changeLLMType(newType: string) {
         const cssid = currentSessionId();
@@ -706,53 +738,67 @@
                                 aria-label="Select model"
                             >
                                 {#each availableLLMs as llm (llm.id)}
-                                    <option value={llm.id}
-                                        >{llm.name} ({llm.cost}N)</option
-                                    >
+                                    <option value={llm.id}>
+                                        {#if $pricingStore.billing_mode === 'token'}
+                                            {llm.name}
+                                        {:else}
+                                            {llm.name} ({(llm.cost / 1000000).toLocaleString(undefined, { maximumFractionDigits: 4 })}N)
+                                        {/if}
+                                    </option>
                                 {/each}
                             </select>
                             <div class="select-arrow" aria-hidden="true">
                                 <Icon icon="ph:caret-down-bold" />
                             </div>
                         </div>
-                        <p class="section-description">
-                            {$t("settingModal.costDisplay")}
-                            <NeuronIcon size={14} />{selectedLLM.cost}
-                        </p>
-                        <div class="select-wrapper">
-                            <select
-                                bind:value={selectedOutputTokenMultiplier}
-                                on:change={handleLLMChange}
-                                disabled={isLoading}
-                                aria-label="Select output token multiplier"
-                            >
-                                <option value={1}>
-                                    {$t(
-                                        "settingModal.outputTokenMultiplier1x",
-                                    )}
-                                </option>
-                                <option value={2}>
-                                    {$t(
-                                        "settingModal.outputTokenMultiplier2x",
-                                    )}
-                                </option>
-                                <option value={3}>
-                                    {$t(
-                                        "settingModal.outputTokenMultiplier3x",
-                                    )}
-                                </option>
-                            </select>
-                            <div class="select-arrow" aria-hidden="true">
-                                <Icon icon="ph:caret-down-bold" />
+
+                        {#if $pricingStore.billing_mode === 'token'}
+                            {@const tok = getTokenCostInfo(selectedLLM_id)}
+                            <p class="section-description" style="display: flex; flex-direction: column; gap: 0.2rem; margin-top: 0.25rem;">
+                                <span>Input: <strong>{(tok.input_cost_per_1k / 1000000).toLocaleString(undefined, { maximumFractionDigits: 4 })}🔋</strong> per 1K tokens</span>
+                                <span>Output: <strong>{(tok.output_cost_per_1k / 1000000).toLocaleString(undefined, { maximumFractionDigits: 4 })}🔋</strong> per 1K tokens</span>
+                            </p>
+                        {:else}
+                            <p class="section-description">
+                                {$t("settingModal.costDisplay")}
+                                <NeuronIcon size={14} />{(selectedLLM.cost / 1000000).toLocaleString(undefined, { maximumFractionDigits: 4 })}
+                            </p>
+
+                            <div class="select-wrapper">
+                                <select
+                                    bind:value={selectedOutputTokenMultiplier}
+                                    on:change={handleLLMChange}
+                                    disabled={isLoading}
+                                    aria-label="Select output token multiplier"
+                                >
+                                    <option value={1}>
+                                        {$t(
+                                            "settingModal.outputTokenMultiplier1x",
+                                        )}
+                                    </option>
+                                    <option value={2}>
+                                        {$t(
+                                            "settingModal.outputTokenMultiplier2x",
+                                        )}
+                                    </option>
+                                    <option value={3}>
+                                        {$t(
+                                            "settingModal.outputTokenMultiplier3x",
+                                        )}
+                                    </option>
+                                </select>
+                                <div class="select-arrow" aria-hidden="true">
+                                    <Icon icon="ph:caret-down-bold" />
+                                </div>
                             </div>
-                        </div>
-                        <p class="section-description">
-                            {$t("settingModal.maxCostDisplay")}
-                            <NeuronIcon size={14} />{maxCostWithOutputMultiplier}
-                        </p>
-                        <p class="section-description">
-                            {$t("settingModal.outputTokenMultiplierRule")}
-                        </p>
+                            <p class="section-description">
+                                {$t("settingModal.maxCostDisplay")}
+                                <NeuronIcon size={14} />{(maxCostWithOutputMultiplier / 1000000).toLocaleString(undefined, { maximumFractionDigits: 4 })}
+                            </p>
+                            <p class="section-description">
+                                {$t("settingModal.outputTokenMultiplierRule")}
+                            </p>
+                        {/if}
                     </div>
                 {/if}
 
