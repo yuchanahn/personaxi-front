@@ -1,0 +1,20 @@
+User-agent: *
+Allow: /
+
+# Private/Auth pages
+Disallow: /login
+Disallow: /signup
+Disallow: /verify
+Disallow: /maintenance
+Disallow: /suspended
+Disallow: /edit
+Disallow: /chat
+Disallow: /2d
+Disallow: /live2d
+Disallow: /live
+
+# Admin
+Disallow: /admin
+
+# Sitemap
+Sitemap: https://personaxi.com/sitemap.xml

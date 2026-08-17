@@ -1,0 +1,412 @@
+[
+  {
+    "file": "Acknowledging.fbx",
+    "description": "General character action or idle pose",
+    "description-ko": "일반적인 캐릭터 동작 또는 대기 자세"
+  },
+  {
+    "file": "Agreeing.fbx",
+    "description": "Conversational or affirming body gestures",
+    "description-ko": "대화 중이거나 긍정적인 신체 제스처"
+  },
+  {
+    "file": "Air Squat Bent Arms.fbx",
+    "description": "General character action or idle pose",
+    "description-ko": "일반적인 캐릭터 동작 또는 대기 자세"
+  },
+  {
+    "file": "Angry Gesture.fbx",
+    "description": "Displaying anger or frustration with aggressive body gestures",
+    "description-ko": "분노나 좌절을 공격적인 신체 제스처로 표현"
+  },
+  {
+    "file": "Angry.fbx",
+    "description": "Displaying anger or frustration with aggressive body gestures",
+    "description-ko": "분노나 좌절을 공격적인 신체 제스처로 표현"
+  },
+  {
+    "file": "Arm Gesture.fbx",
+    "description": "General character action or idle pose",
+    "description-ko": "일반적인 캐릭터 동작 또는 대기 자세"
+  },
+  {
+    "file": "Arm Stretching.fbx",
+    "description": "Stretching limbs or body",
+    "description-ko": "팔다리나 몸을 늘리는 스트레칭 동작"
+  },
+  {
+    "file": "Arms Hip Hop Dance.fbx",
+    "description": "Performing a rhythmic dance movement",
+    "description-ko": "리듬적인 춤 동작 수행"
+  },
+  {
+    "file": "Bashful.fbx",
+    "description": "General character action or idle pose",
+    "description-ko": "일반적인 캐릭터 동작 또는 대기 자세"
+  },
+  {
+    "file": "Being Cocky.fbx",
+    "description": "General character action or idle pose",
+    "description-ko": "일반적인 캐릭터 동작 또는 대기 자세"
+  },
+  {
+    "file": "Bellydancing.fbx",
+    "description": "General character action or idle pose",
+    "description-ko": "일반적인 캐릭터 동작 또는 대기 자세"
+  },
+  {
+    "file": "Blow A Kiss.fbx",
+    "description": "Blowing or giving a kiss",
+    "description-ko": "키스를 날리거나 주는 동작"
+  },
+  {
+    "file": "Bored.fbx",
+    "description": "Expressing tiredness or lack of interest",
+    "description-ko": "피로감이나 흥미 부족을 표현"
+  },
+  {
+    "file": "Breathing Idle.fbx",
+    "description": "Standing or sitting motionlessly, often reflecting an emotion",
+    "description-ko": "가만히 서 있거나 앉아 있는 동작, 종종 감정을 반영"
+  },
+  {
+    "file": "Chicken Dance.fbx",
+    "description": "Performing a rhythmic dance movement",
+    "description-ko": "리듬적인 춤 동작 수행"
+  },
+  {
+    "file": "Clapping.fbx",
+    "description": "Clapping hands, usually to show appreciation or joy",
+    "description-ko": "박수 치기, 보통 감사나 기쁨을 표현"
+  },
+  {
+    "file": "Crawling.fbx",
+    "description": "Moving on hands and knees",
+    "description-ko": "손과 무릎을 이용해 움직이는 동작"
+  },
+  {
+    "file": "Crying.fbx",
+    "description": "Displaying sadness or emotional distress",
+    "description-ko": "슬픔이나 정서적 고통을 표현"
+  },
+  {
+    "file": "Dancing Twerk.fbx",
+    "description": "General character action or idle pose",
+    "description-ko": "일반적인 캐릭터 동작 또는 대기 자세"
+  },
+  {
+    "file": "Dancing.fbx",
+    "description": "General character action or idle pose",
+    "description-ko": "일반적인 캐릭터 동작 또는 대기 자세"
+  },
+  {
+    "file": "Dismissing Gesture.fbx",
+    "description": "General character action or idle pose",
+    "description-ko": "일반적인 캐릭터 동작 또는 대기 자세"
+  },
+  {
+    "file": "Drunk Idle Variation.fbx",
+    "description": "Standing or sitting motionlessly, often reflecting an emotion",
+    "description-ko": "가만히 서 있거나 앉아 있는 동작, 종종 감정을 반영"
+  },
+  {
+    "file": "Drunk Idle.fbx",
+    "description": "Standing or sitting motionlessly, often reflecting an emotion",
+    "description-ko": "가만히 서 있거나 앉아 있는 동작, 종종 감정을 반영"
+  },
+  {
+    "file": "Dwarf Idle(1).fbx",
+    "description": "Standing or sitting motionlessly, often reflecting an emotion",
+    "description-ko": "가만히 서 있거나 앉아 있는 동작, 종종 감정을 반영"
+  },
+  {
+    "file": "Dwarf Idle(2).fbx",
+    "description": "Standing or sitting motionlessly, often reflecting an emotion",
+    "description-ko": "가만히 서 있거나 앉아 있는 동작, 종종 감정을 반영"
+  },
+  {
+    "file": "Dwarf Idle.fbx",
+    "description": "Standing or sitting motionlessly, often reflecting an emotion",
+    "description-ko": "가만히 서 있거나 앉아 있는 동작, 종종 감정을 반영"
+  },
+  {
+    "file": "Fallen Idle.fbx",
+    "description": "Standing or sitting motionlessly, often reflecting an emotion",
+    "description-ko": "가만히 서 있거나 앉아 있는 동작, 종종 감정을 반영"
+  },
+  {
+    "file": "Female Laying Pose.fbx",
+    "description": "General character action or idle pose",
+    "description-ko": "일반적인 캐릭터 동작 또는 대기 자세"
+  },
+  {
+    "file": "Female Standing Pose.fbx",
+    "description": "General character action or idle pose",
+    "description-ko": "일반적인 캐릭터 동작 또는 대기 자세"
+  },
+  {
+    "file": "Fist Pump.fbx",
+    "description": "General character action or idle pose",
+    "description-ko": "일반적인 캐릭터 동작 또는 대기 자세"
+  },
+  {
+    "file": "Happy Idle(1).fbx",
+    "description": "Standing or sitting motionlessly, often reflecting an emotion",
+    "description-ko": "가만히 서 있거나 앉아 있는 동작, 종종 감정을 반영"
+  },
+  {
+    "file": "Happy Idle.fbx",
+    "description": "Standing or sitting motionlessly, often reflecting an emotion",
+    "description-ko": "가만히 서 있거나 앉아 있는 동작, 종종 감정을 반영"
+  },
+  {
+    "file": "Hard Head Nod.fbx",
+    "description": "Conversational or affirming body gestures",
+    "description-ko": "대화 중이거나 긍정적인 신체 제스처"
+  },
+  {
+    "file": "Head Nod Yes.fbx",
+    "description": "Conversational or affirming body gestures",
+    "description-ko": "대화 중이거나 긍정적인 신체 제스처"
+  },
+  {
+    "file": "Hokey Pokey.fbx",
+    "description": "General character action or idle pose",
+    "description-ko": "일반적인 캐릭터 동작 또는 대기 자세"
+  },
+  {
+    "file": "Idle_nomal.fbx",
+    "description": "Standing or sitting motionlessly, often reflecting an emotion",
+    "description-ko": "가만히 서 있거나 앉아 있는 동작, 종종 감정을 반영"
+  },
+  {
+    "file": "Injured Hurting Idle.fbx",
+    "description": "Standing or sitting motionlessly, often reflecting an emotion",
+    "description-ko": "가만히 서 있거나 앉아 있는 동작, 종종 감정을 반영"
+  },
+  {
+    "file": "Injured Idle.fbx",
+    "description": "Standing or sitting motionlessly, often reflecting an emotion",
+    "description-ko": "가만히 서 있거나 앉아 있는 동작, 종종 감정을 반영"
+  },
+  {
+    "file": "Jazz Dancing.fbx",
+    "description": "General character action or idle pose",
+    "description-ko": "일반적인 캐릭터 동작 또는 대기 자세"
+  },
+  {
+    "file": "Joyful Jump.fbx",
+    "description": "Expressing happiness or celebration",
+    "description-ko": "행복이나 축하를 표현"
+  },
+  {
+    "file": "Kick To The Groin.fbx",
+    "description": "General character action or idle pose",
+    "description-ko": "일반적인 캐릭터 동작 또는 대기 자세"
+  },
+  {
+    "file": "Kiss.fbx",
+    "description": "Blowing or giving a kiss",
+    "description-ko": "키스를 날리거나 주는 동작"
+  },
+  {
+    "file": "Kneeling Idle.fbx",
+    "description": "Standing or sitting motionlessly, often reflecting an emotion",
+    "description-ko": "가만히 서 있거나 앉아 있는 동작, 종종 감정을 반영"
+  },
+  {
+    "file": "Looking Around.fbx",
+    "description": "General character action or idle pose",
+    "description-ko": "일반적인 캐릭터 동작 또는 대기 자세"
+  },
+  {
+    "file": "Looking Behind.fbx",
+    "description": "General character action or idle pose",
+    "description-ko": "일반적인 캐릭터 동작 또는 대기 자세"
+  },
+  {
+    "file": "Low Crawl.fbx",
+    "description": "Moving on hands and knees",
+    "description-ko": "손과 무릎을 이용해 움직이는 동작"
+  },
+  {
+    "file": "Neck Stretching.fbx",
+    "description": "Stretching limbs or body",
+    "description-ko": "팔다리나 몸을 늘리는 스트레칭 동작"
+  },
+  {
+    "file": "Neutral Idle.fbx",
+    "description": "Standing or sitting motionlessly, often reflecting an emotion",
+    "description-ko": "가만히 서 있거나 앉아 있는 동작, 종종 감정을 반영"
+  },
+  {
+    "file": "No.fbx",
+    "description": "General character action or idle pose",
+    "description-ko": "일반적인 캐릭터 동작 또는 대기 자세"
+  },
+  {
+    "file": "Old Man Idle.fbx",
+    "description": "Standing or sitting motionlessly, often reflecting an emotion",
+    "description-ko": "가만히 서 있거나 앉아 있는 동작, 종종 감정을 반영"
+  },
+  {
+    "file": "Orc Idle(1).fbx",
+    "description": "Standing or sitting motionlessly, often reflecting an emotion",
+    "description-ko": "가만히 서 있거나 앉아 있는 동작, 종종 감정을 반영"
+  },
+  {
+    "file": "Orc Idle.fbx",
+    "description": "Standing or sitting motionlessly, often reflecting an emotion",
+    "description-ko": "가만히 서 있거나 앉아 있는 동작, 종종 감정을 반영"
+  },
+  {
+    "file": "Plotting.fbx",
+    "description": "General character action or idle pose",
+    "description-ko": "일반적인 캐릭터 동작 또는 대기 자세"
+  },
+  {
+    "file": "Pointing.fbx",
+    "description": "Pointing forward or at something",
+    "description-ko": "앞이나 특정 방향을 가리키는 동작"
+  },
+  {
+    "file": "Pouting.fbx",
+    "description": "Displaying sadness or emotional distress",
+    "description-ko": "슬픔이나 정서적 고통을 표현"
+  },
+  {
+    "file": "Praying.fbx",
+    "description": "Joining hands in front, showing a praying gesture",
+    "description-ko": "앞에서 손을 모아 기도하는 제스처"
+  },
+  {
+    "file": "Quick Formal Bow.fbx",
+    "description": "General character action or idle pose",
+    "description-ko": "일반적인 캐릭터 동작 또는 대기 자세"
+  },
+  {
+    "file": "Reacting.fbx",
+    "description": "General character action or idle pose",
+    "description-ko": "일반적인 캐릭터 동작 또는 대기 자세"
+  },
+  {
+    "file": "Rumba Dancing.fbx",
+    "description": "General character action or idle pose",
+    "description-ko": "일반적인 캐릭터 동작 또는 대기 자세"
+  },
+  {
+    "file": "Sad Idle(1).fbx",
+    "description": "Standing or sitting motionlessly, often reflecting an emotion",
+    "description-ko": "가만히 서 있거나 앉아 있는 동작, 종종 감정을 반영"
+  },
+  {
+    "file": "Sad Idle.fbx",
+    "description": "Standing or sitting motionlessly, often reflecting an emotion",
+    "description-ko": "가만히 서 있거나 앉아 있는 동작, 종종 감정을 반영"
+  },
+  {
+    "file": "Sarcastic Head Nod.fbx",
+    "description": "Conversational or affirming body gestures",
+    "description-ko": "대화 중이거나 긍정적인 신체 제스처"
+  },
+  {
+    "file": "Shoulder Rubbing.fbx",
+    "description": "General character action or idle pose",
+    "description-ko": "일반적인 캐릭터 동작 또는 대기 자세"
+  },
+  {
+    "file": "Shrugging.fbx",
+    "description": "General character action or idle pose",
+    "description-ko": "일반적인 캐릭터 동작 또는 대기 자세"
+  },
+  {
+    "file": "Snake Hip Hop Dance.fbx",
+    "description": "Performing a rhythmic dance movement",
+    "description-ko": "리듬적인 춤 동작 수행"
+  },
+  {
+    "file": "Spank twice.fbx",
+    "description": "Making a playful or aggressive spank motion",
+    "description-ko": "장난스럽거나 공격적인 스팽크 동작"
+  },
+  {
+    "file": "Standing Arguing.fbx",
+    "description": "Displaying anger or frustration with aggressive body gestures",
+    "description-ko": "분노나 좌절을 공격적인 신체 제스처로 표현"
+  },
+  {
+    "file": "Standing Greeting.fbx",
+    "description": "Waving or greeting with hands",
+    "description-ko": "손을 흔들거나 인사하는 동작"
+  },
+  {
+    "file": "Standing Idle(1).fbx",
+    "description": "Standing or sitting motionlessly, often reflecting an emotion",
+    "description-ko": "가만히 서 있거나 앉아 있는 동작, 종종 감정을 반영"
+  },
+  {
+    "file": "Step Hip Hop Dance.fbx",
+    "description": "Performing a rhythmic dance movement",
+    "description-ko": "리듬적인 춤 동작 수행"
+  },
+  {
+    "file": "Taken Hostage - Victim.fbx",
+    "description": "General character action or idle pose",
+    "description-ko": "일반적인 캐릭터 동작 또는 대기 자세"
+  },
+  {
+    "file": "Talk femininely.fbx",
+    "description": "Conversational or affirming body gestures",
+    "description-ko": "대화 중이거나 긍정적인 신체 제스처"
+  },
+  {
+    "file": "Talking.fbx",
+    "description": "Conversational or affirming body gestures",
+    "description-ko": "대화 중이거나 긍정적인 신체 제스처"
+  },
+  {
+    "file": "Thankful.fbx",
+    "description": "Expressing gratitude",
+    "description-ko": "감사의 마음을 표현"
+  },
+  {
+    "file": "Twist Dance.fbx",
+    "description": "Performing a rhythmic dance movement",
+    "description-ko": "리듬적인 춤 동작 수행"
+  },
+  {
+    "file": "Victory(1).fbx",
+    "description": "Expressing happiness or celebration",
+    "description-ko": "행복이나 축하를 표현"
+  },
+  {
+    "file": "Victory.fbx",
+    "description": "Expressing happiness or celebration",
+    "description-ko": "행복이나 축하를 표현"
+  },
+  {
+    "file": "Walking.fbx",
+    "description": "General character action or idle pose",
+    "description-ko": "일반적인 캐릭터 동작 또는 대기 자세"
+  },
+  {
+    "file": "Waving(1).fbx",
+    "description": "General character action or idle pose",
+    "description-ko": "일반적인 캐릭터 동작 또는 대기 자세"
+  },
+  {
+    "file": "Waving.fbx",
+    "description": "General character action or idle pose",
+    "description-ko": "일반적인 캐릭터 동작 또는 대기 자세"
+  },
+  {
+    "file": "Wheelbarrow Idle.fbx",
+    "description": "Standing or sitting motionlessly, often reflecting an emotion",
+    "description-ko": "가만히 서 있거나 앉아 있는 동작, 종종 감정을 반영"
+  },
+  {
+    "file": "Yawn.fbx",
+    "description": "Expressing tiredness or lack of interest",
+    "description-ko": "피로감이나 흥미 부족을 표현"
+  }
+]
