@@ -380,6 +380,14 @@ export async function impl_sendPromptStream(
                 }
                 onError?.(new Error("Server error"));
                 return;
+            } else if (event.type === 'metadata') {
+                try {
+                    const metaData = JSON.parse(event.data);
+                    console.log("📊 Token Metadata:", metaData);
+                    window.dispatchEvent(new CustomEvent('token-metadata', { detail: metaData }));
+                } catch (e) {
+                    console.error("Failed to parse token metadata", e);
+                }
             } else if (event.type === 'affection') {
                 // Handle affection update
                 try {

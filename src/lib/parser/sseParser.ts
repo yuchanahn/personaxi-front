@@ -9,7 +9,7 @@ export function extractCSSID(raw: string | null | undefined): string | null {
 
 
 export type SSEEvent = {
-    type: 'data' | 'affection' | 'error';
+    type: 'data' | 'affection' | 'error' | 'metadata';
     data: string;
 };
 
@@ -45,6 +45,7 @@ export async function tickSSEStream2(
                 const eventType = line.slice(7).trim();
                 if (eventType === 'affection') type = 'affection';
                 if (eventType === 'error') type = 'error';
+                if (eventType === 'metadata') type = 'metadata';
             } else if (line.startsWith('data: ')) {
                 data += line.slice(6);
             }

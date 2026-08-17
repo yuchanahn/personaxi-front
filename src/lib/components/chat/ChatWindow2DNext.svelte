@@ -31,6 +31,7 @@
     type RenderBlockPlayer,
     type TestRenderableBlock,
   } from "$lib/test-chat2d/blockPlayers";
+  import TokenDebugPanel from "./TokenDebugPanel.svelte";
 
   export let isLoading = false;
   export let showChat = true;
@@ -1144,6 +1145,7 @@
       <Icon icon="ph:arrow-down-bold" width="18" height="18" />
     </button>
   {/if}
+  <TokenDebugPanel />
 </div>
 
 <style>

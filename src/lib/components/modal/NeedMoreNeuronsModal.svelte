@@ -12,7 +12,6 @@
     import { locale } from "svelte-i18n";
     import { slide, fly, fade } from "svelte/transition";
     import { page } from "$app/stores";
-    import { v4 as uuidv4 } from "uuid";
     import { api } from "$lib/api";
     import { env } from "$env/dynamic/public";
     import { renderBrandedMarkdown } from "$lib/branding/markdown";
@@ -25,6 +24,7 @@
     let portOneLoadPromise: Promise<void> | null = null;
     let paypalLoadPromise: Promise<void> | null = null;
     let paypalLoadCurrency: string | null = null;
+    let lastRecoveryPaymentId = "";
 
     async function detectCountry() {
         try {
@@ -200,6 +200,7 @@
                 },
                 onApprove: async (data: any) => {
                     isPurchasing = true;
+                    localStorage.setItem("pending_paypal_order_id", data.orderID);
                     try {
                         const res = await api.post("/api/paypal/capture", {
                             orderID: data.orderID,
@@ -211,6 +212,7 @@
                             );
                         }
                         const result = await res.json();
+                        localStorage.removeItem("pending_paypal_order_id");
 
                         // Refresh user data
                         const user = await getCurrentUser();
@@ -240,6 +242,43 @@
             .then(() => {
                 lastRenderedOptionId = currentItemId;
             });
+    }
+
+    async function recoverPendingPayPal() {
+        const orderID = localStorage.getItem("pending_paypal_order_id");
+        if (!orderID || isPurchasing || lastRecoveryPaymentId === `paypal:${orderID}`) return;
+        lastRecoveryPaymentId = `paypal:${orderID}`;
+        isPurchasing = true;
+        try {
+            const res = await api.post("/api/paypal/capture", { orderID });
+            if (!res.ok) return;
+            localStorage.removeItem("pending_paypal_order_id");
+            const user = await getCurrentUser();
+            if (user) st_user.set(user);
+            toast.success($t("shop.neurons_charged", { values: { paid: (await res.json()).neurons, bonus: 0 } }));
+        } catch (error) {
+            console.warn("[PayPal] Pending order recovery deferred:", error);
+        } finally {
+            isPurchasing = false;
+        }
+    }
+
+    async function recoverPendingPortOne() {
+        const paymentId = localStorage.getItem("pending_portone_payment_id");
+        if (!paymentId || isPurchasing || lastRecoveryPaymentId === `portone:${paymentId}`) return;
+        lastRecoveryPaymentId = `portone:${paymentId}`;
+        isPurchasing = true;
+        try {
+            const res = await api.post("/api/portone/confirm", { paymentId });
+            if (!res.ok) return;
+            localStorage.removeItem("pending_portone_payment_id");
+            const user = await getCurrentUser();
+            if (user) st_user.set(user);
+        } catch (error) {
+            console.warn("[PortOne] Pending payment recovery deferred:", error);
+        } finally {
+            isPurchasing = false;
+        }
     }
 
     // Trigger PayPal render from explicit user actions (not $: reactive)
@@ -308,12 +347,14 @@
         void ensurePortOneSDK().catch((error) => {
             console.error(error);
         });
+        void recoverPendingPortOne();
     }
 
     $: if (isOpen && isKorean === false) {
         void ensurePayPalSDK().catch((error) => {
             console.error(error);
         });
+        void recoverPendingPayPal();
     }
 
     const dispatch = createEventDispatcher();
@@ -326,6 +367,7 @@
     }
 
     function closeModal() {
+        lastRecoveryPaymentId = "";
         isOpen = false;
         dispatch("close");
     }
@@ -355,11 +397,6 @@
         if (!selectedOption) return;
         isPurchasing = true;
 
-        const p = getPaymentParams();
-        if (!p) {
-            isPurchasing = false;
-            return;
-        }
         // Store return URL for redirect after payment
         localStorage.setItem("payment_return_url", $page.url.pathname);
         // Store history length for smart rewind
@@ -369,6 +406,16 @@
         );
 
         try {
+            const intentResponse = await api.post("/api/portone/create-intent", {
+                item_id: selectedOption.item_id,
+            });
+            if (!intentResponse.ok) {
+                throw new Error("Failed to create payment intent");
+            }
+            const intent = await intentResponse.json();
+            const p = getPaymentParams(intent.paymentId, intent.amount, intent.credits);
+            if (!p) throw new Error("Invalid payment intent");
+            localStorage.setItem("pending_portone_payment_id", p.paymentId);
             await ensurePortOneSDK();
 
             // @ts-ignore
@@ -398,11 +445,20 @@
             });
 
             if (response.code != null) {
+                localStorage.removeItem("pending_portone_payment_id");
                 console.error("PortOne Error:", response);
                 toast.error(response.message || "Payment failed");
                 isPurchasing = false;
                 return;
             }
+
+            const confirmResponse = await api.post("/api/portone/confirm", {
+                paymentId: p.paymentId,
+            });
+            if (!confirmResponse.ok) {
+                throw new Error("Payment completed, but credit confirmation is pending. Please retry shortly.");
+            }
+            localStorage.removeItem("pending_portone_payment_id");
 
             const user = await getCurrentUser();
             if (user) {
@@ -431,7 +487,7 @@
     });
 
     let current_neurons_count: number = 0;
-    $: current_neurons_count = $st_user?.credits || 0;
+    $: current_neurons_count = ($st_user?.credits || 0) / 1000000;
 
     let isFrist = get(st_user)?.data.hasReceivedFirstCreationReward;
 
@@ -492,19 +548,17 @@
         return "₩";
     }
 
-    function getPaymentParams() {
+    function getPaymentParams(paymentId: string, confirmedAmount: number, confirmedCredits: number) {
         if (!selectedOption) return null;
 
         const p_user = get(st_user);
         if (!p_user) return null;
 
-        const paymentId = uuidv4();
         const orderName =
             selectedOption.name ||
             `${(selectedOption.neurons + (selectedOption.bonus_amount || 0)).toLocaleString()} Neurons`;
-        const totalAmount = selectedOption.prices?.KRW || 0;
-        const credits =
-            selectedOption.neurons + (selectedOption.bonus_amount || 0);
+        const totalAmount = confirmedAmount;
+        const credits = confirmedCredits;
 
         const storeId = "store-04392323-c1ba-4c80-9812-ae8577171bb0";
         //const channelKey = "channel-key-c50f76a9-fa6e-47be-80e4-f77b8b8d6248";
@@ -746,7 +800,7 @@
 
                 <div class="current-balance">
                     <span>{$t("shop.current_neurons")}</span>
-                    <strong>{current_neurons_count.toLocaleString()} N</strong>
+                    <strong>{current_neurons_count.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 4 })} N</strong>
                 </div>
                 {#if isKorean === null}
                     <!-- Loading country detection -->

@@ -29,6 +29,7 @@
   import { api } from "$lib/api";
   import { json } from "@sveltejs/kit";
   import { applyVarsFromContent } from "$lib/chat2d/vars";
+  import TokenDebugPanel from "./TokenDebugPanel.svelte";
 
   export let isLoading: boolean = false;
   export let showChat: boolean = true;
@@ -1260,6 +1261,7 @@
       </div>
     </div>
   {/if}
+  <TokenDebugPanel />
 </div>
 
 <style>

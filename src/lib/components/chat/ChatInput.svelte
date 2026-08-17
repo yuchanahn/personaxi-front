@@ -150,9 +150,9 @@
   {#if !isListening && charCount > 0}
     <div class="neuron-indicator">
       {#if $pricingStore.billing_mode === 'token'}
-        🔋 Token billing / {$st_user?.credits ?? 0}
+        🔋 Token billing / {((Number($st_user?.credits) || 0) / 1000000).toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 4 })}
       {:else}
-        {displayNeurons} / {$st_user?.credits ?? 0}
+        {displayNeurons} / {((Number($st_user?.credits) || 0) / 1000000).toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 4 })}
       {/if}
     </div>
   {/if}

@@ -3,6 +3,7 @@
     import { goto } from "$app/navigation";
     import Icon from "@iconify/svelte";
     import { t } from "svelte-i18n";
+    import { api } from "$lib/api";
 
     let status = "processing";
     let message = "";
@@ -14,6 +15,7 @@
         const code = urlParams.get("code");
         const msg = urlParams.get("message");
         const decodedMessage = msg ? decodeURIComponent(msg) : "";
+        const paymentId = urlParams.get("paymentId");
 
         // 2. Get stored state
         returnUrl = localStorage.getItem("payment_return_url");
@@ -73,19 +75,33 @@
             return;
         }
 
-        // 6. Handle Success (Assumed if no code and token exists)
-        // Simulate verify delay
-        setTimeout(() => {
-            status = "success";
-
-            // Consume the ticket
-            localStorage.removeItem("payment_return_url");
-
-            // Redirect back
-            setTimeout(() => {
-                performRewind();
-            }, 3000);
-        }, 1500);
+        // 6. A redirect is not proof of grant. Confirm against PortOne through
+        // the authenticated backend; webhook and browser confirmation converge
+        // on the same idempotent transaction.
+        if (!paymentId) {
+            status = "failed";
+            message = "Missing payment ID. Your payment was not marked complete.";
+            return;
+        }
+        localStorage.setItem("pending_portone_payment_id", paymentId);
+        let confirmed = false;
+        for (let attempt = 0; attempt < 5; attempt += 1) {
+            const response = await api.post("/api/portone/confirm", { paymentId }).catch(() => null);
+            if (response?.ok) {
+                confirmed = true;
+                break;
+            }
+            await new Promise((resolve) => setTimeout(resolve, 1000));
+        }
+        if (!confirmed) {
+            status = "failed";
+            message = "Payment confirmation is delayed. Reopen the shop to retry safely.";
+            return;
+        }
+        localStorage.removeItem("pending_portone_payment_id");
+        status = "success";
+        localStorage.removeItem("payment_return_url");
+        setTimeout(() => performRewind(), 3000);
     });
 
     function performRewind() {
